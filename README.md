@@ -40,8 +40,12 @@ Voir [Quick Start Windows](docs/QUICK_START_WINDOWS.md) pour plus de détails.
 
 ## Documentation Complète
 
+### Installation & Configuration
 - **Installation Windows** : [docs/INSTALLATION_WINDOWS.md](docs/INSTALLATION_WINDOWS.md)
+- **Installation PHP 8.3 Windows** : [docs/INSTALLATION_PHP_WINDOWS.md](docs/INSTALLATION_PHP_WINDOWS.md)
 - **Quick Start Windows** : [docs/QUICK_START_WINDOWS.md](docs/QUICK_START_WINDOWS.md)
+
+### Game Design
 - **Guide de démarrage** : [docs/game-design/GUIDE_DEMARRAGE.md](docs/game-design/GUIDE_DEMARRAGE.md)
 - **Game Design Document** : [docs/game-design/GDD_Central.md](docs/game-design/GDD_Central.md)
 
