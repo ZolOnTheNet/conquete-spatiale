@@ -7,6 +7,70 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+# Conquête Spatiale
+
+Un jeu de stratégie spatiale développé avec Laravel 12.
+
+## Quick Start
+
+### Ubuntu / Linux / macOS
+
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+touch database/database.sqlite
+php artisan migrate
+npm install
+npm run build
+php artisan serve
+```
+
+### Windows 11
+
+```bash
+# Installation automatique
+setup-windows.bat
+
+# Démarrer l'environnement de développement
+start-dev.bat
+```
+
+Voir [Quick Start Windows](docs/QUICK_START_WINDOWS.md) pour plus de détails.
+
+## Documentation Complète
+
+- **Installation Windows** : [docs/INSTALLATION_WINDOWS.md](docs/INSTALLATION_WINDOWS.md)
+- **Quick Start Windows** : [docs/QUICK_START_WINDOWS.md](docs/QUICK_START_WINDOWS.md)
+- **Guide de démarrage** : [docs/game-design/GUIDE_DEMARRAGE.md](docs/game-design/GUIDE_DEMARRAGE.md)
+- **Game Design Document** : [docs/game-design/GDD_Central.md](docs/game-design/GDD_Central.md)
+
+## Stack Technique
+
+- **Backend** : Laravel 12 (PHP 8.2+)
+- **Frontend** : Vite + TailwindCSS 4.0
+- **Base de données** : SQLite (dev) / MySQL ou PostgreSQL (prod)
+- **Queue** : Database driver
+
+## Commandes Utiles
+
+```bash
+# Démarrer le serveur de développement
+php artisan serve
+
+# Démarrer Vite (hot reload)
+npm run dev
+
+# Lancer tous les services (serveur + queue + logs + vite)
+composer dev
+
+# Exécuter les tests
+composer test
+
+# Lancer les migrations
+php artisan migrate
+```
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
