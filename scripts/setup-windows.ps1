@@ -124,7 +124,7 @@ Write-Host ""
 
 # Vérification de la configuration PHP
 Write-Host "[Info] Vérification de la configuration PHP..." -ForegroundColor Cyan
-php check-php-version.php
+php scripts\check-php-version.php
 Write-Host ""
 
 # Résumé
@@ -136,7 +136,7 @@ Write-Host "Prochaines étapes:" -ForegroundColor Yellow
 Write-Host "  1. Démarrer le serveur: " -NoNewline
 Write-Host "php artisan serve" -ForegroundColor Cyan
 Write-Host "  2. Ou utiliser le script: " -NoNewline
-Write-Host ".\start-dev.bat" -ForegroundColor Cyan
+Write-Host ".\scripts\start-dev.bat" -ForegroundColor Cyan
 Write-Host "  3. Ouvrir dans le navigateur: " -NoNewline
 Write-Host "http://localhost:8000" -ForegroundColor Cyan
 Write-Host ""

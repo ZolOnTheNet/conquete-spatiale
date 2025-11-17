@@ -132,7 +132,7 @@ echo.
 
 REM Vérification de la version PHP et extensions
 echo [Info] Verification de la configuration PHP...
-php check-php-version.php
+php scripts\check-php-version.php
 echo.
 
 REM Résumé
@@ -142,7 +142,7 @@ echo ========================================
 echo.
 echo Prochaines etapes:
 echo   1. Demarrer le serveur: php artisan serve
-echo   2. Ou utiliser le script: start-dev.bat
+echo   2. Ou utiliser le script: scripts\start-dev.bat
 echo   3. Ouvrir dans le navigateur: http://localhost:8000
 echo.
 echo Pour plus d'informations, consultez:

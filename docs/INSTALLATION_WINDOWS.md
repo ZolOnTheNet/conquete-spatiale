@@ -106,7 +106,7 @@ git checkout claude/setup-windows-dev-01ALQ5gscjmMzXQXmaL42LNo
 **Option facile - Utiliser le script PowerShell :**
 
 ```powershell
-.\setup-windows.ps1
+.\scripts\setup-windows.ps1
 ```
 
 **OU Installation manuelle :**
@@ -141,7 +141,7 @@ npm run build
 Utiliser le script batch pour démarrer tous les services :
 
 ```bash
-.\start-dev.bat
+.\scripts\start-dev.bat
 ```
 
 Ce script lance :
@@ -381,7 +381,7 @@ XAMPP pour Windows s'arrête actuellement à **PHP 8.2.12**. C'est la seule vers
 
 3. **Vérifiez la compatibilité** :
    ```bash
-   php check-php-version.php
+   php scripts\check-php-version.php
    ```
 
 4. **Committez toujours `composer.lock`** :

@@ -30,10 +30,10 @@ php artisan serve
 
 ```bash
 # Installation automatique
-setup-windows.bat
+scripts\setup-windows.bat
 
 # Démarrer l'environnement de développement
-start-dev.bat
+scripts\start-dev.bat
 ```
 
 Voir [Quick Start Windows](docs/QUICK_START_WINDOWS.md) pour plus de détails.
