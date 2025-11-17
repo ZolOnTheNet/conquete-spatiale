@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Compte extends Model
+class Compte extends Authenticatable
 {
+    use HasFactory, Notifiable, HasApiTokens;
+
     protected $table = 'comptes';
 
     protected $fillable = [
@@ -22,13 +27,26 @@ class Compte extends Model
 
     protected $hidden = [
         'mot_de_passe',
+        'remember_token',
     ];
 
     protected $casts = [
         'perso_secondaires' => 'array',
         'est_verifie' => 'boolean',
         'date_logs' => 'array',
+        'email_verified_at' => 'datetime',
     ];
+
+    // Méthodes pour l'authentification Laravel
+    public function getAuthPassword()
+    {
+        return $this->mot_de_passe;
+    }
+
+    public function getEmailForVerification()
+    {
+        return $this->adresse_mail;
+    }
 
     // Relations
     public function personnages(): HasMany

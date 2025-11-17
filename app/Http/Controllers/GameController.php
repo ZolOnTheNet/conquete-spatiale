@@ -14,12 +14,85 @@ class GameController extends Controller
         return view('game.console');
     }
 
+    // Sélection/Création de personnage
+    public function selectionPersonnage(Request $request): View
+    {
+        $compte = $request->user();
+        $personnages = $compte->personnages;
+
+        return view('game.selection-personnage', [
+            'personnages' => $personnages,
+            'compte' => $compte,
+        ]);
+    }
+
+    public function creerPersonnage(Request $request)
+    {
+        $validated = $request->validate([
+            'nom' => 'required|string|max:50',
+            'prenom' => 'nullable|string|max:50',
+        ]);
+
+        $compte = $request->user();
+
+        // Créer le personnage
+        $personnage = Personnage::create([
+            'compte_id' => $compte->id,
+            'nom' => $validated['nom'],
+            'prenom' => $validated['prenom'] ?? null,
+            // Valeurs par défaut
+            'agilite' => 2,
+            'force' => 2,
+            'finesse' => 2,
+            'instinct' => 2,
+            'presence' => 2,
+            'savoir' => 2,
+            'competences' => [],
+            'experience' => 0,
+            'niveau' => 1,
+        ]);
+
+        // Si c'est le premier personnage, le définir comme principal
+        if (!$compte->perso_principal) {
+            $compte->perso_principal = $personnage->id;
+            $compte->save();
+        }
+
+        return redirect()->route('personnage.selection')
+            ->with('success', 'Personnage créé avec succès !');
+    }
+
+    public function activerPersonnage(Request $request, Personnage $personnage)
+    {
+        $compte = $request->user();
+
+        // Vérifier que le personnage appartient bien au compte
+        if ($personnage->compte_id !== $compte->id) {
+            return redirect()->route('personnage.selection')
+                ->with('error', 'Ce personnage ne vous appartient pas.');
+        }
+
+        $compte->perso_principal = $personnage->id;
+        $compte->save();
+
+        return redirect()->route('dashboard')
+            ->with('success', "Personnage {$personnage->nom} activé !");
+    }
+
     public function dashboard(Request $request): View
     {
-        // Récupérer le personnage actif (pour l'instant hardcodé, à remplacer par session)
-        $personnage = Personnage::with(['vaisseauActif.objetSpatial'])->first();
+        // Récupérer le personnage depuis le middleware
+        $personnage = $request->attributes->get('personnage');
 
-        return view('game.dashboard', [
+        if (!$personnage) {
+            // Fallback si middleware pas utilisé
+            $compte = $request->user();
+            $personnage = $compte->personnagePrincipal;
+        }
+
+        $personnage->load(['vaisseauActif.objetSpatial']);
+
+        return view('game.console', [
             'personnage' => $personnage,
         ]);
     }
@@ -27,7 +100,9 @@ class GameController extends Controller
     public function executeCommand(Request $request)
     {
         $command = $request->input('command');
-        $personnage = Personnage::with(['vaisseauActif.objetSpatial'])->first();
+
+        // Récupérer le personnage depuis le middleware
+        $personnage = $request->attributes->get('personnage');
 
         if (!$personnage) {
             return response()->json([
@@ -35,6 +110,8 @@ class GameController extends Controller
                 'message' => 'Aucun personnage trouvé. Créez un personnage d\'abord.',
             ]);
         }
+
+        $personnage->load(['vaisseauActif.objetSpatial']);
 
         $result = $this->processCommand($command, $personnage);
 

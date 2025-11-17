@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('nom_login')->unique();
             $table->string('mot_de_passe');
             $table->string('adresse_mail')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->rememberToken();
             $table->unsignedBigInteger('perso_principal')->nullable();
             $table->json('perso_secondaires')->nullable();
             $table->boolean('est_verifie')->default(false);
