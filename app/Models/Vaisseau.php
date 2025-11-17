@@ -62,26 +62,37 @@ class Vaisseau extends Model
     }
 
     // Méthodes de propulsion (selon GDD)
+    private function getMasseTotal(): float
+    {
+        // Masse totale = masse fixe (objet spatial) + masse variable (cargo)
+        return $this->objetSpatial->masse + $this->masse_variable;
+    }
+
     public function calculerConsommationConventionnelle(float $distance): float
     {
-        // Formule: InitConv + (Distance × CoefConv)
-        return $this->init_conventionnel + ($distance * $this->coef_conventionnel);
+        // Formule GDD: Init_Conventionnel + (Masse × Distance / Vitesse)
+        $masse = $this->getMasseTotal();
+        return $this->init_conventionnel + ($masse * $distance / $this->vitesse_conventionnelle);
     }
 
     public function calculerConsommationHE(float $distance): float
     {
-        // Formule: InitHE + (Distance × CoefHE)
-        return $this->init_hyperespace + ($distance * $this->coef_hyperespace);
+        // Formule GDD: Init_HE + (Coef_HE/100) × (Masse/Vitesse) × Distance
+        // Note: coef_hyperespace est déjà divisé par 100 en DB
+        $masse = $this->getMasseTotal();
+        return $this->init_hyperespace + ($this->coef_hyperespace * ($masse / $this->vitesse_saut) * $distance);
     }
 
-    public function calculerNbPA(float $distance, string $mode = 'conventionnel'): int
+    public function calculerNbPA(float $distance, float $consommation, string $mode = 'conventionnel'): int
     {
         if ($mode === 'hyperespace' || $mode === 'HE') {
-            // PA = Distance × CoefPAHE
-            return (int)ceil($distance * $this->coef_pa_he);
+            // Formule GDD: PA = 1 + Coef_PAHE × Distance
+            // Note: coef_pa_he est déjà divisé par 100 en DB (20 -> 0.2)
+            return (int)ceil(1 + ($this->coef_pa_he * $distance));
         } else {
-            // PA = Distance × CoefPAMN
-            return (int)ceil($distance * $this->coef_pa_mn);
+            // Formule GDD: PA = Consommation / Vitesse × Coef_PAMN / 100
+            // Note: coef_pa_mn est déjà divisé par 100 en DB (100 -> 1.0)
+            return (int)ceil(($consommation / $this->vitesse_conventionnelle) * $this->coef_pa_mn);
         }
     }
 
@@ -108,7 +119,7 @@ class Vaisseau extends Model
         $consommation = $mode === 'hyperespace'
             ? $this->calculerConsommationHE($distance)
             : $this->calculerConsommationConventionnelle($distance);
-        $pa = $this->calculerNbPA($distance, $mode);
+        $pa = $this->calculerNbPA($distance, $consommation, $mode);
 
         if ($this->consommerEnergie($consommation)) {
             // Mettre à jour position
@@ -134,6 +145,52 @@ class Vaisseau extends Model
             'success' => false,
             'erreur' => 'Énergie insuffisante',
             'manquant' => $consommation - $this->energie_actuelle,
+        ];
+    }
+
+    /**
+     * Déplacer avec coordonnées directes (mode conventionnel)
+     */
+    public function deplacerVers(float $secteur_x, float $secteur_y, float $secteur_z, float $position_x = 0, float $position_y = 0, float $position_z = 0, string $mode = 'conventionnel'): array
+    {
+        $os_current = $this->objetSpatial;
+
+        // Calculer distance (formule euclidienne 3D)
+        $dx = ($secteur_x + $position_x) - ($os_current->secteur_x + $os_current->position_x);
+        $dy = ($secteur_y + $position_y) - ($os_current->secteur_y + $os_current->position_y);
+        $dz = ($secteur_z + $position_z) - ($os_current->secteur_z + $os_current->position_z);
+        $distance = sqrt($dx * $dx + $dy * $dy + $dz * $dz);
+
+        $consommation = $mode === 'hyperespace'
+            ? $this->calculerConsommationHE($distance)
+            : $this->calculerConsommationConventionnelle($distance);
+        $pa = $this->calculerNbPA($distance, $consommation, $mode);
+
+        if (!$this->consommerEnergie($consommation)) {
+            return [
+                'success' => false,
+                'erreur' => 'Énergie insuffisante',
+                'manquant' => round($consommation - $this->energie_actuelle, 2),
+                'requis' => round($consommation, 2),
+            ];
+        }
+
+        // Mettre à jour position
+        $os_current->secteur_x = (int)$secteur_x;
+        $os_current->secteur_y = (int)$secteur_y;
+        $os_current->secteur_z = (int)$secteur_z;
+        $os_current->position_x = $position_x;
+        $os_current->position_y = $position_y;
+        $os_current->position_z = $position_z;
+        $os_current->save();
+        $this->save();
+
+        return [
+            'success' => true,
+            'distance' => round($distance, 2),
+            'consommation' => round($consommation, 2),
+            'pa' => $pa,
+            'energie_restante' => round($this->energie_actuelle, 2),
         ];
     }
 }

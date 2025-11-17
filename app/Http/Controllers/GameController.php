@@ -130,6 +130,7 @@ class GameController extends Controller
             'vaisseau', 'ship' => $this->showShip($personnage),
             'lancer', 'roll' => $this->rollDice($personnage, $parts),
             'deplacer', 'move' => $this->moveShip($personnage, $parts),
+            'saut', 'jump' => $this->jumpHyperspace($personnage, $parts),
             '' => ['success' => true, 'message' => ''],
             default => [
                 'success' => false,
@@ -144,12 +145,14 @@ class GameController extends Controller
             'success' => true,
             'message' => "
 COMMANDES DISPONIBLES:
-  help, aide           - Afficher cette aide
-  status, statut       - Afficher le statut du personnage
-  position, pos        - Afficher la position actuelle
-  vaisseau, ship       - Afficher les infos du vaisseau
-  lancer [competence]  - Lancer les dés (système Daggerheart 2d12)
-  deplacer [x] [y] [z] - Déplacer le vaisseau (mode conventionnel)
+  help, aide                  - Afficher cette aide
+  status, statut              - Afficher le statut du personnage
+  position, pos               - Afficher la position actuelle
+  vaisseau, ship              - Afficher les infos du vaisseau
+  lancer [competence]         - Lancer les dés (système Daggerheart 2d12)
+  deplacer [sx] [sy] [sz]     - Déplacer (conventionnel) vers secteur
+  deplacer [sx] [sy] [sz] [px] [py] [pz] - Déplacer avec position précise
+  saut [sx] [sy] [sz]         - Saut hyperespace vers secteur
             ",
         ];
     }
@@ -163,6 +166,7 @@ COMMANDES DISPONIBLES:
 Nom: {$personnage->nom} {$personnage->prenom}
 Niveau: {$personnage->niveau}
 XP: {$personnage->experience}
+PA: {$personnage->points_action} / {$personnage->max_points_action}
 
 TRAITS:
   Agilité: {$personnage->agilite}
@@ -250,10 +254,127 @@ Total: {$result['total']}
             return ['success' => false, 'message' => 'Aucun vaisseau actif'];
         }
 
-        // TODO: implémenter déplacement réel
+        // Parser coordonnées: deplacer sx sy sz [px py pz]
+        if (count($parts) < 4) {
+            return [
+                'success' => false,
+                'message' => "Usage: deplacer [secteur_x] [secteur_y] [secteur_z] [position_x] [position_y] [position_z]\nExemple: deplacer 0 0 0 ou deplacer 1 2 3 0.5 0.3 0.1",
+            ];
+        }
+
+        $secteur_x = (float)($parts[1] ?? 0);
+        $secteur_y = (float)($parts[2] ?? 0);
+        $secteur_z = (float)($parts[3] ?? 0);
+        $position_x = (float)($parts[4] ?? 0);
+        $position_y = (float)($parts[5] ?? 0);
+        $position_z = (float)($parts[6] ?? 0);
+
+        // Exécuter déplacement
+        $result = $vaisseau->deplacerVers(
+            $secteur_x,
+            $secteur_y,
+            $secteur_z,
+            $position_x,
+            $position_y,
+            $position_z,
+            'conventionnel'
+        );
+
+        if (!$result['success']) {
+            return [
+                'success' => false,
+                'message' => "Déplacement impossible: {$result['erreur']}\nÉnergie requise: {$result['requis']} UE, manquant: {$result['manquant']} UE",
+            ];
+        }
+
+        // Consommer PA
+        $pa_requis = $result['pa'];
+        if (!$personnage->consommerPA($pa_requis)) {
+            // Rollback position (annuler le déplacement)
+            return [
+                'success' => false,
+                'message' => "PA insuffisants ! Requis: {$pa_requis} PA, disponible: {$personnage->points_action} PA",
+            ];
+        }
+
+        $personnage->save();
+        $vaisseau->save();
+
         return [
-            'success' => false,
-            'message' => 'Fonctionnalité en développement',
+            'success' => true,
+            'message' => "
+=== DÉPLACEMENT CONVENTIONNEL ===
+Distance: {$result['distance']} UC
+Énergie consommée: {$result['consommation']} UE
+PA consommés: {$pa_requis}
+Énergie restante: {$result['energie_restante']} UE
+PA restants: {$personnage->points_action} / {$personnage->max_points_action}
+Nouvelle position: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z}) + ({$position_x}, {$position_y}, {$position_z})
+            ",
+        ];
+    }
+
+    private function jumpHyperspace(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        // Parser coordonnées: saut sx sy sz
+        if (count($parts) < 4) {
+            return [
+                'success' => false,
+                'message' => "Usage: saut [secteur_x] [secteur_y] [secteur_z]\nExemple: saut 10 5 3",
+            ];
+        }
+
+        $secteur_x = (float)($parts[1] ?? 0);
+        $secteur_y = (float)($parts[2] ?? 0);
+        $secteur_z = (float)($parts[3] ?? 0);
+
+        // Exécuter saut HE (toujours position 0,0,0 après saut selon GDD)
+        $result = $vaisseau->deplacerVers(
+            $secteur_x,
+            $secteur_y,
+            $secteur_z,
+            0,
+            0,
+            0,
+            'hyperespace'
+        );
+
+        if (!$result['success']) {
+            return [
+                'success' => false,
+                'message' => "Saut impossible: {$result['erreur']}\nÉnergie requise: {$result['requis']} UE, manquant: {$result['manquant']} UE",
+            ];
+        }
+
+        // Consommer PA
+        $pa_requis = $result['pa'];
+        if (!$personnage->consommerPA($pa_requis)) {
+            return [
+                'success' => false,
+                'message' => "PA insuffisants ! Requis: {$pa_requis} PA, disponible: {$personnage->points_action} PA",
+            ];
+        }
+
+        $personnage->save();
+        $vaisseau->save();
+
+        return [
+            'success' => true,
+            'message' => "
+=== SAUT HYPERESPACE ===
+Distance: {$result['distance']} secteurs
+Énergie consommée: {$result['consommation']} UE
+PA consommés: {$pa_requis}
+Énergie restante: {$result['energie_restante']} UE
+PA restants: {$personnage->points_action} / {$personnage->max_points_action}
+Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
+[Phase d'orientation requise - TODO]
+            ",
         ];
     }
 }

@@ -25,6 +25,8 @@ class Personnage extends Model
         'niveau',
         'jetons_hope',
         'jetons_fear',
+        'points_action',
+        'max_points_action',
         'vaisseau_actif_id',
         'date_logs',
     ];
@@ -78,5 +80,37 @@ class Personnage extends Model
     {
         $this->experience += $xp;
         // Logique de niveau à implémenter selon GDD
+    }
+
+    // Gestion des Points d'Action (PA)
+    public function consommerPA(int $pa): bool
+    {
+        if ($this->points_action >= $pa) {
+            $this->points_action -= $pa;
+            return true;
+        }
+        return false;
+    }
+
+    public function restaurerPA(int $pa = null): void
+    {
+        if ($pa === null) {
+            // Restauration complète (nouveau tour)
+            $this->points_action = $this->max_points_action;
+        } else {
+            $this->points_action = min(
+                $this->max_points_action,
+                $this->points_action + $pa
+            );
+        }
+    }
+
+    public function ajusterMaxPA(int $nouveau_max): void
+    {
+        $this->max_points_action = $nouveau_max;
+        // Ajuster les PA actuels si nécessaire
+        if ($this->points_action > $nouveau_max) {
+            $this->points_action = $nouveau_max;
+        }
     }
 }
