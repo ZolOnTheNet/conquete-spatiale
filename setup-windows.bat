@@ -130,6 +130,11 @@ if %ERRORLEVEL% NEQ 0 (
 )
 echo.
 
+REM Vérification de la version PHP et extensions
+echo [Info] Verification de la configuration PHP...
+php check-php-version.php
+echo.
+
 REM Résumé
 echo ========================================
 echo   Installation terminee avec succes!

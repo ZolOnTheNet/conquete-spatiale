@@ -6,9 +6,11 @@ Ce guide vous permettra de configurer rapidement votre environnement de dévelop
 
 ### 1. Installer PHP 8.2+
 
+> **Note importante** : Si vous travaillez aussi sur Ubuntu/Linux, installez **la même version de PHP** sur les deux systèmes pour éviter les incompatibilités. Recommandé : **PHP 8.3** sur les deux.
+
 **Option A : Via XAMPP (Recommandé pour débutants)**
 1. Télécharger XAMPP : https://www.apachefriends.org/fr/download.html
-2. Installer XAMPP (version PHP 8.2 minimum)
+2. **Installer XAMPP avec PHP 8.3** (version recommandée)
 3. Ajouter PHP au PATH :
    - Ouvrir les "Variables d'environnement système"
    - Modifier la variable `Path`
@@ -323,6 +325,42 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 - **PhpStorm** : https://www.jetbrains.com/phpstorm/
   - Support Laravel intégré
+
+## Travailler avec différentes versions de PHP
+
+### Question : Puis-je avoir PHP 8.2 sur Windows et 8.3 sur Ubuntu ?
+
+**Réponse courte** : Oui, mais ce n'est pas idéal.
+
+**Recommandation** : Installez PHP 8.3 sur les deux systèmes.
+
+### Si vous devez garder des versions différentes :
+
+1. **Développez sur la version la plus basse (8.2)** :
+   - Codez principalement sur Windows avec 8.2
+   - Testez sur Ubuntu avec 8.3
+
+2. **Évitez les fonctionnalités PHP 8.3-only** :
+   - Ne pas utiliser `json_validate()`
+   - Ne pas utiliser les nouvelles fonctionnalités Random
+   - S'en tenir à PHP 8.2
+
+3. **Vérifiez la compatibilité** :
+   ```bash
+   # Exécuter ce script pour vérifier
+   php check-php-version.php
+   ```
+
+4. **Committez `composer.lock`** :
+   - Les dépendances seront identiques sur les deux systèmes
+
+### Avantages de PHP 8.3 sur les deux systèmes :
+
+- ✅ Environnements identiques
+- ✅ Pas de surprises de comportement
+- ✅ Tests fiables
+- ✅ Meilleure sécurité (version plus récente)
+- ✅ Meilleures performances
 
 ## Support
 

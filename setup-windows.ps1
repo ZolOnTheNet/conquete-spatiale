@@ -122,6 +122,11 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host ""
 
+# Vérification de la configuration PHP
+Write-Host "[Info] Vérification de la configuration PHP..." -ForegroundColor Cyan
+php check-php-version.php
+Write-Host ""
+
 # Résumé
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  Installation terminée avec succès!" -ForegroundColor Green
