@@ -177,7 +177,7 @@ Après installation, utilisez notre script :
 
 ```bash
 cd C:\chemin\vers\conquete-spatiale
-php check-php-version.php
+php scripts\check-php-version.php
 ```
 
 ## Dépannage

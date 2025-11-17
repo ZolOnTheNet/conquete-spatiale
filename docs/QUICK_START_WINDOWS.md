@@ -20,14 +20,14 @@ git clone https://github.com/ZolOnTheNet/conquete-spatiale.git
 cd conquete-spatiale
 
 # Lancer l'installation automatique
-setup-windows.bat
+scripts\setup-windows.bat
 ```
 
 ### 3. Démarrer le Projet
 
 ```bash
 # Lancer l'environnement de développement
-start-dev.bat
+scripts\start-dev.bat
 ```
 
 Ouvrir dans le navigateur : http://localhost:8000
@@ -50,7 +50,7 @@ git push
 
 ```bash
 # Option 1 : Script automatique (recommandé)
-start-dev.bat
+scripts\start-dev.bat
 
 # Option 2 : Serveur seul
 php artisan serve
@@ -80,8 +80,8 @@ php artisan serve --port=8001
 
 ## Scripts Disponibles
 
-- `setup-windows.bat` ou `setup-windows.ps1` : Installation initiale
-- `start-dev.bat` : Démarrer l'environnement de développement
+- `scripts\setup-windows.bat` ou `scripts\setup-windows.ps1` : Installation initiale
+- `scripts\start-dev.bat` : Démarrer l'environnement de développement
 - `composer dev` : Alternative pour démarrer tous les services
 
 ## Documentation Complète
