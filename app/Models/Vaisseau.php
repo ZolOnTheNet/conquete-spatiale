@@ -44,6 +44,17 @@ class Vaisseau extends Model
         'programmes',
         'emplacements',
         'date_logs',
+        // Système de scan
+        'portee_scan',
+        'puissance_scan',
+        'bonus_scan',
+        'scan_niveau_actuel',
+        'scan_secteur_x',
+        'scan_secteur_y',
+        'scan_secteur_z',
+        'scan_position_x',
+        'scan_position_y',
+        'scan_position_z',
     ];
 
     protected $casts = [
@@ -136,6 +147,9 @@ class Vaisseau extends Model
             );
             $this->objetSpatial->save();
 
+            // Réinitialiser scan (vaisseau a bougé)
+            $this->reinitialiserScan();
+
             return [
                 'success' => true,
                 'consommation' => $consommation,
@@ -186,6 +200,10 @@ class Vaisseau extends Model
         $os_current->position_y = $position_y;
         $os_current->position_z = $position_z;
         $os_current->save();
+
+        // Réinitialiser scan (vaisseau a bougé)
+        $this->reinitialiserScan();
+
         $this->save();
 
         return [
@@ -195,5 +213,101 @@ class Vaisseau extends Model
             'pa' => $pa,
             'energie_restante' => round($this->energie_actuelle, 2),
         ];
+    }
+
+    // === SYSTÈME DE SCAN PROGRESSIF ===
+
+    /**
+     * Vérifie si le vaisseau a bougé depuis le dernier scan
+     * Si oui, réinitialise le scan en cours
+     */
+    public function verifierDeplacementScan(): bool
+    {
+        // Pas de scan en cours
+        if ($this->scan_niveau_actuel === 0 || $this->scan_secteur_x === null) {
+            return false;
+        }
+
+        $os = $this->objetSpatial;
+
+        // Vérifier si position a changé
+        $a_bouge = (
+            $os->secteur_x !== $this->scan_secteur_x ||
+            $os->secteur_y !== $this->scan_secteur_y ||
+            $os->secteur_z !== $this->scan_secteur_z ||
+            abs($os->position_x - $this->scan_position_x) > 0.01 ||
+            abs($os->position_y - $this->scan_position_y) > 0.01 ||
+            abs($os->position_z - $this->scan_position_z) > 0.01
+        );
+
+        if ($a_bouge) {
+            $this->reinitialiserScan();
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Réinitialise le scan en cours
+     */
+    public function reinitialiserScan(): void
+    {
+        $this->scan_niveau_actuel = 0;
+        $this->scan_secteur_x = null;
+        $this->scan_secteur_y = null;
+        $this->scan_secteur_z = null;
+        $this->scan_position_x = null;
+        $this->scan_position_y = null;
+        $this->scan_position_z = null;
+        $this->save();
+    }
+
+    /**
+     * Démarre ou continue un scan progressif
+     * @param int $niveau_apporte Niveau apporté par ce scan (défaut: puissance_scan / 10)
+     * @return array Résultat du scan
+     */
+    public function scannerZone(int $niveau_apporte = null): array
+    {
+        $os = $this->objetSpatial;
+
+        // Si pas de scan en cours ou position différente, démarrer nouveau scan
+        if ($this->scan_niveau_actuel === 0 || $this->verifierDeplacementScan()) {
+            $this->scan_secteur_x = $os->secteur_x;
+            $this->scan_secteur_y = $os->secteur_y;
+            $this->scan_secteur_z = $os->secteur_z;
+            $this->scan_position_x = $os->position_x;
+            $this->scan_position_y = $os->position_y;
+            $this->scan_position_z = $os->position_z;
+            $this->scan_niveau_actuel = 0;
+        }
+
+        // Calculer niveau apporté par ce scan
+        if ($niveau_apporte === null) {
+            $puissance_totale = $this->puissance_scan + $this->bonus_scan;
+            $niveau_apporte = max(10, (int)($puissance_totale / 10)); // Minimum 10
+        }
+
+        // Cumuler avec scan précédent
+        $ancien_niveau = $this->scan_niveau_actuel;
+        $this->scan_niveau_actuel += $niveau_apporte;
+        $this->save();
+
+        return [
+            'ancien_niveau' => $ancien_niveau,
+            'niveau_apporte' => $niveau_apporte,
+            'nouveau_niveau' => $this->scan_niveau_actuel,
+            'portee' => $this->portee_scan,
+            'puissance_totale' => $this->puissance_scan + $this->bonus_scan,
+        ];
+    }
+
+    /**
+     * Obtient la puissance de scan effective (base + bonus + niveau cumulé)
+     */
+    public function getPuissanceScanEffective(): int
+    {
+        return $this->puissance_scan + $this->bonus_scan + $this->scan_niveau_actuel;
     }
 }
