@@ -17,13 +17,30 @@ class EnsureHasActivePersonnage
     {
         $compte = $request->user();
 
+        // Verifier si la requete attend du JSON (AJAX)
+        $wantsJson = $request->expectsJson() || $request->ajax();
+
         if (!$compte) {
+            if ($wantsJson) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vous devez être connecté.',
+                    'redirect' => route('login'),
+                ], 401);
+            }
             return redirect()->route('login')
                 ->with('error', 'Vous devez être connecté.');
         }
 
         // Vérifier si le compte a un personnage principal
         if (!$compte->perso_principal) {
+            if ($wantsJson) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Veuillez sélectionner ou créer un personnage.',
+                    'redirect' => route('personnage.selection'),
+                ], 403);
+            }
             return redirect()->route('personnage.selection')
                 ->with('info', 'Veuillez sélectionner ou créer un personnage.');
         }
@@ -32,6 +49,13 @@ class EnsureHasActivePersonnage
         $personnage = $compte->personnagePrincipal;
 
         if (!$personnage) {
+            if ($wantsJson) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Personnage principal introuvable.',
+                    'redirect' => route('personnage.selection'),
+                ], 404);
+            }
             return redirect()->route('personnage.selection')
                 ->with('error', 'Personnage principal introuvable.');
         }
