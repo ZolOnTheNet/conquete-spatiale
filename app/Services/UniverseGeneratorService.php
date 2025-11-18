@@ -165,11 +165,11 @@ class UniverseGeneratorService
             // Calculer température
             $planete->calculerTemperature($systeme->puissance_solaire);
 
-            // Générer gisements
-            $planete->genererGisements();
-
-            // Sauvegarder pour avoir la relation
+            // Sauvegarder pour avoir l'ID
             $planete->save();
+
+            // Générer gisements (après save pour avoir l'ID)
+            $planete->genererGisements();
 
             // Charger la relation et calculer habitabilité
             $planete->load('systemeStellaire');
