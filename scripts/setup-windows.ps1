@@ -136,11 +136,11 @@ Write-Host "Prochaines étapes:" -ForegroundColor Yellow
 Write-Host "  1. Démarrer le serveur: " -NoNewline
 Write-Host "php artisan serve" -ForegroundColor Cyan
 Write-Host "  2. Ou utiliser le script: " -NoNewline
-Write-Host ".\scripts\start-dev.bat" -ForegroundColor Cyan
+Write-Host "scripts\start-dev.bat" -ForegroundColor Cyan
 Write-Host "  3. Ouvrir dans le navigateur: " -NoNewline
 Write-Host "http://localhost:8000" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Pour plus d'informations, consultez:" -ForegroundColor Yellow
+Write-Host "Pour plus d informations, consultez:" -ForegroundColor Yellow
 Write-Host "  docs/INSTALLATION_WINDOWS.md" -ForegroundColor Cyan
 Write-Host "  docs/game-design/GUIDE_DEMARRAGE.md" -ForegroundColor Cyan
 Write-Host ""
