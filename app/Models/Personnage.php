@@ -203,23 +203,46 @@ class Personnage extends Model
 
     // Système de découverte
     /**
-     * Scanne les systèmes stellaires dans un rayon donné
-     * Utilise la formule: 2d12 vs Seuil (500 + Distance × 100)
+     * Scanne les systèmes stellaires (scan progressif lié au vaisseau)
+     * Utilise la formule: 2d12 + Puissance_Scan_Effective vs Seuil (500 + Distance × 100)
+     * Chaque scan coûte 1 PA et améliore la détection
      */
-    public function scannerSystemes(float $rayon = 5.0): array
+    public function scannerSystemes(): array
     {
-        // Obtenir position actuelle (via vaisseau ou objet spatial)
+        // Vérifier présence d'un vaisseau
+        if (!$this->vaisseauActif) {
+            return [
+                'succes' => false,
+                'message' => 'Vous devez être à bord d\'un vaisseau pour scanner.',
+            ];
+        }
+
+        $vaisseau = $this->vaisseauActif;
         $positionActuelle = $this->getPositionActuelle();
 
         if (!$positionActuelle) {
             return [
                 'succes' => false,
-                'message' => 'Position actuelle introuvable. Vous devez être à bord d\'un vaisseau.',
+                'message' => 'Position du vaisseau introuvable.',
             ];
         }
 
-        // Trouver systèmes dans le rayon
+        // Lancer scan progressif du vaisseau
+        $scan_info = $vaisseau->scannerZone();
+        $rayon = $vaisseau->portee_scan;
+
+        // Trouver systèmes dans le rayon (non encore découverts)
         $systemes = SystemeStellaire::all()->filter(function ($systeme) use ($positionActuelle, $rayon) {
+            // Vérifier si déjà découvert
+            $deja_decouvert = $this->decouvertes()
+                ->where('systeme_stellaire_id', $systeme->id)
+                ->exists();
+
+            if ($deja_decouvert) {
+                return false;
+            }
+
+            // Vérifier distance
             $distance = $this->calculerDistance($positionActuelle, [
                 'secteur_x' => $systeme->secteur_x,
                 'secteur_y' => $systeme->secteur_y,
@@ -233,19 +256,9 @@ class Personnage extends Model
         });
 
         $decouvertes = [];
-        $deja_connus = 0;
+        $puissance_scan = $vaisseau->getPuissanceScanEffective();
 
         foreach ($systemes as $systeme) {
-            // Vérifier si déjà découvert
-            $decouverte_existante = $this->decouvertes()
-                ->where('systeme_stellaire_id', $systeme->id)
-                ->first();
-
-            if ($decouverte_existante) {
-                $deja_connus++;
-                continue;
-            }
-
             // Calculer distance
             $distance = $this->calculerDistance($positionActuelle, [
                 'secteur_x' => $systeme->secteur_x,
@@ -256,54 +269,59 @@ class Personnage extends Model
                 'position_z' => $systeme->position_z,
             ]);
 
-            // Formule de détection: 2d12 vs (500 + Distance × 100)
+            // Formule de détection: 2d12 + Puissance_Scan vs (500 + Distance × 100)
             $seuil_base = config('game.decouverte.seuil_base', 500);
             $mult_distance = config('game.decouverte.seuil_par_distance', 100);
             $seuil = $seuil_base + ($distance * $mult_distance);
 
             // Lancer 2d12
             $jet = $this->lancerDes(0);
-            $resultat = $jet['total'];
+            $resultat_des = $jet['total'];
 
-            // Ajuster seuil selon puissance solaire (étoiles brillantes plus faciles à détecter)
+            // Ajouter puissance du scan
+            $resultat_total = $resultat_des + $puissance_scan;
+
+            // Ajuster seuil selon puissance solaire (étoiles brillantes plus faciles)
             $ajustement_puissance = ($systeme->puissance_solaire - 50) * 2; // ±2 par tranche de 1
             $seuil_final = max(1, $seuil - $ajustement_puissance);
 
-            $detecte = $resultat >= $seuil_final;
+            $detecte = $resultat_total >= $seuil_final;
 
-            // Créer découverte
-            $decouverte = Decouverte::create([
-                'personnage_id' => $this->id,
-                'systeme_stellaire_id' => $systeme->id,
-                'resultat_scan' => $resultat,
-                'seuil_detection' => $seuil_final,
-                'distance_decouverte' => $distance,
-                'decouvert_a' => now(),
-                'coordonnees_connues' => true,
-                'type_etoile_connu' => $detecte,
-                'nb_planetes_connu' => $detecte,
-                'visite' => false,
-            ]);
+            // Ne créer découverte QUE si détecté
+            if ($detecte) {
+                $decouverte = Decouverte::create([
+                    'personnage_id' => $this->id,
+                    'systeme_stellaire_id' => $systeme->id,
+                    'resultat_scan' => $resultat_total,
+                    'seuil_detection' => $seuil_final,
+                    'distance_decouverte' => $distance,
+                    'decouvert_a' => now(),
+                    'coordonnees_connues' => true,
+                    'type_etoile_connu' => true,
+                    'nb_planetes_connu' => true,
+                    'visite' => false,
+                ]);
 
-            $decouvertes[] = [
-                'systeme' => $systeme->nom,
-                'distance' => round($distance, 2),
-                'resultat_jet' => $resultat,
-                'seuil' => $seuil_final,
-                'detecte' => $detecte,
-                'details' => $detecte ? [
-                    'type_etoile' => $systeme->type_etoile,
-                    'couleur' => $systeme->couleur,
-                    'nb_planetes' => $systeme->nb_planetes,
-                ] : null,
-            ];
+                $decouvertes[] = [
+                    'systeme' => $systeme->nom,
+                    'distance' => round($distance, 2),
+                    'resultat_des' => $resultat_des,
+                    'puissance_scan' => $puissance_scan,
+                    'resultat_total' => $resultat_total,
+                    'seuil' => $seuil_final,
+                    'details' => [
+                        'type_etoile' => $systeme->type_etoile,
+                        'couleur' => $systeme->couleur,
+                        'nb_planetes' => $systeme->nb_planetes,
+                    ],
+                ];
+            }
         }
 
         return [
             'succes' => true,
+            'scan_info' => $scan_info,
             'rayon' => $rayon,
-            'systemes_trouves' => count($decouvertes),
-            'deja_connus' => $deja_connus,
             'decouvertes' => $decouvertes,
         ];
     }
