@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Services\UniverseGeneratorService;
+use App\Models\SystemeStellaire;
 
 class UniverseSeeder extends Seeder
 {
@@ -16,10 +17,16 @@ class UniverseSeeder extends Seeder
 
         $this->command->info('🌌 Génération de l\'univers de départ...');
 
-        // Générer le Système Solaire (point de départ)
-        $this->command->info('☀️  Génération du Système Solaire...');
-        $soleil = $generator->genererSystemeSolaire();
-        $this->command->info("✅ Système Solaire créé: {$soleil->nom} ({$soleil->nb_planetes} planètes)");
+        // Générer le Système Solaire (point de départ) seulement s'il n'existe pas
+        $soleil = SystemeStellaire::where('nom', 'Sol')->first();
+
+        if (!$soleil) {
+            $this->command->info('☀️  Génération du Système Solaire...');
+            $soleil = $generator->genererSystemeSolaire();
+            $this->command->info("✅ Système Solaire créé: {$soleil->nom} ({$soleil->nb_planetes} planètes)");
+        } else {
+            $this->command->info('☀️  Système Solaire déjà présent (mode hybrid)');
+        }
 
         // Générer systèmes voisins
         $nb_voisins = config('game.univers.systemes_initiaux', 10);
