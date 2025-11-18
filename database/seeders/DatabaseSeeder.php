@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
         // Toujours créer les comptes et personnages de test
         $this->call(GameSeeder::class);
 
+        // Créer les ressources (nécessaires pour génération gisements)
+        $this->call(RessourceSeeder::class);
+
         // Générer l'univers selon le mode
         match($mode) {
             'basic', 'procedural' => $this->call(UniverseSeeder::class),

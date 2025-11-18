@@ -236,7 +236,7 @@ class GaiaSeeder extends Seeder
             $types = ['Tellurique', 'Gazeuse', 'Glacée', 'Naine'];
             $type = $types[array_rand($types)];
 
-            Planete::create([
+            $planete = Planete::create([
                 'systeme_stellaire_id' => $systeme->id,
                 'nom' => "{$systeme->nom} {$i}",
                 'distance_etoile' => $i * 0.5 + rand(0, 10) / 10,
@@ -251,6 +251,9 @@ class GaiaSeeder extends Seeder
                 'atmosphere' => rand(0, 1) === 1,
                 'population' => 0,
             ]);
+
+            // Générer gisements pour cette planète
+            $planete->genererGisements();
         }
     }
 }
