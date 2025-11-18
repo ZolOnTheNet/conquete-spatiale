@@ -150,6 +150,8 @@ class GameController extends Controller
             'lancer', 'roll' => $this->rollDice($personnage, $parts),
             'deplacer', 'move' => $this->moveShip($personnage, $parts),
             'saut', 'jump' => $this->jumpHyperspace($personnage, $parts),
+            'scan', 'scanner' => $this->scanSystems($personnage, $parts),
+            'carte', 'map' => $this->showMap($personnage),
             '' => ['success' => true, 'message' => ''],
             default => [
                 'success' => false,
@@ -172,6 +174,8 @@ COMMANDES DISPONIBLES:
   deplacer [sx] [sy] [sz]     - Déplacer (conventionnel) vers secteur
   deplacer [sx] [sy] [sz] [px] [py] [pz] - Déplacer avec position précise
   saut [sx] [sy] [sz]         - Saut hyperespace vers secteur
+  scan [rayon]                - Scanner systèmes dans un rayon (défaut: 5 AL)
+  carte, map                  - Afficher carte des systèmes découverts
             ",
         ];
     }
@@ -404,6 +408,126 @@ PA restants: {$personnage->points_action} / {$personnage->max_points_action}
 Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
 [Phase d'orientation requise - TODO]
             ",
+        ];
+    }
+
+    private function scanSystems(Personnage $personnage, array $parts): array
+    {
+        // Paramètre optionnel: rayon de scan
+        $rayon = isset($parts[1]) && is_numeric($parts[1]) ? (float)$parts[1] : 5.0;
+
+        if ($rayon <= 0 || $rayon > 50) {
+            return [
+                'success' => false,
+                'message' => 'Rayon invalide. Utilisez un rayon entre 0.1 et 50 années-lumière.',
+            ];
+        }
+
+        // Lancer le scan
+        $resultat = $personnage->scannerSystemes($rayon);
+
+        if (!$resultat['succes']) {
+            return [
+                'success' => false,
+                'message' => $resultat['message'],
+            ];
+        }
+
+        // Formater résultat
+        $message = "\n=== SCAN SPATIAL (Rayon: {$rayon} AL) ===\n";
+        $message .= "Systèmes trouvés: {$resultat['systemes_trouves']}\n";
+
+        if ($resultat['deja_connus'] > 0) {
+            $message .= "Déjà connus: {$resultat['deja_connus']}\n";
+        }
+
+        if (count($resultat['decouvertes']) > 0) {
+            $message .= "\n--- NOUVELLES DÉCOUVERTES ---\n";
+
+            foreach ($resultat['decouvertes'] as $decouverte) {
+                $message .= "\n• {$decouverte['systeme']} ({$decouverte['distance']} AL)\n";
+                $message .= "  Jet: {$decouverte['resultat_jet']} / Seuil: {$decouverte['seuil']}\n";
+
+                if ($decouverte['detecte']) {
+                    $details = $decouverte['details'];
+                    $message .= "  ✓ DÉTECTÉ\n";
+                    $message .= "  Type: Étoile {$details['type_etoile']} ({$details['couleur']})\n";
+                    $message .= "  Planètes: {$details['nb_planetes']}\n";
+                } else {
+                    $message .= "  ○ Signal faible (coordonnées enregistrées)\n";
+                }
+            }
+        } else {
+            $message .= "\nAucun nouveau système découvert dans ce rayon.\n";
+        }
+
+        $message .= "\nUtilisez 'carte' pour voir tous vos systèmes découverts.";
+
+        return [
+            'success' => true,
+            'message' => $message,
+        ];
+    }
+
+    private function showMap(Personnage $personnage): array
+    {
+        $systemes = $personnage->getSystemesDecouverts();
+
+        if (count($systemes) === 0) {
+            return [
+                'success' => true,
+                'message' => "\n=== CARTE GALACTIQUE ===\nAucun système découvert. Utilisez 'scan' pour explorer l'espace.",
+            ];
+        }
+
+        $message = "\n=== CARTE GALACTIQUE ===\n";
+        $message .= "Systèmes découverts: " . count($systemes) . "\n\n";
+
+        // Obtenir position actuelle pour calculer distances
+        $positionActuelle = $personnage->getPositionActuelle();
+
+        foreach ($systemes as $systeme) {
+            $message .= "• {$systeme['nom']}\n";
+            $message .= "  Secteur: ({$systeme['secteur_x']}, {$systeme['secteur_y']}, {$systeme['secteur_z']})\n";
+
+            if ($positionActuelle) {
+                $distance = $personnage->calculerDistance($positionActuelle, [
+                    'secteur_x' => $systeme['secteur_x'],
+                    'secteur_y' => $systeme['secteur_y'],
+                    'secteur_z' => $systeme['secteur_z'],
+                    'position_x' => $systeme['position_x'],
+                    'position_y' => $systeme['position_y'],
+                    'position_z' => $systeme['position_z'],
+                ]);
+                $message .= "  Distance: " . round($distance, 2) . " AL\n";
+            }
+
+            if (isset($systeme['type_etoile'])) {
+                $message .= "  Étoile: Type {$systeme['type_etoile']} ({$systeme['couleur']})\n";
+            }
+
+            if (isset($systeme['nb_planetes'])) {
+                $message .= "  Planètes: {$systeme['nb_planetes']}";
+                if ($systeme['habite']) {
+                    $message .= " (système habité)";
+                }
+                $message .= "\n";
+            }
+
+            if (isset($systeme['visite']) && $systeme['visite']) {
+                $message .= "  ✓ VISITÉ\n";
+            }
+
+            if (isset($systeme['notes'])) {
+                $message .= "  Notes: {$systeme['notes']}\n";
+            }
+
+            $message .= "\n";
+        }
+
+        return [
+            'success' => true,
+            'message' => $message,
         ];
     }
 }
