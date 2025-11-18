@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Personnage;
 use App\Models\Arme;
 use App\Models\Bouclier;
+use App\Models\Combat;
 use App\Models\Compte;
+use App\Models\Ennemi;
 use App\Models\Gisement;
 use App\Models\Marche;
 use App\Models\Recette;
@@ -177,6 +179,10 @@ class GameController extends Controller
             'equiper', 'equip' => $this->equiperEquipement($personnage, $parts),
             'etat-combat', 'combat' => $this->showEtatCombat($personnage),
             'reparer', 'repair' => $this->reparerVaisseau($personnage, $parts),
+            'scanner-ennemis', 'scane' => $this->scannerEnnemis($personnage),
+            'ennemis', 'enemies' => $this->showEnnemis(),
+            'attaquer', 'attack' => $this->attaquerEnnemi($personnage, $parts),
+            'fuir', 'flee' => $this->fuirCombat($personnage),
             '' => ['success' => true, 'message' => ''],
             default => [
                 'success' => false,
@@ -1464,6 +1470,343 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
         $message .= "Cout: {$cout_reel} credits\n";
         $message .= "Coque: {$vaisseau->coque_actuelle}/{$vaisseau->coque_max}\n";
         $message .= "Credits restants: " . number_format($personnage->credits) . "\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Scanner les ennemis dans la zone actuelle
+     */
+    private function scannerEnnemis(Personnage $personnage): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        // Verifier si en combat
+        $combat_actif = Combat::enCours($vaisseau->id);
+        if ($combat_actif) {
+            return [
+                'success' => false,
+                'message' => 'Impossible de scanner en combat! Utilisez "attaquer" ou "fuir".',
+            ];
+        }
+
+        // Determiner le niveau de la zone
+        $distance = sqrt(
+            pow($vaisseau->coord_x, 2) +
+            pow($vaisseau->coord_y, 2) +
+            pow($vaisseau->coord_z, 2)
+        );
+        $niveau_zone = max(1, (int)($distance / 10) + 1);
+
+        // Verifier spawn
+        if (!Ennemi::checkSpawn($niveau_zone)) {
+            return [
+                'success' => true,
+                'message' => "\n=== SCAN DE LA ZONE ===\n" .
+                    "Niveau de danger: {$niveau_zone}\n" .
+                    "Resultat: Aucun ennemi detecte dans la zone.\n",
+            ];
+        }
+
+        // Spawn un ennemi
+        $ennemi = Ennemi::spawnPourZone($niveau_zone);
+        if (!$ennemi) {
+            return [
+                'success' => true,
+                'message' => "\n=== SCAN DE LA ZONE ===\n" .
+                    "Niveau de danger: {$niveau_zone}\n" .
+                    "Resultat: Zone claire.\n",
+            ];
+        }
+
+        // Demarrer le combat
+        $combat = Combat::commencer($vaisseau, $ennemi);
+        $vaisseau->en_combat = true;
+        $vaisseau->save();
+
+        $message = "\n=== ALERTE! ENNEMI DETECTE! ===\n";
+        $message .= "Nom: {$ennemi->nom}\n";
+        $message .= "Type: {$ennemi->type} ({$ennemi->faction})\n";
+        $message .= "Niveau: {$ennemi->niveau} - Difficulte: {$ennemi->difficulte}\n";
+        $message .= "Coque: {$ennemi->coque_max} | Bouclier: {$ennemi->bouclier_max}\n";
+        $message .= "Armement: {$ennemi->type_arme} (Degats: {$ennemi->degats_min}-{$ennemi->degats_max})\n";
+        $message .= "\nCommandes: 'attaquer' pour combattre, 'fuir' pour tenter de fuir.\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Afficher la liste des types d'ennemis
+     */
+    private function showEnnemis(): array
+    {
+        $ennemis = Ennemi::orderBy('niveau')->get();
+
+        if ($ennemis->isEmpty()) {
+            return ['success' => true, 'message' => 'Aucun ennemi dans la base de donnees.'];
+        }
+
+        $message = "\n=== ENCYCLOPEDIE DES ENNEMIS ===\n\n";
+
+        $par_type = $ennemis->groupBy('type');
+
+        foreach ($par_type as $type => $groupe) {
+            $message .= strtoupper($type) . "S:\n";
+
+            foreach ($groupe as $ennemi) {
+                $difficulte = match($ennemi->difficulte) {
+                    'facile' => '[Facile]',
+                    'moyen' => '[Moyen]',
+                    'difficile' => '[Difficile]',
+                    'boss' => '[BOSS]',
+                    default => '',
+                };
+
+                $message .= sprintf(
+                    "  Niv.%d %s - %s %s\n",
+                    $ennemi->niveau,
+                    $ennemi->nom,
+                    $difficulte,
+                    $ennemi->type_arme
+                );
+                $message .= sprintf(
+                    "    Coque:%d Boucl:%d Deg:%d-%d Zones:%d-%d\n",
+                    $ennemi->coque_max,
+                    $ennemi->bouclier_max,
+                    $ennemi->degats_min,
+                    $ennemi->degats_max,
+                    $ennemi->zone_niveau_min,
+                    $ennemi->zone_niveau_max
+                );
+            }
+            $message .= "\n";
+        }
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Attaquer l'ennemi en combat
+     */
+    private function attaquerEnnemi(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        // Verifier combat en cours
+        $combat = Combat::enCours($vaisseau->id);
+        if (!$combat) {
+            // Pas de combat - tenter d'en initier un
+            // Si un code ennemi est fourni, on peut engager directement
+            if (isset($parts[0]) && !empty($parts[0])) {
+                $ennemi = Ennemi::where('code', strtoupper($parts[0]))->first();
+                if (!$ennemi) {
+                    return [
+                        'success' => false,
+                        'message' => "Ennemi inconnu. Utilisez 'scanner-ennemis' pour detecter les menaces.",
+                    ];
+                }
+
+                // Verifier niveau zone
+                $distance = sqrt(
+                    pow($vaisseau->coord_x, 2) +
+                    pow($vaisseau->coord_y, 2) +
+                    pow($vaisseau->coord_z, 2)
+                );
+                $niveau_zone = max(1, (int)($distance / 10) + 1);
+
+                if ($ennemi->zone_niveau_min > $niveau_zone || $ennemi->zone_niveau_max < $niveau_zone) {
+                    return [
+                        'success' => false,
+                        'message' => "Cet ennemi n'est pas present dans cette zone (niveau {$niveau_zone}).",
+                    ];
+                }
+
+                $combat = Combat::commencer($vaisseau, $ennemi);
+                $vaisseau->en_combat = true;
+                $vaisseau->save();
+            } else {
+                return [
+                    'success' => false,
+                    'message' => "Aucun combat en cours. Utilisez 'scanner-ennemis' pour detecter les menaces.",
+                ];
+            }
+        }
+
+        // Executer le tour de combat
+        $resultat = $combat->executerTour();
+        $ennemi = $combat->ennemi;
+
+        $message = "\n=== TOUR {$resultat['tour']} ===\n\n";
+
+        // Attaques du joueur
+        $message .= "Vos attaques:\n";
+        $total_joueur = 0;
+        foreach ($resultat['joueur'] as $i => $att) {
+            if ($att['touche']) {
+                $total_joueur += $att['degats_effectifs'] ?? $att['degats'];
+                $message .= sprintf(
+                    "  Tir %d: TOUCHE! %d degats (bouclier: %d, coque: %d)\n",
+                    $i + 1,
+                    $att['degats'],
+                    $att['degats_bouclier'] ?? 0,
+                    $att['degats_coque'] ?? 0
+                );
+            } else {
+                $message .= "  Tir " . ($i + 1) . ": Rate!\n";
+            }
+        }
+        $message .= "Total inflige: {$total_joueur} degats\n\n";
+
+        // Actions de l'ennemi
+        if ($resultat['statut'] !== 'victoire' && $resultat['statut'] !== 'fuite_ennemi') {
+            $message .= "Attaques de {$ennemi->nom}:\n";
+            $total_ennemi = 0;
+            foreach ($resultat['ennemi'] as $i => $att) {
+                if (isset($att['action']) && $att['action'] === 'regeneration') {
+                    $message .= "  Regeneration: +{$att['valeur']} bouclier\n";
+                } elseif ($att['touche']) {
+                    $total_ennemi += ($att['degats_bouclier'] ?? 0) + ($att['degats_coque'] ?? 0);
+                    $message .= sprintf(
+                        "  Tir %d: TOUCHE! %d degats (bouclier: %d, coque: %d)\n",
+                        $i + 1,
+                        $att['degats'],
+                        $att['degats_bouclier'] ?? 0,
+                        $att['degats_coque'] ?? 0
+                    );
+                } else {
+                    $message .= "  Tir " . ($i + 1) . ": Rate!\n";
+                }
+            }
+            if ($total_ennemi > 0) {
+                $message .= "Total subi: {$total_ennemi} degats\n";
+            }
+        }
+
+        // Regeneration
+        if (isset($resultat['regeneration'])) {
+            $message .= "\nRegeneration:\n";
+            if ($resultat['regeneration']['joueur'] > 0) {
+                $message .= "  Votre bouclier: +{$resultat['regeneration']['joueur']}\n";
+            }
+            if ($resultat['regeneration']['ennemi'] > 0) {
+                $message .= "  Ennemi: +{$resultat['regeneration']['ennemi']}\n";
+            }
+        }
+
+        // Etat actuel
+        $message .= "\n--- ETAT ---\n";
+        $message .= sprintf(
+            "Vous: Coque %d/%d (%.0f%%) | Bouclier %d\n",
+            $vaisseau->coque_actuelle,
+            $vaisseau->coque_max,
+            $vaisseau->getPourcentageCoque(),
+            $vaisseau->bouclier_actuel
+        );
+        $message .= sprintf(
+            "Ennemi: Coque %d/%d (%.0f%%) | Bouclier %d/%d\n",
+            $combat->ennemi_coque,
+            $ennemi->coque_max,
+            ($combat->ennemi_coque / $ennemi->coque_max) * 100,
+            $combat->ennemi_bouclier,
+            $ennemi->bouclier_max
+        );
+
+        // Resultat final
+        if ($resultat['statut'] === 'victoire') {
+            $message .= "\n*** VICTOIRE! ***\n";
+            $message .= "Recompenses:\n";
+            $message .= "  Credits: +" . number_format($resultat['recompenses']['credits']) . "\n";
+            $message .= "  XP: +{$resultat['recompenses']['xp']}\n";
+
+            // Donner les recompenses
+            $personnage->credits += $resultat['recompenses']['credits'];
+            $personnage->ajouterExperience($resultat['recompenses']['xp']);
+            $personnage->save();
+        } elseif ($resultat['statut'] === 'fuite_ennemi') {
+            $message .= "\n*** L'ENNEMI PREND LA FUITE! ***\n";
+            $message .= "Recompenses partielles:\n";
+            $message .= "  Credits: +" . number_format($resultat['recompenses']['credits']) . "\n";
+            $message .= "  XP: +{$resultat['recompenses']['xp']}\n";
+
+            $personnage->credits += $resultat['recompenses']['credits'];
+            $personnage->ajouterExperience($resultat['recompenses']['xp']);
+            $personnage->save();
+        } elseif ($resultat['statut'] === 'defaite') {
+            $message .= "\n*** DEFAITE! ***\n";
+            $message .= "Votre vaisseau est detruit.\n";
+
+            // Penalites de defaite
+            $perte_credits = (int)($personnage->credits * 0.1);
+            $personnage->credits -= $perte_credits;
+            $personnage->save();
+
+            $message .= "Perte: {$perte_credits} credits\n";
+            $message .= "Utilisez 'reparer' pour reparer votre vaisseau.\n";
+
+            // Restaurer un minimum de coque
+            $vaisseau->coque_actuelle = 1;
+            $vaisseau->save();
+        }
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Fuir le combat
+     */
+    private function fuirCombat(Personnage $personnage): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        $combat = Combat::enCours($vaisseau->id);
+        if (!$combat) {
+            return ['success' => false, 'message' => 'Aucun combat en cours.'];
+        }
+
+        $resultat = $combat->fuir();
+
+        $message = "\n=== TENTATIVE DE FUITE ===\n";
+
+        if ($resultat['reussie']) {
+            $message .= "SUCCES! Vous echappez au combat.\n";
+        } else {
+            $message .= "ECHEC! L'ennemi profite de votre fuite.\n";
+            $message .= "Degats subis: {$resultat['degats_subis']}\n";
+            $message .= sprintf(
+                "Votre etat: Coque %d/%d | Bouclier %d\n",
+                $vaisseau->coque_actuelle,
+                $vaisseau->coque_max,
+                $vaisseau->bouclier_actuel
+            );
+
+            if ($vaisseau->isDetruit()) {
+                $message .= "\nVotre vaisseau est detruit!\n";
+
+                // Marquer defaite
+                $combat->statut = 'defaite';
+                $combat->save();
+                $vaisseau->en_combat = false;
+                $vaisseau->coque_actuelle = 1;
+                $vaisseau->save();
+
+                // Penalite
+                $perte = (int)($personnage->credits * 0.15);
+                $personnage->credits -= $perte;
+                $personnage->save();
+                $message .= "Perte: {$perte} credits\n";
+            } else {
+                $message .= "\nLe combat continue. Commandes: 'attaquer' ou 'fuir'\n";
+            }
+        }
 
         return ['success' => true, 'message' => $message];
     }
