@@ -48,7 +48,6 @@ return new class extends Migration
 
             // Index
             $table->index('personnage_id');
-            $table->index(['localisation_type', 'localisation_id']);
             $table->index('actif');
         });
     }
