@@ -82,4 +82,10 @@ return [
         'des_hope' => 12,                   // Nombre de faces dé Hope
         'des_fear' => 12,                   // Nombre de faces dé Fear
     ],
+
+    // ====== GÉNÉRATION PROCÉDURALE - UNIVERS ======
+    'univers' => [
+        'systemes_initiaux' => env('GAME_UNIVERS_SYSTEMS', 10), // Nombre de systèmes voisins générés au départ
+        'rayon_initial' => env('GAME_UNIVERS_RADIUS', 10.0),    // Rayon de génération initiale (années-lumière)
+    ],
 ];
