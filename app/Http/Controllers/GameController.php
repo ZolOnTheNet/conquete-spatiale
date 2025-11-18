@@ -40,16 +40,22 @@ class GameController extends Controller
             'compte_id' => $compte->id,
             'nom' => $validated['nom'],
             'prenom' => $validated['prenom'] ?? null,
-            // Valeurs par défaut
-            'agilite' => 2,
-            'force' => 2,
-            'finesse' => 2,
-            'instinct' => 2,
-            'presence' => 2,
-            'savoir' => 2,
+            // Valeurs par défaut depuis config
+            'agilite' => config('game.personnage.traits_defaut', 2),
+            'force' => config('game.personnage.traits_defaut', 2),
+            'finesse' => config('game.personnage.traits_defaut', 2),
+            'instinct' => config('game.personnage.traits_defaut', 2),
+            'presence' => config('game.personnage.traits_defaut', 2),
+            'savoir' => config('game.personnage.traits_defaut', 2),
             'competences' => [],
-            'experience' => 0,
-            'niveau' => 1,
+            'experience' => config('game.personnage.experience_depart', 0),
+            'niveau' => config('game.personnage.niveau_depart', 1),
+            'jetons_hope' => config('game.personnage.jetons_hope_depart', 0),
+            'jetons_fear' => config('game.personnage.jetons_fear_depart', 0),
+            // PA depuis config
+            'points_action' => config('game.pa.depart', 24),
+            'max_points_action' => config('game.pa.max', 36),
+            'derniere_recuperation_pa' => null, // Démarre à la première dépense
         ]);
 
         // Si c'est le premier personnage, le définir comme principal
@@ -113,7 +119,20 @@ class GameController extends Controller
 
         $personnage->load(['vaisseauActif.objetSpatial']);
 
+        // Récupération automatique des PA (1 PA/heure)
+        $recup = $personnage->recupererPAAutomatique();
+
         $result = $this->processCommand($command, $personnage);
+
+        // Ajouter message de récupération PA si applicable
+        if ($recup['pa_recuperes'] > 0) {
+            $message_recup = "\n[INFO] +{$recup['pa_recuperes']} PA récupérés ({$recup['heures_ecoulees']}h écoulées)\n";
+            if (isset($result['message'])) {
+                $result['message'] = $message_recup . $result['message'];
+            } else {
+                $result['message'] = $message_recup;
+            }
+        }
 
         return response()->json($result);
     }
@@ -131,6 +150,8 @@ class GameController extends Controller
             'lancer', 'roll' => $this->rollDice($personnage, $parts),
             'deplacer', 'move' => $this->moveShip($personnage, $parts),
             'saut', 'jump' => $this->jumpHyperspace($personnage, $parts),
+            'scan', 'scanner' => $this->scanSystems($personnage, $parts),
+            'carte', 'map' => $this->showMap($personnage),
             '' => ['success' => true, 'message' => ''],
             default => [
                 'success' => false,
@@ -153,12 +174,24 @@ COMMANDES DISPONIBLES:
   deplacer [sx] [sy] [sz]     - Déplacer (conventionnel) vers secteur
   deplacer [sx] [sy] [sz] [px] [py] [pz] - Déplacer avec position précise
   saut [sx] [sy] [sz]         - Saut hyperespace vers secteur
+  scan [rayon]                - Scanner systèmes dans un rayon (défaut: 5 AL)
+  carte, map                  - Afficher carte des systèmes découverts
             ",
         ];
     }
 
     private function showStatus(Personnage $personnage): array
     {
+        // Info prochaine récupération PA
+        $prochaine_recup = '';
+        if ($personnage->points_action < $personnage->max_points_action && $personnage->derniere_recuperation_pa) {
+            $delai = config('game.pa.recuperation_delai', 60);
+            $minutes_restantes = $delai - (now()->diffInMinutes($personnage->derniere_recuperation_pa) % $delai);
+            $unite = $delai >= 60 ? 'h' : 'min';
+            $temps = $delai >= 60 ? round($minutes_restantes / 60, 1) : $minutes_restantes;
+            $prochaine_recup = "\nProchain PA dans: {$temps} {$unite}";
+        }
+
         return [
             'success' => true,
             'message' => "
@@ -166,7 +199,7 @@ COMMANDES DISPONIBLES:
 Nom: {$personnage->nom} {$personnage->prenom}
 Niveau: {$personnage->niveau}
 XP: {$personnage->experience}
-PA: {$personnage->points_action} / {$personnage->max_points_action}
+PA: {$personnage->points_action} / {$personnage->max_points_action} (1 PA/heure){$prochaine_recup}
 
 TRAITS:
   Agilité: {$personnage->agilite}
@@ -375,6 +408,126 @@ PA restants: {$personnage->points_action} / {$personnage->max_points_action}
 Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
 [Phase d'orientation requise - TODO]
             ",
+        ];
+    }
+
+    private function scanSystems(Personnage $personnage, array $parts): array
+    {
+        // Paramètre optionnel: rayon de scan
+        $rayon = isset($parts[1]) && is_numeric($parts[1]) ? (float)$parts[1] : 5.0;
+
+        if ($rayon <= 0 || $rayon > 50) {
+            return [
+                'success' => false,
+                'message' => 'Rayon invalide. Utilisez un rayon entre 0.1 et 50 années-lumière.',
+            ];
+        }
+
+        // Lancer le scan
+        $resultat = $personnage->scannerSystemes($rayon);
+
+        if (!$resultat['succes']) {
+            return [
+                'success' => false,
+                'message' => $resultat['message'],
+            ];
+        }
+
+        // Formater résultat
+        $message = "\n=== SCAN SPATIAL (Rayon: {$rayon} AL) ===\n";
+        $message .= "Systèmes trouvés: {$resultat['systemes_trouves']}\n";
+
+        if ($resultat['deja_connus'] > 0) {
+            $message .= "Déjà connus: {$resultat['deja_connus']}\n";
+        }
+
+        if (count($resultat['decouvertes']) > 0) {
+            $message .= "\n--- NOUVELLES DÉCOUVERTES ---\n";
+
+            foreach ($resultat['decouvertes'] as $decouverte) {
+                $message .= "\n• {$decouverte['systeme']} ({$decouverte['distance']} AL)\n";
+                $message .= "  Jet: {$decouverte['resultat_jet']} / Seuil: {$decouverte['seuil']}\n";
+
+                if ($decouverte['detecte']) {
+                    $details = $decouverte['details'];
+                    $message .= "  ✓ DÉTECTÉ\n";
+                    $message .= "  Type: Étoile {$details['type_etoile']} ({$details['couleur']})\n";
+                    $message .= "  Planètes: {$details['nb_planetes']}\n";
+                } else {
+                    $message .= "  ○ Signal faible (coordonnées enregistrées)\n";
+                }
+            }
+        } else {
+            $message .= "\nAucun nouveau système découvert dans ce rayon.\n";
+        }
+
+        $message .= "\nUtilisez 'carte' pour voir tous vos systèmes découverts.";
+
+        return [
+            'success' => true,
+            'message' => $message,
+        ];
+    }
+
+    private function showMap(Personnage $personnage): array
+    {
+        $systemes = $personnage->getSystemesDecouverts();
+
+        if (count($systemes) === 0) {
+            return [
+                'success' => true,
+                'message' => "\n=== CARTE GALACTIQUE ===\nAucun système découvert. Utilisez 'scan' pour explorer l'espace.",
+            ];
+        }
+
+        $message = "\n=== CARTE GALACTIQUE ===\n";
+        $message .= "Systèmes découverts: " . count($systemes) . "\n\n";
+
+        // Obtenir position actuelle pour calculer distances
+        $positionActuelle = $personnage->getPositionActuelle();
+
+        foreach ($systemes as $systeme) {
+            $message .= "• {$systeme['nom']}\n";
+            $message .= "  Secteur: ({$systeme['secteur_x']}, {$systeme['secteur_y']}, {$systeme['secteur_z']})\n";
+
+            if ($positionActuelle) {
+                $distance = $personnage->calculerDistance($positionActuelle, [
+                    'secteur_x' => $systeme['secteur_x'],
+                    'secteur_y' => $systeme['secteur_y'],
+                    'secteur_z' => $systeme['secteur_z'],
+                    'position_x' => $systeme['position_x'],
+                    'position_y' => $systeme['position_y'],
+                    'position_z' => $systeme['position_z'],
+                ]);
+                $message .= "  Distance: " . round($distance, 2) . " AL\n";
+            }
+
+            if (isset($systeme['type_etoile'])) {
+                $message .= "  Étoile: Type {$systeme['type_etoile']} ({$systeme['couleur']})\n";
+            }
+
+            if (isset($systeme['nb_planetes'])) {
+                $message .= "  Planètes: {$systeme['nb_planetes']}";
+                if ($systeme['habite']) {
+                    $message .= " (système habité)";
+                }
+                $message .= "\n";
+            }
+
+            if (isset($systeme['visite']) && $systeme['visite']) {
+                $message .= "  ✓ VISITÉ\n";
+            }
+
+            if (isset($systeme['notes'])) {
+                $message .= "  Notes: {$systeme['notes']}\n";
+            }
+
+            $message .= "\n";
+        }
+
+        return [
+            'success' => true,
+            'message' => $message,
         ];
     }
 }

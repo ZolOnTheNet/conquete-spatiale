@@ -72,27 +72,30 @@ class Vaisseau extends Model
     {
         // Formule GDD: Init_Conventionnel + (Masse × Distance / Vitesse)
         $masse = $this->getMasseTotal();
-        return $this->init_conventionnel + ($masse * $distance / $this->vitesse_conventionnelle);
+        $init = $this->init_conventionnel ?? config('game.deplacement.conventionnel.init', 0);
+        return $init + ($masse * $distance / $this->vitesse_conventionnelle);
     }
 
     public function calculerConsommationHE(float $distance): float
     {
         // Formule GDD: Init_HE + (Coef_HE/100) × (Masse/Vitesse) × Distance
-        // Note: coef_hyperespace est déjà divisé par 100 en DB
         $masse = $this->getMasseTotal();
-        return $this->init_hyperespace + ($this->coef_hyperespace * ($masse / $this->vitesse_saut) * $distance);
+        $init = $this->init_hyperespace ?? config('game.deplacement.hyperespace.init', 200);
+        $coef = $this->coef_hyperespace ?? config('game.deplacement.hyperespace.coef', 0.5);
+        return $init + ($coef * ($masse / $this->vitesse_saut) * $distance);
     }
 
     public function calculerNbPA(float $distance, float $consommation, string $mode = 'conventionnel'): int
     {
         if ($mode === 'hyperespace' || $mode === 'HE') {
-            // Formule GDD: PA = 1 + Coef_PAHE × Distance
-            // Note: coef_pa_he est déjà divisé par 100 en DB (20 -> 0.2)
-            return (int)ceil(1 + ($this->coef_pa_he * $distance));
+            // Formule GDD: PA = pa_base + Coef_PAHE × Distance
+            $pa_base = config('game.deplacement.hyperespace.pa_base', 1);
+            $coef = $this->coef_pa_he ?? config('game.deplacement.hyperespace.coef_pa', 0.2);
+            return (int)ceil($pa_base + ($coef * $distance));
         } else {
-            // Formule GDD: PA = Consommation / Vitesse × Coef_PAMN / 100
-            // Note: coef_pa_mn est déjà divisé par 100 en DB (100 -> 1.0)
-            return (int)ceil(($consommation / $this->vitesse_conventionnelle) * $this->coef_pa_mn);
+            // Formule GDD: PA = Consommation / Vitesse × Coef_PAMN
+            $coef = $this->coef_pa_mn ?? config('game.deplacement.conventionnel.coef_pa', 1.0);
+            return (int)ceil(($consommation / $this->vitesse_conventionnelle) * $coef);
         }
     }
 
