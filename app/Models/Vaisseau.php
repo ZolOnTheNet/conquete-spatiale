@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\HasInventaire;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Vaisseau extends Model
 {
+    use HasInventaire;
     protected $table = 'vaisseaux';
 
     protected $fillable = [
@@ -44,6 +46,17 @@ class Vaisseau extends Model
         'programmes',
         'emplacements',
         'date_logs',
+        // Système de scan
+        'portee_scan',
+        'puissance_scan',
+        'bonus_scan',
+        'scan_niveau_actuel',
+        'scan_secteur_x',
+        'scan_secteur_y',
+        'scan_secteur_z',
+        'scan_position_x',
+        'scan_position_y',
+        'scan_position_z',
     ];
 
     protected $casts = [
@@ -72,27 +85,30 @@ class Vaisseau extends Model
     {
         // Formule GDD: Init_Conventionnel + (Masse × Distance / Vitesse)
         $masse = $this->getMasseTotal();
-        return $this->init_conventionnel + ($masse * $distance / $this->vitesse_conventionnelle);
+        $init = $this->init_conventionnel ?? config('game.deplacement.conventionnel.init', 0);
+        return $init + ($masse * $distance / $this->vitesse_conventionnelle);
     }
 
     public function calculerConsommationHE(float $distance): float
     {
         // Formule GDD: Init_HE + (Coef_HE/100) × (Masse/Vitesse) × Distance
-        // Note: coef_hyperespace est déjà divisé par 100 en DB
         $masse = $this->getMasseTotal();
-        return $this->init_hyperespace + ($this->coef_hyperespace * ($masse / $this->vitesse_saut) * $distance);
+        $init = $this->init_hyperespace ?? config('game.deplacement.hyperespace.init', 200);
+        $coef = $this->coef_hyperespace ?? config('game.deplacement.hyperespace.coef', 0.5);
+        return $init + ($coef * ($masse / $this->vitesse_saut) * $distance);
     }
 
     public function calculerNbPA(float $distance, float $consommation, string $mode = 'conventionnel'): int
     {
         if ($mode === 'hyperespace' || $mode === 'HE') {
-            // Formule GDD: PA = 1 + Coef_PAHE × Distance
-            // Note: coef_pa_he est déjà divisé par 100 en DB (20 -> 0.2)
-            return (int)ceil(1 + ($this->coef_pa_he * $distance));
+            // Formule GDD: PA = pa_base + Coef_PAHE × Distance
+            $pa_base = config('game.deplacement.hyperespace.pa_base', 1);
+            $coef = $this->coef_pa_he ?? config('game.deplacement.hyperespace.coef_pa', 0.2);
+            return (int)ceil($pa_base + ($coef * $distance));
         } else {
-            // Formule GDD: PA = Consommation / Vitesse × Coef_PAMN / 100
-            // Note: coef_pa_mn est déjà divisé par 100 en DB (100 -> 1.0)
-            return (int)ceil(($consommation / $this->vitesse_conventionnelle) * $this->coef_pa_mn);
+            // Formule GDD: PA = Consommation / Vitesse × Coef_PAMN
+            $coef = $this->coef_pa_mn ?? config('game.deplacement.conventionnel.coef_pa', 1.0);
+            return (int)ceil(($consommation / $this->vitesse_conventionnelle) * $coef);
         }
     }
 
@@ -132,6 +148,9 @@ class Vaisseau extends Model
                 $destination->position_z
             );
             $this->objetSpatial->save();
+
+            // Réinitialiser scan (vaisseau a bougé)
+            $this->reinitialiserScan();
 
             return [
                 'success' => true,
@@ -183,6 +202,10 @@ class Vaisseau extends Model
         $os_current->position_y = $position_y;
         $os_current->position_z = $position_z;
         $os_current->save();
+
+        // Réinitialiser scan (vaisseau a bougé)
+        $this->reinitialiserScan();
+
         $this->save();
 
         return [
@@ -192,5 +215,124 @@ class Vaisseau extends Model
             'pa' => $pa,
             'energie_restante' => round($this->energie_actuelle, 2),
         ];
+    }
+
+    // === SYSTÈME DE SCAN PROGRESSIF ===
+
+    /**
+     * Vérifie si le vaisseau a bougé depuis le dernier scan
+     * Si oui, réinitialise le scan en cours
+     */
+    public function verifierDeplacementScan(): bool
+    {
+        // Pas de scan en cours
+        if ($this->scan_niveau_actuel === 0 || $this->scan_secteur_x === null) {
+            return false;
+        }
+
+        $os = $this->objetSpatial;
+
+        // Vérifier si position a changé
+        $a_bouge = (
+            $os->secteur_x !== $this->scan_secteur_x ||
+            $os->secteur_y !== $this->scan_secteur_y ||
+            $os->secteur_z !== $this->scan_secteur_z ||
+            abs($os->position_x - $this->scan_position_x) > 0.01 ||
+            abs($os->position_y - $this->scan_position_y) > 0.01 ||
+            abs($os->position_z - $this->scan_position_z) > 0.01
+        );
+
+        if ($a_bouge) {
+            $this->reinitialiserScan();
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Réinitialise le scan en cours
+     */
+    public function reinitialiserScan(): void
+    {
+        $this->scan_niveau_actuel = 0;
+        $this->scan_secteur_x = null;
+        $this->scan_secteur_y = null;
+        $this->scan_secteur_z = null;
+        $this->scan_position_x = null;
+        $this->scan_position_y = null;
+        $this->scan_position_z = null;
+        $this->save();
+    }
+
+    /**
+     * Démarre ou continue un scan progressif
+     * @param int $niveau_apporte Niveau apporté par ce scan (défaut: puissance_scan / 10)
+     * @return array Résultat du scan
+     */
+    public function scannerZone(int $niveau_apporte = null): array
+    {
+        $os = $this->objetSpatial;
+
+        // Si pas de scan en cours ou position différente, démarrer nouveau scan
+        if ($this->scan_niveau_actuel === 0 || $this->verifierDeplacementScan()) {
+            $this->scan_secteur_x = $os->secteur_x;
+            $this->scan_secteur_y = $os->secteur_y;
+            $this->scan_secteur_z = $os->secteur_z;
+            $this->scan_position_x = $os->position_x;
+            $this->scan_position_y = $os->position_y;
+            $this->scan_position_z = $os->position_z;
+            $this->scan_niveau_actuel = 0;
+        }
+
+        // Calculer niveau apporté par ce scan
+        if ($niveau_apporte === null) {
+            $puissance_totale = $this->puissance_scan + $this->bonus_scan;
+            $niveau_apporte = max(10, (int)($puissance_totale / 10)); // Minimum 10
+        }
+
+        // Cumuler avec scan précédent
+        $ancien_niveau = $this->scan_niveau_actuel;
+        $this->scan_niveau_actuel += $niveau_apporte;
+        $this->save();
+
+        return [
+            'ancien_niveau' => $ancien_niveau,
+            'niveau_apporte' => $niveau_apporte,
+            'nouveau_niveau' => $this->scan_niveau_actuel,
+            'portee' => $this->portee_scan,
+            'puissance_totale' => $this->puissance_scan + $this->bonus_scan,
+        ];
+    }
+
+    /**
+     * Obtient la puissance de scan effective (base + bonus + niveau cumulé)
+     */
+    public function getPuissanceScanEffective(): int
+    {
+        return $this->puissance_scan + $this->bonus_scan + $this->scan_niveau_actuel;
+    }
+
+    /**
+     * Calcule la capacité de soute restante
+     */
+    public function getCapaciteRestante(): float
+    {
+        $capacite_totale = $this->place_soute ?? 1000; // tonnes
+        $poids_actuel = $this->getPoidsInventaire();
+
+        return max(0, $capacite_totale - $poids_actuel);
+    }
+
+    /**
+     * Vérifie si le vaisseau peut charger une quantité de ressource
+     */
+    public function peutCharger(int $ressource_id, int $quantite): bool
+    {
+        $ressource = Ressource::find($ressource_id);
+        if (!$ressource) return false;
+
+        $poids_ajoute = $ressource->poids_unitaire * $quantite;
+        return $this->getCapaciteRestante() >= $poids_ajoute;
     }
 }

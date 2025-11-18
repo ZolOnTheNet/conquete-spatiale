@@ -1,6 +1,7 @@
 #!/bin/bash
-# Script de synchronisation de la branche claude vers dev
+# Script de synchronisation d'une branche vers dev
 # Compatible Ubuntu et Debian 12
+# Usage: ./sync-to-dev.sh [branche_source]
 
 set -e  # Arrêter en cas d'erreur
 
@@ -11,7 +12,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}  Synchronisation branche Claude → Dev${NC}"
+echo -e "${GREEN}  Synchronisation branche → Dev${NC}"
 echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
 
 # Vérifier qu'on est dans un repo git
@@ -20,9 +21,29 @@ if [ ! -d .git ]; then
     exit 1
 fi
 
-# Récupérer le nom de la branche actuelle
+# Déterminer la branche source
+if [ -n "$1" ]; then
+    SOURCE_BRANCH="$1"
+    echo -e "${YELLOW}📍 Branche source (paramètre): ${SOURCE_BRANCH}${NC}"
+else
+    SOURCE_BRANCH=$(git branch --show-current)
+    echo -e "${YELLOW}📍 Branche source (actuelle): ${SOURCE_BRANCH}${NC}"
+fi
+
+# Vérifier que la branche source existe
+if ! git show-ref --verify --quiet refs/heads/"$SOURCE_BRANCH"; then
+    # Vérifier sur remote
+    if ! git show-ref --verify --quiet refs/remotes/origin/"$SOURCE_BRANCH"; then
+        echo -e "${RED}❌ Erreur: La branche ${SOURCE_BRANCH} n'existe pas${NC}"
+        exit 1
+    else
+        echo -e "${YELLOW}⚠️  Branche trouvée sur remote, checkout...${NC}"
+        git checkout "$SOURCE_BRANCH"
+    fi
+fi
+
+# Sauvegarder la branche actuelle
 CURRENT_BRANCH=$(git branch --show-current)
-echo -e "${YELLOW}📍 Branche actuelle: ${CURRENT_BRANCH}${NC}"
 
 # Vérifier qu'il n'y a pas de modifications non commitées
 if [[ -n $(git status -s) ]]; then
@@ -64,9 +85,9 @@ fi
 echo -e "${YELLOW}🔄 Bascule sur la branche dev...${NC}"
 git checkout dev
 
-# Merger la branche claude
-echo -e "${YELLOW}🔀 Fusion de ${CURRENT_BRANCH} dans dev...${NC}"
-if git merge "$CURRENT_BRANCH" --no-edit; then
+# Merger la branche source
+echo -e "${YELLOW}🔀 Fusion de ${SOURCE_BRANCH} dans dev...${NC}"
+if git merge "$SOURCE_BRANCH" --no-edit; then
     echo -e "${GREEN}✓ Fusion réussie${NC}"
 else
     echo -e "${RED}❌ Conflits détectés${NC}"
