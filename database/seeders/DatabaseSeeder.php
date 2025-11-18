@@ -37,7 +37,10 @@ class DatabaseSeeder extends Seeder
             default => $this->call(UniverseSeeder::class),
         };
 
+        // Créer les marchés (après la génération des planètes)
+        $this->call(MarcheSeeder::class);
+
         $this->command->info('');
-        $this->command->info('🎉 Base de données initialisée avec succès !');
+        $this->command->info('Base de donnees initialisee avec succes !');
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Personnage;
 use App\Models\Compte;
 use App\Models\Gisement;
+use App\Models\Marche;
 use App\Models\Ressource;
 use App\Models\SystemeStellaire;
 use Illuminate\Http\Request;
@@ -159,6 +160,11 @@ class GameController extends Controller
             'scan-planete', 'scanp' => $this->scanPlanete($personnage, $parts),
             'extraire', 'mine' => $this->extraireRessource($personnage, $parts),
             'inventaire', 'inv' => $this->showInventaire($personnage),
+            // Commandes Marchés
+            'marche', 'market' => $this->showMarche($personnage),
+            'acheter', 'buy' => $this->acheterRessource($personnage, $parts),
+            'vendre', 'sell' => $this->vendreRessource($personnage, $parts),
+            'prix', 'prices' => $this->showPrix($personnage, $parts),
             '' => ['success' => true, 'message' => ''],
             default => [
                 'success' => false,
@@ -183,10 +189,16 @@ COMMANDES DISPONIBLES:
   scan                        - Scanner zone (scan progressif, 1 PA)
   carte, map                  - Afficher carte des systèmes découverts
 
-ÉCONOMIE & RESSOURCES:
-  scan-planete, scanp [nom]   - Scanner gisements d'une planète
-  extraire, mine [gisement_id] [quantité] - Extraire ressources
+ECONOMIE & RESSOURCES:
+  scan-planete, scanp [nom]   - Scanner gisements d'une planete
+  extraire, mine [gisement_id] [quantite] - Extraire ressources
   inventaire, inv             - Afficher inventaire du vaisseau
+
+MARCHES:
+  marche, market              - Voir le marche local
+  prix, prices [ressource]    - Voir les prix (ou tous)
+  acheter, buy [code] [qte]   - Acheter des ressources
+  vendre, sell [code] [qte]   - Vendre des ressources
             ",
         ];
     }
@@ -771,6 +783,301 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
                 $message .= "  Poids: " . round($item['poids'], 2) . "t | Valeur: " . number_format($item['valeur']) . " cr\n";
             }
         }
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    // === COMMANDES MARCHÉS (PHASE 2) ===
+
+    /**
+     * Afficher le marché local
+     */
+    private function showMarche(Personnage $personnage): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        // Trouver système actuel
+        $os = $vaisseau->objetSpatial;
+        $systeme = SystemeStellaire::where('secteur_x', $os->secteur_x)
+            ->where('secteur_y', $os->secteur_y)
+            ->where('secteur_z', $os->secteur_z)
+            ->first();
+
+        if (!$systeme) {
+            return ['success' => false, 'message' => 'Vous devez etre dans un systeme stellaire'];
+        }
+
+        // Trouver marchés sur les planètes du système
+        $marches = Marche::whereHasMorph('localisation', [
+            \App\Models\Planete::class,
+        ], function ($query) use ($systeme) {
+            $query->where('systeme_stellaire_id', $systeme->id);
+        })->where('actif', true)->get();
+
+        if ($marches->isEmpty()) {
+            return [
+                'success' => true,
+                'message' => "\n=== MARCHES LOCAUX ===\nAucun marche actif dans ce systeme.\n",
+            ];
+        }
+
+        $message = "\n=== MARCHES LOCAUX ({$systeme->nom}) ===\n\n";
+
+        foreach ($marches as $marche) {
+            $localisation = $marche->localisation;
+            $nomLieu = $localisation ? $localisation->nom : 'Inconnu';
+
+            $message .= "--- {$marche->nom} ---\n";
+            $message .= "Type: {$marche->type}\n";
+            $message .= "Localisation: {$nomLieu}\n";
+            $message .= "Taxe: " . ($marche->taxe * 100) . "%\n";
+
+            if ($marche->description) {
+                $message .= "Info: {$marche->description}\n";
+            }
+
+            $message .= "\n";
+        }
+
+        $message .= "Utilisez 'prix' pour voir les tarifs ou 'acheter/vendre' pour commercer.";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Afficher les prix d'un marché
+     */
+    private function showPrix(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        // Trouver système actuel
+        $os = $vaisseau->objetSpatial;
+        $systeme = SystemeStellaire::where('secteur_x', $os->secteur_x)
+            ->where('secteur_y', $os->secteur_y)
+            ->where('secteur_z', $os->secteur_z)
+            ->first();
+
+        if (!$systeme) {
+            return ['success' => false, 'message' => 'Vous devez etre dans un systeme stellaire'];
+        }
+
+        // Trouver premier marché actif
+        $marche = Marche::whereHasMorph('localisation', [
+            \App\Models\Planete::class,
+        ], function ($query) use ($systeme) {
+            $query->where('systeme_stellaire_id', $systeme->id);
+        })->where('actif', true)->first();
+
+        if (!$marche) {
+            return ['success' => false, 'message' => 'Aucun marche actif dans ce systeme'];
+        }
+
+        // Filtre optionnel par ressource
+        $filtre = $parts[1] ?? null;
+
+        $ressourcesMarche = $marche->listerRessources();
+
+        if ($filtre) {
+            $ressourcesMarche = array_filter($ressourcesMarche, function ($r) use ($filtre) {
+                return stripos($r['code'], $filtre) !== false || stripos($r['nom'], $filtre) !== false;
+            });
+        }
+
+        $message = "\n=== PRIX - {$marche->nom} ===\n\n";
+        $message .= "Code       | Ressource           | Achat    | Vente    | Stock\n";
+        $message .= "-----------|---------------------|----------|----------|-------\n";
+
+        foreach ($ressourcesMarche as $r) {
+            $code = str_pad($r['code'], 10);
+            $nom = str_pad(substr($r['nom'], 0, 19), 19);
+            $achat = str_pad(number_format($r['prix_achat'], 0), 8);
+            $vente = str_pad(number_format($r['prix_vente'], 0), 8);
+            $stock = number_format($r['stock']);
+
+            $message .= "{$code} | {$nom} | {$achat} | {$vente} | {$stock}\n";
+        }
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Acheter des ressources au marché
+     */
+    private function acheterRessource(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        if (count($parts) < 3) {
+            return [
+                'success' => false,
+                'message' => "Usage: acheter [code_ressource] [quantite]\nExemple: acheter FER 500",
+            ];
+        }
+
+        $code = strtoupper($parts[1]);
+        $quantite = (int)$parts[2];
+
+        if ($quantite <= 0) {
+            return ['success' => false, 'message' => 'Quantite invalide'];
+        }
+
+        // Trouver ressource
+        $ressource = Ressource::where('code', $code)->first();
+        if (!$ressource) {
+            return ['success' => false, 'message' => "Ressource '{$code}' inconnue"];
+        }
+
+        // Trouver marché local
+        $os = $vaisseau->objetSpatial;
+        $systeme = SystemeStellaire::where('secteur_x', $os->secteur_x)
+            ->where('secteur_y', $os->secteur_y)
+            ->where('secteur_z', $os->secteur_z)
+            ->first();
+
+        if (!$systeme) {
+            return ['success' => false, 'message' => 'Vous devez etre dans un systeme stellaire'];
+        }
+
+        $marche = Marche::whereHasMorph('localisation', [
+            \App\Models\Planete::class,
+        ], function ($query) use ($systeme) {
+            $query->where('systeme_stellaire_id', $systeme->id);
+        })->where('actif', true)->first();
+
+        if (!$marche) {
+            return ['success' => false, 'message' => 'Aucun marche actif dans ce systeme'];
+        }
+
+        // Vérifier capacité soute
+        if (!$vaisseau->peutCharger($ressource->id, $quantite)) {
+            $capacite = $vaisseau->getCapaciteRestante();
+            $poids = $ressource->poids_unitaire * $quantite;
+            return [
+                'success' => false,
+                'message' => "Capacite soute insuffisante.\nRequis: {$poids}t | Disponible: {$capacite}t",
+            ];
+        }
+
+        // Calculer prix
+        $prix_total = $marche->getPrixAchat($ressource->id) * $quantite;
+
+        // Vérifier crédits
+        if ($personnage->credits < $prix_total) {
+            return [
+                'success' => false,
+                'message' => "Credits insuffisants.\nRequis: " . number_format($prix_total) . " | Disponible: " . number_format($personnage->credits),
+            ];
+        }
+
+        // Effectuer l'achat
+        $resultat = $marche->acheter($ressource->id, $quantite);
+
+        if (!$resultat['success']) {
+            return $resultat;
+        }
+
+        // Débiter crédits et ajouter au vaisseau
+        $personnage->credits -= $resultat['prix_total'];
+        $personnage->save();
+
+        $vaisseau->ajouterRessource($ressource->id, $quantite);
+
+        $message = "\n=== ACHAT EFFECTUE ===\n";
+        $message .= "Ressource: {$ressource->nom} ({$code})\n";
+        $message .= "Quantite: " . number_format($quantite) . "\n";
+        $message .= "Prix total: " . number_format($resultat['prix_total']) . " credits\n";
+        $message .= "Credits restants: " . number_format($personnage->credits) . "\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Vendre des ressources au marché
+     */
+    private function vendreRessource(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        if (count($parts) < 3) {
+            return [
+                'success' => false,
+                'message' => "Usage: vendre [code_ressource] [quantite]\nExemple: vendre FER 500",
+            ];
+        }
+
+        $code = strtoupper($parts[1]);
+        $quantite = (int)$parts[2];
+
+        if ($quantite <= 0) {
+            return ['success' => false, 'message' => 'Quantite invalide'];
+        }
+
+        // Trouver ressource
+        $ressource = Ressource::where('code', $code)->first();
+        if (!$ressource) {
+            return ['success' => false, 'message' => "Ressource '{$code}' inconnue"];
+        }
+
+        // Vérifier inventaire
+        $quantite_dispo = $vaisseau->getQuantiteRessource($ressource->id);
+        if ($quantite_dispo < $quantite) {
+            return [
+                'success' => false,
+                'message' => "Quantite insuffisante.\nDisponible: " . number_format($quantite_dispo),
+            ];
+        }
+
+        // Trouver marché local
+        $os = $vaisseau->objetSpatial;
+        $systeme = SystemeStellaire::where('secteur_x', $os->secteur_x)
+            ->where('secteur_y', $os->secteur_y)
+            ->where('secteur_z', $os->secteur_z)
+            ->first();
+
+        if (!$systeme) {
+            return ['success' => false, 'message' => 'Vous devez etre dans un systeme stellaire'];
+        }
+
+        $marche = Marche::whereHasMorph('localisation', [
+            \App\Models\Planete::class,
+        ], function ($query) use ($systeme) {
+            $query->where('systeme_stellaire_id', $systeme->id);
+        })->where('actif', true)->first();
+
+        if (!$marche) {
+            return ['success' => false, 'message' => 'Aucun marche actif dans ce systeme'];
+        }
+
+        // Effectuer la vente
+        $resultat = $marche->vendre($ressource->id, $quantite);
+
+        if (!$resultat['success']) {
+            return $resultat;
+        }
+
+        // Retirer du vaisseau et créditer
+        $vaisseau->retirerRessource($ressource->id, $quantite);
+        $personnage->credits += $resultat['prix_total'];
+        $personnage->save();
+
+        $message = "\n=== VENTE EFFECTUEE ===\n";
+        $message .= "Ressource: {$ressource->nom} ({$code})\n";
+        $message .= "Quantite: " . number_format($quantite) . "\n";
+        $message .= "Prix total: " . number_format($resultat['prix_total']) . " credits\n";
+        $message .= "Credits: " . number_format($personnage->credits) . "\n";
 
         return ['success' => true, 'message' => $message];
     }
