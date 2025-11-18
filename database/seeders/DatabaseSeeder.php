@@ -2,24 +2,34 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
      * Seed the application's database.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $mode = $this->command->option('mode') ?? config('universe.generation_mode', 'hybrid');
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        $this->command->info("🎮 Mode de génération: {$mode}");
+
+        // Toujours créer les comptes et personnages de test
+        $this->call(GameSeeder::class);
+
+        // Générer l'univers selon le mode
+        match($mode) {
+            'basic', 'procedural' => $this->call(UniverseSeeder::class),
+            'gaia' => $this->call(GaiaSeeder::class),
+            'hybrid' => $this->call([
+                GaiaSeeder::class,
+                UniverseSeeder::class,
+            ]),
+            default => $this->call(UniverseSeeder::class),
+        };
+
+        $this->command->info('');
+        $this->command->info('🎉 Base de données initialisée avec succès !');
     }
 }

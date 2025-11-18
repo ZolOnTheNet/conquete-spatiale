@@ -21,6 +21,7 @@ class GameSeeder extends Seeder
             'mot_de_passe' => bcrypt('password'),
             'adresse_mail' => 'test@conquete-galactique.com',
             'est_verifie' => true,
+            'is_admin' => true, // Compte admin pour tests
         ]);
 
         // Créer un personnage
