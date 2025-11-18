@@ -88,7 +88,16 @@ class Personnage extends Model
     public function consommerPA(int $pa): bool
     {
         if ($this->points_action >= $pa) {
+            // Si on était au max et qu'on dépense pour la première fois, démarrer le timestamp
+            $etait_au_max = ($this->points_action >= $this->max_points_action);
+
             $this->points_action -= $pa;
+
+            // Démarrer le chrono de récupération si on passe du max à moins que max
+            if ($etait_au_max && !$this->derniere_recuperation_pa) {
+                $this->derniere_recuperation_pa = now();
+            }
+
             return true;
         }
         return false;
@@ -119,21 +128,22 @@ class Personnage extends Model
     /**
      * Récupération automatique de PA: 1 PA par heure écoulée
      * Appelé au début de chaque action du joueur
+     * Timestamp démarre uniquement à la première dépense (max → max-1)
      */
     public function recupererPAAutomatique(): array
     {
-        // Si pas de timestamp, initialiser maintenant
+        // Si pas de timestamp = jamais dépensé de PA, aucune récupération
         if (!$this->derniere_recuperation_pa) {
-            $this->derniere_recuperation_pa = now();
-            $this->save();
             return [
                 'pa_recuperes' => 0,
                 'heures_ecoulees' => 0,
             ];
         }
 
-        // Déjà au maximum, pas besoin de calculer
+        // Déjà au maximum, arrêter le chrono et réinitialiser timestamp
         if ($this->points_action >= $this->max_points_action) {
+            $this->derniere_recuperation_pa = null;
+            $this->save();
             return [
                 'pa_recuperes' => 0,
                 'heures_ecoulees' => 0,
@@ -161,8 +171,13 @@ class Personnage extends Model
         // Appliquer récupération
         $this->points_action += $pa_a_recuperer;
 
-        // Mettre à jour timestamp (ajouter les heures récupérées pour ne pas perdre de fraction)
-        $this->derniere_recuperation_pa = $derniere_recup->addHours($pa_a_recuperer);
+        // Si on atteint le max, arrêter le chrono
+        if ($this->points_action >= $this->max_points_action) {
+            $this->derniere_recuperation_pa = null;
+        } else {
+            // Mettre à jour timestamp (ajouter les heures récupérées pour ne pas perdre de fraction)
+            $this->derniere_recuperation_pa = $derniere_recup->addHours($pa_a_recuperer);
+        }
 
         $this->save();
 

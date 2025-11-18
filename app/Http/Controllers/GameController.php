@@ -50,10 +50,10 @@ class GameController extends Controller
             'competences' => [],
             'experience' => 0,
             'niveau' => 1,
-            // PA: 36 max, récupération 1/heure
-            'points_action' => 36,
+            // PA: 24 départ (1 journée), max 36 (1,5 jours), récupération 1/heure
+            'points_action' => 24,
             'max_points_action' => 36,
-            'derniere_recuperation_pa' => now(),
+            'derniere_recuperation_pa' => null, // Démarre à la première dépense
         ]);
 
         // Si c'est le premier personnage, le définir comme principal

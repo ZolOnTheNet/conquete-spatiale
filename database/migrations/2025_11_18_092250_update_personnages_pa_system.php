@@ -13,18 +13,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('personnages', function (Blueprint $table) {
-            // Modifier les valeurs par défaut de PA (10 -> 36)
-            $table->integer('points_action')->default(36)->change();
+            // Modifier les valeurs par défaut de PA
+            // points_action: 24 (1 journée de départ)
+            // max_points_action: 36 (capital max = 1,5 jours)
+            $table->integer('points_action')->default(24)->change();
             $table->integer('max_points_action')->default(36)->change();
 
             // Ajouter timestamp de dernière récupération
+            // null par défaut = chrono démarre à la première dépense
             $table->timestamp('derniere_recuperation_pa')->nullable()->after('max_points_action');
         });
 
-        // Initialiser le timestamp pour les personnages existants
-        DB::table('personnages')
-            ->whereNull('derniere_recuperation_pa')
-            ->update(['derniere_recuperation_pa' => now()]);
+        // NE PAS initialiser le timestamp pour les personnages existants
+        // Le timestamp démarre uniquement à la première dépense de PA
     }
 
     /**
