@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Personnage;
+use App\Models\Arme;
+use App\Models\Bouclier;
 use App\Models\Compte;
 use App\Models\Gisement;
 use App\Models\Marche;
@@ -169,6 +171,12 @@ class GameController extends Controller
             // Commandes Fabrication
             'recettes', 'recipes' => $this->showRecettes($personnage, $parts),
             'fabriquer', 'craft' => $this->fabriquerRecette($personnage, $parts),
+            // Commandes Combat
+            'armes', 'weapons' => $this->showArmes($personnage),
+            'boucliers', 'shields' => $this->showBoucliers($personnage),
+            'equiper', 'equip' => $this->equiperEquipement($personnage, $parts),
+            'etat-combat', 'combat' => $this->showEtatCombat($personnage),
+            'reparer', 'repair' => $this->reparerVaisseau($personnage, $parts),
             '' => ['success' => true, 'message' => ''],
             default => [
                 'success' => false,
@@ -207,6 +215,13 @@ MARCHES:
 FABRICATION:
   recettes, recipes [cat]     - Voir les recettes (ou par categorie)
   fabriquer, craft [code] [n] - Fabriquer une recette (x n fois)
+
+COMBAT:
+  armes, weapons              - Voir les armes disponibles
+  boucliers, shields          - Voir les boucliers disponibles
+  equiper, equip [type] [code] [slot] - Equiper arme/bouclier
+  etat-combat, combat         - Voir etat combat du vaisseau
+  reparer, repair [quantite]  - Reparer la coque
             ",
         ];
     }
@@ -1212,6 +1227,243 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
         foreach ($resultat['produits'] as $p) {
             $message .= "- {$p['nom']} ({$p['code']}): {$p['quantite']}\n";
         }
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    // === COMMANDES COMBAT (PHASE 3) ===
+
+    /**
+     * Afficher les armes disponibles
+     */
+    private function showArmes(Personnage $personnage): array
+    {
+        $armes = Arme::where('actif', true)->orderBy('niveau_requis')->orderBy('type')->get();
+
+        $message = "\n=== ARMES DISPONIBLES ===\n\n";
+
+        $currentType = '';
+        foreach ($armes as $arme) {
+            if ($arme->type !== $currentType) {
+                $currentType = $arme->type;
+                $message .= "--- " . strtoupper($currentType) . " ---\n";
+            }
+
+            $message .= "\n[{$arme->code}] {$arme->nom}\n";
+            $message .= "  Degats: {$arme->degats_min}-{$arme->degats_max} | Precision: {$arme->precision}%\n";
+            $message .= "  Portee: {$arme->portee} | Cadence: {$arme->cadence}/tour\n";
+            $message .= "  Energie/tir: {$arme->energie_tir} | Niveau: {$arme->niveau_requis}\n";
+            $message .= "  Prix: " . number_format($arme->prix) . " cr | Taille: {$arme->taille}\n";
+        }
+
+        $message .= "\nUtilisez 'equiper arme [code] [slot]' pour equiper.";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Afficher les boucliers disponibles
+     */
+    private function showBoucliers(Personnage $personnage): array
+    {
+        $boucliers = Bouclier::where('actif', true)->orderBy('niveau_requis')->orderBy('type')->get();
+
+        $message = "\n=== BOUCLIERS DISPONIBLES ===\n\n";
+
+        $currentType = '';
+        foreach ($boucliers as $bouclier) {
+            if ($bouclier->type !== $currentType) {
+                $currentType = $bouclier->type;
+                $message .= "--- " . strtoupper($currentType) . " ---\n";
+            }
+
+            $message .= "\n[{$bouclier->code}] {$bouclier->nom}\n";
+            $message .= "  Points: {$bouclier->points_max} | Regen: {$bouclier->regeneration}/tour\n";
+            $message .= "  Resistance: {$bouclier->resistance}%\n";
+            $message .= "  vs Laser: {$bouclier->vs_laser}% | vs Canon: {$bouclier->vs_canon}%\n";
+            $message .= "  vs Missile: {$bouclier->vs_missile}% | vs Plasma: {$bouclier->vs_plasma}%\n";
+            $message .= "  Energie: {$bouclier->energie_maintien}/tour | Niveau: {$bouclier->niveau_requis}\n";
+            $message .= "  Prix: " . number_format($bouclier->prix) . " cr | Taille: {$bouclier->taille}\n";
+        }
+
+        $message .= "\nUtilisez 'equiper bouclier [code]' pour equiper.";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Equiper une arme ou un bouclier
+     */
+    private function equiperEquipement(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        if (count($parts) < 3) {
+            return [
+                'success' => false,
+                'message' => "Usage:\n  equiper arme [code] [slot 1-3]\n  equiper bouclier [code]\nExemple: equiper arme LASER_MK1 1",
+            ];
+        }
+
+        $type = strtolower($parts[1]);
+        $code = strtoupper($parts[2]);
+
+        if ($type === 'arme' || $type === 'weapon') {
+            $slot = isset($parts[3]) ? (int)$parts[3] : 1;
+            if ($slot < 1 || $slot > 3) {
+                return ['success' => false, 'message' => 'Slot invalide (1-3)'];
+            }
+
+            $arme = Arme::where('code', $code)->where('actif', true)->first();
+            if (!$arme) {
+                return ['success' => false, 'message' => "Arme '{$code}' inconnue"];
+            }
+
+            if ($personnage->niveau < $arme->niveau_requis) {
+                return [
+                    'success' => false,
+                    'message' => "Niveau insuffisant. Requis: {$arme->niveau_requis} | Actuel: {$personnage->niveau}",
+                ];
+            }
+
+            $vaisseau->equiperArme($arme->id, $slot);
+
+            $message = "\n=== ARME EQUIPEE ===\n";
+            $message .= "Slot {$slot}: {$arme->nom}\n";
+            $message .= "Degats: {$arme->degats_min}-{$arme->degats_max}\n";
+            $message .= "Precision: {$arme->precision}% | Cadence: {$arme->cadence}\n";
+
+            return ['success' => true, 'message' => $message];
+
+        } elseif ($type === 'bouclier' || $type === 'shield') {
+            $bouclier = Bouclier::where('code', $code)->where('actif', true)->first();
+            if (!$bouclier) {
+                return ['success' => false, 'message' => "Bouclier '{$code}' inconnu"];
+            }
+
+            if ($personnage->niveau < $bouclier->niveau_requis) {
+                return [
+                    'success' => false,
+                    'message' => "Niveau insuffisant. Requis: {$bouclier->niveau_requis} | Actuel: {$personnage->niveau}",
+                ];
+            }
+
+            $vaisseau->equiperBouclier($bouclier->id);
+
+            $message = "\n=== BOUCLIER EQUIPE ===\n";
+            $message .= "{$bouclier->nom}\n";
+            $message .= "Points: {$bouclier->points_max} | Regen: {$bouclier->regeneration}/tour\n";
+            $message .= "Resistance: {$bouclier->resistance}%\n";
+
+            return ['success' => true, 'message' => $message];
+
+        } else {
+            return ['success' => false, 'message' => "Type inconnu. Utilisez 'arme' ou 'bouclier'"];
+        }
+    }
+
+    /**
+     * Afficher l'etat de combat du vaisseau
+     */
+    private function showEtatCombat(Personnage $personnage): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        $message = "\n=== ETAT COMBAT - {$vaisseau->modele} ===\n\n";
+
+        // Coque
+        $pct_coque = $vaisseau->getPourcentageCoque();
+        $message .= "COQUE: {$vaisseau->coque_actuelle}/{$vaisseau->coque_max} ({$pct_coque}%)\n";
+
+        // Bouclier
+        if ($vaisseau->bouclier) {
+            $pct_bouclier = $vaisseau->getPourcentageBouclier();
+            $message .= "BOUCLIER: {$vaisseau->bouclier_actuel}/{$vaisseau->bouclier->points_max} ({$pct_bouclier}%)\n";
+            $message .= "  Type: {$vaisseau->bouclier->nom}\n";
+            $message .= "  Regen: {$vaisseau->bouclier->regeneration}/tour\n";
+        } else {
+            $message .= "BOUCLIER: Aucun\n";
+        }
+
+        $message .= "\nENERGIE: " . round($vaisseau->energie_actuelle, 0) . "/{$vaisseau->reserve}\n";
+        $message .= "ESQUIVE: {$vaisseau->esquive}%\n";
+        $message .= "PRECISION BONUS: +{$vaisseau->bonus_precision}%\n";
+
+        // Armes
+        $message .= "\n--- ARMEMENT ---\n";
+        $armes = $vaisseau->getArmesEquipees();
+        if (empty($armes)) {
+            $message .= "Aucune arme equipee\n";
+        } else {
+            $slot = 1;
+            foreach ($armes as $arme) {
+                $dps = round($arme->getDPS(), 1);
+                $message .= "Slot {$slot}: {$arme->nom}\n";
+                $message .= "  {$arme->degats_min}-{$arme->degats_max} dmg | {$arme->precision}% | x{$arme->cadence}\n";
+                $message .= "  DPS theorique: {$dps} | Energie: {$arme->getCoutEnergieSalve()}/salve\n";
+                $slot++;
+            }
+        }
+
+        // Emplacements vides
+        for ($i = count($armes) + 1; $i <= 3; $i++) {
+            $message .= "Slot {$i}: [VIDE]\n";
+        }
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Reparer la coque du vaisseau
+     */
+    private function reparerVaisseau(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        $quantite = isset($parts[1]) ? (int)$parts[1] : 10;
+        if ($quantite <= 0) {
+            return ['success' => false, 'message' => 'Quantite invalide'];
+        }
+
+        // Cout: 10 credits par point de coque
+        $cout = $quantite * 10;
+
+        if ($personnage->credits < $cout) {
+            return [
+                'success' => false,
+                'message' => "Credits insuffisants. Cout: {$cout} cr | Disponible: " . number_format($personnage->credits),
+            ];
+        }
+
+        // Verifier si reparation necessaire
+        if ($vaisseau->coque_actuelle >= $vaisseau->coque_max) {
+            return ['success' => false, 'message' => 'La coque est deja en parfait etat'];
+        }
+
+        // Limiter a ce qui est necessaire
+        $degats = $vaisseau->coque_max - $vaisseau->coque_actuelle;
+        $quantite_reelle = min($quantite, $degats);
+        $cout_reel = $quantite_reelle * 10;
+
+        // Reparer
+        $repare = $vaisseau->reparerCoque($quantite_reelle);
+        $personnage->credits -= $cout_reel;
+        $personnage->save();
+
+        $message = "\n=== REPARATION EFFECTUEE ===\n";
+        $message .= "Points repares: {$repare}\n";
+        $message .= "Cout: {$cout_reel} credits\n";
+        $message .= "Coque: {$vaisseau->coque_actuelle}/{$vaisseau->coque_max}\n";
+        $message .= "Credits restants: " . number_format($personnage->credits) . "\n";
 
         return ['success' => true, 'message' => $message];
     }
