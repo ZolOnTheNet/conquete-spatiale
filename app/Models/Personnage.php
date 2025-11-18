@@ -57,8 +57,8 @@ class Personnage extends Model
     // Méthodes Daggerheart
     public function lancerDes(int $competenceNiveau = 0): array
     {
-        $hope = rand(1, 12);
-        $fear = rand(1, 12);
+        $hope = rand(1, config('game.daggerheart.des_hope', 12));
+        $fear = rand(1, config('game.daggerheart.des_fear', 12));
         $total = $hope + $fear + $competenceNiveau;
 
         $resultat = [
@@ -150,23 +150,27 @@ class Personnage extends Model
             ];
         }
 
-        // Calculer heures écoulées depuis dernière récupération
+        // Calculer périodes écoulées depuis dernière récupération
         $maintenant = now();
         $derniere_recup = $this->derniere_recuperation_pa;
-        $heures_ecoulees = (int)floor($maintenant->diffInHours($derniere_recup));
+        $delai_minutes = config('game.pa.recuperation_delai', 60);
+        $pa_par_periode = config('game.pa.recuperation_montant', 1);
 
-        // Aucune heure complète écoulée
-        if ($heures_ecoulees < 1) {
+        $minutes_ecoulees = $maintenant->diffInMinutes($derniere_recup);
+        $periodes_ecoulees = (int)floor($minutes_ecoulees / $delai_minutes);
+
+        // Aucune période complète écoulée
+        if ($periodes_ecoulees < 1) {
             return [
                 'pa_recuperes' => 0,
                 'heures_ecoulees' => 0,
-                'prochaine_recuperation_dans' => 60 - $maintenant->diffInMinutes($derniere_recup) % 60,
+                'prochaine_recuperation_dans' => $delai_minutes - ($minutes_ecoulees % $delai_minutes),
             ];
         }
 
-        // Calculer PA à récupérer (1 PA par heure, sans dépasser max)
+        // Calculer PA à récupérer (pa_par_periode × périodes, sans dépasser max)
         $pa_manquants = $this->max_points_action - $this->points_action;
-        $pa_a_recuperer = min($heures_ecoulees, $pa_manquants);
+        $pa_a_recuperer = min($periodes_ecoulees * $pa_par_periode, $pa_manquants);
 
         // Appliquer récupération
         $this->points_action += $pa_a_recuperer;
@@ -175,19 +179,20 @@ class Personnage extends Model
         if ($this->points_action >= $this->max_points_action) {
             $this->derniere_recuperation_pa = null;
         } else {
-            // Mettre à jour timestamp (ajouter les heures récupérées pour ne pas perdre de fraction)
-            $this->derniere_recuperation_pa = $derniere_recup->addHours($pa_a_recuperer);
+            // Mettre à jour timestamp (ajouter les périodes récupérées pour ne pas perdre de fraction)
+            $periodes_utilisees = (int)ceil($pa_a_recuperer / $pa_par_periode);
+            $this->derniere_recuperation_pa = $derniere_recup->addMinutes($periodes_utilisees * $delai_minutes);
         }
 
         $this->save();
 
         return [
             'pa_recuperes' => $pa_a_recuperer,
-            'heures_ecoulees' => $heures_ecoulees,
+            'heures_ecoulees' => round($periodes_ecoulees * $delai_minutes / 60, 1),
             'pa_actuels' => $this->points_action,
             'prochaine_recuperation_dans' => $this->points_action >= $this->max_points_action
                 ? null
-                : 60 - $maintenant->diffInMinutes($this->derniere_recuperation_pa) % 60,
+                : $delai_minutes - ($maintenant->diffInMinutes($this->derniere_recuperation_pa) % $delai_minutes),
         ];
     }
 }

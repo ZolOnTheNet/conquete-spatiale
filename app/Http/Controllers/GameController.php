@@ -40,19 +40,21 @@ class GameController extends Controller
             'compte_id' => $compte->id,
             'nom' => $validated['nom'],
             'prenom' => $validated['prenom'] ?? null,
-            // Valeurs par défaut
-            'agilite' => 2,
-            'force' => 2,
-            'finesse' => 2,
-            'instinct' => 2,
-            'presence' => 2,
-            'savoir' => 2,
+            // Valeurs par défaut depuis config
+            'agilite' => config('game.personnage.traits_defaut', 2),
+            'force' => config('game.personnage.traits_defaut', 2),
+            'finesse' => config('game.personnage.traits_defaut', 2),
+            'instinct' => config('game.personnage.traits_defaut', 2),
+            'presence' => config('game.personnage.traits_defaut', 2),
+            'savoir' => config('game.personnage.traits_defaut', 2),
             'competences' => [],
-            'experience' => 0,
-            'niveau' => 1,
-            // PA: 24 départ (1 journée), max 36 (1,5 jours), récupération 1/heure
-            'points_action' => 24,
-            'max_points_action' => 36,
+            'experience' => config('game.personnage.experience_depart', 0),
+            'niveau' => config('game.personnage.niveau_depart', 1),
+            'jetons_hope' => config('game.personnage.jetons_hope_depart', 0),
+            'jetons_fear' => config('game.personnage.jetons_fear_depart', 0),
+            // PA depuis config
+            'points_action' => config('game.pa.depart', 24),
+            'max_points_action' => config('game.pa.max', 36),
             'derniere_recuperation_pa' => null, // Démarre à la première dépense
         ]);
 
@@ -179,8 +181,11 @@ COMMANDES DISPONIBLES:
         // Info prochaine récupération PA
         $prochaine_recup = '';
         if ($personnage->points_action < $personnage->max_points_action && $personnage->derniere_recuperation_pa) {
-            $minutes_restantes = 60 - now()->diffInMinutes($personnage->derniere_recuperation_pa) % 60;
-            $prochaine_recup = "\nProchain PA dans: {$minutes_restantes} min";
+            $delai = config('game.pa.recuperation_delai', 60);
+            $minutes_restantes = $delai - (now()->diffInMinutes($personnage->derniere_recuperation_pa) % $delai);
+            $unite = $delai >= 60 ? 'h' : 'min';
+            $temps = $delai >= 60 ? round($minutes_restantes / 60, 1) : $minutes_restantes;
+            $prochaine_recup = "\nProchain PA dans: {$temps} {$unite}";
         }
 
         return [
