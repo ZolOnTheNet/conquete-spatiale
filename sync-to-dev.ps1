@@ -1,7 +1,9 @@
-# Script PowerShell de synchronisation de la branche claude vers dev
+# Script PowerShell de synchronisation d'une branche vers dev
 # Compatible Windows PowerShell 5.1+ et PowerShell Core 7+
+# Usage: .\sync-to-dev.ps1 [-SourceBranch <branche>] [-Force]
 
 param(
+    [string]$SourceBranch = "",
     [switch]$Force = $false
 )
 
@@ -22,7 +24,7 @@ function Write-Header {
     Write-ColorOutput "═══════════════════════════════════════════════════════════" "Green"
 }
 
-Write-Header "Synchronisation branche Claude → Dev"
+Write-Header "Synchronisation branche → Dev"
 
 # Vérifier qu'on est dans un repo Git
 if (-not (Test-Path ".git")) {
@@ -30,14 +32,35 @@ if (-not (Test-Path ".git")) {
     exit 1
 }
 
-# Récupérer le nom de la branche actuelle
-try {
-    $currentBranch = git branch --show-current
-    Write-ColorOutput "📍 Branche actuelle: $currentBranch" "Yellow"
-} catch {
-    Write-ColorOutput "❌ Impossible de récupérer la branche actuelle" "Red"
-    exit 1
+# Déterminer la branche source
+if ($SourceBranch) {
+    Write-ColorOutput "📍 Branche source (paramètre): $SourceBranch" "Yellow"
+
+    # Vérifier que la branche existe
+    $branchExists = git show-ref --verify --quiet refs/heads/$SourceBranch
+    if ($LASTEXITCODE -ne 0) {
+        # Vérifier sur remote
+        $remoteBranchExists = git show-ref --verify --quiet refs/remotes/origin/$SourceBranch
+        if ($LASTEXITCODE -ne 0) {
+            Write-ColorOutput "❌ Erreur: La branche $SourceBranch n'existe pas" "Red"
+            exit 1
+        } else {
+            Write-ColorOutput "⚠️  Branche trouvée sur remote, checkout..." "Yellow"
+            git checkout $SourceBranch
+        }
+    }
+} else {
+    try {
+        $SourceBranch = git branch --show-current
+        Write-ColorOutput "📍 Branche source (actuelle): $SourceBranch" "Yellow"
+    } catch {
+        Write-ColorOutput "❌ Impossible de récupérer la branche actuelle" "Red"
+        exit 1
+    }
 }
+
+# Sauvegarder la branche actuelle pour le retour
+$currentBranch = git branch --show-current
 
 # Vérifier qu'il n'y a pas de modifications non commitées
 $status = git status --short
@@ -93,10 +116,10 @@ if ($LASTEXITCODE -eq 0) {
 Write-ColorOutput "🔄 Bascule sur la branche dev..." "Yellow"
 git checkout dev
 
-# Merger la branche claude
-Write-ColorOutput "🔀 Fusion de $currentBranch dans dev..." "Yellow"
+# Merger la branche source
+Write-ColorOutput "🔀 Fusion de $SourceBranch dans dev..." "Yellow"
 try {
-    git merge $currentBranch --no-edit
+    git merge $SourceBranch --no-edit
     Write-ColorOutput "✓ Fusion réussie" "Green"
 } catch {
     Write-ColorOutput "❌ Conflits détectés" "Red"
