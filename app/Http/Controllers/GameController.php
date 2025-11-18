@@ -529,4 +529,137 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
             'message' => $message,
         ];
     }
+
+    // === API AJAX POUR PANNEAUX ===
+
+    /**
+     * API: Récupère le statut du personnage (PA, position, jetons)
+     */
+    public function apiGetStatus(Request $request)
+    {
+        $personnage = $request->attributes->get('personnage');
+
+        if (!$personnage) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Personnage introuvable',
+            ], 404);
+        }
+
+        // Récupération auto des PA
+        $recup = $personnage->recupererPAAutomatique();
+
+        // Calcul prochaine récupération
+        $prochaine_recup = null;
+        if ($personnage->points_action < $personnage->max_points_action && $personnage->derniere_recuperation_pa) {
+            $delai = config('game.pa.recuperation_delai', 60);
+            $minutes_restantes = $delai - (now()->diffInMinutes($personnage->derniere_recuperation_pa) % $delai);
+            $prochaine_recup = [
+                'minutes' => $minutes_restantes,
+                'secondes' => $minutes_restantes * 60,
+            ];
+        }
+
+        // Position
+        $position = $personnage->getPositionActuelle();
+
+        return response()->json([
+            'success' => true,
+            'personnage' => [
+                'nom' => $personnage->nom,
+                'prenom' => $personnage->prenom,
+                'niveau' => $personnage->niveau,
+                'experience' => $personnage->experience,
+            ],
+            'pa' => [
+                'actuel' => $personnage->points_action,
+                'max' => $personnage->max_points_action,
+                'prochaine_recup' => $prochaine_recup,
+            ],
+            'jetons' => [
+                'hope' => $personnage->jetons_hope,
+                'fear' => $personnage->jetons_fear,
+            ],
+            'position' => $position,
+        ]);
+    }
+
+    /**
+     * API: Récupère les infos du vaisseau
+     */
+    public function apiGetVaisseau(Request $request)
+    {
+        $personnage = $request->attributes->get('personnage');
+
+        if (!$personnage || !$personnage->vaisseauActif) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucun vaisseau actif',
+            ], 404);
+        }
+
+        $vaisseau = $personnage->vaisseauActif;
+
+        return response()->json([
+            'success' => true,
+            'vaisseau' => [
+                'modele' => $vaisseau->modele,
+                'energie' => [
+                    'actuelle' => round($vaisseau->energie_actuelle, 2),
+                    'max' => round($vaisseau->reserve, 2),
+                    'pourcentage' => round(($vaisseau->energie_actuelle / $vaisseau->reserve) * 100, 1),
+                ],
+                'scan' => [
+                    'portee' => $vaisseau->portee_scan,
+                    'puissance' => $vaisseau->puissance_scan,
+                    'bonus' => $vaisseau->bonus_scan,
+                    'niveau_actuel' => $vaisseau->scan_niveau_actuel,
+                    'puissance_effective' => $vaisseau->getPuissanceScanEffective(),
+                ],
+                'vitesses' => [
+                    'conventionnelle' => $vaisseau->vitesse_conventionnelle,
+                    'saut' => $vaisseau->vitesse_saut,
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * API: Récupère la carte des systèmes découverts
+     */
+    public function apiGetCarte(Request $request)
+    {
+        $personnage = $request->attributes->get('personnage');
+
+        if (!$personnage) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Personnage introuvable',
+            ], 404);
+        }
+
+        $systemes = $personnage->getSystemesDecouverts();
+        $position = $personnage->getPositionActuelle();
+
+        // Enrichir avec distances actuelles
+        foreach ($systemes as &$systeme) {
+            if ($position) {
+                $distance = $personnage->calculerDistance($position, [
+                    'secteur_x' => $systeme['secteur_x'],
+                    'secteur_y' => $systeme['secteur_y'],
+                    'secteur_z' => $systeme['secteur_z'],
+                    'position_x' => $systeme['position_x'],
+                    'position_y' => $systeme['position_y'],
+                    'position_z' => $systeme['position_z'],
+                ]);
+                $systeme['distance_actuelle'] = round($distance, 2);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'systemes' => $systemes,
+            'total' => count($systemes),
+        ]);
+    }
 }

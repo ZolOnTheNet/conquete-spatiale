@@ -17,6 +17,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('personnage.actif')->group(function () {
         Route::get('/dashboard', [GameController::class, 'dashboard'])->name('dashboard');
         Route::post('/command', [GameController::class, 'executeCommand'])->name('command');
+
+        // API AJAX pour panneaux
+        Route::get('/api/status', [GameController::class, 'apiGetStatus'])->name('api.status');
+        Route::get('/api/vaisseau', [GameController::class, 'apiGetVaisseau'])->name('api.vaisseau');
+        Route::get('/api/carte', [GameController::class, 'apiGetCarte'])->name('api.carte');
     });
 });
 
