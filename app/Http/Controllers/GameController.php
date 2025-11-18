@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Personnage;
 use App\Models\Compte;
+use App\Models\Gisement;
+use App\Models\Ressource;
+use App\Models\SystemeStellaire;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -152,6 +155,10 @@ class GameController extends Controller
             'saut', 'jump' => $this->jumpHyperspace($personnage, $parts),
             'scan', 'scanner' => $this->scanSystems($personnage, $parts),
             'carte', 'map' => $this->showMap($personnage),
+            // Commandes Phase 2 - Économie
+            'scan-planete', 'scanp' => $this->scanPlanete($personnage, $parts),
+            'extraire', 'mine' => $this->extraireRessource($personnage, $parts),
+            'inventaire', 'inv' => $this->showInventaire($personnage),
             '' => ['success' => true, 'message' => ''],
             default => [
                 'success' => false,
@@ -172,10 +179,14 @@ COMMANDES DISPONIBLES:
   vaisseau, ship              - Afficher les infos du vaisseau
   lancer [competence]         - Lancer les dés (système Daggerheart 2d12)
   deplacer [sx] [sy] [sz]     - Déplacer (conventionnel) vers secteur
-  deplacer [sx] [sy] [sz] [px] [py] [pz] - Déplacer avec position précise
   saut [sx] [sy] [sz]         - Saut hyperespace vers secteur
   scan                        - Scanner zone (scan progressif, 1 PA)
   carte, map                  - Afficher carte des systèmes découverts
+
+ÉCONOMIE & RESSOURCES:
+  scan-planete, scanp [nom]   - Scanner gisements d'une planète
+  extraire, mine [gisement_id] [quantité] - Extraire ressources
+  inventaire, inv             - Afficher inventaire du vaisseau
             ",
         ];
     }
@@ -528,6 +539,240 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
             'success' => true,
             'message' => $message,
         ];
+    }
+
+    // === COMMANDES ÉCONOMIE (PHASE 2) ===
+
+    /**
+     * Scanner les gisements d'une planète
+     */
+    private function scanPlanete(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        if (count($parts) < 2) {
+            return [
+                'success' => false,
+                'message' => "Usage: scan-planete [nom_planete]\nExemple: scan-planete Sol 3",
+            ];
+        }
+
+        // Récupérer nom planète (peut contenir des espaces)
+        $nom_planete = implode(' ', array_slice($parts, 1));
+
+        // Trouver système actuel
+        $os = $vaisseau->objetSpatial;
+        $systeme = SystemeStellaire::where('secteur_x', $os->secteur_x)
+            ->where('secteur_y', $os->secteur_y)
+            ->where('secteur_z', $os->secteur_z)
+            ->first();
+
+        if (!$systeme) {
+            return ['success' => false, 'message' => 'Vous n\'êtes pas dans un système stellaire.'];
+        }
+
+        // Trouver planète
+        $planete = $systeme->planetes()
+            ->where('nom', 'like', "%{$nom_planete}%")
+            ->first();
+
+        if (!$planete) {
+            $planetes_dispo = $systeme->planetes->pluck('nom')->join(', ');
+            return [
+                'success' => false,
+                'message' => "Planète '{$nom_planete}' non trouvée.\nPlanètes disponibles: {$planetes_dispo}",
+            ];
+        }
+
+        // Coût en PA
+        if ($personnage->points_action < 1) {
+            return ['success' => false, 'message' => 'Pas assez de PA (1 requis)'];
+        }
+        $personnage->consommerPA(1);
+
+        // Scanner gisements
+        $puissance_scan = $vaisseau->getPuissanceScanEffective();
+        $gisements = $planete->gisements()->where('decouvert', false)->get();
+
+        $detections = [];
+        foreach ($gisements as $gisement) {
+            // Formule détection: jet + puissance vs seuil basé sur rareté
+            $jet = rand(1, 12) + rand(1, 12); // 2d12
+            $resultat = $jet + ($puissance_scan / 10);
+            $seuil = 150 - $gisement->ressource->rarete; // Plus rare = plus difficile
+
+            if ($resultat >= $seuil) {
+                $gisement->update([
+                    'decouvert' => true,
+                    'decouvert_le' => now(),
+                    'decouvert_par' => $personnage->id,
+                ]);
+
+                $detections[] = [
+                    'id' => $gisement->id,
+                    'ressource' => $gisement->ressource->nom,
+                    'code' => $gisement->ressource->code,
+                    'richesse' => $gisement->richesse,
+                    'quantite' => $gisement->quantite_restante,
+                ];
+            }
+        }
+
+        // Récupérer aussi les gisements déjà découverts
+        $gisements_connus = $planete->gisements()
+            ->where('decouvert', true)
+            ->with('ressource')
+            ->get();
+
+        $message = "\n=== SCAN GÉOLOGIQUE : {$planete->nom} ===\n";
+        $message .= "Type: {$planete->type_planete}\n";
+        $message .= "Puissance scan: {$puissance_scan}\n\n";
+
+        if (count($detections) > 0) {
+            $message .= "--- NOUVEAUX GISEMENTS DÉTECTÉS ---\n";
+            foreach ($detections as $d) {
+                $message .= "\n• [{$d['id']}] {$d['ressource']} ({$d['code']})\n";
+                $message .= "  Richesse: {$d['richesse']}%\n";
+                $message .= "  Quantité: " . number_format($d['quantite']) . " unités\n";
+            }
+        } else {
+            $message .= "Aucun nouveau gisement détecté.\n";
+        }
+
+        if ($gisements_connus->count() > 0) {
+            $message .= "\n--- GISEMENTS CONNUS ---\n";
+            foreach ($gisements_connus as $g) {
+                $etat = $g->en_exploitation ? ' [EN EXPLOITATION]' : '';
+                $message .= "• [{$g->id}] {$g->ressource->nom}: " . number_format($g->quantite_restante) . " unités ({$g->richesse}%){$etat}\n";
+            }
+        }
+
+        $message .= "\nUtilisez 'extraire [id] [quantité]' pour miner.";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Extraire ressources d'un gisement
+     */
+    private function extraireRessource(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        if (count($parts) < 3) {
+            return [
+                'success' => false,
+                'message' => "Usage: extraire [gisement_id] [quantité]\nExemple: extraire 5 1000",
+            ];
+        }
+
+        $gisement_id = (int)$parts[1];
+        $quantite = (int)$parts[2];
+
+        if ($quantite <= 0) {
+            return ['success' => false, 'message' => 'Quantité invalide'];
+        }
+
+        // Trouver gisement
+        $gisement = Gisement::with(['ressource', 'planete'])->find($gisement_id);
+
+        if (!$gisement) {
+            return ['success' => false, 'message' => "Gisement #{$gisement_id} introuvable"];
+        }
+
+        if (!$gisement->decouvert) {
+            return ['success' => false, 'message' => 'Ce gisement n\'a pas encore été découvert'];
+        }
+
+        // Vérifier qu'on est dans le bon système
+        $os = $vaisseau->objetSpatial;
+        $systeme_planete = $gisement->planete->systemeStellaire;
+
+        if ($os->secteur_x != $systeme_planete->secteur_x ||
+            $os->secteur_y != $systeme_planete->secteur_y ||
+            $os->secteur_z != $systeme_planete->secteur_z) {
+            return ['success' => false, 'message' => 'Vous devez être dans le système de cette planète'];
+        }
+
+        // Vérifier quantité disponible
+        if ($gisement->quantite_restante < $quantite) {
+            return [
+                'success' => false,
+                'message' => "Quantité insuffisante. Disponible: " . number_format($gisement->quantite_restante),
+            ];
+        }
+
+        // Vérifier capacité soute
+        if (!$vaisseau->peutCharger($gisement->ressource_id, $quantite)) {
+            $capacite = $vaisseau->getCapaciteRestante();
+            $poids = $gisement->ressource->poids_unitaire * $quantite;
+            return [
+                'success' => false,
+                'message' => "Capacité soute insuffisante.\nRequis: {$poids}t | Disponible: {$capacite}t",
+            ];
+        }
+
+        // Coût en PA (1 PA par tranche de 10000)
+        $pa_requis = max(1, (int)ceil($quantite / 10000));
+        if ($personnage->points_action < $pa_requis) {
+            return ['success' => false, 'message' => "Pas assez de PA ({$pa_requis} requis)"];
+        }
+
+        // Extraire !
+        $quantite_extraite = $gisement->extraire($quantite);
+        $vaisseau->ajouterRessource($gisement->ressource_id, $quantite_extraite);
+        $personnage->consommerPA($pa_requis);
+
+        $poids_ajoute = $gisement->ressource->poids_unitaire * $quantite_extraite;
+
+        $message = "\n=== EXTRACTION RÉUSSIE ===\n";
+        $message .= "Ressource: {$gisement->ressource->nom}\n";
+        $message .= "Quantité: " . number_format($quantite_extraite) . " unités\n";
+        $message .= "Poids ajouté: {$poids_ajoute}t\n";
+        $message .= "PA utilisés: {$pa_requis}\n\n";
+        $message .= "Gisement restant: " . number_format($gisement->quantite_restante) . " unités\n";
+        $message .= "Capacité soute: " . round($vaisseau->getCapaciteRestante(), 2) . "t";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Afficher inventaire du vaisseau
+     */
+    private function showInventaire(Personnage $personnage): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        $inventaire = $vaisseau->listerInventaire();
+        $capacite_totale = $vaisseau->place_soute ?? 1000;
+        $poids_total = $vaisseau->getPoidsInventaire();
+        $valeur_totale = $vaisseau->getValeurInventaire();
+
+        $message = "\n=== INVENTAIRE VAISSEAU ===\n";
+        $message .= "Capacité: " . round($poids_total, 2) . "t / {$capacite_totale}t\n";
+        $message .= "Valeur totale: " . number_format($valeur_totale) . " crédits\n\n";
+
+        if (count($inventaire) === 0) {
+            $message .= "Soutes vides.\n";
+        } else {
+            $message .= "--- RESSOURCES ---\n";
+            foreach ($inventaire as $item) {
+                $message .= "• {$item['nom']} ({$item['code']})\n";
+                $message .= "  Quantité: " . number_format($item['quantite']) . "\n";
+                $message .= "  Poids: " . round($item['poids'], 2) . "t | Valeur: " . number_format($item['valeur']) . " cr\n";
+            }
+        }
+
+        return ['success' => true, 'message' => $message];
     }
 
     // === API AJAX POUR PANNEAUX ===

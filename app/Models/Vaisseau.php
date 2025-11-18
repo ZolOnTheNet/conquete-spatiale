@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\HasInventaire;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Vaisseau extends Model
 {
+    use HasInventaire;
     protected $table = 'vaisseaux';
 
     protected $fillable = [
@@ -309,5 +311,28 @@ class Vaisseau extends Model
     public function getPuissanceScanEffective(): int
     {
         return $this->puissance_scan + $this->bonus_scan + $this->scan_niveau_actuel;
+    }
+
+    /**
+     * Calcule la capacité de soute restante
+     */
+    public function getCapaciteRestante(): float
+    {
+        $capacite_totale = $this->place_soute ?? 1000; // tonnes
+        $poids_actuel = $this->getPoidsInventaire();
+
+        return max(0, $capacite_totale - $poids_actuel);
+    }
+
+    /**
+     * Vérifie si le vaisseau peut charger une quantité de ressource
+     */
+    public function peutCharger(int $ressource_id, int $quantite): bool
+    {
+        $ressource = Ressource::find($ressource_id);
+        if (!$ressource) return false;
+
+        $poids_ajoute = $ressource->poids_unitaire * $quantite;
+        return $this->getCapaciteRestante() >= $poids_ajoute;
     }
 }

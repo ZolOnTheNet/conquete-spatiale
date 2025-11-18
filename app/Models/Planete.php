@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Planete extends Model
 {
@@ -45,6 +46,14 @@ class Planete extends Model
     public function systemeStellaire(): BelongsTo
     {
         return $this->belongsTo(SystemeStellaire::class, 'systeme_stellaire_id');
+    }
+
+    /**
+     * Gisements de ressources sur cette planète
+     */
+    public function gisements(): HasMany
+    {
+        return $this->hasMany(Gisement::class);
     }
 
     /**
