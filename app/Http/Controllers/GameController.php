@@ -174,7 +174,7 @@ COMMANDES DISPONIBLES:
   deplacer [sx] [sy] [sz]     - Déplacer (conventionnel) vers secteur
   deplacer [sx] [sy] [sz] [px] [py] [pz] - Déplacer avec position précise
   saut [sx] [sy] [sz]         - Saut hyperespace vers secteur
-  scan [rayon]                - Scanner systèmes dans un rayon (défaut: 5 AL)
+  scan                        - Scanner zone (scan progressif, 1 PA)
   carte, map                  - Afficher carte des systèmes découverts
             ",
         ];
@@ -413,18 +413,8 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
 
     private function scanSystems(Personnage $personnage, array $parts): array
     {
-        // Paramètre optionnel: rayon de scan
-        $rayon = isset($parts[1]) && is_numeric($parts[1]) ? (float)$parts[1] : 5.0;
-
-        if ($rayon <= 0 || $rayon > 50) {
-            return [
-                'success' => false,
-                'message' => 'Rayon invalide. Utilisez un rayon entre 0.1 et 50 années-lumière.',
-            ];
-        }
-
-        // Lancer le scan
-        $resultat = $personnage->scannerSystemes($rayon);
+        // Lancer le scan progressif (utilise les capacités du vaisseau)
+        $resultat = $personnage->scannerSystemes();
 
         if (!$resultat['succes']) {
             return [
@@ -433,35 +423,44 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
             ];
         }
 
-        // Formater résultat
-        $message = "\n=== SCAN SPATIAL (Rayon: {$rayon} AL) ===\n";
-        $message .= "Systèmes trouvés: {$resultat['systemes_trouves']}\n";
+        // Informations du scan
+        $scan_info = $resultat['scan_info'];
+        $rayon = $resultat['rayon'];
 
-        if ($resultat['deja_connus'] > 0) {
-            $message .= "Déjà connus: {$resultat['deja_connus']}\n";
+        // Formater résultat
+        $message = "\n=== SCAN SPATIAL ===\n";
+        $message .= "Portée scanner: {$rayon} AL\n";
+        $message .= "Puissance scan: {$scan_info['puissance_totale']}\n";
+
+        // Afficher progression du scan
+        if ($scan_info['ancien_niveau'] > 0) {
+            $message .= "Scan en cours amélioré: {$scan_info['ancien_niveau']} → {$scan_info['nouveau_niveau']} (+{$scan_info['niveau_apporte']})\n";
+        } else {
+            $message .= "Nouveau scan démarré: Niveau {$scan_info['nouveau_niveau']}\n";
         }
 
+        $message .= "\n";
+
+        // Afficher UNIQUEMENT les découvertes (brouillard de guerre)
         if (count($resultat['decouvertes']) > 0) {
-            $message .= "\n--- NOUVELLES DÉCOUVERTES ---\n";
+            $message .= "--- ✓ SYSTÈMES DÉTECTÉS ---\n";
 
             foreach ($resultat['decouvertes'] as $decouverte) {
                 $message .= "\n• {$decouverte['systeme']} ({$decouverte['distance']} AL)\n";
-                $message .= "  Jet: {$decouverte['resultat_jet']} / Seuil: {$decouverte['seuil']}\n";
+                $message .= "  Jet: {$decouverte['resultat_des']} + {$decouverte['puissance_scan']} = {$decouverte['resultat_total']} / {$decouverte['seuil']}\n";
 
-                if ($decouverte['detecte']) {
-                    $details = $decouverte['details'];
-                    $message .= "  ✓ DÉTECTÉ\n";
-                    $message .= "  Type: Étoile {$details['type_etoile']} ({$details['couleur']})\n";
-                    $message .= "  Planètes: {$details['nb_planetes']}\n";
-                } else {
-                    $message .= "  ○ Signal faible (coordonnées enregistrées)\n";
-                }
+                $details = $decouverte['details'];
+                $message .= "  Type: Étoile {$details['type_etoile']} ({$details['couleur']})\n";
+                $message .= "  Planètes: {$details['nb_planetes']}\n";
             }
         } else {
-            $message .= "\nAucun nouveau système découvert dans ce rayon.\n";
+            // Ne PAS révéler s'il y a d'autres systèmes
+            $message .= "Aucun système détecté.\n";
+            $message .= "💡 Scannez à nouveau pour améliorer la détection (scan cumulatif).\n";
         }
 
-        $message .= "\nUtilisez 'carte' pour voir tous vos systèmes découverts.";
+        $message .= "\n📍 Le scan est réinitialisé si vous vous déplacez.";
+        $message .= "\n🗺️  Utilisez 'carte' pour voir tous vos systèmes découverts.";
 
         return [
             'success' => true,
