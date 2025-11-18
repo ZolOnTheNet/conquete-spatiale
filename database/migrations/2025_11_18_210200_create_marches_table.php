@@ -38,7 +38,6 @@ return new class extends Migration
             $table->timestamps();
 
             // Index
-            $table->index(['localisation_type', 'localisation_id']);
             $table->index('actif');
         });
     }
