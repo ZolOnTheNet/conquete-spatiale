@@ -50,6 +50,10 @@ class GameController extends Controller
             'competences' => [],
             'experience' => 0,
             'niveau' => 1,
+            // PA: 36 max, récupération 1/heure
+            'points_action' => 36,
+            'max_points_action' => 36,
+            'derniere_recuperation_pa' => now(),
         ]);
 
         // Si c'est le premier personnage, le définir comme principal
@@ -113,7 +117,20 @@ class GameController extends Controller
 
         $personnage->load(['vaisseauActif.objetSpatial']);
 
+        // Récupération automatique des PA (1 PA/heure)
+        $recup = $personnage->recupererPAAutomatique();
+
         $result = $this->processCommand($command, $personnage);
+
+        // Ajouter message de récupération PA si applicable
+        if ($recup['pa_recuperes'] > 0) {
+            $message_recup = "\n[INFO] +{$recup['pa_recuperes']} PA récupérés ({$recup['heures_ecoulees']}h écoulées)\n";
+            if (isset($result['message'])) {
+                $result['message'] = $message_recup . $result['message'];
+            } else {
+                $result['message'] = $message_recup;
+            }
+        }
 
         return response()->json($result);
     }
@@ -159,6 +176,13 @@ COMMANDES DISPONIBLES:
 
     private function showStatus(Personnage $personnage): array
     {
+        // Info prochaine récupération PA
+        $prochaine_recup = '';
+        if ($personnage->points_action < $personnage->max_points_action && $personnage->derniere_recuperation_pa) {
+            $minutes_restantes = 60 - now()->diffInMinutes($personnage->derniere_recuperation_pa) % 60;
+            $prochaine_recup = "\nProchain PA dans: {$minutes_restantes} min";
+        }
+
         return [
             'success' => true,
             'message' => "
@@ -166,7 +190,7 @@ COMMANDES DISPONIBLES:
 Nom: {$personnage->nom} {$personnage->prenom}
 Niveau: {$personnage->niveau}
 XP: {$personnage->experience}
-PA: {$personnage->points_action} / {$personnage->max_points_action}
+PA: {$personnage->points_action} / {$personnage->max_points_action} (1 PA/heure){$prochaine_recup}
 
 TRAITS:
   Agilité: {$personnage->agilite}

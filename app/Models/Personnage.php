@@ -27,6 +27,7 @@ class Personnage extends Model
         'jetons_fear',
         'points_action',
         'max_points_action',
+        'derniere_recuperation_pa',
         'vaisseau_actif_id',
         'date_logs',
     ];
@@ -34,6 +35,7 @@ class Personnage extends Model
     protected $casts = [
         'competences' => 'array',
         'date_logs' => 'array',
+        'derniere_recuperation_pa' => 'datetime',
     ];
 
     // Relations
@@ -112,5 +114,65 @@ class Personnage extends Model
         if ($this->points_action > $nouveau_max) {
             $this->points_action = $nouveau_max;
         }
+    }
+
+    /**
+     * Récupération automatique de PA: 1 PA par heure écoulée
+     * Appelé au début de chaque action du joueur
+     */
+    public function recupererPAAutomatique(): array
+    {
+        // Si pas de timestamp, initialiser maintenant
+        if (!$this->derniere_recuperation_pa) {
+            $this->derniere_recuperation_pa = now();
+            $this->save();
+            return [
+                'pa_recuperes' => 0,
+                'heures_ecoulees' => 0,
+            ];
+        }
+
+        // Déjà au maximum, pas besoin de calculer
+        if ($this->points_action >= $this->max_points_action) {
+            return [
+                'pa_recuperes' => 0,
+                'heures_ecoulees' => 0,
+            ];
+        }
+
+        // Calculer heures écoulées depuis dernière récupération
+        $maintenant = now();
+        $derniere_recup = $this->derniere_recuperation_pa;
+        $heures_ecoulees = (int)floor($maintenant->diffInHours($derniere_recup));
+
+        // Aucune heure complète écoulée
+        if ($heures_ecoulees < 1) {
+            return [
+                'pa_recuperes' => 0,
+                'heures_ecoulees' => 0,
+                'prochaine_recuperation_dans' => 60 - $maintenant->diffInMinutes($derniere_recup) % 60,
+            ];
+        }
+
+        // Calculer PA à récupérer (1 PA par heure, sans dépasser max)
+        $pa_manquants = $this->max_points_action - $this->points_action;
+        $pa_a_recuperer = min($heures_ecoulees, $pa_manquants);
+
+        // Appliquer récupération
+        $this->points_action += $pa_a_recuperer;
+
+        // Mettre à jour timestamp (ajouter les heures récupérées pour ne pas perdre de fraction)
+        $this->derniere_recuperation_pa = $derniere_recup->addHours($pa_a_recuperer);
+
+        $this->save();
+
+        return [
+            'pa_recuperes' => $pa_a_recuperer,
+            'heures_ecoulees' => $heures_ecoulees,
+            'pa_actuels' => $this->points_action,
+            'prochaine_recuperation_dans' => $this->points_action >= $this->max_points_action
+                ? null
+                : 60 - $maintenant->diffInMinutes($this->derniere_recuperation_pa) % 60,
+        ];
     }
 }
