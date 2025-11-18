@@ -6,6 +6,7 @@ use App\Models\Personnage;
 use App\Models\Compte;
 use App\Models\Gisement;
 use App\Models\Marche;
+use App\Models\Recette;
 use App\Models\Ressource;
 use App\Models\SystemeStellaire;
 use Illuminate\Http\Request;
@@ -165,6 +166,9 @@ class GameController extends Controller
             'acheter', 'buy' => $this->acheterRessource($personnage, $parts),
             'vendre', 'sell' => $this->vendreRessource($personnage, $parts),
             'prix', 'prices' => $this->showPrix($personnage, $parts),
+            // Commandes Fabrication
+            'recettes', 'recipes' => $this->showRecettes($personnage, $parts),
+            'fabriquer', 'craft' => $this->fabriquerRecette($personnage, $parts),
             '' => ['success' => true, 'message' => ''],
             default => [
                 'success' => false,
@@ -199,6 +203,10 @@ MARCHES:
   prix, prices [ressource]    - Voir les prix (ou tous)
   acheter, buy [code] [qte]   - Acheter des ressources
   vendre, sell [code] [qte]   - Vendre des ressources
+
+FABRICATION:
+  recettes, recipes [cat]     - Voir les recettes (ou par categorie)
+  fabriquer, craft [code] [n] - Fabriquer une recette (x n fois)
             ",
         ];
     }
@@ -1078,6 +1086,132 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
         $message .= "Quantite: " . number_format($quantite) . "\n";
         $message .= "Prix total: " . number_format($resultat['prix_total']) . " credits\n";
         $message .= "Credits: " . number_format($personnage->credits) . "\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    // === COMMANDES FABRICATION (PHASE 2) ===
+
+    /**
+     * Afficher les recettes disponibles
+     */
+    private function showRecettes(Personnage $personnage, array $parts): array
+    {
+        $categorie = $parts[1] ?? null;
+
+        $query = Recette::where('actif', true);
+
+        if ($categorie) {
+            $query->where('categorie', $categorie);
+        }
+
+        $recettes = $query->orderBy('niveau_requis')->orderBy('categorie')->get();
+
+        if ($recettes->isEmpty()) {
+            return [
+                'success' => true,
+                'message' => "\n=== RECETTES ===\nAucune recette trouvee" . ($categorie ? " pour '{$categorie}'" : "") . ".\n",
+            ];
+        }
+
+        $message = "\n=== RECETTES" . ($categorie ? " ({$categorie})" : "") . " ===\n\n";
+
+        $currentCategorie = '';
+        foreach ($recettes as $recette) {
+            if ($recette->categorie !== $currentCategorie) {
+                $currentCategorie = $recette->categorie;
+                $message .= "--- " . strtoupper($currentCategorie) . " ---\n";
+            }
+
+            $message .= "\n[{$recette->code}] {$recette->nom}\n";
+            $message .= "  Niveau requis: {$recette->niveau_requis}\n";
+            $message .= "  Temps: {$recette->temps_fabrication}s | Energie: {$recette->energie_requise}\n";
+
+            // Ingredients
+            $ingredients = $recette->getIngredientsDetails();
+            $ingList = array_map(fn($i) => "{$i['quantite']} {$i['code']}", $ingredients);
+            $message .= "  IN: " . implode(', ', $ingList) . "\n";
+
+            // Produits
+            $produits = $recette->getProduitsDetails();
+            $prodList = array_map(fn($p) => "{$p['quantite']} {$p['code']}", $produits);
+            $message .= "  OUT: " . implode(', ', $prodList) . "\n";
+        }
+
+        $message .= "\nUtilisez 'fabriquer [code]' pour produire.";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Fabriquer une recette (transformation dans le vaisseau)
+     */
+    private function fabriquerRecette(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        if (count($parts) < 2) {
+            return [
+                'success' => false,
+                'message' => "Usage: fabriquer [code_recette] [multiplicateur]\nExemple: fabriquer RAFF_BAUXITE 2",
+            ];
+        }
+
+        $code = strtoupper($parts[1]);
+        $multiplicateur = isset($parts[2]) ? max(1, (int)$parts[2]) : 1;
+
+        // Trouver recette
+        $recette = Recette::where('code', $code)->where('actif', true)->first();
+        if (!$recette) {
+            return ['success' => false, 'message' => "Recette '{$code}' inconnue ou inactive"];
+        }
+
+        // Verifier niveau personnage (simplifie: on utilise le niveau du personnage)
+        if ($personnage->niveau < $recette->niveau_requis) {
+            return [
+                'success' => false,
+                'message' => "Niveau insuffisant. Requis: {$recette->niveau_requis} | Actuel: {$personnage->niveau}",
+            ];
+        }
+
+        // Verifier ingredients
+        if (!$recette->peutFabriquer($vaisseau, $multiplicateur)) {
+            $manquants = $recette->getIngredientsManquants($vaisseau, $multiplicateur);
+            $message = "\n=== FABRICATION IMPOSSIBLE ===\nIngredients manquants:\n";
+            foreach ($manquants as $m) {
+                $message .= "- {$m['nom']}: {$m['disponible']}/{$m['requis']} (manque {$m['manquant']})\n";
+            }
+            return ['success' => false, 'message' => $message];
+        }
+
+        // Cout en PA (1 PA par fabrication)
+        $pa_requis = $multiplicateur;
+        if ($personnage->points_action < $pa_requis) {
+            return ['success' => false, 'message' => "PA insuffisants. Requis: {$pa_requis}"];
+        }
+
+        // Fabriquer
+        $resultat = $recette->fabriquer($vaisseau, $multiplicateur);
+
+        if (!$resultat['success']) {
+            return $resultat;
+        }
+
+        // Consommer PA
+        $personnage->consommerPA($pa_requis);
+
+        $message = "\n=== FABRICATION REUSSIE ===\n";
+        $message .= "Recette: {$recette->nom}\n";
+        $message .= "Quantite: x{$multiplicateur}\n";
+        $message .= "PA utilises: {$pa_requis}\n\n";
+
+        $message .= "Produits obtenus:\n";
+        foreach ($resultat['produits'] as $p) {
+            $message .= "- {$p['nom']} ({$p['code']}): {$p['quantite']}\n";
+        }
 
         return ['success' => true, 'message' => $message];
     }

@@ -26,6 +26,9 @@ class DatabaseSeeder extends Seeder
         // Créer les ressources (nécessaires pour génération gisements)
         $this->call(RessourceSeeder::class);
 
+        // Créer les recettes (après les ressources)
+        $this->call(RecetteSeeder::class);
+
         // Générer l'univers selon le mode
         match($mode) {
             'basic', 'procedural' => $this->call(UniverseSeeder::class),
