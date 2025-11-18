@@ -11,7 +11,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $mode = $this->command->option('mode') ?? config('universe.generation_mode', 'hybrid');
+        // Récupérer mode depuis option (db:reset-game) ou config par défaut
+        try {
+            $mode = $this->command->option('mode') ?? config('universe.generation_mode', 'hybrid');
+        } catch (\Exception $e) {
+            $mode = config('universe.generation_mode', 'hybrid');
+        }
 
         $this->command->info("🎮 Mode de génération: {$mode}");
 
