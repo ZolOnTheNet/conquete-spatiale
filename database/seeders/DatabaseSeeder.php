@@ -29,6 +29,9 @@ class DatabaseSeeder extends Seeder
         // Créer les recettes (après les ressources)
         $this->call(RecetteSeeder::class);
 
+        // Créer les équipements (armes et boucliers)
+        $this->call(EquipementSeeder::class);
+
         // Générer l'univers selon le mode
         match($mode) {
             'basic', 'procedural' => $this->call(UniverseSeeder::class),
