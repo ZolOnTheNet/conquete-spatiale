@@ -96,19 +96,22 @@ class GameController extends Controller
 
     public function dashboard(Request $request): View
     {
-        // Récupérer le personnage depuis le middleware
+        // Récupérer le compte et personnage
+        $compte = $request->user();
         $personnage = $request->attributes->get('personnage');
 
         if (!$personnage) {
             // Fallback si middleware pas utilisé
-            $compte = $request->user();
             $personnage = $compte->personnagePrincipal;
         }
 
         $personnage->load(['vaisseauActif.objetSpatial']);
+        $vaisseau = $personnage->vaisseauActif;
 
-        return view('game.console', [
+        return view('game.dashboard', [
+            'compte' => $compte,
             'personnage' => $personnage,
+            'vaisseau' => $vaisseau,
         ]);
     }
 
