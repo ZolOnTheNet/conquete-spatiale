@@ -57,6 +57,17 @@ class Vaisseau extends Model
         'scan_position_x',
         'scan_position_y',
         'scan_position_z',
+        // Combat
+        'coque_max',
+        'coque_actuelle',
+        'arme_1_id',
+        'arme_2_id',
+        'arme_3_id',
+        'bouclier_id',
+        'bouclier_actuel',
+        'esquive',
+        'bonus_precision',
+        'en_combat',
     ];
 
     protected $casts = [
@@ -66,6 +77,12 @@ class Vaisseau extends Model
         'programmes' => 'array',
         'emplacements' => 'array',
         'date_logs' => 'array',
+        'coque_max' => 'integer',
+        'coque_actuelle' => 'integer',
+        'bouclier_actuel' => 'integer',
+        'esquive' => 'integer',
+        'bonus_precision' => 'integer',
+        'en_combat' => 'boolean',
     ];
 
     // Relations
@@ -334,5 +351,195 @@ class Vaisseau extends Model
 
         $poids_ajoute = $ressource->poids_unitaire * $quantite;
         return $this->getCapaciteRestante() >= $poids_ajoute;
+    }
+
+    // === SYSTÈME DE COMBAT ===
+
+    /**
+     * Relations armes
+     */
+    public function arme1(): BelongsTo
+    {
+        return $this->belongsTo(Arme::class, 'arme_1_id');
+    }
+
+    public function arme2(): BelongsTo
+    {
+        return $this->belongsTo(Arme::class, 'arme_2_id');
+    }
+
+    public function arme3(): BelongsTo
+    {
+        return $this->belongsTo(Arme::class, 'arme_3_id');
+    }
+
+    /**
+     * Relation bouclier
+     */
+    public function bouclier(): BelongsTo
+    {
+        return $this->belongsTo(Bouclier::class, 'bouclier_id');
+    }
+
+    /**
+     * Obtenir toutes les armes equipees
+     */
+    public function getArmesEquipees(): array
+    {
+        $armes = [];
+        if ($this->arme1) $armes[] = $this->arme1;
+        if ($this->arme2) $armes[] = $this->arme2;
+        if ($this->arme3) $armes[] = $this->arme3;
+        return $armes;
+    }
+
+    /**
+     * Equiper une arme dans un slot
+     */
+    public function equiperArme(int $arme_id, int $slot = 1): bool
+    {
+        $arme = Arme::find($arme_id);
+        if (!$arme) return false;
+
+        match($slot) {
+            1 => $this->arme_1_id = $arme_id,
+            2 => $this->arme_2_id = $arme_id,
+            3 => $this->arme_3_id = $arme_id,
+            default => null,
+        };
+
+        $this->save();
+        return true;
+    }
+
+    /**
+     * Equiper un bouclier
+     */
+    public function equiperBouclier(int $bouclier_id): bool
+    {
+        $bouclier = Bouclier::find($bouclier_id);
+        if (!$bouclier) return false;
+
+        $this->bouclier_id = $bouclier_id;
+        $this->bouclier_actuel = $bouclier->points_max;
+        $this->save();
+        return true;
+    }
+
+    /**
+     * Calculer les degats totaux d'une salve
+     */
+    public function tirerSalve(int $esquive_cible = 0): array
+    {
+        $resultats = [];
+        $energie_totale = 0;
+
+        foreach ($this->getArmesEquipees() as $arme) {
+            $cout = $arme->getCoutEnergieSalve();
+
+            if ($this->energie_actuelle >= $cout) {
+                $this->energie_actuelle -= $cout;
+                $energie_totale += $cout;
+
+                $resultat = $arme->attaquer($this->bonus_precision, $esquive_cible);
+                $resultats[] = [
+                    'arme' => $arme->nom,
+                    'type' => $arme->type,
+                    'tirs' => $resultat,
+                    'energie' => $cout,
+                ];
+            }
+        }
+
+        $this->save();
+
+        return [
+            'resultats' => $resultats,
+            'energie_utilisee' => $energie_totale,
+        ];
+    }
+
+    /**
+     * Recevoir des degats
+     */
+    public function recevoirDegats(int $degats, string $type_arme = 'laser'): array
+    {
+        $degats_bouclier = 0;
+        $degats_coque = 0;
+
+        // D'abord le bouclier absorbe
+        if ($this->bouclier && $this->bouclier_actuel > 0) {
+            $absorption = $this->bouclier->absorberDegats($degats, $type_arme, $this->bouclier_actuel);
+            $this->bouclier_actuel = $absorption['bouclier_restant'];
+            $degats_bouclier = $absorption['degats_bouclier'];
+            $degats_coque = $absorption['degats_coque'];
+        } else {
+            $degats_coque = $degats;
+        }
+
+        // Puis la coque
+        $this->coque_actuelle = max(0, $this->coque_actuelle - $degats_coque);
+        $this->save();
+
+        return [
+            'degats_totaux' => $degats,
+            'degats_bouclier' => $degats_bouclier,
+            'degats_coque' => $degats_coque,
+            'bouclier_restant' => $this->bouclier_actuel,
+            'coque_restante' => $this->coque_actuelle,
+            'detruit' => $this->coque_actuelle <= 0,
+        ];
+    }
+
+    /**
+     * Regenerer le bouclier
+     */
+    public function regenererBouclier(): int
+    {
+        if (!$this->bouclier) return 0;
+
+        $ancien = $this->bouclier_actuel;
+        $this->bouclier_actuel = $this->bouclier->regenerer($this->bouclier_actuel);
+        $this->save();
+
+        return $this->bouclier_actuel - $ancien;
+    }
+
+    /**
+     * Reparer la coque
+     */
+    public function reparerCoque(int $quantite): int
+    {
+        $ancien = $this->coque_actuelle;
+        $this->coque_actuelle = min($this->coque_max, $this->coque_actuelle + $quantite);
+        $this->save();
+
+        return $this->coque_actuelle - $ancien;
+    }
+
+    /**
+     * Est-ce que le vaisseau est detruit?
+     */
+    public function isDetruit(): bool
+    {
+        return $this->coque_actuelle <= 0;
+    }
+
+    /**
+     * Obtenir le pourcentage de coque
+     */
+    public function getPourcentageCoque(): float
+    {
+        if ($this->coque_max <= 0) return 0;
+        return round(($this->coque_actuelle / $this->coque_max) * 100, 1);
+    }
+
+    /**
+     * Obtenir le pourcentage de bouclier
+     */
+    public function getPourcentageBouclier(): float
+    {
+        if (!$this->bouclier) return 0;
+        return round(($this->bouclier_actuel / $this->bouclier->points_max) * 100, 1);
     }
 }

@@ -118,10 +118,8 @@ git checkout dev
 
 # Merger la branche source
 Write-ColorOutput "🔀 Fusion de $SourceBranch dans dev..." "Yellow"
-try {
-    git merge $SourceBranch --no-edit
-    Write-ColorOutput "✓ Fusion réussie" "Green"
-} catch {
+git merge $SourceBranch --no-edit
+if ($LASTEXITCODE -ne 0) {
     Write-ColorOutput "❌ Conflits détectés" "Red"
     Write-ColorOutput "Résolvez les conflits, puis exécutez:" "Yellow"
     Write-ColorOutput "  git add ." "White"
@@ -129,17 +127,17 @@ try {
     Write-ColorOutput "  git push origin dev" "White"
     exit 1
 }
+Write-ColorOutput "✓ Fusion réussie" "Green"
 
 # Push vers origin/dev
 Write-ColorOutput "📤 Push vers origin/dev..." "Yellow"
-try {
-    git push origin dev
-    Write-ColorOutput "✓ Push réussi" "Green"
-} catch {
+git push origin dev
+if ($LASTEXITCODE -ne 0) {
     Write-ColorOutput "❌ Erreur lors du push" "Red"
     Write-ColorOutput "Essayez manuellement: git push origin dev" "Yellow"
     exit 1
 }
+Write-ColorOutput "✓ Push réussi" "Green"
 
 # Retour sur la branche d'origine si souhaité
 if (-not $Force) {
