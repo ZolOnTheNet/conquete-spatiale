@@ -8,6 +8,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$stashed = $false
 
 function Write-ColorOutput {
     param(
@@ -19,155 +20,162 @@ function Write-ColorOutput {
 
 function Write-Header {
     param([string]$Text)
-    Write-ColorOutput "═══════════════════════════════════════════════════════════" "Green"
+    Write-ColorOutput "======================================================" "Green"
     Write-ColorOutput "  $Text" "Green"
-    Write-ColorOutput "═══════════════════════════════════════════════════════════" "Green"
+    Write-ColorOutput "======================================================" "Green"
 }
 
-Write-Header "Synchronisation branche → Dev"
+Write-Header "Synchronisation branche vers Dev"
 
-# Vérifier qu'on est dans un repo Git
+# Verifier qu'on est dans un repo Git
 if (-not (Test-Path ".git")) {
-    Write-ColorOutput "❌ Erreur: Ce n'est pas un dépôt Git" "Red"
+    Write-ColorOutput "Erreur: Ce n'est pas un depot Git" "Red"
     exit 1
 }
 
-# Déterminer la branche source
-if ($SourceBranch) {
-    Write-ColorOutput "📍 Branche source (paramètre): $SourceBranch" "Yellow"
+# Determiner la branche source
+if ($SourceBranch -ne "") {
+    Write-ColorOutput "Branche source (parametre): $SourceBranch" "Yellow"
 
-    # Vérifier que la branche existe
-    $branchExists = git show-ref --verify --quiet refs/heads/$SourceBranch
+    # Verifier que la branche existe
+    git show-ref --verify --quiet "refs/heads/$SourceBranch" 2>$null
     if ($LASTEXITCODE -ne 0) {
-        # Vérifier sur remote
-        $remoteBranchExists = git show-ref --verify --quiet refs/remotes/origin/$SourceBranch
+        # Verifier sur remote
+        git show-ref --verify --quiet "refs/remotes/origin/$SourceBranch" 2>$null
         if ($LASTEXITCODE -ne 0) {
-            Write-ColorOutput "❌ Erreur: La branche $SourceBranch n'existe pas" "Red"
+            Write-ColorOutput "Erreur: La branche $SourceBranch n'existe pas" "Red"
             exit 1
-        } else {
-            Write-ColorOutput "⚠️  Branche trouvée sur remote, checkout..." "Yellow"
+        }
+        else {
+            Write-ColorOutput "Branche trouvee sur remote, checkout..." "Yellow"
             git checkout $SourceBranch
         }
     }
-} else {
-    try {
-        $SourceBranch = git branch --show-current
-        Write-ColorOutput "📍 Branche source (actuelle): $SourceBranch" "Yellow"
-    } catch {
-        Write-ColorOutput "❌ Impossible de récupérer la branche actuelle" "Red"
+}
+else {
+    $SourceBranch = git branch --show-current
+    if ($LASTEXITCODE -ne 0) {
+        Write-ColorOutput "Impossible de recuperer la branche actuelle" "Red"
         exit 1
     }
+    Write-ColorOutput "Branche source (actuelle): $SourceBranch" "Yellow"
 }
 
 # Sauvegarder la branche actuelle pour le retour
 $currentBranch = git branch --show-current
 
-# Vérifier qu'il n'y a pas de modifications non commitées
+# Verifier qu'il n'y a pas de modifications non commitees
 $status = git status --short
 if ($status) {
-    Write-ColorOutput "⚠️  Modifications non commitées détectées" "Yellow"
+    Write-ColorOutput "Modifications non commitees detectees" "Yellow"
 
     if (-not $Force) {
         $response = Read-Host "Voulez-vous les stasher ? (O/N)"
         if ($response -match "^[Oo]$") {
             git stash save "Auto-stash avant sync vers dev"
-            Write-ColorOutput "✓ Modifications stashées" "Green"
+            Write-ColorOutput "Modifications stashees" "Green"
             $stashed = $true
-        } else {
-            Write-ColorOutput "❌ Annulation" "Red"
+        }
+        else {
+            Write-ColorOutput "Annulation" "Red"
             exit 1
         }
-    } else {
+    }
+    else {
         git stash save "Auto-stash avant sync vers dev"
-        Write-ColorOutput "✓ Modifications stashées (mode force)" "Green"
+        Write-ColorOutput "Modifications stashees (mode force)" "Green"
         $stashed = $true
     }
 }
 
-# Récupérer les dernières modifications
-Write-ColorOutput "📥 Fetch des branches distantes..." "Yellow"
+# Recuperer les dernieres modifications
+Write-ColorOutput "Fetch des branches distantes..." "Yellow"
 git fetch origin
 
-# Vérifier si la branche dev existe
-$devExists = git show-ref --verify --quiet refs/remotes/origin/dev
+# Verifier si la branche dev existe
+git show-ref --verify --quiet "refs/remotes/origin/dev" 2>$null
 if ($LASTEXITCODE -eq 0) {
-    Write-ColorOutput "✓ Branche dev trouvée" "Green"
-} else {
-    Write-ColorOutput "⚠️  Branche dev n'existe pas sur origin" "Yellow"
+    Write-ColorOutput "Branche dev trouvee" "Green"
+}
+else {
+    Write-ColorOutput "Branche dev n'existe pas sur origin" "Yellow"
 
     if (-not $Force) {
-        $response = Read-Host "Voulez-vous la créer ? (O/N)"
+        $response = Read-Host "Voulez-vous la creer ? (O/N)"
         if ($response -match "^[Oo]$") {
             git checkout -b dev
             git push -u origin dev
-            Write-ColorOutput "✓ Branche dev créée" "Green"
-        } else {
-            Write-ColorOutput "❌ Annulation" "Red"
+            Write-ColorOutput "Branche dev creee" "Green"
+        }
+        else {
+            Write-ColorOutput "Annulation" "Red"
             exit 1
         }
-    } else {
+    }
+    else {
         git checkout -b dev
         git push -u origin dev
-        Write-ColorOutput "✓ Branche dev créée (mode force)" "Green"
+        Write-ColorOutput "Branche dev creee (mode force)" "Green"
     }
 }
 
 # Basculer sur dev
-Write-ColorOutput "🔄 Bascule sur la branche dev..." "Yellow"
+Write-ColorOutput "Bascule sur la branche dev..." "Yellow"
 git checkout dev
+if ($LASTEXITCODE -ne 0) {
+    Write-ColorOutput "Erreur lors du checkout de dev" "Red"
+    exit 1
+}
 
 # Merger la branche source
-Write-ColorOutput "🔀 Fusion de $SourceBranch dans dev..." "Yellow"
-try {
-    git merge $SourceBranch --no-edit
-    Write-ColorOutput "✓ Fusion réussie" "Green"
-} catch {
-    Write-ColorOutput "❌ Conflits détectés" "Red"
-    Write-ColorOutput "Résolvez les conflits, puis exécutez:" "Yellow"
+Write-ColorOutput "Fusion de $SourceBranch dans dev..." "Yellow"
+git merge $SourceBranch --no-edit
+if ($LASTEXITCODE -ne 0) {
+    Write-ColorOutput "Conflits detectes" "Red"
+    Write-ColorOutput "Resolvez les conflits, puis executez:" "Yellow"
     Write-ColorOutput "  git add ." "White"
     Write-ColorOutput "  git commit" "White"
     Write-ColorOutput "  git push origin dev" "White"
     exit 1
 }
+Write-ColorOutput "Fusion reussie" "Green"
 
 # Push vers origin/dev
-Write-ColorOutput "📤 Push vers origin/dev..." "Yellow"
-try {
-    git push origin dev
-    Write-ColorOutput "✓ Push réussi" "Green"
-} catch {
-    Write-ColorOutput "❌ Erreur lors du push" "Red"
+Write-ColorOutput "Push vers origin/dev..." "Yellow"
+git push origin dev
+if ($LASTEXITCODE -ne 0) {
+    Write-ColorOutput "Erreur lors du push" "Red"
     Write-ColorOutput "Essayez manuellement: git push origin dev" "Yellow"
     exit 1
 }
+Write-ColorOutput "Push reussi" "Green"
 
-# Retour sur la branche d'origine si souhaité
+# Retour sur la branche d'origine
 if (-not $Force) {
     $response = Read-Host "Voulez-vous retourner sur $currentBranch ? (O/N)"
     if ($response -match "^[Oo]$") {
         git checkout $currentBranch
-        Write-ColorOutput "✓ Retour sur $currentBranch" "Green"
+        Write-ColorOutput "Retour sur $currentBranch" "Green"
     }
-} else {
+}
+else {
     git checkout $currentBranch
-    Write-ColorOutput "✓ Retour sur $currentBranch (mode force)" "Green"
+    Write-ColorOutput "Retour sur $currentBranch (mode force)" "Green"
 }
 
-# Restaurer le stash si nécessaire
+# Restaurer le stash si necessaire
 if ($stashed) {
     if (-not $Force) {
-        $response = Read-Host "Voulez-vous restaurer les modifications stashées ? (O/N)"
+        $response = Read-Host "Voulez-vous restaurer les modifications stashees ? (O/N)"
         if ($response -match "^[Oo]$") {
             git stash pop
-            Write-ColorOutput "✓ Modifications restaurées" "Green"
+            Write-ColorOutput "Modifications restaurees" "Green"
         }
-    } else {
+    }
+    else {
         git stash pop
-        Write-ColorOutput "✓ Modifications restaurées (mode force)" "Green"
+        Write-ColorOutput "Modifications restaurees (mode force)" "Green"
     }
 }
 
-Write-Header "✓ Synchronisation terminée avec succès !"
-
-# Usage avec le flag -Force pour exécuter sans questions
-# .\sync-to-dev.ps1 -Force
+Write-Header "Synchronisation terminee avec succes !"
