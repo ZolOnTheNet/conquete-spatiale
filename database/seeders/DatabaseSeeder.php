@@ -49,6 +49,12 @@ class DatabaseSeeder extends Seeder
         // Créer les marchés (après la génération des planètes)
         $this->call(MarcheSeeder::class);
 
+        // Créer les factions
+        $this->call(FactionSeeder::class);
+
+        // Créer les missions (après les factions et ressources)
+        $this->call(MissionSeeder::class);
+
         $this->command->info('');
         $this->command->info('Base de donnees initialisee avec succes !');
     }
