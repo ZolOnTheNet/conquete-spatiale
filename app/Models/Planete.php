@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Planete extends Model
 {
@@ -45,6 +46,14 @@ class Planete extends Model
     public function systemeStellaire(): BelongsTo
     {
         return $this->belongsTo(SystemeStellaire::class, 'systeme_stellaire_id');
+    }
+
+    /**
+     * Gisements de ressources sur cette planète
+     */
+    public function gisements(): HasMany
+    {
+        return $this->hasMany(Gisement::class);
     }
 
     /**
@@ -217,38 +226,66 @@ class Planete extends Model
     {
         $gisements = [];
 
-        // Ressources de base selon GDD_Economie
-        $ressources_base = ['fer', 'cuivre', 'aluminium', 'titane'];
-        $ressources_rares = ['or', 'platine', 'uranium', 'tyberium'];
-
-        // Distribution selon type de planète
-        $chances = match ($this->type) {
-            'terrestre' => ['base' => 0.8, 'rare' => 0.3],
-            'volcanique' => ['base' => 0.9, 'rare' => 0.5],  // Riche en minéraux
-            'desert' => ['base' => 0.7, 'rare' => 0.4],
-            'glacee' => ['base' => 0.5, 'rare' => 0.2],
-            'oceanique' => ['base' => 0.4, 'rare' => 0.1],
-            'gazeuse' => ['base' => 0.0, 'rare' => 0.0],     // Pas de minage
-            'naine' => ['base' => 0.6, 'rare' => 0.3],
-            default => ['base' => 0.5, 'rare' => 0.2],
+        // Nombre de gisements selon type de planète
+        $nb_gisements = match($this->type) {
+            'terrestre', 'Tellurique' => rand(3, 8),
+            'volcanique' => rand(4, 10), // Riche en minéraux
+            'gazeuse', 'Gazeuse' => rand(1, 3), // Gaz uniquement
+            'glacee', 'Glacée' => rand(2, 5),
+            'naine' => rand(2, 4),
+            default => rand(1, 4),
         };
 
-        // Générer ressources de base
-        foreach ($ressources_base as $ressource) {
-            if (rand(1, 100) / 100 <= $chances['base']) {
-                $gisements[$ressource] = rand(10, 100); // Quantité 10-100
-            }
+        // Obtenir ressources disponibles selon type
+        $ressources_disponibles = $this->getRessourcesSelonType();
+
+        if ($ressources_disponibles->isEmpty()) {
+            return $gisements;
         }
 
-        // Générer ressources rares
-        foreach ($ressources_rares as $ressource) {
-            if (rand(1, 100) / 100 <= $chances['rare']) {
-                $gisements[$ressource] = rand(5, 50); // Quantité 5-50
-            }
+        for ($i = 0; $i < $nb_gisements; $i++) {
+            $ressource = $ressources_disponibles->random();
+
+            // Calculer quantité selon rareté
+            $quantite_base = match(true) {
+                $ressource->rarete >= 80 => rand(5000000, 20000000), // Très commun
+                $ressource->rarete >= 50 => rand(1000000, 5000000),  // Commun
+                $ressource->rarete >= 30 => rand(500000, 2000000),   // Peu commun
+                $ressource->rarete >= 10 => rand(100000, 500000),    // Rare
+                default => rand(10000, 100000),                       // Très rare
+            };
+
+            $gisement = Gisement::create([
+                'planete_id' => $this->id,
+                'ressource_id' => $ressource->id,
+                'latitude' => rand(-9000, 9000) / 100,  // -90.00 à 90.00
+                'longitude' => rand(-18000, 18000) / 100, // -180.00 à 180.00
+                'richesse' => rand(20, 100),
+                'quantite_totale' => $quantite_base,
+                'quantite_restante' => $quantite_base,
+                'decouvert' => false,
+            ]);
+
+            $gisements[] = $gisement;
         }
 
-        $this->gisements = $gisements;
         return $gisements;
+    }
+
+    /**
+     * Obtenir ressources disponibles selon type de planète
+     */
+    protected function getRessourcesSelonType()
+    {
+        $ressources = Ressource::all();
+
+        return match($this->type) {
+            'terrestre', 'Tellurique' => $ressources->whereIn('categorie', ['metaux', 'elementaire', 'chimie']),
+            'volcanique' => $ressources->whereIn('categorie', ['metaux', 'elementaire']),
+            'gazeuse', 'Gazeuse' => $ressources->where('categorie', 'gaz'),
+            'glacee', 'Glacée' => $ressources->whereIn('code', ['GLACES', 'OXYGENE', 'HYDROGENE', 'FER']),
+            default => $ressources->where('categorie', '!=', 'exotique'),
+        };
     }
 
     /**

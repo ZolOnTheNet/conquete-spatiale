@@ -3,7 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Personnage;
+use App\Models\Arme;
+use App\Models\Bouclier;
+use App\Models\Combat;
 use App\Models\Compte;
+use App\Models\Ennemi;
+use App\Models\Gisement;
+use App\Models\Marche;
+use App\Models\Recette;
+use App\Models\Ressource;
+use App\Models\SystemeStellaire;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -87,19 +96,22 @@ class GameController extends Controller
 
     public function dashboard(Request $request): View
     {
-        // Récupérer le personnage depuis le middleware
+        // Récupérer le compte et personnage
+        $compte = $request->user();
         $personnage = $request->attributes->get('personnage');
 
         if (!$personnage) {
             // Fallback si middleware pas utilisé
-            $compte = $request->user();
             $personnage = $compte->personnagePrincipal;
         }
 
         $personnage->load(['vaisseauActif.objetSpatial']);
+        $vaisseau = $personnage->vaisseauActif;
 
-        return view('game.console', [
+        return view('game.dashboard', [
+            'compte' => $compte,
             'personnage' => $personnage,
+            'vaisseau' => $vaisseau,
         ]);
     }
 
@@ -152,6 +164,28 @@ class GameController extends Controller
             'saut', 'jump' => $this->jumpHyperspace($personnage, $parts),
             'scan', 'scanner' => $this->scanSystems($personnage, $parts),
             'carte', 'map' => $this->showMap($personnage),
+            // Commandes Phase 2 - Économie
+            'scan-planete', 'scanp' => $this->scanPlanete($personnage, $parts),
+            'extraire', 'mine' => $this->extraireRessource($personnage, $parts),
+            'inventaire', 'inv' => $this->showInventaire($personnage),
+            // Commandes Marchés
+            'marche', 'market' => $this->showMarche($personnage),
+            'acheter', 'buy' => $this->acheterRessource($personnage, $parts),
+            'vendre', 'sell' => $this->vendreRessource($personnage, $parts),
+            'prix', 'prices' => $this->showPrix($personnage, $parts),
+            // Commandes Fabrication
+            'recettes', 'recipes' => $this->showRecettes($personnage, $parts),
+            'fabriquer', 'craft' => $this->fabriquerRecette($personnage, $parts),
+            // Commandes Combat
+            'armes', 'weapons' => $this->showArmes($personnage),
+            'boucliers', 'shields' => $this->showBoucliers($personnage),
+            'equiper', 'equip' => $this->equiperEquipement($personnage, $parts),
+            'etat-combat', 'combat' => $this->showEtatCombat($personnage),
+            'reparer', 'repair' => $this->reparerVaisseau($personnage, $parts),
+            'scanner-ennemis', 'scane' => $this->scannerEnnemis($personnage),
+            'ennemis', 'enemies' => $this->showEnnemis(),
+            'attaquer', 'attack' => $this->attaquerEnnemi($personnage, $parts),
+            'fuir', 'flee' => $this->fuirCombat($personnage),
             '' => ['success' => true, 'message' => ''],
             default => [
                 'success' => false,
@@ -172,10 +206,31 @@ COMMANDES DISPONIBLES:
   vaisseau, ship              - Afficher les infos du vaisseau
   lancer [competence]         - Lancer les dés (système Daggerheart 2d12)
   deplacer [sx] [sy] [sz]     - Déplacer (conventionnel) vers secteur
-  deplacer [sx] [sy] [sz] [px] [py] [pz] - Déplacer avec position précise
   saut [sx] [sy] [sz]         - Saut hyperespace vers secteur
   scan                        - Scanner zone (scan progressif, 1 PA)
   carte, map                  - Afficher carte des systèmes découverts
+
+ECONOMIE & RESSOURCES:
+  scan-planete, scanp [nom]   - Scanner gisements d'une planete
+  extraire, mine [gisement_id] [quantite] - Extraire ressources
+  inventaire, inv             - Afficher inventaire du vaisseau
+
+MARCHES:
+  marche, market              - Voir le marche local
+  prix, prices [ressource]    - Voir les prix (ou tous)
+  acheter, buy [code] [qte]   - Acheter des ressources
+  vendre, sell [code] [qte]   - Vendre des ressources
+
+FABRICATION:
+  recettes, recipes [cat]     - Voir les recettes (ou par categorie)
+  fabriquer, craft [code] [n] - Fabriquer une recette (x n fois)
+
+COMBAT:
+  armes, weapons              - Voir les armes disponibles
+  boucliers, shields          - Voir les boucliers disponibles
+  equiper, equip [type] [code] [slot] - Equiper arme/bouclier
+  etat-combat, combat         - Voir etat combat du vaisseau
+  reparer, repair [quantite]  - Reparer la coque
             ",
         ];
     }
@@ -528,6 +583,1235 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
             'success' => true,
             'message' => $message,
         ];
+    }
+
+    // === COMMANDES ÉCONOMIE (PHASE 2) ===
+
+    /**
+     * Scanner les gisements d'une planète
+     */
+    private function scanPlanete(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        if (count($parts) < 2) {
+            return [
+                'success' => false,
+                'message' => "Usage: scan-planete [nom_planete]\nExemple: scan-planete Sol 3",
+            ];
+        }
+
+        // Récupérer nom planète (peut contenir des espaces)
+        $nom_planete = implode(' ', array_slice($parts, 1));
+
+        // Trouver système actuel
+        $os = $vaisseau->objetSpatial;
+        $systeme = SystemeStellaire::where('secteur_x', $os->secteur_x)
+            ->where('secteur_y', $os->secteur_y)
+            ->where('secteur_z', $os->secteur_z)
+            ->first();
+
+        if (!$systeme) {
+            return ['success' => false, 'message' => 'Vous n\'êtes pas dans un système stellaire.'];
+        }
+
+        // Trouver planète
+        $planete = $systeme->planetes()
+            ->where('nom', 'like', "%{$nom_planete}%")
+            ->first();
+
+        if (!$planete) {
+            $planetes_dispo = $systeme->planetes->pluck('nom')->join(', ');
+            return [
+                'success' => false,
+                'message' => "Planète '{$nom_planete}' non trouvée.\nPlanètes disponibles: {$planetes_dispo}",
+            ];
+        }
+
+        // Coût en PA
+        if ($personnage->points_action < 1) {
+            return ['success' => false, 'message' => 'Pas assez de PA (1 requis)'];
+        }
+        $personnage->consommerPA(1);
+
+        // Scanner gisements
+        $puissance_scan = $vaisseau->getPuissanceScanEffective();
+        $gisements = $planete->gisements()->where('decouvert', false)->get();
+
+        $detections = [];
+        foreach ($gisements as $gisement) {
+            // Formule détection: jet + puissance vs seuil basé sur rareté
+            $jet = rand(1, 12) + rand(1, 12); // 2d12
+            $resultat = $jet + ($puissance_scan / 10);
+            $seuil = 150 - $gisement->ressource->rarete; // Plus rare = plus difficile
+
+            if ($resultat >= $seuil) {
+                $gisement->update([
+                    'decouvert' => true,
+                    'decouvert_le' => now(),
+                    'decouvert_par' => $personnage->id,
+                ]);
+
+                $detections[] = [
+                    'id' => $gisement->id,
+                    'ressource' => $gisement->ressource->nom,
+                    'code' => $gisement->ressource->code,
+                    'richesse' => $gisement->richesse,
+                    'quantite' => $gisement->quantite_restante,
+                ];
+            }
+        }
+
+        // Récupérer aussi les gisements déjà découverts
+        $gisements_connus = $planete->gisements()
+            ->where('decouvert', true)
+            ->with('ressource')
+            ->get();
+
+        $message = "\n=== SCAN GÉOLOGIQUE : {$planete->nom} ===\n";
+        $message .= "Type: {$planete->type_planete}\n";
+        $message .= "Puissance scan: {$puissance_scan}\n\n";
+
+        if (count($detections) > 0) {
+            $message .= "--- NOUVEAUX GISEMENTS DÉTECTÉS ---\n";
+            foreach ($detections as $d) {
+                $message .= "\n• [{$d['id']}] {$d['ressource']} ({$d['code']})\n";
+                $message .= "  Richesse: {$d['richesse']}%\n";
+                $message .= "  Quantité: " . number_format($d['quantite']) . " unités\n";
+            }
+        } else {
+            $message .= "Aucun nouveau gisement détecté.\n";
+        }
+
+        if ($gisements_connus->count() > 0) {
+            $message .= "\n--- GISEMENTS CONNUS ---\n";
+            foreach ($gisements_connus as $g) {
+                $etat = $g->en_exploitation ? ' [EN EXPLOITATION]' : '';
+                $message .= "• [{$g->id}] {$g->ressource->nom}: " . number_format($g->quantite_restante) . " unités ({$g->richesse}%){$etat}\n";
+            }
+        }
+
+        $message .= "\nUtilisez 'extraire [id] [quantité]' pour miner.";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Extraire ressources d'un gisement
+     */
+    private function extraireRessource(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        if (count($parts) < 3) {
+            return [
+                'success' => false,
+                'message' => "Usage: extraire [gisement_id] [quantité]\nExemple: extraire 5 1000",
+            ];
+        }
+
+        $gisement_id = (int)$parts[1];
+        $quantite = (int)$parts[2];
+
+        if ($quantite <= 0) {
+            return ['success' => false, 'message' => 'Quantité invalide'];
+        }
+
+        // Trouver gisement
+        $gisement = Gisement::with(['ressource', 'planete'])->find($gisement_id);
+
+        if (!$gisement) {
+            return ['success' => false, 'message' => "Gisement #{$gisement_id} introuvable"];
+        }
+
+        if (!$gisement->decouvert) {
+            return ['success' => false, 'message' => 'Ce gisement n\'a pas encore été découvert'];
+        }
+
+        // Vérifier qu'on est dans le bon système
+        $os = $vaisseau->objetSpatial;
+        $systeme_planete = $gisement->planete->systemeStellaire;
+
+        if ($os->secteur_x != $systeme_planete->secteur_x ||
+            $os->secteur_y != $systeme_planete->secteur_y ||
+            $os->secteur_z != $systeme_planete->secteur_z) {
+            return ['success' => false, 'message' => 'Vous devez être dans le système de cette planète'];
+        }
+
+        // Vérifier quantité disponible
+        if ($gisement->quantite_restante < $quantite) {
+            return [
+                'success' => false,
+                'message' => "Quantité insuffisante. Disponible: " . number_format($gisement->quantite_restante),
+            ];
+        }
+
+        // Vérifier capacité soute
+        if (!$vaisseau->peutCharger($gisement->ressource_id, $quantite)) {
+            $capacite = $vaisseau->getCapaciteRestante();
+            $poids = $gisement->ressource->poids_unitaire * $quantite;
+            return [
+                'success' => false,
+                'message' => "Capacité soute insuffisante.\nRequis: {$poids}t | Disponible: {$capacite}t",
+            ];
+        }
+
+        // Coût en PA (1 PA par tranche de 10000)
+        $pa_requis = max(1, (int)ceil($quantite / 10000));
+        if ($personnage->points_action < $pa_requis) {
+            return ['success' => false, 'message' => "Pas assez de PA ({$pa_requis} requis)"];
+        }
+
+        // Extraire !
+        $quantite_extraite = $gisement->extraire($quantite);
+        $vaisseau->ajouterRessource($gisement->ressource_id, $quantite_extraite);
+        $personnage->consommerPA($pa_requis);
+
+        $poids_ajoute = $gisement->ressource->poids_unitaire * $quantite_extraite;
+
+        $message = "\n=== EXTRACTION RÉUSSIE ===\n";
+        $message .= "Ressource: {$gisement->ressource->nom}\n";
+        $message .= "Quantité: " . number_format($quantite_extraite) . " unités\n";
+        $message .= "Poids ajouté: {$poids_ajoute}t\n";
+        $message .= "PA utilisés: {$pa_requis}\n\n";
+        $message .= "Gisement restant: " . number_format($gisement->quantite_restante) . " unités\n";
+        $message .= "Capacité soute: " . round($vaisseau->getCapaciteRestante(), 2) . "t";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Afficher inventaire du vaisseau
+     */
+    private function showInventaire(Personnage $personnage): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        $inventaire = $vaisseau->listerInventaire();
+        $capacite_totale = $vaisseau->place_soute ?? 1000;
+        $poids_total = $vaisseau->getPoidsInventaire();
+        $valeur_totale = $vaisseau->getValeurInventaire();
+
+        $message = "\n=== INVENTAIRE VAISSEAU ===\n";
+        $message .= "Capacité: " . round($poids_total, 2) . "t / {$capacite_totale}t\n";
+        $message .= "Valeur totale: " . number_format($valeur_totale) . " crédits\n\n";
+
+        if (count($inventaire) === 0) {
+            $message .= "Soutes vides.\n";
+        } else {
+            $message .= "--- RESSOURCES ---\n";
+            foreach ($inventaire as $item) {
+                $message .= "• {$item['nom']} ({$item['code']})\n";
+                $message .= "  Quantité: " . number_format($item['quantite']) . "\n";
+                $message .= "  Poids: " . round($item['poids'], 2) . "t | Valeur: " . number_format($item['valeur']) . " cr\n";
+            }
+        }
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    // === COMMANDES MARCHÉS (PHASE 2) ===
+
+    /**
+     * Afficher le marché local
+     */
+    private function showMarche(Personnage $personnage): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        // Trouver système actuel
+        $os = $vaisseau->objetSpatial;
+        $systeme = SystemeStellaire::where('secteur_x', $os->secteur_x)
+            ->where('secteur_y', $os->secteur_y)
+            ->where('secteur_z', $os->secteur_z)
+            ->first();
+
+        if (!$systeme) {
+            return ['success' => false, 'message' => 'Vous devez etre dans un systeme stellaire'];
+        }
+
+        // Trouver marchés sur les planètes du système
+        $marches = Marche::whereHasMorph('localisation', [
+            \App\Models\Planete::class,
+        ], function ($query) use ($systeme) {
+            $query->where('systeme_stellaire_id', $systeme->id);
+        })->where('actif', true)->get();
+
+        if ($marches->isEmpty()) {
+            return [
+                'success' => true,
+                'message' => "\n=== MARCHES LOCAUX ===\nAucun marche actif dans ce systeme.\n",
+            ];
+        }
+
+        $message = "\n=== MARCHES LOCAUX ({$systeme->nom}) ===\n\n";
+
+        foreach ($marches as $marche) {
+            $localisation = $marche->localisation;
+            $nomLieu = $localisation ? $localisation->nom : 'Inconnu';
+
+            $message .= "--- {$marche->nom} ---\n";
+            $message .= "Type: {$marche->type}\n";
+            $message .= "Localisation: {$nomLieu}\n";
+            $message .= "Taxe: " . ($marche->taxe * 100) . "%\n";
+
+            if ($marche->description) {
+                $message .= "Info: {$marche->description}\n";
+            }
+
+            $message .= "\n";
+        }
+
+        $message .= "Utilisez 'prix' pour voir les tarifs ou 'acheter/vendre' pour commercer.";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Afficher les prix d'un marché
+     */
+    private function showPrix(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        // Trouver système actuel
+        $os = $vaisseau->objetSpatial;
+        $systeme = SystemeStellaire::where('secteur_x', $os->secteur_x)
+            ->where('secteur_y', $os->secteur_y)
+            ->where('secteur_z', $os->secteur_z)
+            ->first();
+
+        if (!$systeme) {
+            return ['success' => false, 'message' => 'Vous devez etre dans un systeme stellaire'];
+        }
+
+        // Trouver premier marché actif
+        $marche = Marche::whereHasMorph('localisation', [
+            \App\Models\Planete::class,
+        ], function ($query) use ($systeme) {
+            $query->where('systeme_stellaire_id', $systeme->id);
+        })->where('actif', true)->first();
+
+        if (!$marche) {
+            return ['success' => false, 'message' => 'Aucun marche actif dans ce systeme'];
+        }
+
+        // Filtre optionnel par ressource
+        $filtre = $parts[1] ?? null;
+
+        $ressourcesMarche = $marche->listerRessources();
+
+        if ($filtre) {
+            $ressourcesMarche = array_filter($ressourcesMarche, function ($r) use ($filtre) {
+                return stripos($r['code'], $filtre) !== false || stripos($r['nom'], $filtre) !== false;
+            });
+        }
+
+        $message = "\n=== PRIX - {$marche->nom} ===\n\n";
+        $message .= "Code       | Ressource           | Achat    | Vente    | Stock\n";
+        $message .= "-----------|---------------------|----------|----------|-------\n";
+
+        foreach ($ressourcesMarche as $r) {
+            $code = str_pad($r['code'], 10);
+            $nom = str_pad(substr($r['nom'], 0, 19), 19);
+            $achat = str_pad(number_format($r['prix_achat'], 0), 8);
+            $vente = str_pad(number_format($r['prix_vente'], 0), 8);
+            $stock = number_format($r['stock']);
+
+            $message .= "{$code} | {$nom} | {$achat} | {$vente} | {$stock}\n";
+        }
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Acheter des ressources au marché
+     */
+    private function acheterRessource(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        if (count($parts) < 3) {
+            return [
+                'success' => false,
+                'message' => "Usage: acheter [code_ressource] [quantite]\nExemple: acheter FER 500",
+            ];
+        }
+
+        $code = strtoupper($parts[1]);
+        $quantite = (int)$parts[2];
+
+        if ($quantite <= 0) {
+            return ['success' => false, 'message' => 'Quantite invalide'];
+        }
+
+        // Trouver ressource
+        $ressource = Ressource::where('code', $code)->first();
+        if (!$ressource) {
+            return ['success' => false, 'message' => "Ressource '{$code}' inconnue"];
+        }
+
+        // Trouver marché local
+        $os = $vaisseau->objetSpatial;
+        $systeme = SystemeStellaire::where('secteur_x', $os->secteur_x)
+            ->where('secteur_y', $os->secteur_y)
+            ->where('secteur_z', $os->secteur_z)
+            ->first();
+
+        if (!$systeme) {
+            return ['success' => false, 'message' => 'Vous devez etre dans un systeme stellaire'];
+        }
+
+        $marche = Marche::whereHasMorph('localisation', [
+            \App\Models\Planete::class,
+        ], function ($query) use ($systeme) {
+            $query->where('systeme_stellaire_id', $systeme->id);
+        })->where('actif', true)->first();
+
+        if (!$marche) {
+            return ['success' => false, 'message' => 'Aucun marche actif dans ce systeme'];
+        }
+
+        // Vérifier capacité soute
+        if (!$vaisseau->peutCharger($ressource->id, $quantite)) {
+            $capacite = $vaisseau->getCapaciteRestante();
+            $poids = $ressource->poids_unitaire * $quantite;
+            return [
+                'success' => false,
+                'message' => "Capacite soute insuffisante.\nRequis: {$poids}t | Disponible: {$capacite}t",
+            ];
+        }
+
+        // Calculer prix
+        $prix_total = $marche->getPrixAchat($ressource->id) * $quantite;
+
+        // Vérifier crédits
+        if ($personnage->credits < $prix_total) {
+            return [
+                'success' => false,
+                'message' => "Credits insuffisants.\nRequis: " . number_format($prix_total) . " | Disponible: " . number_format($personnage->credits),
+            ];
+        }
+
+        // Effectuer l'achat
+        $resultat = $marche->acheter($ressource->id, $quantite);
+
+        if (!$resultat['success']) {
+            return $resultat;
+        }
+
+        // Débiter crédits et ajouter au vaisseau
+        $personnage->credits -= $resultat['prix_total'];
+        $personnage->save();
+
+        $vaisseau->ajouterRessource($ressource->id, $quantite);
+
+        $message = "\n=== ACHAT EFFECTUE ===\n";
+        $message .= "Ressource: {$ressource->nom} ({$code})\n";
+        $message .= "Quantite: " . number_format($quantite) . "\n";
+        $message .= "Prix total: " . number_format($resultat['prix_total']) . " credits\n";
+        $message .= "Credits restants: " . number_format($personnage->credits) . "\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Vendre des ressources au marché
+     */
+    private function vendreRessource(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        if (count($parts) < 3) {
+            return [
+                'success' => false,
+                'message' => "Usage: vendre [code_ressource] [quantite]\nExemple: vendre FER 500",
+            ];
+        }
+
+        $code = strtoupper($parts[1]);
+        $quantite = (int)$parts[2];
+
+        if ($quantite <= 0) {
+            return ['success' => false, 'message' => 'Quantite invalide'];
+        }
+
+        // Trouver ressource
+        $ressource = Ressource::where('code', $code)->first();
+        if (!$ressource) {
+            return ['success' => false, 'message' => "Ressource '{$code}' inconnue"];
+        }
+
+        // Vérifier inventaire
+        $quantite_dispo = $vaisseau->getQuantiteRessource($ressource->id);
+        if ($quantite_dispo < $quantite) {
+            return [
+                'success' => false,
+                'message' => "Quantite insuffisante.\nDisponible: " . number_format($quantite_dispo),
+            ];
+        }
+
+        // Trouver marché local
+        $os = $vaisseau->objetSpatial;
+        $systeme = SystemeStellaire::where('secteur_x', $os->secteur_x)
+            ->where('secteur_y', $os->secteur_y)
+            ->where('secteur_z', $os->secteur_z)
+            ->first();
+
+        if (!$systeme) {
+            return ['success' => false, 'message' => 'Vous devez etre dans un systeme stellaire'];
+        }
+
+        $marche = Marche::whereHasMorph('localisation', [
+            \App\Models\Planete::class,
+        ], function ($query) use ($systeme) {
+            $query->where('systeme_stellaire_id', $systeme->id);
+        })->where('actif', true)->first();
+
+        if (!$marche) {
+            return ['success' => false, 'message' => 'Aucun marche actif dans ce systeme'];
+        }
+
+        // Effectuer la vente
+        $resultat = $marche->vendre($ressource->id, $quantite);
+
+        if (!$resultat['success']) {
+            return $resultat;
+        }
+
+        // Retirer du vaisseau et créditer
+        $vaisseau->retirerRessource($ressource->id, $quantite);
+        $personnage->credits += $resultat['prix_total'];
+        $personnage->save();
+
+        $message = "\n=== VENTE EFFECTUEE ===\n";
+        $message .= "Ressource: {$ressource->nom} ({$code})\n";
+        $message .= "Quantite: " . number_format($quantite) . "\n";
+        $message .= "Prix total: " . number_format($resultat['prix_total']) . " credits\n";
+        $message .= "Credits: " . number_format($personnage->credits) . "\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    // === COMMANDES FABRICATION (PHASE 2) ===
+
+    /**
+     * Afficher les recettes disponibles
+     */
+    private function showRecettes(Personnage $personnage, array $parts): array
+    {
+        $categorie = $parts[1] ?? null;
+
+        $query = Recette::where('actif', true);
+
+        if ($categorie) {
+            $query->where('categorie', $categorie);
+        }
+
+        $recettes = $query->orderBy('niveau_requis')->orderBy('categorie')->get();
+
+        if ($recettes->isEmpty()) {
+            return [
+                'success' => true,
+                'message' => "\n=== RECETTES ===\nAucune recette trouvee" . ($categorie ? " pour '{$categorie}'" : "") . ".\n",
+            ];
+        }
+
+        $message = "\n=== RECETTES" . ($categorie ? " ({$categorie})" : "") . " ===\n\n";
+
+        $currentCategorie = '';
+        foreach ($recettes as $recette) {
+            if ($recette->categorie !== $currentCategorie) {
+                $currentCategorie = $recette->categorie;
+                $message .= "--- " . strtoupper($currentCategorie) . " ---\n";
+            }
+
+            $message .= "\n[{$recette->code}] {$recette->nom}\n";
+            $message .= "  Niveau requis: {$recette->niveau_requis}\n";
+            $message .= "  Temps: {$recette->temps_fabrication}s | Energie: {$recette->energie_requise}\n";
+
+            // Ingredients
+            $ingredients = $recette->getIngredientsDetails();
+            $ingList = array_map(fn($i) => "{$i['quantite']} {$i['code']}", $ingredients);
+            $message .= "  IN: " . implode(', ', $ingList) . "\n";
+
+            // Produits
+            $produits = $recette->getProduitsDetails();
+            $prodList = array_map(fn($p) => "{$p['quantite']} {$p['code']}", $produits);
+            $message .= "  OUT: " . implode(', ', $prodList) . "\n";
+        }
+
+        $message .= "\nUtilisez 'fabriquer [code]' pour produire.";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Fabriquer une recette (transformation dans le vaisseau)
+     */
+    private function fabriquerRecette(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        if (count($parts) < 2) {
+            return [
+                'success' => false,
+                'message' => "Usage: fabriquer [code_recette] [multiplicateur]\nExemple: fabriquer RAFF_BAUXITE 2",
+            ];
+        }
+
+        $code = strtoupper($parts[1]);
+        $multiplicateur = isset($parts[2]) ? max(1, (int)$parts[2]) : 1;
+
+        // Trouver recette
+        $recette = Recette::where('code', $code)->where('actif', true)->first();
+        if (!$recette) {
+            return ['success' => false, 'message' => "Recette '{$code}' inconnue ou inactive"];
+        }
+
+        // Verifier niveau personnage (simplifie: on utilise le niveau du personnage)
+        if ($personnage->niveau < $recette->niveau_requis) {
+            return [
+                'success' => false,
+                'message' => "Niveau insuffisant. Requis: {$recette->niveau_requis} | Actuel: {$personnage->niveau}",
+            ];
+        }
+
+        // Verifier ingredients
+        if (!$recette->peutFabriquer($vaisseau, $multiplicateur)) {
+            $manquants = $recette->getIngredientsManquants($vaisseau, $multiplicateur);
+            $message = "\n=== FABRICATION IMPOSSIBLE ===\nIngredients manquants:\n";
+            foreach ($manquants as $m) {
+                $message .= "- {$m['nom']}: {$m['disponible']}/{$m['requis']} (manque {$m['manquant']})\n";
+            }
+            return ['success' => false, 'message' => $message];
+        }
+
+        // Cout en PA (1 PA par fabrication)
+        $pa_requis = $multiplicateur;
+        if ($personnage->points_action < $pa_requis) {
+            return ['success' => false, 'message' => "PA insuffisants. Requis: {$pa_requis}"];
+        }
+
+        // Fabriquer
+        $resultat = $recette->fabriquer($vaisseau, $multiplicateur);
+
+        if (!$resultat['success']) {
+            return $resultat;
+        }
+
+        // Consommer PA
+        $personnage->consommerPA($pa_requis);
+
+        $message = "\n=== FABRICATION REUSSIE ===\n";
+        $message .= "Recette: {$recette->nom}\n";
+        $message .= "Quantite: x{$multiplicateur}\n";
+        $message .= "PA utilises: {$pa_requis}\n\n";
+
+        $message .= "Produits obtenus:\n";
+        foreach ($resultat['produits'] as $p) {
+            $message .= "- {$p['nom']} ({$p['code']}): {$p['quantite']}\n";
+        }
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    // === COMMANDES COMBAT (PHASE 3) ===
+
+    /**
+     * Afficher les armes disponibles
+     */
+    private function showArmes(Personnage $personnage): array
+    {
+        $armes = Arme::where('actif', true)->orderBy('niveau_requis')->orderBy('type')->get();
+
+        $message = "\n=== ARMES DISPONIBLES ===\n\n";
+
+        $currentType = '';
+        foreach ($armes as $arme) {
+            if ($arme->type !== $currentType) {
+                $currentType = $arme->type;
+                $message .= "--- " . strtoupper($currentType) . " ---\n";
+            }
+
+            $message .= "\n[{$arme->code}] {$arme->nom}\n";
+            $message .= "  Degats: {$arme->degats_min}-{$arme->degats_max} | Precision: {$arme->precision}%\n";
+            $message .= "  Portee: {$arme->portee} | Cadence: {$arme->cadence}/tour\n";
+            $message .= "  Energie/tir: {$arme->energie_tir} | Niveau: {$arme->niveau_requis}\n";
+            $message .= "  Prix: " . number_format($arme->prix) . " cr | Taille: {$arme->taille}\n";
+        }
+
+        $message .= "\nUtilisez 'equiper arme [code] [slot]' pour equiper.";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Afficher les boucliers disponibles
+     */
+    private function showBoucliers(Personnage $personnage): array
+    {
+        $boucliers = Bouclier::where('actif', true)->orderBy('niveau_requis')->orderBy('type')->get();
+
+        $message = "\n=== BOUCLIERS DISPONIBLES ===\n\n";
+
+        $currentType = '';
+        foreach ($boucliers as $bouclier) {
+            if ($bouclier->type !== $currentType) {
+                $currentType = $bouclier->type;
+                $message .= "--- " . strtoupper($currentType) . " ---\n";
+            }
+
+            $message .= "\n[{$bouclier->code}] {$bouclier->nom}\n";
+            $message .= "  Points: {$bouclier->points_max} | Regen: {$bouclier->regeneration}/tour\n";
+            $message .= "  Resistance: {$bouclier->resistance}%\n";
+            $message .= "  vs Laser: {$bouclier->vs_laser}% | vs Canon: {$bouclier->vs_canon}%\n";
+            $message .= "  vs Missile: {$bouclier->vs_missile}% | vs Plasma: {$bouclier->vs_plasma}%\n";
+            $message .= "  Energie: {$bouclier->energie_maintien}/tour | Niveau: {$bouclier->niveau_requis}\n";
+            $message .= "  Prix: " . number_format($bouclier->prix) . " cr | Taille: {$bouclier->taille}\n";
+        }
+
+        $message .= "\nUtilisez 'equiper bouclier [code]' pour equiper.";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Equiper une arme ou un bouclier
+     */
+    private function equiperEquipement(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        if (count($parts) < 3) {
+            return [
+                'success' => false,
+                'message' => "Usage:\n  equiper arme [code] [slot 1-3]\n  equiper bouclier [code]\nExemple: equiper arme LASER_MK1 1",
+            ];
+        }
+
+        $type = strtolower($parts[1]);
+        $code = strtoupper($parts[2]);
+
+        if ($type === 'arme' || $type === 'weapon') {
+            $slot = isset($parts[3]) ? (int)$parts[3] : 1;
+            if ($slot < 1 || $slot > 3) {
+                return ['success' => false, 'message' => 'Slot invalide (1-3)'];
+            }
+
+            $arme = Arme::where('code', $code)->where('actif', true)->first();
+            if (!$arme) {
+                return ['success' => false, 'message' => "Arme '{$code}' inconnue"];
+            }
+
+            if ($personnage->niveau < $arme->niveau_requis) {
+                return [
+                    'success' => false,
+                    'message' => "Niveau insuffisant. Requis: {$arme->niveau_requis} | Actuel: {$personnage->niveau}",
+                ];
+            }
+
+            $vaisseau->equiperArme($arme->id, $slot);
+
+            $message = "\n=== ARME EQUIPEE ===\n";
+            $message .= "Slot {$slot}: {$arme->nom}\n";
+            $message .= "Degats: {$arme->degats_min}-{$arme->degats_max}\n";
+            $message .= "Precision: {$arme->precision}% | Cadence: {$arme->cadence}\n";
+
+            return ['success' => true, 'message' => $message];
+
+        } elseif ($type === 'bouclier' || $type === 'shield') {
+            $bouclier = Bouclier::where('code', $code)->where('actif', true)->first();
+            if (!$bouclier) {
+                return ['success' => false, 'message' => "Bouclier '{$code}' inconnu"];
+            }
+
+            if ($personnage->niveau < $bouclier->niveau_requis) {
+                return [
+                    'success' => false,
+                    'message' => "Niveau insuffisant. Requis: {$bouclier->niveau_requis} | Actuel: {$personnage->niveau}",
+                ];
+            }
+
+            $vaisseau->equiperBouclier($bouclier->id);
+
+            $message = "\n=== BOUCLIER EQUIPE ===\n";
+            $message .= "{$bouclier->nom}\n";
+            $message .= "Points: {$bouclier->points_max} | Regen: {$bouclier->regeneration}/tour\n";
+            $message .= "Resistance: {$bouclier->resistance}%\n";
+
+            return ['success' => true, 'message' => $message];
+
+        } else {
+            return ['success' => false, 'message' => "Type inconnu. Utilisez 'arme' ou 'bouclier'"];
+        }
+    }
+
+    /**
+     * Afficher l'etat de combat du vaisseau
+     */
+    private function showEtatCombat(Personnage $personnage): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        $message = "\n=== ETAT COMBAT - {$vaisseau->modele} ===\n\n";
+
+        // Coque
+        $pct_coque = $vaisseau->getPourcentageCoque();
+        $message .= "COQUE: {$vaisseau->coque_actuelle}/{$vaisseau->coque_max} ({$pct_coque}%)\n";
+
+        // Bouclier
+        if ($vaisseau->bouclier) {
+            $pct_bouclier = $vaisseau->getPourcentageBouclier();
+            $message .= "BOUCLIER: {$vaisseau->bouclier_actuel}/{$vaisseau->bouclier->points_max} ({$pct_bouclier}%)\n";
+            $message .= "  Type: {$vaisseau->bouclier->nom}\n";
+            $message .= "  Regen: {$vaisseau->bouclier->regeneration}/tour\n";
+        } else {
+            $message .= "BOUCLIER: Aucun\n";
+        }
+
+        $message .= "\nENERGIE: " . round($vaisseau->energie_actuelle, 0) . "/{$vaisseau->reserve}\n";
+        $message .= "ESQUIVE: {$vaisseau->esquive}%\n";
+        $message .= "PRECISION BONUS: +{$vaisseau->bonus_precision}%\n";
+
+        // Armes
+        $message .= "\n--- ARMEMENT ---\n";
+        $armes = $vaisseau->getArmesEquipees();
+        if (empty($armes)) {
+            $message .= "Aucune arme equipee\n";
+        } else {
+            $slot = 1;
+            foreach ($armes as $arme) {
+                $dps = round($arme->getDPS(), 1);
+                $message .= "Slot {$slot}: {$arme->nom}\n";
+                $message .= "  {$arme->degats_min}-{$arme->degats_max} dmg | {$arme->precision}% | x{$arme->cadence}\n";
+                $message .= "  DPS theorique: {$dps} | Energie: {$arme->getCoutEnergieSalve()}/salve\n";
+                $slot++;
+            }
+        }
+
+        // Emplacements vides
+        for ($i = count($armes) + 1; $i <= 3; $i++) {
+            $message .= "Slot {$i}: [VIDE]\n";
+        }
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Reparer la coque du vaisseau
+     */
+    private function reparerVaisseau(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        $quantite = isset($parts[1]) ? (int)$parts[1] : 10;
+        if ($quantite <= 0) {
+            return ['success' => false, 'message' => 'Quantite invalide'];
+        }
+
+        // Cout: 10 credits par point de coque
+        $cout = $quantite * 10;
+
+        if ($personnage->credits < $cout) {
+            return [
+                'success' => false,
+                'message' => "Credits insuffisants. Cout: {$cout} cr | Disponible: " . number_format($personnage->credits),
+            ];
+        }
+
+        // Verifier si reparation necessaire
+        if ($vaisseau->coque_actuelle >= $vaisseau->coque_max) {
+            return ['success' => false, 'message' => 'La coque est deja en parfait etat'];
+        }
+
+        // Limiter a ce qui est necessaire
+        $degats = $vaisseau->coque_max - $vaisseau->coque_actuelle;
+        $quantite_reelle = min($quantite, $degats);
+        $cout_reel = $quantite_reelle * 10;
+
+        // Reparer
+        $repare = $vaisseau->reparerCoque($quantite_reelle);
+        $personnage->credits -= $cout_reel;
+        $personnage->save();
+
+        $message = "\n=== REPARATION EFFECTUEE ===\n";
+        $message .= "Points repares: {$repare}\n";
+        $message .= "Cout: {$cout_reel} credits\n";
+        $message .= "Coque: {$vaisseau->coque_actuelle}/{$vaisseau->coque_max}\n";
+        $message .= "Credits restants: " . number_format($personnage->credits) . "\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Scanner les ennemis dans la zone actuelle
+     */
+    private function scannerEnnemis(Personnage $personnage): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        // Verifier si en combat
+        $combat_actif = Combat::enCours($vaisseau->id);
+        if ($combat_actif) {
+            return [
+                'success' => false,
+                'message' => 'Impossible de scanner en combat! Utilisez "attaquer" ou "fuir".',
+            ];
+        }
+
+        // Determiner le niveau de la zone
+        $distance = sqrt(
+            pow($vaisseau->coord_x, 2) +
+            pow($vaisseau->coord_y, 2) +
+            pow($vaisseau->coord_z, 2)
+        );
+        $niveau_zone = max(1, (int)($distance / 10) + 1);
+
+        // Verifier spawn
+        if (!Ennemi::checkSpawn($niveau_zone)) {
+            return [
+                'success' => true,
+                'message' => "\n=== SCAN DE LA ZONE ===\n" .
+                    "Niveau de danger: {$niveau_zone}\n" .
+                    "Resultat: Aucun ennemi detecte dans la zone.\n",
+            ];
+        }
+
+        // Spawn un ennemi
+        $ennemi = Ennemi::spawnPourZone($niveau_zone);
+        if (!$ennemi) {
+            return [
+                'success' => true,
+                'message' => "\n=== SCAN DE LA ZONE ===\n" .
+                    "Niveau de danger: {$niveau_zone}\n" .
+                    "Resultat: Zone claire.\n",
+            ];
+        }
+
+        // Demarrer le combat
+        $combat = Combat::commencer($vaisseau, $ennemi);
+        $vaisseau->en_combat = true;
+        $vaisseau->save();
+
+        $message = "\n=== ALERTE! ENNEMI DETECTE! ===\n";
+        $message .= "Nom: {$ennemi->nom}\n";
+        $message .= "Type: {$ennemi->type} ({$ennemi->faction})\n";
+        $message .= "Niveau: {$ennemi->niveau} - Difficulte: {$ennemi->difficulte}\n";
+        $message .= "Coque: {$ennemi->coque_max} | Bouclier: {$ennemi->bouclier_max}\n";
+        $message .= "Armement: {$ennemi->type_arme} (Degats: {$ennemi->degats_min}-{$ennemi->degats_max})\n";
+        $message .= "\nCommandes: 'attaquer' pour combattre, 'fuir' pour tenter de fuir.\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Afficher la liste des types d'ennemis
+     */
+    private function showEnnemis(): array
+    {
+        $ennemis = Ennemi::orderBy('niveau')->get();
+
+        if ($ennemis->isEmpty()) {
+            return ['success' => true, 'message' => 'Aucun ennemi dans la base de donnees.'];
+        }
+
+        $message = "\n=== ENCYCLOPEDIE DES ENNEMIS ===\n\n";
+
+        $par_type = $ennemis->groupBy('type');
+
+        foreach ($par_type as $type => $groupe) {
+            $message .= strtoupper($type) . "S:\n";
+
+            foreach ($groupe as $ennemi) {
+                $difficulte = match($ennemi->difficulte) {
+                    'facile' => '[Facile]',
+                    'moyen' => '[Moyen]',
+                    'difficile' => '[Difficile]',
+                    'boss' => '[BOSS]',
+                    default => '',
+                };
+
+                $message .= sprintf(
+                    "  Niv.%d %s - %s %s\n",
+                    $ennemi->niveau,
+                    $ennemi->nom,
+                    $difficulte,
+                    $ennemi->type_arme
+                );
+                $message .= sprintf(
+                    "    Coque:%d Boucl:%d Deg:%d-%d Zones:%d-%d\n",
+                    $ennemi->coque_max,
+                    $ennemi->bouclier_max,
+                    $ennemi->degats_min,
+                    $ennemi->degats_max,
+                    $ennemi->zone_niveau_min,
+                    $ennemi->zone_niveau_max
+                );
+            }
+            $message .= "\n";
+        }
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Attaquer l'ennemi en combat
+     */
+    private function attaquerEnnemi(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        // Verifier combat en cours
+        $combat = Combat::enCours($vaisseau->id);
+        if (!$combat) {
+            // Pas de combat - tenter d'en initier un
+            // Si un code ennemi est fourni, on peut engager directement
+            if (isset($parts[0]) && !empty($parts[0])) {
+                $ennemi = Ennemi::where('code', strtoupper($parts[0]))->first();
+                if (!$ennemi) {
+                    return [
+                        'success' => false,
+                        'message' => "Ennemi inconnu. Utilisez 'scanner-ennemis' pour detecter les menaces.",
+                    ];
+                }
+
+                // Verifier niveau zone
+                $distance = sqrt(
+                    pow($vaisseau->coord_x, 2) +
+                    pow($vaisseau->coord_y, 2) +
+                    pow($vaisseau->coord_z, 2)
+                );
+                $niveau_zone = max(1, (int)($distance / 10) + 1);
+
+                if ($ennemi->zone_niveau_min > $niveau_zone || $ennemi->zone_niveau_max < $niveau_zone) {
+                    return [
+                        'success' => false,
+                        'message' => "Cet ennemi n'est pas present dans cette zone (niveau {$niveau_zone}).",
+                    ];
+                }
+
+                $combat = Combat::commencer($vaisseau, $ennemi);
+                $vaisseau->en_combat = true;
+                $vaisseau->save();
+            } else {
+                return [
+                    'success' => false,
+                    'message' => "Aucun combat en cours. Utilisez 'scanner-ennemis' pour detecter les menaces.",
+                ];
+            }
+        }
+
+        // Executer le tour de combat
+        $resultat = $combat->executerTour();
+        $ennemi = $combat->ennemi;
+
+        $message = "\n=== TOUR {$resultat['tour']} ===\n\n";
+
+        // Attaques du joueur
+        $message .= "Vos attaques:\n";
+        $total_joueur = 0;
+        foreach ($resultat['joueur'] as $i => $att) {
+            if ($att['touche']) {
+                $total_joueur += $att['degats_effectifs'] ?? $att['degats'];
+                $message .= sprintf(
+                    "  Tir %d: TOUCHE! %d degats (bouclier: %d, coque: %d)\n",
+                    $i + 1,
+                    $att['degats'],
+                    $att['degats_bouclier'] ?? 0,
+                    $att['degats_coque'] ?? 0
+                );
+            } else {
+                $message .= "  Tir " . ($i + 1) . ": Rate!\n";
+            }
+        }
+        $message .= "Total inflige: {$total_joueur} degats\n\n";
+
+        // Actions de l'ennemi
+        if ($resultat['statut'] !== 'victoire' && $resultat['statut'] !== 'fuite_ennemi') {
+            $message .= "Attaques de {$ennemi->nom}:\n";
+            $total_ennemi = 0;
+            foreach ($resultat['ennemi'] as $i => $att) {
+                if (isset($att['action']) && $att['action'] === 'regeneration') {
+                    $message .= "  Regeneration: +{$att['valeur']} bouclier\n";
+                } elseif ($att['touche']) {
+                    $total_ennemi += ($att['degats_bouclier'] ?? 0) + ($att['degats_coque'] ?? 0);
+                    $message .= sprintf(
+                        "  Tir %d: TOUCHE! %d degats (bouclier: %d, coque: %d)\n",
+                        $i + 1,
+                        $att['degats'],
+                        $att['degats_bouclier'] ?? 0,
+                        $att['degats_coque'] ?? 0
+                    );
+                } else {
+                    $message .= "  Tir " . ($i + 1) . ": Rate!\n";
+                }
+            }
+            if ($total_ennemi > 0) {
+                $message .= "Total subi: {$total_ennemi} degats\n";
+            }
+        }
+
+        // Regeneration
+        if (isset($resultat['regeneration'])) {
+            $message .= "\nRegeneration:\n";
+            if ($resultat['regeneration']['joueur'] > 0) {
+                $message .= "  Votre bouclier: +{$resultat['regeneration']['joueur']}\n";
+            }
+            if ($resultat['regeneration']['ennemi'] > 0) {
+                $message .= "  Ennemi: +{$resultat['regeneration']['ennemi']}\n";
+            }
+        }
+
+        // Etat actuel
+        $message .= "\n--- ETAT ---\n";
+        $message .= sprintf(
+            "Vous: Coque %d/%d (%.0f%%) | Bouclier %d\n",
+            $vaisseau->coque_actuelle,
+            $vaisseau->coque_max,
+            $vaisseau->getPourcentageCoque(),
+            $vaisseau->bouclier_actuel
+        );
+        $message .= sprintf(
+            "Ennemi: Coque %d/%d (%.0f%%) | Bouclier %d/%d\n",
+            $combat->ennemi_coque,
+            $ennemi->coque_max,
+            ($combat->ennemi_coque / $ennemi->coque_max) * 100,
+            $combat->ennemi_bouclier,
+            $ennemi->bouclier_max
+        );
+
+        // Resultat final
+        if ($resultat['statut'] === 'victoire') {
+            $message .= "\n*** VICTOIRE! ***\n";
+            $message .= "Recompenses:\n";
+            $message .= "  Credits: +" . number_format($resultat['recompenses']['credits']) . "\n";
+            $message .= "  XP: +{$resultat['recompenses']['xp']}\n";
+
+            // Donner les recompenses
+            $personnage->credits += $resultat['recompenses']['credits'];
+            $personnage->ajouterExperience($resultat['recompenses']['xp']);
+            $personnage->save();
+        } elseif ($resultat['statut'] === 'fuite_ennemi') {
+            $message .= "\n*** L'ENNEMI PREND LA FUITE! ***\n";
+            $message .= "Recompenses partielles:\n";
+            $message .= "  Credits: +" . number_format($resultat['recompenses']['credits']) . "\n";
+            $message .= "  XP: +{$resultat['recompenses']['xp']}\n";
+
+            $personnage->credits += $resultat['recompenses']['credits'];
+            $personnage->ajouterExperience($resultat['recompenses']['xp']);
+            $personnage->save();
+        } elseif ($resultat['statut'] === 'defaite') {
+            $message .= "\n*** DEFAITE! ***\n";
+            $message .= "Votre vaisseau est detruit.\n";
+
+            // Penalites de defaite
+            $perte_credits = (int)($personnage->credits * 0.1);
+            $personnage->credits -= $perte_credits;
+            $personnage->save();
+
+            $message .= "Perte: {$perte_credits} credits\n";
+            $message .= "Utilisez 'reparer' pour reparer votre vaisseau.\n";
+
+            // Restaurer un minimum de coque
+            $vaisseau->coque_actuelle = 1;
+            $vaisseau->save();
+        }
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Fuir le combat
+     */
+    private function fuirCombat(Personnage $personnage): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        $combat = Combat::enCours($vaisseau->id);
+        if (!$combat) {
+            return ['success' => false, 'message' => 'Aucun combat en cours.'];
+        }
+
+        $resultat = $combat->fuir();
+
+        $message = "\n=== TENTATIVE DE FUITE ===\n";
+
+        if ($resultat['reussie']) {
+            $message .= "SUCCES! Vous echappez au combat.\n";
+        } else {
+            $message .= "ECHEC! L'ennemi profite de votre fuite.\n";
+            $message .= "Degats subis: {$resultat['degats_subis']}\n";
+            $message .= sprintf(
+                "Votre etat: Coque %d/%d | Bouclier %d\n",
+                $vaisseau->coque_actuelle,
+                $vaisseau->coque_max,
+                $vaisseau->bouclier_actuel
+            );
+
+            if ($vaisseau->isDetruit()) {
+                $message .= "\nVotre vaisseau est detruit!\n";
+
+                // Marquer defaite
+                $combat->statut = 'defaite';
+                $combat->save();
+                $vaisseau->en_combat = false;
+                $vaisseau->coque_actuelle = 1;
+                $vaisseau->save();
+
+                // Penalite
+                $perte = (int)($personnage->credits * 0.15);
+                $personnage->credits -= $perte;
+                $personnage->save();
+                $message .= "Perte: {$perte} credits\n";
+            } else {
+                $message .= "\nLe combat continue. Commandes: 'attaquer' ou 'fuir'\n";
+            }
+        }
+
+        return ['success' => true, 'message' => $message];
     }
 
     // === API AJAX POUR PANNEAUX ===
