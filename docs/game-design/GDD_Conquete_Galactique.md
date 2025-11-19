@@ -693,18 +693,18 @@ L'interface est composée de **trois zones principales** :
 │  [LOGO/TITRE DU JEU]                          [USER INFO] [PA:10]│
 ├────────────┬─────────────────────────────┬───────────────────────┤
 │            │                             │                       │
-│  ONGLETS   │    ZONE D'AFFICHAGE        │  ZONE MESSAGES        │
+│  ONGLETS   │    ZONE D'AFFICHAGE         │  ZONE MESSAGES        │
 │  (MENUS)   │    CENTRALE                 │  (Dialogue IA)        │
 │            │                             │  ┌─────────────────┐  │
-│ ├─ Lieu    │  ┌───────────────────────┐ │  │ > Bienvenue     │  │
-│ ├─ Service │  │                       │ │  │ > Scout LI-200  │  │
-│ ├─Personnel│  │   COCKPIT / CARTE     │ │  │ > Sol, Terre    │  │
-│ └─ Jeu     │  │   RADAR / DONNÉES     │ │  │ > 10 PA dispos  │  │
-│            │  │                       │ │  │ ...             │  │
-│ Sous-menus:│  │   (Contextuel selon   │ │  │ [Historique]    │  │
-│ • Pont     │  │    onglet sélectionné)│ │  └─────────────────┘  │
-│ • Soute    │  │                       │ │                       │
-│ • Machines │  └───────────────────────┘ │  ZONE SAISIE          │
+│ ├─ Lieu    │  ┌───────────────────────┐  │  │ > Bienvenue     │  │
+│ ├─ Service │  │                       │  │  │ > Scout LI-200  │  │
+│ ├─Personnel│  │   COCKPIT / CARTE     │  │  │ > Sol, Terre    │  │
+│ └─ Jeu     │  │   RADAR / DONNÉES     │  │  │ > 10 PA dispos  │  │
+│            │  │                       │  │  │ ...             │  │
+│ Sous-menus:│  │   (Contextuel selon   │  │  │ [Historique]    │  │
+│ • Pont     │  │    onglet sélectionné)│  │  └─────────────────┘  │
+│ • Soute    │  │                       │  │                       │
+│ • Machines │  └───────────────────────┘  │  ZONE SAISIE          │
 │ • ...      │                             │  ┌─────────────────┐  │
 │            │                             │  │ > _             │  │
 │            │                             │  └─────────────────┘  │
