@@ -19,7 +19,7 @@ class GameSeeder extends Seeder
         $compte = Compte::create([
             'nom_login' => 'test',
             'mot_de_passe' => bcrypt('password'),
-            'adresse_mail' => 'test@conquete-galactique.com',
+            'adresse_mail' => 'test@test.com',
             'est_verifie' => true,
             'is_admin' => true, // Compte admin pour tests
         ]);
