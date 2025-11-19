@@ -50,13 +50,12 @@ if ($SourceBranch) {
         }
     }
 } else {
-    try {
-        $SourceBranch = git branch --show-current
-        Write-ColorOutput "📍 Branche source (actuelle): $SourceBranch" "Yellow"
-    } catch {
+    $SourceBranch = git branch --show-current
+    if ($LASTEXITCODE -ne 0) {
         Write-ColorOutput "❌ Impossible de récupérer la branche actuelle" "Red"
         exit 1
     }
+    Write-ColorOutput "📍 Branche source (actuelle): $SourceBranch" "Yellow"
 }
 
 # Sauvegarder la branche actuelle pour le retour
