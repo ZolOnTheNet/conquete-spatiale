@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('comptes', function (Blueprint $table) {
-            $table->boolean('is_admin')->default(false)->after('email');
+            $table->boolean('is_admin')->default(false)->after('adresse_mail');
         });
     }
 

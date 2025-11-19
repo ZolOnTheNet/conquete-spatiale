@@ -233,24 +233,36 @@ class GaiaSeeder extends Seeder
         if ($systeme->nb_planetes === 0) return;
 
         for ($i = 1; $i <= $systeme->nb_planetes; $i++) {
-            $types = ['Tellurique', 'Gazeuse', 'Glacée', 'Naine'];
+            // Types correspondant à l'enum de la migration
+            $types = ['terrestre', 'gazeuse', 'glacee', 'naine'];
             $type = $types[array_rand($types)];
 
-            Planete::create([
+            // Rayon en rayons terrestres (Terre = 1.0)
+            $rayon = match($type) {
+                'terrestre' => rand(5, 25) / 10, // 0.5 à 2.5 rayons terrestres
+                'gazeuse' => rand(40, 140) / 10, // 4 à 14 rayons terrestres
+                'glacee' => rand(3, 13) / 10, // 0.3 à 1.3 rayons terrestres
+                'naine' => rand(1, 5) / 10, // 0.1 à 0.5 rayons terrestres
+            };
+
+            $planete = Planete::create([
                 'systeme_stellaire_id' => $systeme->id,
                 'nom' => "{$systeme->nom} {$i}",
                 'distance_etoile' => $i * 0.5 + rand(0, 10) / 10,
-                'rayon_km' => match($type) {
-                    'Tellurique' => rand(3000, 15000),
-                    'Gazeuse' => rand(40000, 140000),
-                    'Glacée' => rand(2000, 8000),
-                    'Naine' => rand(1000, 3000),
+                'rayon' => $rayon,
+                'masse' => match($type) {
+                    'terrestre' => rand(5, 30) / 10, // 0.5 à 3 masses terrestres
+                    'gazeuse' => rand(50, 3000) / 10, // 5 à 300 masses terrestres
+                    'glacee' => rand(1, 15) / 10, // 0.1 à 1.5 masses terrestres
+                    'naine' => rand(1, 3) / 100, // 0.01 à 0.03 masses terrestres
                 },
-                'masse' => rand(1, 1000),
-                'type_planete' => $type,
-                'atmosphere' => rand(0, 1) === 1,
+                'type' => $type,
+                'a_atmosphere' => in_array($type, ['terrestre', 'gazeuse']) ? rand(0, 1) === 1 : false,
                 'population' => 0,
             ]);
+
+            // Générer gisements pour cette planète
+            $planete->genererGisements();
         }
     }
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Personnage extends Model
@@ -57,6 +58,34 @@ class Personnage extends Model
     public function decouvertes(): HasMany
     {
         return $this->hasMany(Decouverte::class);
+    }
+
+    public function missions(): BelongsToMany
+    {
+        return $this->belongsToMany(Mission::class, 'mission_personnage')
+            ->withPivot([
+                'statut',
+                'progression',
+                'acceptee_le',
+                'completee_le',
+                'expire_le',
+                'fois_completee',
+                'dernier_cooldown',
+            ])
+            ->withTimestamps();
+    }
+
+    public function reputations(): HasMany
+    {
+        return $this->hasMany(Reputation::class);
+    }
+
+    /**
+     * Obtient la réputation avec une faction spécifique
+     */
+    public function getReputation(Faction $faction): Reputation
+    {
+        return Reputation::getOuCreer($this->id, $faction->id);
     }
 
     // Méthodes Daggerheart

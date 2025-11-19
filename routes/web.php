@@ -2,9 +2,20 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\AdminController;
 
-// Routes publiques
-Route::get('/', [GameController::class, 'index'])->name('home');
+// Page d'accueil avec login
+Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+    return view('welcome');
+})->name('home');
+
+// Page d'inscription
+Route::get('/register', function () {
+    return view('auth.register');
+})->middleware('guest')->name('register.form');
 
 // Routes protégées par authentification
 Route::middleware('auth:sanctum')->group(function () {
@@ -22,6 +33,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/api/status', [GameController::class, 'apiGetStatus'])->name('api.status');
         Route::get('/api/vaisseau', [GameController::class, 'apiGetVaisseau'])->name('api.vaisseau');
         Route::get('/api/carte', [GameController::class, 'apiGetCarte'])->name('api.carte');
+    });
+
+    // Routes Admin
+    Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/', [AdminController::class, 'index'])->name('index');
+        Route::get('/comptes', [AdminController::class, 'comptes'])->name('comptes');
+        Route::get('/univers', [AdminController::class, 'univers'])->name('univers');
+        Route::get('/backup', [AdminController::class, 'backup'])->name('backup');
     });
 });
 
