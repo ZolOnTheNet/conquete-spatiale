@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Station extends Model
 {
@@ -57,6 +59,36 @@ class Station extends Model
     public function faction(): BelongsTo
     {
         return $this->belongsTo(Faction::class);
+    }
+
+    /**
+     * Produits disponibles sur le marché
+     */
+    public function produits(): BelongsToMany
+    {
+        return $this->belongsToMany(Produit::class, 'marche_stations')
+            ->withPivot([
+                'stock_actuel',
+                'stock_min',
+                'stock_max',
+                'production_par_jour',
+                'consommation_par_jour',
+                'type_economique',
+                'prix_achat_joueur',
+                'prix_vente_joueur',
+                'derniere_mise_a_jour_prix',
+                'disponible_achat',
+                'disponible_vente',
+            ])
+            ->withTimestamps();
+    }
+
+    /**
+     * Marché de la station
+     */
+    public function marches(): HasMany
+    {
+        return $this->hasMany(MarcheStation::class);
     }
 
     /**

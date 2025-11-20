@@ -846,55 +846,79 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
      */
     private function showMarche(Personnage $personnage): array
     {
-        $vaisseau = $personnage->vaisseauActif;
-        if (!$vaisseau) {
-            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        // Vérifier que le personnage est dans une station
+        if (!$personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être dans une station. Utilisez "transborder" pour entrer dans une station.',
+            ];
         }
 
-        // Trouver système actuel
-        $os = $vaisseau->objetSpatial;
-        $systeme = SystemeStellaire::where('secteur_x', $os->secteur_x)
-            ->where('secteur_y', $os->secteur_y)
-            ->where('secteur_z', $os->secteur_z)
-            ->first();
+        $station = \App\Models\Station::find($personnage->dans_station_id);
 
-        if (!$systeme) {
-            return ['success' => false, 'message' => 'Vous devez etre dans un systeme stellaire'];
+        if (!$station->commerciale) {
+            return [
+                'success' => false,
+                'message' => "{$station->nom} n'a pas de marché.",
+            ];
         }
 
-        // Trouver marchés sur les planètes du système
-        $marches = Marche::whereHasMorph('localisation', [
-            \App\Models\Planete::class,
-        ], function ($query) use ($systeme) {
-            $query->where('systeme_stellaire_id', $systeme->id);
-        })->where('actif', true)->get();
+        // Charger les produits disponibles avec leurs données de marché
+        $marches = \App\Models\MarcheStation::where('station_id', $station->id)
+            ->with('produit')
+            ->where(function($q) {
+                $q->where('disponible_vente', true)
+                  ->orWhere('disponible_achat', true);
+            })
+            ->get();
 
         if ($marches->isEmpty()) {
             return [
                 'success' => true,
-                'message' => "\n=== MARCHES LOCAUX ===\nAucun marche actif dans ce systeme.\n",
+                'message' => "\n=== MARCHÉ DE {$station->nom} ===\n\nLe marché est actuellement vide.\n",
             ];
         }
 
-        $message = "\n=== MARCHES LOCAUX ({$systeme->nom}) ===\n\n";
+        $message = "\n=== MARCHÉ DE {$station->nom} ===\n\n";
+        $message .= "Code       | Produit              | Type        | Achat    | Vente    | Stock    | Éco\n";
+        $message .= "-----------|----------------------|-------------|----------|----------|----------|-------------\n";
 
         foreach ($marches as $marche) {
-            $localisation = $marche->localisation;
-            $nomLieu = $localisation ? $localisation->nom : 'Inconnu';
+            $produit = $marche->produit;
 
-            $message .= "--- {$marche->nom} ---\n";
-            $message .= "Type: {$marche->type}\n";
-            $message .= "Localisation: {$nomLieu}\n";
-            $message .= "Taxe: " . ($marche->taxe * 100) . "%\n";
+            $code = str_pad(strtoupper($produit->code), 10);
+            $nom = str_pad(substr($produit->nom, 0, 20), 20);
+            $type = str_pad(substr($produit->type, 0, 11), 11);
 
-            if ($marche->description) {
-                $message .= "Info: {$marche->description}\n";
-            }
+            // Prix selon disponibilité
+            $prixAchat = $marche->disponible_achat
+                ? str_pad(number_format($marche->prix_achat_joueur, 0) . '₡', 8)
+                : str_pad('--', 8);
 
-            $message .= "\n";
+            $prixVente = $marche->disponible_vente
+                ? str_pad(number_format($marche->prix_vente_joueur, 0) . '₡', 8)
+                : str_pad('--', 8);
+
+            $stock = str_pad(number_format($marche->stock_actuel), 8);
+
+            // Indicateur économique
+            $eco = match($marche->type_economique) {
+                'producteur' => 'PROD ⬇',
+                'consommateur' => 'CONSO ⬆',
+                'equilibre' => 'ÉQUIL →',
+                'transit' => 'TRANSIT',
+                default => '',
+            };
+
+            $message .= "{$code} | {$nom} | {$type} | {$prixAchat} | {$prixVente} | {$stock} | {$eco}\n";
         }
 
-        $message .= "Utilisez 'prix' pour voir les tarifs ou 'acheter/vendre' pour commercer.";
+        $message .= "\n";
+        $message .= "💰 Achat = Station achète AU joueur | Vente = Station vend AU joueur\n";
+        $message .= "⬇ PROD = Prix bas | ⬆ CONSO = Prix élevé | → ÉQUIL = Prix moyen\n\n";
+        $message .= "Commandes:\n";
+        $message .= "- 'acheter <code> <quantité>' : Acheter à la station\n";
+        $message .= "- 'vendre <code> <quantité>' : Vendre à la station\n";
 
         return ['success' => true, 'message' => $message];
     }
@@ -960,19 +984,31 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
     }
 
     /**
-     * Acheter des ressources au marché
+     * Acheter des produits au marché (la station VEND au joueur)
      */
     private function acheterRessource(Personnage $personnage, array $parts): array
     {
-        $vaisseau = $personnage->vaisseauActif;
-        if (!$vaisseau) {
-            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        // Vérifier que dans une station
+        if (!$personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être dans une station avec un marché.',
+            ];
+        }
+
+        $station = \App\Models\Station::find($personnage->dans_station_id);
+
+        if (!$station->commerciale) {
+            return [
+                'success' => false,
+                'message' => "{$station->nom} n'a pas de marché.",
+            ];
         }
 
         if (count($parts) < 3) {
             return [
                 'success' => false,
-                'message' => "Usage: acheter [code_ressource] [quantite]\nExemple: acheter FER 500",
+                'message' => "Usage: acheter <code> <quantité>\nExemple: acheter FER 500",
             ];
         }
 
@@ -980,93 +1016,96 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
         $quantite = (int)$parts[2];
 
         if ($quantite <= 0) {
-            return ['success' => false, 'message' => 'Quantite invalide'];
+            return ['success' => false, 'message' => 'Quantité invalide'];
         }
 
-        // Trouver ressource
-        $ressource = Ressource::where('code', $code)->first();
-        if (!$ressource) {
-            return ['success' => false, 'message' => "Ressource '{$code}' inconnue"];
+        // Trouver le produit
+        $produit = \App\Models\Produit::where('code', $code)->first();
+        if (!$produit) {
+            return ['success' => false, 'message' => "Produit '{$code}' inconnu"];
         }
 
-        // Trouver marché local
-        $os = $vaisseau->objetSpatial;
-        $systeme = SystemeStellaire::where('secteur_x', $os->secteur_x)
-            ->where('secteur_y', $os->secteur_y)
-            ->where('secteur_z', $os->secteur_z)
+        // Trouver l'entrée du marché
+        $marche = \App\Models\MarcheStation::where('station_id', $station->id)
+            ->where('produit_id', $produit->id)
             ->first();
 
-        if (!$systeme) {
-            return ['success' => false, 'message' => 'Vous devez etre dans un systeme stellaire'];
-        }
-
-        $marche = Marche::whereHasMorph('localisation', [
-            \App\Models\Planete::class,
-        ], function ($query) use ($systeme) {
-            $query->where('systeme_stellaire_id', $systeme->id);
-        })->where('actif', true)->first();
-
-        if (!$marche) {
-            return ['success' => false, 'message' => 'Aucun marche actif dans ce systeme'];
-        }
-
-        // Vérifier capacité soute
-        if (!$vaisseau->peutCharger($ressource->id, $quantite)) {
-            $capacite = $vaisseau->getCapaciteRestante();
-            $poids = $ressource->poids_unitaire * $quantite;
+        if (!$marche || !$marche->disponible_vente) {
             return [
                 'success' => false,
-                'message' => "Capacite soute insuffisante.\nRequis: {$poids}t | Disponible: {$capacite}t",
+                'message' => "{$station->nom} ne vend pas {$produit->nom}.",
             ];
         }
 
-        // Calculer prix
-        $prix_total = $marche->getPrixAchat($ressource->id) * $quantite;
-
-        // Vérifier crédits
-        if ($personnage->credits < $prix_total) {
+        // Vérifier stock disponible
+        if ($quantite > $marche->stock_actuel) {
             return [
                 'success' => false,
-                'message' => "Credits insuffisants.\nRequis: " . number_format($prix_total) . " | Disponible: " . number_format($personnage->credits),
+                'message' => "Stock insuffisant.\nDisponible: " . number_format($marche->stock_actuel) . " unités",
             ];
         }
 
-        // Effectuer l'achat
-        $resultat = $marche->acheter($ressource->id, $quantite);
+        // Calculer prix total
+        $prixTotal = $marche->prix_vente_joueur * $quantite;
+
+        // Vérifier crédits (TODO: système de crédits à implémenter)
+        // For now, on assume que le joueur a assez de crédits
+
+        // TODO: Vérifier capacité de soute du vaisseau
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        // Effectuer la transaction
+        $resultat = $marche->vendreAuJoueur($quantite);
 
         if (!$resultat['success']) {
             return $resultat;
         }
 
-        // Débiter crédits et ajouter au vaisseau
-        $personnage->credits -= $resultat['prix_total'];
-        $personnage->save();
+        // TODO: Débiter crédits
+        // TODO: Ajouter au cargo du vaisseau
 
-        $vaisseau->ajouterRessource($ressource->id, $quantite);
-
-        $message = "\n=== ACHAT EFFECTUE ===\n";
-        $message .= "Ressource: {$ressource->nom} ({$code})\n";
-        $message .= "Quantite: " . number_format($quantite) . "\n";
-        $message .= "Prix total: " . number_format($resultat['prix_total']) . " credits\n";
-        $message .= "Credits restants: " . number_format($personnage->credits) . "\n";
+        $message = "\n=== ACHAT EFFECTUÉ ===\n";
+        $message .= "Station: {$station->nom}\n";
+        $message .= "Produit: {$produit->nom} ({$code})\n";
+        $message .= "Quantité: " . number_format($quantite) . " unités\n";
+        $message .= "Prix unitaire: " . number_format($resultat['prix_unitaire'], 2) . "₡\n";
+        $message .= "Prix total: " . number_format($resultat['total'], 2) . "₡\n";
+        $message .= "Nouveau stock station: " . number_format($marche->stock_actuel) . "\n";
+        $message .= "Type économique: {$marche->type_economique}\n\n";
+        $message .= "💡 Le prix a été ajusté selon l'offre et la demande.\n";
 
         return ['success' => true, 'message' => $message];
     }
 
     /**
-     * Vendre des ressources au marché
+     * Vendre des produits au marché (la station ACHÈTE au joueur)
      */
     private function vendreRessource(Personnage $personnage, array $parts): array
     {
-        $vaisseau = $personnage->vaisseauActif;
-        if (!$vaisseau) {
-            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        // Vérifier que dans une station
+        if (!$personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être dans une station avec un marché.',
+            ];
+        }
+
+        $station = \App\Models\Station::find($personnage->dans_station_id);
+
+        if (!$station->commerciale) {
+            return [
+                'success' => false,
+                'message' => "{$station->nom} n'a pas de marché.",
+            ];
         }
 
         if (count($parts) < 3) {
             return [
                 'success' => false,
-                'message' => "Usage: vendre [code_ressource] [quantite]\nExemple: vendre FER 500",
+                'message' => "Usage: vendre <code> <quantité>\nExemple: vendre FER 500",
             ];
         }
 
@@ -1074,62 +1113,61 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
         $quantite = (int)$parts[2];
 
         if ($quantite <= 0) {
-            return ['success' => false, 'message' => 'Quantite invalide'];
+            return ['success' => false, 'message' => 'Quantité invalide'];
         }
 
-        // Trouver ressource
-        $ressource = Ressource::where('code', $code)->first();
-        if (!$ressource) {
-            return ['success' => false, 'message' => "Ressource '{$code}' inconnue"];
+        // Trouver le produit
+        $produit = \App\Models\Produit::where('code', $code)->first();
+        if (!$produit) {
+            return ['success' => false, 'message' => "Produit '{$code}' inconnu"];
         }
 
-        // Vérifier inventaire
-        $quantite_dispo = $vaisseau->getQuantiteRessource($ressource->id);
-        if ($quantite_dispo < $quantite) {
+        // TODO: Vérifier inventaire du vaisseau
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        // Trouver l'entrée du marché
+        $marche = \App\Models\MarcheStation::where('station_id', $station->id)
+            ->where('produit_id', $produit->id)
+            ->first();
+
+        if (!$marche || !$marche->disponible_achat) {
             return [
                 'success' => false,
-                'message' => "Quantite insuffisante.\nDisponible: " . number_format($quantite_dispo),
+                'message' => "{$station->nom} n'achète pas {$produit->nom}.",
             ];
         }
 
-        // Trouver marché local
-        $os = $vaisseau->objetSpatial;
-        $systeme = SystemeStellaire::where('secteur_x', $os->secteur_x)
-            ->where('secteur_y', $os->secteur_y)
-            ->where('secteur_z', $os->secteur_z)
-            ->first();
-
-        if (!$systeme) {
-            return ['success' => false, 'message' => 'Vous devez etre dans un systeme stellaire'];
+        // Vérifier capacité de stockage de la station
+        $espaceDisponible = $marche->stock_max - $marche->stock_actuel;
+        if ($quantite > $espaceDisponible) {
+            return [
+                'success' => false,
+                'message' => "La station n'a pas assez d'espace.\nCapacité disponible: " . number_format($espaceDisponible) . " unités",
+            ];
         }
 
-        $marche = Marche::whereHasMorph('localisation', [
-            \App\Models\Planete::class,
-        ], function ($query) use ($systeme) {
-            $query->where('systeme_stellaire_id', $systeme->id);
-        })->where('actif', true)->first();
-
-        if (!$marche) {
-            return ['success' => false, 'message' => 'Aucun marche actif dans ce systeme'];
-        }
-
-        // Effectuer la vente
-        $resultat = $marche->vendre($ressource->id, $quantite);
+        // Effectuer la transaction
+        $resultat = $marche->acheterAuJoueur($quantite);
 
         if (!$resultat['success']) {
             return $resultat;
         }
 
-        // Retirer du vaisseau et créditer
-        $vaisseau->retirerRessource($ressource->id, $quantite);
-        $personnage->credits += $resultat['prix_total'];
-        $personnage->save();
+        // TODO: Retirer du cargo
+        // TODO: Créditer le joueur
 
-        $message = "\n=== VENTE EFFECTUEE ===\n";
-        $message .= "Ressource: {$ressource->nom} ({$code})\n";
-        $message .= "Quantite: " . number_format($quantite) . "\n";
-        $message .= "Prix total: " . number_format($resultat['prix_total']) . " credits\n";
-        $message .= "Credits: " . number_format($personnage->credits) . "\n";
+        $message = "\n=== VENTE EFFECTUÉE ===\n";
+        $message .= "Station: {$station->nom}\n";
+        $message .= "Produit: {$produit->nom} ({$code})\n";
+        $message .= "Quantité: " . number_format($quantite) . " unités\n";
+        $message .= "Prix unitaire: " . number_format($resultat['prix_unitaire'], 2) . "₡\n";
+        $message .= "Prix total: " . number_format($resultat['total'], 2) . "₡\n";
+        $message .= "Nouveau stock station: " . number_format($marche->stock_actuel) . "\n";
+        $message .= "Type économique: {$marche->type_economique}\n\n";
+        $message .= "💡 Le prix a été ajusté selon l'offre et la demande.\n";
 
         return ['success' => true, 'message' => $message];
     }
