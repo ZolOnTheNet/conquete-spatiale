@@ -8,9 +8,12 @@ use App\Models\Bouclier;
 use App\Models\Combat;
 use App\Models\Compte;
 use App\Models\Ennemi;
+use App\Models\Faction;
 use App\Models\Gisement;
 use App\Models\Marche;
+use App\Models\Mission;
 use App\Models\Recette;
+use App\Models\Reputation;
 use App\Models\Ressource;
 use App\Models\SystemeStellaire;
 use Illuminate\Http\Request;
@@ -186,6 +189,13 @@ class GameController extends Controller
             'ennemis', 'enemies' => $this->showEnnemis(),
             'attaquer', 'attack' => $this->attaquerEnnemi($personnage, $parts),
             'fuir', 'flee' => $this->fuirCombat($personnage),
+            // Missions
+            'missions', 'quests' => $this->showMissions($personnage, $parts),
+            'mission-accepter', 'accept' => $this->accepterMission($personnage, $parts),
+            'mission-rendre', 'complete' => $this->rendreMission($personnage, $parts),
+            'mission-abandonner', 'abandon' => $this->abandonnerMission($personnage, $parts),
+            'factions' => $this->showFactions($personnage),
+            'reputation', 'rep' => $this->showReputation($personnage),
             '' => ['success' => true, 'message' => ''],
             default => [
                 'success' => false,
@@ -1809,6 +1819,217 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
             } else {
                 $message .= "\nLe combat continue. Commandes: 'attaquer' ou 'fuir'\n";
             }
+        }
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Afficher les missions disponibles ou en cours
+     */
+    private function showMissions(Personnage $personnage, array $parts): array
+    {
+        $filter = $parts[0] ?? 'disponibles';
+
+        if ($filter === 'encours' || $filter === 'actives') {
+            // Missions en cours
+            $missions = $personnage->missions()
+                ->whereIn('mission_personnage.statut', ['en_cours', 'completee'])
+                ->with('faction')
+                ->get();
+
+            if ($missions->isEmpty()) {
+                return ['success' => true, 'message' => "Aucune mission en cours.\nUtilisez 'missions' pour voir les disponibles."];
+            }
+
+            $message = "\n=== MISSIONS EN COURS ===\n\n";
+
+            foreach ($missions as $mission) {
+                $statut = $mission->pivot->statut === 'completee' ? '[COMPLETEE]' : '[EN COURS]';
+                $faction = $mission->faction ? $mission->faction->nom : 'Independant';
+
+                $message .= "{$statut} {$mission->titre}\n";
+                $message .= "  Code: {$mission->code} | Faction: {$faction}\n";
+
+                // Progression
+                $progression = json_decode($mission->pivot->progression, true);
+                foreach ($mission->objectifs as $i => $obj) {
+                    $actuel = $progression[$i]['actuel'] ?? 0;
+                    $requis = $obj['quantite'] ?? 1;
+                    $type = $obj['type'];
+                    $message .= "  - {$type}: {$actuel}/{$requis}\n";
+                }
+
+                if ($mission->pivot->statut === 'completee') {
+                    $message .= "  -> Utilisez 'mission-rendre {$mission->code}' pour les recompenses\n";
+                }
+                $message .= "\n";
+            }
+
+            return ['success' => true, 'message' => $message];
+        }
+
+        // Missions disponibles
+        $missions = Mission::where('actif', true)
+            ->with('faction')
+            ->get();
+
+        if ($missions->isEmpty()) {
+            return ['success' => true, 'message' => 'Aucune mission disponible.'];
+        }
+
+        $message = "\n=== MISSIONS DISPONIBLES ===\n\n";
+
+        foreach ($missions as $mission) {
+            $check = $mission->peutEtreAcceptee($personnage);
+            $disponible = $check['peut_accepter'] ? '' : ' [INDISPONIBLE]';
+            $faction = $mission->faction ? $mission->faction->nom : 'Independant';
+            $difficulte = ucfirst($mission->difficulte);
+
+            $message .= "[{$mission->code}] {$mission->titre}{$disponible}\n";
+            $message .= "  {$faction} | {$difficulte} | Niv.{$mission->niveau_requis}\n";
+            $message .= "  Recompenses: {$mission->recompense_credits} cr, {$mission->recompense_xp} XP\n";
+
+            if (!$check['peut_accepter']) {
+                $message .= "  Raison: " . implode(', ', $check['raisons']) . "\n";
+            }
+            $message .= "\n";
+        }
+
+        $message .= "Utilisez 'mission-accepter [CODE]' pour accepter une mission\n";
+        $message .= "Utilisez 'missions encours' pour voir vos missions actives\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Accepter une mission
+     */
+    private function accepterMission(Personnage $personnage, array $parts): array
+    {
+        if (empty($parts[0])) {
+            return ['success' => false, 'message' => "Usage: mission-accepter [CODE]\nExemple: mission-accepter FED_LIVRAISON_01"];
+        }
+
+        $mission = Mission::where('code', strtoupper($parts[0]))->first();
+        if (!$mission) {
+            return ['success' => false, 'message' => "Mission '{$parts[0]}' introuvable."];
+        }
+
+        $result = $mission->accepter($personnage);
+
+        if ($result['success']) {
+            $message = "\n=== MISSION ACCEPTEE ===\n";
+            $message .= "Titre: {$mission->titre}\n";
+            $message .= "Description: {$mission->description}\n\n";
+            $message .= "Objectifs:\n";
+            foreach ($mission->objectifs as $obj) {
+                $message .= "  - {$obj['type']}: {$obj['quantite']}\n";
+            }
+            $message .= "\nRecompenses:\n";
+            $message .= "  Credits: {$mission->recompense_credits}\n";
+            $message .= "  XP: {$mission->recompense_xp}\n";
+            $message .= "  Reputation: +{$mission->recompense_reputation}\n";
+
+            return ['success' => true, 'message' => $message];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Rendre une mission completee
+     */
+    private function rendreMission(Personnage $personnage, array $parts): array
+    {
+        if (empty($parts[0])) {
+            return ['success' => false, 'message' => "Usage: mission-rendre [CODE]\nExemple: mission-rendre FED_LIVRAISON_01"];
+        }
+
+        $mission = Mission::where('code', strtoupper($parts[0]))->first();
+        if (!$mission) {
+            return ['success' => false, 'message' => "Mission '{$parts[0]}' introuvable."];
+        }
+
+        $result = $mission->rendre($personnage);
+
+        if ($result['success']) {
+            $message = "\n=== MISSION RENDUE ===\n";
+            $message .= "'{$mission->titre}' completee!\n\n";
+            $message .= "Recompenses recues:\n";
+            $message .= "  Credits: +{$result['recompenses']['credits']}\n";
+            $message .= "  XP: +{$result['recompenses']['xp']}\n";
+            $message .= "  Reputation: +{$result['recompenses']['reputation']}\n";
+
+            return ['success' => true, 'message' => $message];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Abandonner une mission
+     */
+    private function abandonnerMission(Personnage $personnage, array $parts): array
+    {
+        if (empty($parts[0])) {
+            return ['success' => false, 'message' => "Usage: mission-abandonner [CODE]"];
+        }
+
+        $mission = Mission::where('code', strtoupper($parts[0]))->first();
+        if (!$mission) {
+            return ['success' => false, 'message' => "Mission '{$parts[0]}' introuvable."];
+        }
+
+        return $mission->abandonner($personnage);
+    }
+
+    /**
+     * Afficher les factions
+     */
+    private function showFactions(Personnage $personnage): array
+    {
+        $factions = Faction::where('actif', true)->get();
+
+        if ($factions->isEmpty()) {
+            return ['success' => true, 'message' => 'Aucune faction.'];
+        }
+
+        $message = "\n=== FACTIONS ===\n\n";
+
+        foreach ($factions as $faction) {
+            $rep = Reputation::getOuCreer($personnage->id, $faction->id);
+
+            $message .= "{$faction->nom} [{$faction->code}]\n";
+            $message .= "  Type: {$faction->type} | Alignement: {$faction->alignement}\n";
+            $message .= "  Votre reputation: {$rep->valeur} ({$rep->rang})\n";
+            $message .= "  {$faction->description}\n\n";
+        }
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Afficher la reputation du personnage
+     */
+    private function showReputation(Personnage $personnage): array
+    {
+        $factions = Faction::where('actif', true)->get();
+
+        $message = "\n=== REPUTATION ===\n\n";
+
+        foreach ($factions as $faction) {
+            $rep = Reputation::getOuCreer($personnage->id, $faction->id);
+            $pourcent = $rep->getPourcentageVersProchainRang();
+
+            // Barre de progression
+            $filled = (int)($pourcent / 10);
+            $empty = 10 - $filled;
+            $bar = str_repeat('█', $filled) . str_repeat('░', $empty);
+
+            $message .= "{$faction->nom}\n";
+            $message .= "  {$rep->rang} ({$rep->valeur}) [{$bar}] {$pourcent}%\n";
+            $message .= "  Missions: {$rep->missions_completees} completees, {$rep->missions_echouees} echouees\n\n";
         }
 
         return ['success' => true, 'message' => $message];
