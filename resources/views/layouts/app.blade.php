@@ -11,7 +11,9 @@
 
         body {
             font-family: 'Share Tech Mono', monospace;
-            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0a0a2a 100%);
+            background: #0a0a1a;
+            background: linear-gradient(135deg, #0a0a1a 0%, #0f0f2a 50%, #0a0a1a 100%);
+            background-attachment: fixed;
         }
 
         .font-orbitron {
@@ -24,18 +26,13 @@
 
         .stars {
             background-image:
-                radial-gradient(2px 2px at 20px 30px, #eee, transparent),
-                radial-gradient(2px 2px at 40px 70px, #fff, transparent),
-                radial-gradient(1px 1px at 90px 40px, #fff, transparent),
-                radial-gradient(2px 2px at 160px 120px, #ddd, transparent),
-                radial-gradient(1px 1px at 230px 80px, #fff, transparent);
+                radial-gradient(2px 2px at 20px 30px, rgba(200, 200, 200, 0.3), transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.4), transparent),
+                radial-gradient(1px 1px at 90px 40px, rgba(200, 200, 200, 0.3), transparent),
+                radial-gradient(2px 2px at 160px 120px, rgba(180, 180, 180, 0.3), transparent),
+                radial-gradient(1px 1px at 230px 80px, rgba(255, 255, 255, 0.4), transparent);
             background-size: 250px 200px;
-            animation: twinkle 5s ease-in-out infinite alternate;
-        }
-
-        @keyframes twinkle {
-            0% { opacity: 0.5; }
-            100% { opacity: 1; }
+            /* Animation désactivée pour éviter les fluctuations */
         }
 
         .console-text {
