@@ -18,7 +18,7 @@ Route::get('/register', function () {
 })->middleware('guest')->name('register.form');
 
 // Routes protégées par authentification
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth')->group(function () {
     // Sélection/création de personnage
     Route::get('/personnage/selection', [GameController::class, 'selectionPersonnage'])->name('personnage.selection');
     Route::post('/personnage/creer', [GameController::class, 'creerPersonnage'])->name('personnage.creer');
