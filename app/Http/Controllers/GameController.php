@@ -196,6 +196,16 @@ class GameController extends Controller
             'mission-abandonner', 'abandon' => $this->abandonnerMission($personnage, $parts),
             'factions' => $this->showFactions($personnage),
             'reputation', 'rep' => $this->showReputation($personnage),
+            // Stations et Arrimage
+            'arrimer', 'dock' => $this->arrimerStation($personnage, $parts),
+            'desarrimer', 'undock' => $this->desarrimerStation($personnage),
+            'transborder', 'board-station' => $this->transborderStation($personnage),
+            'embarquer', 'board-ship' => $this->embarquerVaisseau($personnage),
+            'garage' => $this->accederGarage($personnage),
+            'comptoirs', 'hub' => $this->accederComptoirs($personnage),
+            'hopital', 'hospital' => $this->accederHopital($personnage),
+            'industrie', 'industry' => $this->accederIndustrie($personnage),
+            'ravitailler', 'refuel' => $this->ravitaillerVaisseau($personnage, $parts),
             '' => ['success' => true, 'message' => ''],
             default => [
                 'success' => false,
@@ -2166,5 +2176,503 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
             'systemes' => $systemes,
             'total' => count($systemes),
         ]);
+    }
+
+    // ========== SYSTÈME DE STATIONS ==========
+
+    /**
+     * Arrimer à une station avec jet de pilotage
+     */
+    private function arrimerStation(Personnage $personnage, array $parts): array
+    {
+        if (!$personnage->vaisseauActif) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être à bord d\'un vaisseau.',
+            ];
+        }
+
+        $vaisseau = $personnage->vaisseauActif;
+
+        // Vérifier si déjà arrimé
+        if ($vaisseau->arrime_a_station_id) {
+            $station = \App\Models\Station::find($vaisseau->arrime_a_station_id);
+            return [
+                'success' => false,
+                'message' => "Vous êtes déjà arrimé à {$station->nom}.",
+            ];
+        }
+
+        // Vérifier si dans une station
+        if ($personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être à bord de votre vaisseau pour arrimer.',
+            ];
+        }
+
+        // Trouver station dans le secteur
+        $position = $personnage->getPositionActuelle();
+        if (!$position) {
+            return [
+                'success' => false,
+                'message' => 'Position du vaisseau introuvable.',
+            ];
+        }
+
+        // Chercher stations dans le même système
+        $stations = \App\Models\Station::where('systeme_stellaire_id', $position['systeme_stellaire_id'])
+            ->where('accessible', true)
+            ->get();
+
+        if ($stations->isEmpty()) {
+            return [
+                'success' => false,
+                'message' => 'Aucune station accessible dans ce système stellaire.',
+            ];
+        }
+
+        // Si nom station spécifié
+        $nomStation = isset($parts[1]) ? implode(' ', array_slice($parts, 1)) : null;
+        if ($nomStation) {
+            $station = $stations->firstWhere('nom', 'like', "%{$nomStation}%");
+            if (!$station) {
+                return [
+                    'success' => false,
+                    'message' => "Station '{$nomStation}' introuvable dans ce système.",
+                ];
+            }
+        } else {
+            // Prendre la première station
+            $station = $stations->first();
+        }
+
+        // Vérifier capacité d'amarrage
+        $vaisseauxArrimes = \App\Models\Vaisseau::where('arrime_a_station_id', $station->id)->count();
+        if ($vaisseauxArrimes >= $station->capacite_amarrage) {
+            return [
+                'success' => false,
+                'message' => "{$station->nom} est complète (capacité: {$station->capacite_amarrage} vaisseaux).",
+            ];
+        }
+
+        // JET DE PILOTAGE DAGGERHEART
+        $competence = $personnage->competences['pilotage'] ?? 0;
+        $jet = $personnage->lancerDes($competence);
+        $personnage->save();
+
+        $vaisseau->dernier_jet_pilotage = $jet;
+
+        // Interpréter le résultat
+        $message = "\n=== MANŒUVRE D'AMARRAGE ===\n";
+        $message .= "Station: {$station->nom}\n";
+        $message .= "Hope: {$jet['hope']} | Fear: {$jet['fear']} | Compétence: +{$competence}\n";
+        $message .= "Total: {$jet['total']}\n\n";
+
+        if ($jet['critique']) {
+            // Critique ! Peut être très bon ou très mauvais
+            if ($jet['hope'] >= 10) {
+                // Critique positif
+                $vaisseau->arrime_a_station_id = $station->id;
+                $vaisseau->arrime_le = now();
+                $vaisseau->save();
+
+                $message .= "🎯 CRITIQUE AVEC HOPE! Amarrage parfait!\n";
+                $message .= "Manœuvre d'amarrage exceptionnelle. Vous gagnez 1 jeton HOPE.\n";
+                $message .= "Amarré avec succès à {$station->nom}.\n";
+
+                return ['success' => true, 'message' => $message];
+            } else {
+                // Critique négatif
+                $dommages = rand(5, 15);
+                $message .= "💥 CRITIQUE AVEC FEAR! Collision lors de l'amarrage!\n";
+                $message .= "Vous heurtez la station. Dommages: -{$dommages}% intégrité coque.\n";
+                $message .= "Vous gagnez 1 jeton FEAR.\n";
+                $message .= "Amarrage échoué. Tentez à nouveau.\n";
+
+                return ['success' => false, 'message' => $message];
+            }
+        }
+
+        if ($jet['total'] >= 12) {
+            // Succès franc
+            $vaisseau->arrime_a_station_id = $station->id;
+            $vaisseau->arrime_le = now();
+            $vaisseau->save();
+
+            $message .= "✅ SUCCÈS! Amarrage réussi.\n";
+            $message .= "Votre vaisseau est maintenant arrimé à {$station->nom}.\n";
+            $message .= "Utilisez 'transborder' pour entrer dans la station.\n";
+
+            return ['success' => true, 'message' => $message];
+        } elseif ($jet['total'] >= 9) {
+            // Succès partiel
+            $vaisseau->arrime_a_station_id = $station->id;
+            $vaisseau->arrime_le = now();
+            $vaisseau->save();
+
+            $message .= "⚠️  SUCCÈS PARTIEL. Amarrage compliqué.\n";
+            $message .= "Quelques à-coups, mais vous parvenez à vous arrimer.\n";
+            $message .= "Coût PA: +1 (manœuvre difficile).\n";
+            $personnage->consommerPA(1);
+            $personnage->save();
+
+            return ['success' => true, 'message' => $message];
+        } else {
+            // Échec
+            $message .= "❌ ÉCHEC. Impossible de s'arrimer.\n";
+            $message .= "Votre approche est trop erratique. Repositionnez-vous.\n";
+            $message .= "Tentez à nouveau quand vous serez prêt.\n";
+
+            return ['success' => false, 'message' => $message];
+        }
+    }
+
+    /**
+     * Désamarrer d'une station avec jet de pilotage
+     */
+    private function desarrimerStation(Personnage $personnage): array
+    {
+        if (!$personnage->vaisseauActif) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être à bord d\'un vaisseau.',
+            ];
+        }
+
+        $vaisseau = $personnage->vaisseauActif;
+
+        if (!$vaisseau->arrime_a_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Votre vaisseau n\'est pas arrimé à une station.',
+            ];
+        }
+
+        if ($personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être à bord de votre vaisseau. Utilisez "embarquer" d\'abord.',
+            ];
+        }
+
+        $station = \App\Models\Station::find($vaisseau->arrime_a_station_id);
+
+        // JET DE PILOTAGE DAGGERHEART
+        $competence = $personnage->competences['pilotage'] ?? 0;
+        $jet = $personnage->lancerDes($competence);
+        $personnage->save();
+
+        $message = "\n=== MANŒUVRE DE DÉSAMARRAGE ===\n";
+        $message .= "Station: {$station->nom}\n";
+        $message .= "Hope: {$jet['hope']} | Fear: {$jet['fear']} | Compétence: +{$competence}\n";
+        $message .= "Total: {$jet['total']}\n\n";
+
+        if ($jet['critique']) {
+            if ($jet['hope'] >= 10) {
+                // Critique positif
+                $vaisseau->arrime_a_station_id = null;
+                $vaisseau->arrime_le = null;
+                $vaisseau->dernier_jet_pilotage = null;
+                $vaisseau->save();
+
+                $message .= "🎯 CRITIQUE AVEC HOPE! Départ parfait!\n";
+                $message .= "Manœuvre de désamarrage impeccable. Navigation libre.\n";
+
+                return ['success' => true, 'message' => $message];
+            } else {
+                // Critique négatif
+                $dommages = rand(10, 20);
+                $message .= "💥 CRITIQUE AVEC FEAR! Collision au départ!\n";
+                $message .= "Vous arrachez les amarres trop brutalement.\n";
+                $message .= "Dommages: -{$dommages}% intégrité coque.\n";
+                $message .= "Désamarrage forcé. Vérifiez vos systèmes.\n";
+
+                $vaisseau->arrime_a_station_id = null;
+                $vaisseau->arrime_le = null;
+                $vaisseau->save();
+
+                return ['success' => true, 'message' => $message];
+            }
+        }
+
+        if ($jet['total'] >= 12) {
+            // Succès franc
+            $vaisseau->arrime_a_station_id = null;
+            $vaisseau->arrime_le = null;
+            $vaisseau->dernier_jet_pilotage = null;
+            $vaisseau->save();
+
+            $message .= "✅ SUCCÈS! Désamarrage réussi.\n";
+            $message .= "Vous quittez {$station->nom}. Navigation libre.\n";
+
+            return ['success' => true, 'message' => $message];
+        } elseif ($jet['total'] >= 9) {
+            // Succès partiel
+            $vaisseau->arrime_a_station_id = null;
+            $vaisseau->arrime_le = null;
+            $vaisseau->save();
+
+            $message .= "⚠️  SUCCÈS PARTIEL. Départ laborieux.\n";
+            $message .= "Vous parvenez à vous dégager après quelques manœuvres.\n";
+            $message .= "Coût PA: +1.\n";
+            $personnage->consommerPA(1);
+            $personnage->save();
+
+            return ['success' => true, 'message' => $message];
+        } else {
+            // Échec
+            $message .= "❌ ÉCHEC. Impossible de désamarrer.\n";
+            $message .= "Les amarres restent bloquées. Tentez à nouveau.\n";
+
+            return ['success' => false, 'message' => $message];
+        }
+    }
+
+    /**
+     * Transborder du vaisseau vers la station
+     */
+    private function transborderStation(Personnage $personnage): array
+    {
+        if (!$personnage->vaisseauActif) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être à bord d\'un vaisseau.',
+            ];
+        }
+
+        $vaisseau = $personnage->vaisseauActif;
+
+        if (!$vaisseau->arrime_a_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Votre vaisseau doit être arrimé à une station. Utilisez "arrimer" d\'abord.',
+            ];
+        }
+
+        if ($personnage->dans_station_id) {
+            $station = \App\Models\Station::find($personnage->dans_station_id);
+            return [
+                'success' => false,
+                'message' => "Vous êtes déjà dans {$station->nom}.",
+            ];
+        }
+
+        $station = \App\Models\Station::find($vaisseau->arrime_a_station_id);
+
+        $personnage->dans_station_id = $station->id;
+        $personnage->save();
+
+        $message = "\n=== TRANSBORDEMENT ===\n";
+        $message .= "Vous quittez votre vaisseau et entrez dans {$station->nom}.\n\n";
+        $message .= "Services disponibles:\n";
+
+        $services = [];
+        if ($station->commerciale) $services[] = "- 'marche' : Acheter/vendre des marchandises";
+        if ($station->reparations) $services[] = "- 'garage' : Réparer et améliorer votre vaisseau";
+        if ($station->medical) $services[] = "- 'hopital' : Soins médicaux";
+        if ($station->industrielle) $services[] = "- 'industrie' : Raffinage et fabrication";
+        if ($station->ravitaillement) $services[] = "- 'ravitailler' : Recharger carburant et provisions";
+        $services[] = "- 'comptoirs' : Missions, guildes, informations";
+        $services[] = "- 'embarquer' : Retourner à votre vaisseau";
+
+        $message .= implode("\n", $services);
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Embarquer de la station vers le vaisseau
+     */
+    private function embarquerVaisseau(Personnage $personnage): array
+    {
+        if (!$personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous êtes déjà à bord de votre vaisseau.',
+            ];
+        }
+
+        $station = \App\Models\Station::find($personnage->dans_station_id);
+        $vaisseau = $personnage->vaisseauActif;
+
+        if (!$vaisseau || $vaisseau->arrime_a_station_id != $station->id) {
+            return [
+                'success' => false,
+                'message' => 'Votre vaisseau n\'est pas arrimé à cette station.',
+            ];
+        }
+
+        $personnage->dans_station_id = null;
+        $personnage->save();
+
+        $message = "\n=== EMBARQUEMENT ===\n";
+        $message .= "Vous quittez {$station->nom} et retournez à bord de votre vaisseau.\n";
+        $message .= "Utilisez 'desarrimer' pour quitter la station.\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Accéder au garage
+     */
+    private function accederGarage(Personnage $personnage): array
+    {
+        if (!$personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être dans une station. Utilisez "transborder" d\'abord.',
+            ];
+        }
+
+        $station = \App\Models\Station::find($personnage->dans_station_id);
+
+        if (!$station->reparations) {
+            return [
+                'success' => false,
+                'message' => "{$station->nom} n\'a pas de garage.",
+            ];
+        }
+
+        $vaisseau = $personnage->vaisseauActif;
+
+        $message = "\n=== GARAGE DE {$station->nom} ===\n\n";
+        $message .= "Bienvenue au garage !\n\n";
+        $message .= "État de votre vaisseau:\n";
+        $message .= "- Nom: {$vaisseau->nom}\n";
+        $message .= "- Intégrité coque: 100%\n"; // TODO: système de dommages
+        $message .= "- Moteurs: Opérationnels\n";
+        $message .= "- Boucliers: Opérationnels\n\n";
+        $message .= "Services disponibles:\n";
+        $message .= "- 'reparer [système]' : Réparer un système endommagé\n";
+        $message .= "- Améliorations disponibles prochainement\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Accéder aux comptoirs
+     */
+    private function accederComptoirs(Personnage $personnage): array
+    {
+        if (!$personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être dans une station. Utilisez "transborder" d\'abord.',
+            ];
+        }
+
+        $station = \App\Models\Station::find($personnage->dans_station_id);
+
+        $message = "\n=== QUARTIER DES COMPTOIRS - {$station->nom} ===\n\n";
+        $message .= "Vous entrez dans le quartier des comptoirs, lieu d'affaires et de rencontres.\n\n";
+        $message .= "Lieux disponibles:\n";
+        $message .= "- 'missions' : Consulter les missions disponibles\n";
+        $message .= "- 'guildes' : Parler aux représentants des guildes\n";
+        $message .= "- 'factions' : Voir votre réputation\n";
+        $message .= "- 'bar' : Se rendre au bar (rumeurs, informations)\n";
+        $message .= "- Boutiques spécialisées (bientôt disponibles)\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Accéder à l'hôpital
+     */
+    private function accederHopital(Personnage $personnage): array
+    {
+        if (!$personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être dans une station. Utilisez "transborder" d\'abord.',
+            ];
+        }
+
+        $station = \App\Models\Station::find($personnage->dans_station_id);
+
+        if (!$station->medical) {
+            return [
+                'success' => false,
+                'message' => "{$station->nom} n\'a pas d\'hôpital.",
+            ];
+        }
+
+        $message = "\n=== HÔPITAL DE {$station->nom} ===\n\n";
+        $message .= "Bienvenue au centre médical.\n\n";
+        $message .= "Votre état de santé:\n";
+        $message .= "- Santé: 100%\n"; // TODO: système de santé
+        $message .= "- Aucune blessure\n\n";
+        $message .= "Services disponibles:\n";
+        $message .= "- 'soigner' : Soigner toutes les blessures (50 crédits)\n";
+        $message .= "- Cybernétique disponible prochainement\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Accéder au quartier industriel
+     */
+    private function accederIndustrie(Personnage $personnage): array
+    {
+        if (!$personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être dans une station. Utilisez "transborder" d\'abord.',
+            ];
+        }
+
+        $station = \App\Models\Station::find($personnage->dans_station_id);
+
+        if (!$station->industrielle) {
+            return [
+                'success' => false,
+                'message' => "{$station->nom} n\'a pas de quartier industriel.",
+            ];
+        }
+
+        $message = "\n=== QUARTIER INDUSTRIEL - {$station->nom} ===\n\n";
+        $message .= "Vous entrez dans le quartier industriel, cœur de la production.\n\n";
+        $message .= "Services disponibles:\n";
+        $message .= "- 'recettes' : Voir les recettes de fabrication\n";
+        $message .= "- 'fabriquer [recette]' : Fabriquer un objet\n";
+        $message .= "- Raffinage disponible prochainement\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Ravitailler le vaisseau
+     */
+    private function ravitaillerVaisseau(Personnage $personnage, array $parts): array
+    {
+        if (!$personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être dans une station. Utilisez "transborder" d\'abord.',
+            ];
+        }
+
+        $station = \App\Models\Station::find($personnage->dans_station_id);
+
+        if (!$station->ravitaillement) {
+            return [
+                'success' => false,
+                'message' => "{$station->nom} n\'offre pas de services de ravitaillement.",
+            ];
+        }
+
+        $vaisseau = $personnage->vaisseauActif;
+        $coutTotal = 100; // TODO: calculer selon besoins réels
+
+        $message = "\n=== RAVITAILLEMENT - {$station->nom} ===\n\n";
+        $message .= "Services de ravitaillement:\n";
+        $message .= "- Carburant: Complet\n";
+        $message .= "- Eau potable: Rechargée\n";
+        $message .= "- Oxygène: Réservoirs pleins\n";
+        $message .= "- Rations: Stock complet\n\n";
+        $message .= "Coût total: {$coutTotal} crédits\n";
+        $message .= "Votre vaisseau est prêt pour un long voyage !\n";
+
+        return ['success' => true, 'message' => $message];
     }
 }

@@ -250,7 +250,7 @@ class GaiaSeeder extends Seeder
             'poi_connu' => true,
         ]);
 
-        // Créer la Terre
+        // Créer la Terre (planète inaccessible - surpopulation)
         $terre = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Terre',
@@ -260,9 +260,11 @@ class GaiaSeeder extends Seeder
             'type' => 'terrestre',
             'a_atmosphere' => true,
             'population' => 8000000000,
+            'accessible' => false,
+            'raison_inaccessible' => 'Surpopulation - Vaisseaux trop gros pour atterrir',
         ]);
 
-        // Station Terra-Maxi-Hub (inaccessible)
+        // Station Terra-Maxi-Hub (ACCESSIBLE)
         Station::create([
             'nom' => 'Terra-Maxi-Hub',
             'type' => 'hub_commercial',
@@ -278,11 +280,10 @@ class GaiaSeeder extends Seeder
             'reparations' => true,
             'ravitaillement' => true,
             'medical' => true,
-            'accessible' => false,
-            'raison_inaccessible' => 'Trop de circulation - Station saturée',
+            'accessible' => true,
         ]);
 
-        // Créer la Lune
+        // Créer la Lune (planète inaccessible - surpopulation)
         $lune = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Lune',
@@ -292,9 +293,11 @@ class GaiaSeeder extends Seeder
             'type' => 'naine',
             'a_atmosphere' => false,
             'population' => 0,
+            'accessible' => false,
+            'raison_inaccessible' => 'Transport - Vaisseaux trop gros pour atterrir',
         ]);
 
-        // Station Lunastar-station (station de départ, inaccessible directement)
+        // Station Lunastar-station (ACCESSIBLE - station de départ)
         Station::create([
             'nom' => 'Lunastar-station',
             'type' => 'spatiogare',
@@ -310,11 +313,10 @@ class GaiaSeeder extends Seeder
             'reparations' => true,
             'ravitaillement' => true,
             'medical' => true,
-            'accessible' => false,
-            'raison_inaccessible' => 'Trop de circulation - Réservé aux nouveaux pilotes',
+            'accessible' => true,
         ]);
 
-        // Créer Mars
+        // Créer Mars (planète inaccessible - colonisation)
         $mars = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Mars',
@@ -324,9 +326,11 @@ class GaiaSeeder extends Seeder
             'type' => 'terrestre',
             'a_atmosphere' => true,
             'population' => 0,
+            'accessible' => false,
+            'raison_inaccessible' => 'Colonisation - Vaisseaux trop gros pour atterrir',
         ]);
 
-        // Station Mars-spatiogare (inaccessible)
+        // Station Mars-spatiogare (ACCESSIBLE)
         Station::create([
             'nom' => 'Mars-spatiogare',
             'type' => 'spatiogare',
@@ -342,11 +346,10 @@ class GaiaSeeder extends Seeder
             'reparations' => true,
             'ravitaillement' => true,
             'medical' => true,
-            'accessible' => false,
-            'raison_inaccessible' => 'Trop de circulation - Colonisation en cours',
+            'accessible' => true,
         ]);
 
-        // Créer Jupiter
+        // Créer Jupiter (planète gazeuse inaccessible)
         $jupiter = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Jupiter',
@@ -356,6 +359,8 @@ class GaiaSeeder extends Seeder
             'type' => 'gazeuse',
             'a_atmosphere' => true,
             'population' => 0,
+            'accessible' => false,
+            'raison_inaccessible' => 'Planète gazeuse - Impossible d\'atterrir',
         ]);
 
         // Station Jupiter-spatiogare (accessible)
@@ -377,7 +382,7 @@ class GaiaSeeder extends Seeder
             'accessible' => true,
         ]);
 
-        // Créer Neptune
+        // Créer Neptune (planète gazeuse inaccessible)
         $neptune = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Neptune',
@@ -387,6 +392,8 @@ class GaiaSeeder extends Seeder
             'type' => 'gazeuse',
             'a_atmosphere' => true,
             'population' => 0,
+            'accessible' => false,
+            'raison_inaccessible' => 'Planète gazeuse - Impossible d\'atterrir',
         ]);
 
         // Station Neptune-spatiogare (accessible)
