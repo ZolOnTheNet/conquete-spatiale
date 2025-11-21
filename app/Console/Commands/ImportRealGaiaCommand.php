@@ -143,9 +143,10 @@ class ImportRealGaiaCommand extends Command
     protected function buildADQLQuery(float $radiusParsecs, float $minMag, int $limit): string
     {
         // ADQL Query pour étoiles proches avec données complètes
+        // Note: ADQL utilise || pour la concaténation (pas CONCAT)
         return "SELECT TOP {$limit}
             source_id,
-            COALESCE(dr2_radial_velocity_id, CONCAT('GAIA DR3 ', source_id)) as designation,
+            COALESCE(dr2_radial_velocity_id, 'GAIA DR3 ' || source_id) as designation,
             ra,
             dec,
             parallax,
