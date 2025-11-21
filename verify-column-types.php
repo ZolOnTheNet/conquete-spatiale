@@ -112,7 +112,10 @@ foreach ($tableInfo as $col) {
 }
 
 $secteurCorrect = count(array_unique($secteurTypes)) === 1 && strtoupper($secteurTypes[0]) === 'INTEGER';
-$positionCorrect = count(array_unique($positionTypes)) === 1 && strpos(strtoupper($positionTypes[0]), 'DECIMAL') !== false;
+// SQLite convertit DECIMAL en 'numeric' - les deux sont acceptables
+$positionTypeUpper = strtoupper($positionTypes[0] ?? '');
+$positionCorrect = count(array_unique($positionTypes)) === 1 &&
+                   (strpos($positionTypeUpper, 'DECIMAL') !== false || $positionTypeUpper === 'NUMERIC');
 
 echo "✓ Secteurs (secteur_x/y/z) : " . implode(', ', array_unique($secteurTypes)) . "\n";
 echo "  → " . ($secteurCorrect ? '✓ CORRECT (INTEGER)' : '✗ PROBLÈME ! Devrait être INTEGER') . "\n\n";
@@ -123,7 +126,11 @@ echo "  → " . ($positionCorrect ? '✓ CORRECT (DECIMAL)' : '✗ PROBLÈME ! D
 if ($secteurCorrect && $positionCorrect) {
     echo "✅ CONCLUSION : Le système est CORRECT !\n";
     echo "   Secteurs = INTEGER (recherche rapide avec index)\n";
-    echo "   Positions = DECIMAL (précision 0.001)\n";
+    $posType = $positionTypes[0] ?? 'DECIMAL';
+    echo "   Positions = {$posType} (précision décimale)\n";
+    if (strtoupper($posType) === 'NUMERIC') {
+        echo "   Note: SQLite utilise 'numeric' pour stocker les DECIMAL - c'est normal !\n";
+    }
 } else {
     echo "❌ CONCLUSION : Le système a un PROBLÈME !\n";
     echo "   Vérifiez les migrations et réexécutez-les si nécessaire.\n";
