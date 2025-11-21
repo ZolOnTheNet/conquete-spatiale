@@ -184,14 +184,17 @@
                             @endif
 
                             <!-- Gisements -->
-                            @if($planete->gisements->count() > 0)
+                            @php
+                                $gisementsRelation = $planete->relationLoaded('gisements') ? $planete->gisements : collect();
+                            @endphp
+                            @if($gisementsRelation->count() > 0)
                             <div class="mt-3 border-t border-gray-600 pt-3">
-                                <div class="text-sm text-gray-400 mb-2">Gisements ({{ $planete->gisements->count() }})</div>
+                                <div class="text-sm text-gray-400 mb-2">Gisements ({{ $gisementsRelation->count() }})</div>
                                 <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                    @foreach($planete->gisements as $gisement)
+                                    @foreach($gisementsRelation as $gisement)
                                     <div class="bg-gray-800 rounded px-2 py-1 text-xs">
                                         <span class="text-yellow-400">{{ $gisement->ressource->nom }}</span>
-                                        <span class="text-gray-400">- {{ $gisement->quantite }} unités</span>
+                                        <span class="text-gray-400">- {{ number_format($gisement->quantite_restante) }} unités</span>
                                     </div>
                                     @endforeach
                                 </div>
@@ -199,11 +202,14 @@
                             @endif
 
                             <!-- Stations -->
-                            @if($planete->stations->count() > 0)
+                            @php
+                                $stationsRelation = $planete->relationLoaded('stations') ? $planete->stations : collect();
+                            @endphp
+                            @if($stationsRelation->count() > 0)
                             <div class="mt-3 border-t border-gray-600 pt-3">
-                                <div class="text-sm text-gray-400 mb-2">Stations ({{ $planete->stations->count() }})</div>
+                                <div class="text-sm text-gray-400 mb-2">Stations ({{ $stationsRelation->count() }})</div>
                                 <div class="space-y-2">
-                                    @foreach($planete->stations as $station)
+                                    @foreach($stationsRelation as $station)
                                     <div class="bg-gray-800 rounded px-3 py-2 text-sm">
                                         <div class="flex justify-between items-center">
                                             <div>
