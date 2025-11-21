@@ -38,6 +38,13 @@
 
         <!-- Main Content -->
         <main class="flex-1 p-6">
+            <!-- Messages de succès -->
+            @if(session('success'))
+            <div class="bg-green-900/50 border border-green-500 text-green-300 px-4 py-3 rounded mb-6">
+                {{ session('success') }}
+            </div>
+            @endif
+
             <!-- Informations du système -->
             <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-6 mb-6">
                 <h2 class="text-xl font-bold text-white mb-4">Informations stellaires</h2>
@@ -55,14 +62,34 @@
                         <div class="text-xs text-gray-400 mb-1">Couleur</div>
                         <div class="text-white">{{ $systeme->couleur }}</div>
                     </div>
-                    <div>
-                        <div class="text-xs text-gray-400 mb-1">Puissance</div>
-                        <div class="text-orange-400 font-bold">
-                            @if($systeme->puissance)
-                                {{ $systeme->puissance }}
-                            @else
-                                <span class="text-gray-500">-</span>
-                            @endif
+                    <div class="col-span-3">
+                        <div class="text-xs text-gray-400 mb-2">Puissance</div>
+                        <div class="flex gap-2 items-center">
+                            <form method="POST" action="{{ route('admin.univers.update-puissance', $systeme->id) }}" class="flex gap-2 items-center flex-1">
+                                @csrf
+                                <input type="number" name="puissance" value="{{ $systeme->puissance }}" min="1" max="200"
+                                       class="w-32 bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
+                                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm">
+                                    💾 Sauvegarder
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ route('admin.univers.recalculer-puissance', $systeme->id) }}" class="inline">
+                                @csrf
+                                <button type="submit" class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded text-sm">
+                                    🎲 Recalculer (type {{ substr($systeme->type_etoile, 0, 1) }})
+                                </button>
+                            </form>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">
+                            @php
+                                $typeClass = strtoupper(substr($systeme->type_etoile, 0, 1));
+                                $plages = [
+                                    'O' => [150, 200], 'B' => [100, 140], 'A' => [80, 100],
+                                    'F' => [60, 80], 'G' => [40, 60], 'K' => [30, 40], 'M' => [20, 30]
+                                ];
+                                $plage = $plages[$typeClass] ?? [40, 60];
+                            @endphp
+                            Plage pour type {{ $typeClass }}: {{ $plage[0] }}-{{ $plage[1] }}
                         </div>
                     </div>
                     <div>

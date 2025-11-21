@@ -124,6 +124,64 @@ class AdminController extends Controller
     }
 
     /**
+     * Mettre à jour la puissance d'un système manuellement
+     */
+    public function updatePuissance(Request $request, $id)
+    {
+        $systeme = SystemeStellaire::findOrFail($id);
+
+        $request->validate([
+            'puissance' => 'required|integer|min:1|max:200'
+        ]);
+
+        $systeme->puissance = $request->puissance;
+        $systeme->save();
+
+        return redirect()->route('admin.univers.show', $id)
+            ->with('success', "Puissance mise à jour: {$request->puissance}");
+    }
+
+    /**
+     * Recalculer la puissance selon le type spectral
+     */
+    public function recalculerPuissance($id)
+    {
+        $systeme = SystemeStellaire::findOrFail($id);
+
+        // Mapping des types spectraux vers plages de puissance
+        $puissances = [
+            'O' => [150, 200],
+            'B' => [100, 140],
+            'A' => [80, 100],
+            'F' => [60, 80],
+            'G' => [40, 60],
+            'K' => [30, 40],
+            'M' => [20, 30],
+        ];
+
+        // Extraire la classe spectrale (première lettre)
+        $typeClass = strtoupper(substr($systeme->type_etoile, 0, 1));
+
+        if (!isset($puissances[$typeClass])) {
+            $typeClass = 'G'; // Défaut : type solaire
+        }
+
+        [$min, $max] = $puissances[$typeClass];
+
+        // Formule : min - 1 + 1d(max - min + 1)
+        $dice = $max - $min + 1;
+        $roll = rand(1, $dice);
+        $nouvellePuissance = ($min - 1) + $roll;
+
+        $anciennePuissance = $systeme->puissance;
+        $systeme->puissance = $nouvellePuissance;
+        $systeme->save();
+
+        return redirect()->route('admin.univers.show', $id)
+            ->with('success', "Puissance recalculée: {$anciennePuissance} → {$nouvellePuissance} (type {$typeClass})");
+    }
+
+    /**
      * Gestion des planètes
      */
     public function planetes()
