@@ -37,15 +37,42 @@ class GaiaSeeder extends Seeder
     {
         $radius = config('universe.gaia_radius_ly', 100);
 
+        // Compter le nombre total de lignes pour la barre de progression
+        $this->command->info('📊 Analyse du fichier CSV...');
+        $totalLines = 0;
+        $file = fopen($csvPath, 'r');
+        fgetcsv($file); // Skip header
+        while (fgets($file) !== false) {
+            $totalLines++;
+        }
+        fclose($file);
+
+        $this->command->info("📦 {$totalLines} étoiles trouvées dans le CSV");
+
+        // Réouvrir le fichier pour l'import
         $file = fopen($csvPath, 'r');
         $header = fgetcsv($file);
 
+        // Créer la barre de progression
+        $bar = $this->command->getOutput()->createProgressBar($totalLines);
+        $bar->setFormat(' %current%/%max% [%bar%] %percent:3s%% - %message%');
+        $bar->setMessage('Démarrage import...');
+        $bar->start();
+
         $count = 0;
+        $filtered = 0;
+        $lineNumber = 0;
+
         while (($row = fgetcsv($file)) !== false) {
+            $lineNumber++;
             $data = array_combine($header, $row);
 
             // Filtrer par distance
-            if ((float)$data['distance'] > $radius) continue;
+            if ((float)$data['distance'] > $radius) {
+                $filtered++;
+                $bar->advance();
+                continue;
+            }
 
             // Convertir coordonnées
             $coords = GaiaCoordinateConverter::galacticToGame(
@@ -87,11 +114,25 @@ class GaiaSeeder extends Seeder
             $this->genererPlanetes($systeme);
 
             $count++;
+
+            // Mettre à jour le message de progression toutes les 50 étoiles
+            if ($count % 50 === 0) {
+                $bar->setMessage("Importé: {$count} systèmes");
+            }
+
+            $bar->advance();
         }
+
+        $bar->setMessage("Import terminé!");
+        $bar->finish();
+        $this->command->newLine(2);
 
         fclose($file);
 
         $this->command->info("✅ {$count} systèmes GAIA importés depuis CSV");
+        if ($filtered > 0) {
+            $this->command->info("ℹ️  {$filtered} étoiles filtrées (distance > {$radius} AL)");
+        }
     }
 
     /**
@@ -101,6 +142,8 @@ class GaiaSeeder extends Seeder
     {
         // Créer le Système Solaire complet en premier
         $this->seedSolarSystem();
+
+        $this->command->info('⭐ Import des étoiles proches connues...');
 
         $etoilesConnues = [
             [
@@ -186,7 +229,14 @@ class GaiaSeeder extends Seeder
             ],
         ];
 
+        // Créer une barre de progression
+        $bar = $this->command->getOutput()->createProgressBar(count($etoilesConnues));
+        $bar->setFormat(' %current%/%max% [%bar%] %percent:3s%% - %message%');
+        $bar->start();
+
         foreach ($etoilesConnues as $data) {
+            $bar->setMessage("Import de {$data['nom']}...");
+
             // Convertir coordonnées
             $coords = GaiaCoordinateConverter::galacticToGame(
                 $data['ra'],
@@ -227,7 +277,13 @@ class GaiaSeeder extends Seeder
             if ($systeme->nb_planetes > 0) {
                 $this->genererPlanetes($systeme);
             }
+
+            $bar->advance();
         }
+
+        $bar->setMessage("Import terminé!");
+        $bar->finish();
+        $this->command->newLine(2);
 
         $this->command->info('✅ ' . count($etoilesConnues) . ' étoiles connues importées');
     }
