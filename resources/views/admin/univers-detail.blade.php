@@ -156,131 +156,141 @@
                 </div>
             </div>
 
-            <!-- Planètes -->
-            <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-6">
-                <h2 class="text-xl font-bold text-white mb-4">
+            <!-- Planètes - Affichage condensé -->
+            <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
+                <h2 class="text-lg font-bold text-white mb-2">
                     Planètes ({{ $systeme->planetes->count() }})
                 </h2>
 
                 @if($systeme->planetes->count() > 0)
-                    <div class="space-y-4">
+                    <div class="space-y-2">
                         @foreach($systeme->planetes as $planete)
-                        <div class="bg-gray-900/50 border border-gray-600 rounded-lg p-4">
-                            <div class="flex justify-between items-start mb-3">
-                                <div>
-                                    <h3 class="text-lg font-bold text-white">{{ $planete->nom }}</h3>
-                                    <div class="text-sm text-gray-400">Type: <span class="text-cyan-400">{{ ucfirst($planete->type) }}</span></div>
+                        <div class="bg-gray-900/50 border border-gray-600 rounded p-2">
+                            <!-- En-tête planète compact -->
+                            <div class="flex items-center justify-between mb-1 pb-1 border-b border-gray-700/50">
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-sm font-bold text-yellow-400">{{ $planete->nom }}</h3>
+                                    <span class="text-xs text-gray-500">{{ ucfirst($planete->type) }}</span>
+                                    <span class="text-xs text-gray-600">({{ number_format($planete->rayon, 1) }}R, {{ number_format($planete->masse, 1) }}M)</span>
                                 </div>
-                                <div class="text-right">
+                                <div class="flex items-center gap-2 text-xs">
+                                    @php
+                                        // Accéder à la relation via getRelation pour éviter conflit avec attribut
+                                        try {
+                                            $gisementsRelation = $planete->getRelation('gisements');
+                                        } catch (\Exception $e) {
+                                            $gisementsRelation = collect();
+                                        }
+                                        if (!$gisementsRelation) {
+                                            $gisementsRelation = collect();
+                                        }
+                                    @endphp
+                                    <span class="text-gray-500">{{ $gisementsRelation->count() }} gisements</span>
                                     @if($planete->accessible)
-                                        <span class="text-green-400 text-sm">✓ Accessible</span>
+                                        <span class="text-green-400">✓</span>
                                     @else
-                                        <span class="text-red-400 text-sm">✗ Inaccessible</span>
+                                        <span class="text-red-400">✗</span>
                                     @endif
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mb-3">
-                                <div>
-                                    <div class="text-gray-400">Distance étoile</div>
-                                    <div class="text-white">{{ number_format($planete->distance_etoile, 2) }} UA</div>
-                                </div>
-                                <div>
-                                    <div class="text-gray-400">Rayon</div>
-                                    <div class="text-white">{{ number_format($planete->rayon, 2) }} R⊕</div>
-                                </div>
-                                <div>
-                                    <div class="text-gray-400">Masse</div>
-                                    <div class="text-white">{{ number_format($planete->masse, 2) }} M⊕</div>
-                                </div>
-                                <div>
-                                    <div class="text-gray-400">Atmosphère</div>
-                                    <div class="text-white">{{ $planete->a_atmosphere ? 'Oui' : 'Non' }}</div>
-                                </div>
-                                <div>
-                                    <div class="text-gray-400">Population</div>
-                                    <div class="text-white">{{ number_format($planete->population) }}</div>
-                                </div>
-                                <div>
-                                    <div class="text-gray-400">Détectabilité</div>
-                                    <div class="text-cyan-300">{{ number_format($planete->detectabilite_base, 2) }}</div>
-                                </div>
-                            </div>
-
-                            @if(!$planete->accessible && $planete->raison_inaccessible)
-                            <div class="text-sm text-red-300 mb-3">
-                                <span class="text-gray-400">Raison:</span> {{ $planete->raison_inaccessible }}
-                            </div>
-                            @endif
-
-                            <!-- Gisements -->
-                            @php
-                                // Accéder à la relation via getRelation pour éviter conflit avec attribut
-                                try {
-                                    $gisementsRelation = $planete->getRelation('gisements');
-                                } catch (\Exception $e) {
-                                    $gisementsRelation = collect();
-                                }
-                                if (!$gisementsRelation) {
-                                    $gisementsRelation = collect();
-                                }
-                            @endphp
+                            <!-- Gisements éditables -->
                             @if($gisementsRelation->count() > 0)
-                            <div class="mt-3 border-t border-gray-600 pt-3">
-                                <div class="text-sm text-gray-400 mb-2">Gisements ({{ $gisementsRelation->count() }})</div>
-                                <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                    @foreach($gisementsRelation as $gisement)
-                                    <div class="bg-gray-800 rounded px-2 py-1 text-xs">
-                                        <span class="text-yellow-400">{{ $gisement->ressource->nom }}</span>
-                                        <span class="text-gray-400">- {{ number_format($gisement->quantite_restante) }} unités</span>
-                                    </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                            @endif
+                            <div class="mt-1">
+                                <table class="w-full text-xs">
+                                    <thead class="text-gray-500 border-b border-gray-700/50">
+                                        <tr>
+                                            <th class="text-left py-1 px-1">Ressource</th>
+                                            <th class="text-left py-1 px-1">Richesse</th>
+                                            <th class="text-left py-1 px-1">Qté Totale</th>
+                                            <th class="text-left py-1 px-1">Qté Restante</th>
+                                            <th class="text-right py-1 px-1">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-700/30">
+                                        @foreach($gisementsRelation as $gisement)
+                                        <tr class="hover:bg-gray-700/20" data-gisement-id="{{ $gisement->id }}">
+                                            <!-- Type ressource -->
+                                            <td class="py-1 px-1">
+                                                <select class="ressource-select bg-gray-900/50 border border-gray-700 rounded px-1 py-0.5 text-xs text-white w-24"
+                                                        data-field="ressource_id"
+                                                        data-gisement-id="{{ $gisement->id }}">
+                                                    @foreach(\App\Models\Ressource::orderBy('nom')->get() as $ressource)
+                                                        <option value="{{ $ressource->id }}"
+                                                                {{ $gisement->ressource_id == $ressource->id ? 'selected' : '' }}>
+                                                            {{ $ressource->nom }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
 
-                            <!-- Stations -->
-                            @php
-                                // Accéder à la relation via getRelation pour éviter conflit
-                                try {
-                                    $stationsRelation = $planete->getRelation('stations');
-                                } catch (\Exception $e) {
-                                    $stationsRelation = collect();
-                                }
-                                if (!$stationsRelation) {
-                                    $stationsRelation = collect();
-                                }
-                            @endphp
-                            @if($stationsRelation->count() > 0)
-                            <div class="mt-3 border-t border-gray-600 pt-3">
-                                <div class="text-sm text-gray-400 mb-2">Stations ({{ $stationsRelation->count() }})</div>
-                                <div class="space-y-2">
-                                    @foreach($stationsRelation as $station)
-                                    <div class="bg-gray-800 rounded px-3 py-2 text-sm">
-                                        <div class="flex justify-between items-center">
-                                            <div>
-                                                <span class="text-white font-bold">{{ $station->nom }}</span>
-                                                <span class="text-gray-400 ml-2">{{ ucfirst(str_replace('_', ' ', $station->type)) }}</span>
-                                            </div>
-                                            @if($station->accessible)
-                                                <span class="text-green-400 text-xs">✓ Accessible</span>
-                                            @else
-                                                <span class="text-red-400 text-xs">✗ Inaccessible</span>
-                                            @endif
-                                        </div>
-                                        <div class="text-xs text-gray-400 mt-1">
-                                            Capacité: {{ $station->capacite_amarrage }} vaisseaux
-                                        </div>
-                                    </div>
-                                    @endforeach
-                                </div>
+                                            <!-- Richesse -->
+                                            <td class="py-1 px-1">
+                                                <div class="flex items-center gap-0.5">
+                                                    <input type="number"
+                                                           class="richesse-input bg-gray-900/50 border border-gray-700 rounded px-1 py-0.5 text-xs text-cyan-400 w-12"
+                                                           data-field="richesse"
+                                                           data-gisement-id="{{ $gisement->id }}"
+                                                           value="{{ $gisement->richesse }}"
+                                                           min="1" max="100">
+                                                    <span class="text-gray-600 text-xs">%</span>
+                                                    <button class="recalc-btn text-blue-400 hover:text-blue-300 px-0.5 text-xs"
+                                                            data-field="richesse"
+                                                            data-gisement-id="{{ $gisement->id }}"
+                                                            title="Recalculer richesse">⟲</button>
+                                                </div>
+                                            </td>
+
+                                            <!-- Quantité totale -->
+                                            <td class="py-1 px-1">
+                                                <div class="flex items-center gap-0.5">
+                                                    <input type="number"
+                                                           class="qty-total-input bg-gray-900/50 border border-gray-700 rounded px-1 py-0.5 text-xs text-green-400 w-20"
+                                                           data-field="quantite_totale"
+                                                           data-gisement-id="{{ $gisement->id }}"
+                                                           value="{{ $gisement->quantite_totale }}">
+                                                    <button class="recalc-btn text-blue-400 hover:text-blue-300 px-0.5 text-xs"
+                                                            data-field="quantite_totale"
+                                                            data-gisement-id="{{ $gisement->id }}"
+                                                            title="Recalculer quantité totale">⟲</button>
+                                                </div>
+                                            </td>
+
+                                            <!-- Quantité restante -->
+                                            <td class="py-1 px-1">
+                                                <div class="flex items-center gap-0.5">
+                                                    <input type="number"
+                                                           class="qty-remain-input bg-gray-900/50 border border-gray-700 rounded px-1 py-0.5 text-xs text-yellow-400 w-20"
+                                                           data-field="quantite_restante"
+                                                           data-gisement-id="{{ $gisement->id }}"
+                                                           value="{{ $gisement->quantite_restante }}">
+                                                    <button class="recalc-btn text-blue-400 hover:text-blue-300 px-0.5 text-xs"
+                                                            data-field="quantite_restante"
+                                                            data-gisement-id="{{ $gisement->id }}"
+                                                            title="Recalculer quantité restante">⟲</button>
+                                                </div>
+                                            </td>
+
+                                            <!-- Bouton sauvegarder -->
+                                            <td class="py-1 px-1 text-right">
+                                                <button class="save-gisement-btn bg-green-600/80 hover:bg-green-600 text-white px-2 py-0.5 rounded text-xs"
+                                                        data-gisement-id="{{ $gisement->id }}">
+                                                    💾
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
+                            @else
+                                <div class="text-xs text-gray-500 py-1">Aucun gisement</div>
                             @endif
                         </div>
                         @endforeach
                     </div>
                 @else
-                    <div class="text-center text-gray-400 py-8">
+                    <div class="text-center text-gray-400 py-4 text-sm">
                         Aucune planète dans ce système
                     </div>
                 @endif
@@ -288,4 +298,79 @@
         </main>
     </div>
 </div>
+
+<!-- JavaScript pour édition gisements -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Boutons recalculer
+    document.querySelectorAll('.recalc-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const gisementId = this.dataset.gisementId;
+            const field = this.dataset.field;
+            const row = this.closest('tr');
+
+            if (field === 'richesse') {
+                // Richesse aléatoire 20-100
+                const newValue = Math.floor(Math.random() * 81) + 20;
+                row.querySelector(`[data-field="${field}"][data-gisement-id="${gisementId}"]`).value = newValue;
+            } else if (field === 'quantite_totale') {
+                // Quantité aléatoire basée sur rareté
+                const newValue = Math.floor(Math.random() * 15000000) + 1000000;
+                row.querySelector(`[data-field="${field}"][data-gisement-id="${gisementId}"]`).value = newValue;
+            } else if (field === 'quantite_restante') {
+                // Copier la quantité totale
+                const totalQty = row.querySelector(`[data-field="quantite_totale"][data-gisement-id="${gisementId}"]`).value;
+                row.querySelector(`[data-field="${field}"][data-gisement-id="${gisementId}"]`).value = totalQty;
+            }
+        });
+    });
+
+    // Boutons sauvegarder
+    document.querySelectorAll('.save-gisement-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const gisementId = this.dataset.gisementId;
+            const row = this.closest('tr');
+
+            // Collecter les données
+            const data = {
+                ressource_id: row.querySelector(`[data-field="ressource_id"][data-gisement-id="${gisementId}"]`).value,
+                richesse: row.querySelector(`[data-field="richesse"][data-gisement-id="${gisementId}"]`).value,
+                quantite_totale: row.querySelector(`[data-field="quantite_totale"][data-gisement-id="${gisementId}"]`).value,
+                quantite_restante: row.querySelector(`[data-field="quantite_restante"][data-gisement-id="${gisementId}"]`).value,
+                _token: '{{ csrf_token() }}'
+            };
+
+            // Sauvegarder via AJAX
+            fetch(`/admin/production/gisement/${gisementId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    // Feedback visuel
+                    this.textContent = '✓';
+                    this.classList.remove('bg-green-600/80', 'hover:bg-green-600');
+                    this.classList.add('bg-gray-600');
+                    setTimeout(() => {
+                        this.textContent = '💾';
+                        this.classList.remove('bg-gray-600');
+                        this.classList.add('bg-green-600/80', 'hover:bg-green-600');
+                    }, 2000);
+                } else {
+                    alert('Erreur: ' + (result.message || 'Erreur inconnue'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Erreur de connexion');
+            });
+        });
+    });
+});
+</script>
 @endsection
