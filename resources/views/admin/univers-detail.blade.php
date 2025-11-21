@@ -185,7 +185,15 @@
 
                             <!-- Gisements -->
                             @php
-                                $gisementsRelation = $planete->relationLoaded('gisements') ? $planete->gisements : collect();
+                                // Accéder à la relation via getRelation pour éviter conflit avec attribut
+                                try {
+                                    $gisementsRelation = $planete->getRelation('gisements');
+                                } catch (\Exception $e) {
+                                    $gisementsRelation = collect();
+                                }
+                                if (!$gisementsRelation) {
+                                    $gisementsRelation = collect();
+                                }
                             @endphp
                             @if($gisementsRelation->count() > 0)
                             <div class="mt-3 border-t border-gray-600 pt-3">
@@ -203,7 +211,15 @@
 
                             <!-- Stations -->
                             @php
-                                $stationsRelation = $planete->relationLoaded('stations') ? $planete->stations : collect();
+                                // Accéder à la relation via getRelation pour éviter conflit
+                                try {
+                                    $stationsRelation = $planete->getRelation('stations');
+                                } catch (\Exception $e) {
+                                    $stationsRelation = collect();
+                                }
+                                if (!$stationsRelation) {
+                                    $stationsRelation = collect();
+                                }
                             @endphp
                             @if($stationsRelation->count() > 0)
                             <div class="mt-3 border-t border-gray-600 pt-3">
