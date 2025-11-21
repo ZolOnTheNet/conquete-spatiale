@@ -50,6 +50,18 @@ class AdminController extends Controller
     }
 
     /**
+     * Gestion des planètes
+     */
+    public function planetes()
+    {
+        $planetes = Planete::with('systemeStellaire')
+            ->orderBy('nom')
+            ->paginate(20);
+
+        return view('admin.planetes', compact('planetes'));
+    }
+
+    /**
      * Gestion des backups
      */
     public function backup()

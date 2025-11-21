@@ -526,6 +526,15 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
 
                 $details = $decouverte['details'];
                 $message .= "  Type: Étoile {$details['type_etoile']} ({$details['couleur']})\n";
+
+                // Afficher puissance et détectabilité si disponibles
+                if (isset($details['puissance']) && $details['puissance']) {
+                    $message .= "  Puissance: {$details['puissance']}\n";
+                }
+                if (isset($details['detectabilite_base']) && $details['detectabilite_base']) {
+                    $message .= "  Détectabilité base: " . number_format($details['detectabilite_base'], 2) . "\n";
+                }
+
                 $message .= "  Planètes: {$details['nb_planetes']}\n";
             }
         } else {
@@ -578,6 +587,14 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
 
             if (isset($systeme['type_etoile'])) {
                 $message .= "  Étoile: Type {$systeme['type_etoile']} ({$systeme['couleur']})\n";
+
+                // Afficher puissance et détectabilité si disponibles
+                if (isset($systeme['puissance']) && $systeme['puissance']) {
+                    $message .= "  Puissance: {$systeme['puissance']}\n";
+                }
+                if (isset($systeme['detectabilite_base']) && $systeme['detectabilite_base']) {
+                    $message .= "  Détectabilité base: " . number_format($systeme['detectabilite_base'], 2) . "\n";
+                }
             }
 
             if (isset($systeme['nb_planetes'])) {
@@ -693,6 +710,15 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
 
         $message = "\n=== SCAN GÉOLOGIQUE : {$planete->nom} ===\n";
         $message .= "Type: {$planete->type_planete}\n";
+
+        // Afficher rayon et détectabilité si disponibles
+        if ($planete->rayon) {
+            $message .= "Rayon: " . number_format($planete->rayon, 2) . " RT (Rayons Terrestres)\n";
+        }
+        if ($planete->detectabilite_base) {
+            $message .= "Détectabilité base: " . number_format($planete->detectabilite_base, 2) . "\n";
+        }
+
         $message .= "Puissance scan: {$puissance_scan}\n\n";
 
         if (count($detections) > 0) {
