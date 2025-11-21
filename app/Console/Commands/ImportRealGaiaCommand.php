@@ -15,7 +15,8 @@ class ImportRealGaiaCommand extends Command
                             {--limit=2000 : Nombre maximum d\'étoiles à importer}
                             {--min-magnitude=15 : Magnitude apparente maximale (plus bas = plus lumineux)}
                             {--csv= : Fichier de sortie (défaut: database/data/gaia_nearby_stars.csv)}
-                            {--merge : Fusionner avec les étoiles existantes au lieu de remplacer}';
+                            {--merge : Fusionner avec les étoiles existantes au lieu de remplacer}
+                            {--insecure : Désactiver la vérification SSL (utile si erreur certificat)}';
 
     /**
      * The console command description.
@@ -37,11 +38,15 @@ class ImportRealGaiaCommand extends Command
         $minMag = (float) $this->option('min-magnitude');
         $csvPath = $this->option('csv') ?: database_path('data/gaia_nearby_stars.csv');
         $merge = $this->option('merge');
+        $insecure = $this->option('insecure');
 
         $this->info('🌟 IMPORT GAIA DR3 - Données réelles ESA');
         $this->info("📏 Rayon: {$radius} AL");
         $this->info("🔢 Limite: {$limit} étoiles");
         $this->info("💫 Magnitude max: {$minMag}");
+        if ($insecure) {
+            $this->warn('⚠️  Mode insecure : Vérification SSL désactivée');
+        }
         $this->newLine();
 
         // Créer le répertoire si nécessaire
@@ -69,7 +74,7 @@ class ImportRealGaiaCommand extends Command
 
         // Interroger GAIA TAP
         try {
-            $gaiaData = $this->queryGaiaTAP($query);
+            $gaiaData = $this->queryGaiaTAP($query, $insecure);
 
             if (empty($gaiaData)) {
                 $this->error('❌ Aucune donnée reçue de GAIA. Vérifiez votre connexion internet.');
@@ -159,10 +164,16 @@ class ImportRealGaiaCommand extends Command
     /**
      * Interroger le service TAP GAIA
      */
-    protected function queryGaiaTAP(string $query): array
+    protected function queryGaiaTAP(string $query, bool $insecure = false): array
     {
-        $response = Http::timeout(120)
-            ->asForm()
+        $http = Http::timeout(120);
+
+        // Désactiver vérification SSL si demandé (utile pour certificats auto-signés)
+        if ($insecure) {
+            $http = $http->withOptions(['verify' => false]);
+        }
+
+        $response = $http->asForm()
             ->post(self::GAIA_TAP_URL, [
                 'REQUEST' => 'doQuery',
                 'LANG' => 'ADQL',

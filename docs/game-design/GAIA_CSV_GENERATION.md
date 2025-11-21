@@ -40,7 +40,7 @@ Le jeu utilise des **coordonnées cartésiennes** avec la Terre à l'origine (0,
 ### 1. Importer les vraies données GAIA DR3 (ESA) 🌟
 
 ```bash
-php artisan gaia:import-real [--radius=100] [--limit=2000] [--min-magnitude=15] [--csv=] [--merge]
+php artisan gaia:import-real [--radius=100] [--limit=2000] [--min-magnitude=15] [--csv=] [--merge] [--insecure]
 ```
 
 **⭐ RECOMMANDÉ** : Cette commande interroge la **vraie base de données GAIA DR3** de l'Agence Spatiale Européenne !
@@ -51,6 +51,7 @@ php artisan gaia:import-real [--radius=100] [--limit=2000] [--min-magnitude=15] 
 - `--min-magnitude=N` : Magnitude apparente maximale - plus bas = plus lumineux (défaut: 15)
 - `--csv=path` : Fichier de sortie (défaut: `database/data/gaia_nearby_stars.csv`)
 - `--merge` : Fusionner avec étoiles existantes au lieu de remplacer
+- `--insecure` : Désactiver la vérification SSL (utile si erreur certificat auto-signé)
 
 **Exemples :**
 
@@ -327,6 +328,23 @@ C'est normal ! Les étoiles très brillantes ont des magnitudes négatives (ex: 
 
 Vérifiez que les coordonnées X, Y, Z sont bien en années-lumière et correspondent au système de référence décrit ci-dessus.
 
+### Erreur SSL / Certificat auto-signé
+
+```
+❌ Erreur lors de l'import GAIA:
+cURL error 60: SSL certificate problem: self-signed certificate in certificate chain
+```
+
+**Cause :** Environnement avec proxy d'entreprise, certificats SSL locaux, ou configuration cURL stricte.
+
+**Solution :** Utiliser l'option `--insecure` pour désactiver la vérification SSL :
+
+```bash
+php artisan gaia:import-real --insecure
+```
+
+⚠️ **Note de sécurité :** Cette option désactive la vérification SSL. À utiliser uniquement si vous faites confiance à votre réseau et à la source (GAIA ESA est une source officielle fiable).
+
 ### Erreur lors de l'import GAIA réel
 
 ```
@@ -338,6 +356,7 @@ Vérifiez que les coordonnées X, Y, Z sont bien en années-lumière et correspo
 2. Réduire le `--limit` (essayer 1000 au lieu de 2000)
 3. Réduire le `--radius` (essayer 50 AL au lieu de 100)
 4. Réessayer dans quelques minutes (le serveur GAIA peut être temporairement surchargé)
+5. Si derrière un proxy/firewall, essayer `--insecure`
 
 ### Aucune donnée reçue de GAIA
 
