@@ -35,6 +35,9 @@
                 <a href="{{ route('admin.univers') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
                     Univers
                 </a>
+                <a href="{{ route('admin.production') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
+                    Productions
+                </a>
                 <a href="{{ route('admin.backup') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
                     Backup
                 </a>
@@ -83,6 +86,11 @@
                 <a href="{{ route('admin.univers') }}" class="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:bg-gray-700/50 transition">
                     <div class="text-yellow-400 font-bold">Explorer Univers</div>
                     <div class="text-xs text-gray-500">Voir systemes et planetes</div>
+                </a>
+
+                <a href="{{ route('admin.production') }}" class="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:bg-gray-700/50 transition">
+                    <div class="text-orange-400 font-bold">Gerer Productions</div>
+                    <div class="text-xs text-gray-500">Modifier gisements et ressources</div>
                 </a>
 
                 <a href="{{ route('admin.backup') }}" class="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:bg-gray-700/50 transition">

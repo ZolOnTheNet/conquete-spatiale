@@ -40,6 +40,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [AdminController::class, 'index'])->name('index');
         Route::get('/comptes', [AdminController::class, 'comptes'])->name('comptes');
         Route::get('/univers', [AdminController::class, 'univers'])->name('univers');
+        Route::get('/production', [AdminController::class, 'production'])->name('production');
+        Route::post('/production/gisement/{id}', [AdminController::class, 'updateGisement'])->name('production.update');
         Route::get('/backup', [AdminController::class, 'backup'])->name('backup');
     });
 });
