@@ -137,10 +137,14 @@ class AdminController extends Controller
         ]);
 
         $systeme->puissance = $request->puissance;
+
+        // Recalculer la détectabilité : (200 - puissance) / 3
+        $systeme->detectabilite_base = round((200 - $request->puissance) / 3, 2);
+
         $systeme->save();
 
         return redirect()->route('admin.univers.show', $id)
-            ->with('success', "Puissance mise à jour: {$request->puissance}");
+            ->with('success', "Puissance mise à jour: {$request->puissance} | Détectabilité: {$systeme->detectabilite_base}");
     }
 
     /**
@@ -177,10 +181,14 @@ class AdminController extends Controller
 
         $anciennePuissance = $systeme->puissance;
         $systeme->puissance = $nouvellePuissance;
+
+        // Recalculer la détectabilité : (200 - puissance) / 3
+        $systeme->detectabilite_base = round((200 - $nouvellePuissance) / 3, 2);
+
         $systeme->save();
 
         return redirect()->route('admin.univers.show', $id)
-            ->with('success', "Puissance recalculée: {$anciennePuissance} → {$nouvellePuissance} (type {$typeClass})");
+            ->with('success', "Puissance recalculée: {$anciennePuissance} → {$nouvellePuissance} (type {$typeClass}) | Détectabilité: {$systeme->detectabilite_base}");
     }
 
     /**
