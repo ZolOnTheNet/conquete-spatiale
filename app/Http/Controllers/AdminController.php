@@ -72,10 +72,17 @@ class AdminController extends Controller
             [$coordX, $coordX, $coordY, $coordY, $coordZ, $coordZ]
         );
 
-        // Filtrer par distance max si spécifié
+        // Filtrer par distance max si spécifié (utiliser whereRaw au lieu de havingRaw pour compatibilité SQLite avec pagination)
         if ($maxDistance > 0) {
             $maxDistanceSquared = $maxDistance * $maxDistance;
-            $query->havingRaw('distance_squared <= ?', [$maxDistanceSquared]);
+            $query->whereRaw(
+                '(
+                    ((secteur_x * 10 + position_x) - ?) * ((secteur_x * 10 + position_x) - ?) +
+                    ((secteur_y * 10 + position_y) - ?) * ((secteur_y * 10 + position_y) - ?) +
+                    ((secteur_z * 10 + position_z) - ?) * ((secteur_z * 10 + position_z) - ?)
+                ) <= ?',
+                [$coordX, $coordX, $coordY, $coordY, $coordZ, $coordZ, $maxDistanceSquared]
+            );
         }
 
         // Tri
