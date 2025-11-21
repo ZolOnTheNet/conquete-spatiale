@@ -57,6 +57,9 @@ class GaiaSeeder extends Seeder
             // Déterminer type spectral
             $spectralType = GaiaCoordinateConverter::mapSpectralType($data['spectral_type'] ?? '');
 
+            // Calculer puissance et détectabilité
+            [$puissance, $detectabilite] = $this->calculateStarDetectability($spectralType);
+
             // Créer système
             $systeme = SystemeStellaire::create([
                 'nom' => $data['name'] ?: "GAIA-" . substr($data['source_id'], 0, 8),
@@ -68,6 +71,9 @@ class GaiaSeeder extends Seeder
                 'position_z' => $coords['position_z'],
                 'type_etoile' => $spectralType,
                 'couleur' => GaiaCoordinateConverter::getColorFromType($spectralType),
+                'puissance' => $puissance,
+                'detectabilite_base' => $detectabilite,
+                'poi_connu' => false,
                 'source_gaia' => true,
                 'gaia_source_id' => $data['source_id'],
                 'gaia_ra' => $data['ra'],
@@ -191,6 +197,9 @@ class GaiaSeeder extends Seeder
             // Déterminer type spectral
             $spectralType = GaiaCoordinateConverter::mapSpectralType($data['spectral_type']);
 
+            // Calculer puissance et détectabilité
+            [$puissance, $detectabilite] = $this->calculateStarDetectability($spectralType);
+
             // Créer système
             $systeme = SystemeStellaire::create([
                 'nom' => $data['nom'],
@@ -202,6 +211,9 @@ class GaiaSeeder extends Seeder
                 'position_z' => $coords['position_z'],
                 'type_etoile' => $spectralType,
                 'couleur' => GaiaCoordinateConverter::getColorFromType($spectralType),
+                'puissance' => $puissance,
+                'detectabilite_base' => $detectabilite,
+                'poi_connu' => false,
                 'source_gaia' => true,
                 'gaia_source_id' => 'MANUAL_' . strtoupper(str_replace(' ', '_', $data['nom'])),
                 'gaia_ra' => $data['ra'],
@@ -251,17 +263,20 @@ class GaiaSeeder extends Seeder
         ]);
 
         // Créer la Terre (planète inaccessible - surpopulation)
+        $rayon_terre = 1.0;
         $terre = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Terre',
             'distance_etoile' => 1.0, // 1 UA
-            'rayon' => 1.0, // 1 rayon terrestre
+            'rayon' => $rayon_terre,
             'masse' => 1.0, // 1 masse terrestre
             'type' => 'terrestre',
             'a_atmosphere' => true,
             'population' => 8000000000,
             'accessible' => false,
             'raison_inaccessible' => 'Surpopulation - Vaisseaux trop gros pour atterrir',
+            'detectabilite_base' => $this->calculatePlanetDetectability($rayon_terre),
+            'poi_connu' => true,
         ]);
 
         // Station Terra-Maxi-Hub (ACCESSIBLE)
@@ -284,17 +299,20 @@ class GaiaSeeder extends Seeder
         ]);
 
         // Créer la Lune (planète inaccessible - surpopulation)
+        $rayon_lune = 0.27;
         $lune = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Lune',
             'distance_etoile' => 1.00257, // Légèrement plus loin que la Terre
-            'rayon' => 0.27, // 27% du rayon terrestre
+            'rayon' => $rayon_lune,
             'masse' => 0.0123, // 1.23% de la masse terrestre
             'type' => 'naine',
             'a_atmosphere' => false,
             'population' => 0,
             'accessible' => false,
             'raison_inaccessible' => 'Transport - Vaisseaux trop gros pour atterrir',
+            'detectabilite_base' => $this->calculatePlanetDetectability($rayon_lune),
+            'poi_connu' => true,
         ]);
 
         // Station Lunastar-station (ACCESSIBLE - station de départ)
@@ -317,17 +335,20 @@ class GaiaSeeder extends Seeder
         ]);
 
         // Créer Mars (planète inaccessible - colonisation)
+        $rayon_mars = 0.53;
         $mars = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Mars',
             'distance_etoile' => 1.52, // 1.52 UA
-            'rayon' => 0.53, // 53% du rayon terrestre
+            'rayon' => $rayon_mars,
             'masse' => 0.107, // 10.7% de la masse terrestre
             'type' => 'terrestre',
             'a_atmosphere' => true,
             'population' => 0,
             'accessible' => false,
             'raison_inaccessible' => 'Colonisation - Vaisseaux trop gros pour atterrir',
+            'detectabilite_base' => $this->calculatePlanetDetectability($rayon_mars),
+            'poi_connu' => true,
         ]);
 
         // Station Mars-spatiogare (ACCESSIBLE)
@@ -350,17 +371,20 @@ class GaiaSeeder extends Seeder
         ]);
 
         // Créer Jupiter (planète gazeuse inaccessible)
+        $rayon_jupiter = 11.2;
         $jupiter = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Jupiter',
             'distance_etoile' => 5.2, // 5.2 UA
-            'rayon' => 11.2, // 11.2 rayons terrestres
+            'rayon' => $rayon_jupiter,
             'masse' => 317.8, // 317.8 masses terrestres
             'type' => 'gazeuse',
             'a_atmosphere' => true,
             'population' => 0,
             'accessible' => false,
             'raison_inaccessible' => 'Planète gazeuse - Impossible d\'atterrir',
+            'detectabilite_base' => $this->calculatePlanetDetectability($rayon_jupiter),
+            'poi_connu' => true,
         ]);
 
         // Station Jupiter-spatiogare (accessible)
@@ -383,17 +407,20 @@ class GaiaSeeder extends Seeder
         ]);
 
         // Créer Neptune (planète gazeuse inaccessible)
+        $rayon_neptune = 3.88;
         $neptune = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Neptune',
             'distance_etoile' => 30.1, // 30.1 UA
-            'rayon' => 3.88, // 3.88 rayons terrestres
+            'rayon' => $rayon_neptune,
             'masse' => 17.15, // 17.15 masses terrestres
             'type' => 'gazeuse',
             'a_atmosphere' => true,
             'population' => 0,
             'accessible' => false,
             'raison_inaccessible' => 'Planète gazeuse - Impossible d\'atterrir',
+            'detectabilite_base' => $this->calculatePlanetDetectability($rayon_neptune),
+            'poi_connu' => true,
         ]);
 
         // Station Neptune-spatiogare (accessible)
@@ -452,11 +479,69 @@ class GaiaSeeder extends Seeder
                 'type' => $type,
                 'a_atmosphere' => in_array($type, ['terrestre', 'gazeuse']) ? rand(0, 1) === 1 : false,
                 'population' => 0,
+                'detectabilite_base' => $this->calculatePlanetDetectability($rayon),
+                'poi_connu' => false, // Planètes procédurales non connues par défaut
             ]);
 
             // Générer gisements pour cette planète
             $planete->genererGisements();
         }
+    }
+
+    /**
+     * Calculer puissance et détectabilité pour une étoile
+     * Formule : D_base = (200 - Puissance) / 3
+     *
+     * @param string $spectralType Type spectral complet (ex: 'G2V', 'M5.5Ve')
+     * @return array [puissance, detectabilite]
+     */
+    protected function calculateStarDetectability(string $spectralType): array
+    {
+        // Mapping type spectral → plage de puissance selon GDD_Univers_Generation.md
+        $puissances = [
+            'O' => [150, 200],
+            'B' => [100, 140],
+            'A' => [80, 100],
+            'F' => [60, 80],
+            'G' => [40, 60],
+            'K' => [30, 40],
+            'M' => [20, 30],
+        ];
+
+        // Extraire première lettre du type spectral
+        $typeClass = strtoupper(substr($spectralType, 0, 1));
+
+        if (!isset($puissances[$typeClass])) {
+            $typeClass = 'G'; // Défaut : type solaire
+        }
+
+        // Puissance aléatoire dans la plage du type
+        $puissance = rand($puissances[$typeClass][0], $puissances[$typeClass][1]);
+
+        // Formule : detectabilite_base = (200 - puissance) / 3
+        $detectabilite = (200 - $puissance) / 3;
+
+        return [$puissance, round($detectabilite, 2)];
+    }
+
+    /**
+     * Calculer détectabilité pour une planète/objet
+     * Formule : D_base = 150 - (Taille × 10)
+     *
+     * @param float $rayon Rayon en rayons terrestres
+     * @return float Détectabilité calculée
+     */
+    protected function calculatePlanetDetectability(float $rayon): float
+    {
+        // Formule : D_base = 150 - (Taille × 10)
+        $detectabilite = 150 - ($rayon * 10);
+
+        // Limiter entre min et max raisonnable
+        // Petits objets (taille <1) : D_base entre 140-150 (difficile à détecter)
+        // Gros objets (Jupiter taille ~11) : D_base ~38 (très facile à détecter)
+        $detectabilite = max(1, min(150, $detectabilite));
+
+        return round($detectabilite, 2);
     }
 }
 
