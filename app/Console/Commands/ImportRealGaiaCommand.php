@@ -144,9 +144,10 @@ class ImportRealGaiaCommand extends Command
     {
         // ADQL Query pour étoiles proches avec données complètes
         // Note: ADQL utilise || pour la concaténation (pas CONCAT)
+        // Note: CAST en VARCHAR nécessaire pour concaténer avec source_id (BIGINT)
         return "SELECT TOP {$limit}
             source_id,
-            COALESCE(dr2_radial_velocity_id, 'GAIA DR3 ' || source_id) as designation,
+            'GAIA DR3 ' || CAST(source_id AS VARCHAR) as designation,
             ra,
             dec,
             parallax,
