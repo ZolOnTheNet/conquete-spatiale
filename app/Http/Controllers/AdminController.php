@@ -113,6 +113,17 @@ class AdminController extends Controller
     }
 
     /**
+     * Détails d'un système stellaire
+     */
+    public function showSysteme($id)
+    {
+        $systeme = SystemeStellaire::with(['planetes.gisements.ressource', 'planetes.stations'])
+            ->findOrFail($id);
+
+        return view('admin.univers-detail', compact('systeme'));
+    }
+
+    /**
      * Gestion des planètes
      */
     public function planetes()

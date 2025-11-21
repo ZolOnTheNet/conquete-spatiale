@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [AdminController::class, 'index'])->name('index');
         Route::get('/comptes', [AdminController::class, 'comptes'])->name('comptes');
         Route::get('/univers', [AdminController::class, 'univers'])->name('univers');
+        Route::get('/univers/{id}', [AdminController::class, 'showSysteme'])->name('univers.show');
         Route::get('/planetes', [AdminController::class, 'planetes'])->name('planetes');
         Route::get('/backup', [AdminController::class, 'backup'])->name('backup');
     });

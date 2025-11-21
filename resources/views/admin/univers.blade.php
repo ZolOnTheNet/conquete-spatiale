@@ -157,6 +157,9 @@
                                 </a>
                             </th>
                             <th class="px-4 py-3 text-left text-xs text-gray-400">
+                                D_CAL (Seuil)
+                            </th>
+                            <th class="px-4 py-3 text-left text-xs text-gray-400">
                                 <a href="{{ route('admin.univers', array_merge(request()->all(), ['sort_by' => 'poi_connu', 'sort_direction' => $sortBy == 'poi_connu' && $sortDirection == 'asc' ? 'desc' : 'asc'])) }}" class="flex items-center gap-1 hover:text-cyan-400">
                                     POI
                                     @if($sortBy == 'poi_connu')
@@ -181,7 +184,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-700">
                         @foreach($systemes as $systeme)
-                        <tr class="hover:bg-gray-700/30">
+                        <tr class="hover:bg-gray-700/50 cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">
                             <td class="px-4 py-3 text-sm text-white">{{ $systeme->nom }}</td>
                             <td class="px-4 py-3 text-sm text-yellow-400">{{ $systeme->type_etoile }}</td>
                             <td class="px-4 py-3 text-sm text-orange-400">
@@ -198,8 +201,16 @@
                                     <span class="text-gray-500">-</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 text-sm text-purple-400 font-bold">
+                            <td class="px-4 py-3 text-sm text-orange-300 font-bold">
                                 {{ number_format(sqrt($systeme->distance_squared), 2) }}
+                            </td>
+                            <td class="px-4 py-3 text-sm text-red-300 font-bold">
+                                @php
+                                    $distance = sqrt($systeme->distance_squared);
+                                    $facteurDistanceAL = 15;
+                                    $dCal = $systeme->detectabilite_base ? $systeme->detectabilite_base * ($distance / $facteurDistanceAL) : 0;
+                                @endphp
+                                {{ number_format($dCal, 2) }}
                             </td>
                             <td class="px-4 py-3 text-sm">
                                 @if($systeme->poi_connu)
