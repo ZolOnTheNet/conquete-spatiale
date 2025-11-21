@@ -30,6 +30,7 @@ class Personnage extends Model
         'max_points_action',
         'derniere_recuperation_pa',
         'vaisseau_actif_id',
+        'dans_station_id',
         'date_logs',
     ];
 

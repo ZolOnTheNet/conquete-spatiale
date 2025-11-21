@@ -6,6 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\SystemeStellaire;
 use App\Models\Planete;
+use App\Models\Station;
 use App\Services\GaiaCoordinateConverter;
 
 class GaiaSeeder extends Seeder
@@ -92,16 +93,10 @@ class GaiaSeeder extends Seeder
      */
     protected function seedKnownStars(): void
     {
+        // Créer le Système Solaire complet en premier
+        $this->seedSolarSystem();
+
         $etoilesConnues = [
-            [
-                'nom' => 'Sol',
-                'ra' => 0.0,
-                'dec' => 0.0,
-                'distance' => 0.0,
-                'spectral_type' => 'G2V',
-                'magnitude' => -26.74,
-                'nb_planetes' => 8, // Système solaire
-            ],
             [
                 'nom' => 'Alpha Centauri A',
                 'ra' => 219.90205833,
@@ -223,6 +218,204 @@ class GaiaSeeder extends Seeder
         }
 
         $this->command->info('✅ ' . count($etoilesConnues) . ' étoiles connues importées');
+    }
+
+    /**
+     * Créer le Système Solaire complet avec planètes et stations
+     */
+    protected function seedSolarSystem(): void
+    {
+        $this->command->info('🌞 Création du Système Solaire...');
+
+        // Créer Sol avec paramètres spéciaux
+        $sol = SystemeStellaire::create([
+            'nom' => 'Sol',
+            'secteur_x' => 0,
+            'secteur_y' => 0,
+            'secteur_z' => 0,
+            'position_x' => 0.0,
+            'position_y' => 0.0,
+            'position_z' => 0.0,
+            'type_etoile' => 'G2V',
+            'couleur' => GaiaCoordinateConverter::getColorFromType('G2V'),
+            'source_gaia' => true,
+            'gaia_source_id' => 'SOL',
+            'gaia_ra' => 0.0,
+            'gaia_dec' => 0.0,
+            'gaia_distance_ly' => 0.0,
+            'gaia_magnitude' => -26.74,
+            'nb_planetes' => 5, // Terre, Lune, Mars, Jupiter, Neptune pour les tests
+            'puissance' => 50,
+            'detectabilite_base' => 50.0,
+            'poi_connu' => true,
+        ]);
+
+        // Créer la Terre (planète inaccessible - surpopulation)
+        $terre = Planete::create([
+            'systeme_stellaire_id' => $sol->id,
+            'nom' => 'Terre',
+            'distance_etoile' => 1.0, // 1 UA
+            'rayon' => 1.0, // 1 rayon terrestre
+            'masse' => 1.0, // 1 masse terrestre
+            'type' => 'terrestre',
+            'a_atmosphere' => true,
+            'population' => 8000000000,
+            'accessible' => false,
+            'raison_inaccessible' => 'Surpopulation - Vaisseaux trop gros pour atterrir',
+        ]);
+
+        // Station Terra-Maxi-Hub (ACCESSIBLE)
+        Station::create([
+            'nom' => 'Terra-Maxi-Hub',
+            'type' => 'hub_commercial',
+            'planete_id' => $terre->id,
+            'systeme_stellaire_id' => $sol->id,
+            'orbite_rayon_ua' => 0.001, // Orbite basse
+            'orbite_angle' => 0.0,
+            'description' => 'Le plus grand hub commercial du système solaire',
+            'capacite_amarrage' => 1000,
+            'commerciale' => true,
+            'industrielle' => true,
+            'militaire' => false,
+            'reparations' => true,
+            'ravitaillement' => true,
+            'medical' => true,
+            'accessible' => true,
+        ]);
+
+        // Créer la Lune (planète inaccessible - surpopulation)
+        $lune = Planete::create([
+            'systeme_stellaire_id' => $sol->id,
+            'nom' => 'Lune',
+            'distance_etoile' => 1.00257, // Légèrement plus loin que la Terre
+            'rayon' => 0.27, // 27% du rayon terrestre
+            'masse' => 0.0123, // 1.23% de la masse terrestre
+            'type' => 'naine',
+            'a_atmosphere' => false,
+            'population' => 0,
+            'accessible' => false,
+            'raison_inaccessible' => 'Transport - Vaisseaux trop gros pour atterrir',
+        ]);
+
+        // Station Lunastar-station (ACCESSIBLE - station de départ)
+        Station::create([
+            'nom' => 'Lunastar-station',
+            'type' => 'spatiogare',
+            'planete_id' => $lune->id,
+            'systeme_stellaire_id' => $sol->id,
+            'orbite_rayon_ua' => 0.0005,
+            'orbite_angle' => 45.0,
+            'description' => 'Station de départ pour tous les nouveaux pilotes',
+            'capacite_amarrage' => 200,
+            'commerciale' => true,
+            'industrielle' => false,
+            'militaire' => false,
+            'reparations' => true,
+            'ravitaillement' => true,
+            'medical' => true,
+            'accessible' => true,
+        ]);
+
+        // Créer Mars (planète inaccessible - colonisation)
+        $mars = Planete::create([
+            'systeme_stellaire_id' => $sol->id,
+            'nom' => 'Mars',
+            'distance_etoile' => 1.52, // 1.52 UA
+            'rayon' => 0.53, // 53% du rayon terrestre
+            'masse' => 0.107, // 10.7% de la masse terrestre
+            'type' => 'terrestre',
+            'a_atmosphere' => true,
+            'population' => 0,
+            'accessible' => false,
+            'raison_inaccessible' => 'Colonisation - Vaisseaux trop gros pour atterrir',
+        ]);
+
+        // Station Mars-spatiogare (ACCESSIBLE)
+        Station::create([
+            'nom' => 'Mars-spatiogare',
+            'type' => 'spatiogare',
+            'planete_id' => $mars->id,
+            'systeme_stellaire_id' => $sol->id,
+            'orbite_rayon_ua' => 0.0008,
+            'orbite_angle' => 90.0,
+            'description' => 'Spatiogare de Mars',
+            'capacite_amarrage' => 150,
+            'commerciale' => true,
+            'industrielle' => true,
+            'militaire' => false,
+            'reparations' => true,
+            'ravitaillement' => true,
+            'medical' => true,
+            'accessible' => true,
+        ]);
+
+        // Créer Jupiter (planète gazeuse inaccessible)
+        $jupiter = Planete::create([
+            'systeme_stellaire_id' => $sol->id,
+            'nom' => 'Jupiter',
+            'distance_etoile' => 5.2, // 5.2 UA
+            'rayon' => 11.2, // 11.2 rayons terrestres
+            'masse' => 317.8, // 317.8 masses terrestres
+            'type' => 'gazeuse',
+            'a_atmosphere' => true,
+            'population' => 0,
+            'accessible' => false,
+            'raison_inaccessible' => 'Planète gazeuse - Impossible d\'atterrir',
+        ]);
+
+        // Station Jupiter-spatiogare (accessible)
+        Station::create([
+            'nom' => 'Jupiter-spatiogare',
+            'type' => 'spatiogare',
+            'planete_id' => $jupiter->id,
+            'systeme_stellaire_id' => $sol->id,
+            'orbite_rayon_ua' => 0.002,
+            'orbite_angle' => 180.0,
+            'description' => 'Spatiogare de Jupiter',
+            'capacite_amarrage' => 100,
+            'commerciale' => true,
+            'industrielle' => true,
+            'militaire' => false,
+            'reparations' => true,
+            'ravitaillement' => true,
+            'medical' => false,
+            'accessible' => true,
+        ]);
+
+        // Créer Neptune (planète gazeuse inaccessible)
+        $neptune = Planete::create([
+            'systeme_stellaire_id' => $sol->id,
+            'nom' => 'Neptune',
+            'distance_etoile' => 30.1, // 30.1 UA
+            'rayon' => 3.88, // 3.88 rayons terrestres
+            'masse' => 17.15, // 17.15 masses terrestres
+            'type' => 'gazeuse',
+            'a_atmosphere' => true,
+            'population' => 0,
+            'accessible' => false,
+            'raison_inaccessible' => 'Planète gazeuse - Impossible d\'atterrir',
+        ]);
+
+        // Station Neptune-spatiogare (accessible)
+        Station::create([
+            'nom' => 'Neptune-spatiogare',
+            'type' => 'spatiogare',
+            'planete_id' => $neptune->id,
+            'systeme_stellaire_id' => $sol->id,
+            'orbite_rayon_ua' => 0.003,
+            'orbite_angle' => 270.0,
+            'description' => 'Spatiogare de Neptune',
+            'capacite_amarrage' => 80,
+            'commerciale' => true,
+            'industrielle' => false,
+            'militaire' => true,
+            'reparations' => true,
+            'ravitaillement' => true,
+            'medical' => false,
+            'accessible' => true,
+        ]);
+
+        $this->command->info('✅ Système Solaire créé avec 5 planètes et 5 stations');
     }
 
     /**

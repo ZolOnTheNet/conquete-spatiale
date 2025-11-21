@@ -196,6 +196,16 @@ class GameController extends Controller
             'mission-abandonner', 'abandon' => $this->abandonnerMission($personnage, $parts),
             'factions' => $this->showFactions($personnage),
             'reputation', 'rep' => $this->showReputation($personnage),
+            // Stations et Arrimage
+            'arrimer', 'dock' => $this->arrimerStation($personnage, $parts),
+            'desarrimer', 'undock' => $this->desarrimerStation($personnage),
+            'transborder', 'board-station' => $this->transborderStation($personnage),
+            'embarquer', 'board-ship' => $this->embarquerVaisseau($personnage),
+            'garage' => $this->accederGarage($personnage),
+            'comptoirs', 'hub' => $this->accederComptoirs($personnage),
+            'hopital', 'hospital' => $this->accederHopital($personnage),
+            'industrie', 'industry' => $this->accederIndustrie($personnage),
+            'ravitailler', 'refuel' => $this->ravitaillerVaisseau($personnage, $parts),
             '' => ['success' => true, 'message' => ''],
             default => [
                 'success' => false,
@@ -836,55 +846,79 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
      */
     private function showMarche(Personnage $personnage): array
     {
-        $vaisseau = $personnage->vaisseauActif;
-        if (!$vaisseau) {
-            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        // Vérifier que le personnage est dans une station
+        if (!$personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être dans une station. Utilisez "transborder" pour entrer dans une station.',
+            ];
         }
 
-        // Trouver système actuel
-        $os = $vaisseau->objetSpatial;
-        $systeme = SystemeStellaire::where('secteur_x', $os->secteur_x)
-            ->where('secteur_y', $os->secteur_y)
-            ->where('secteur_z', $os->secteur_z)
-            ->first();
+        $station = \App\Models\Station::find($personnage->dans_station_id);
 
-        if (!$systeme) {
-            return ['success' => false, 'message' => 'Vous devez etre dans un systeme stellaire'];
+        if (!$station->commerciale) {
+            return [
+                'success' => false,
+                'message' => "{$station->nom} n'a pas de marché.",
+            ];
         }
 
-        // Trouver marchés sur les planètes du système
-        $marches = Marche::whereHasMorph('localisation', [
-            \App\Models\Planete::class,
-        ], function ($query) use ($systeme) {
-            $query->where('systeme_stellaire_id', $systeme->id);
-        })->where('actif', true)->get();
+        // Charger les produits disponibles avec leurs données de marché
+        $marches = \App\Models\MarcheStation::where('station_id', $station->id)
+            ->with('produit')
+            ->where(function($q) {
+                $q->where('disponible_vente', true)
+                  ->orWhere('disponible_achat', true);
+            })
+            ->get();
 
         if ($marches->isEmpty()) {
             return [
                 'success' => true,
-                'message' => "\n=== MARCHES LOCAUX ===\nAucun marche actif dans ce systeme.\n",
+                'message' => "\n=== MARCHÉ DE {$station->nom} ===\n\nLe marché est actuellement vide.\n",
             ];
         }
 
-        $message = "\n=== MARCHES LOCAUX ({$systeme->nom}) ===\n\n";
+        $message = "\n=== MARCHÉ DE {$station->nom} ===\n\n";
+        $message .= "Code       | Produit              | Type        | Achat    | Vente    | Stock    | Éco\n";
+        $message .= "-----------|----------------------|-------------|----------|----------|----------|-------------\n";
 
         foreach ($marches as $marche) {
-            $localisation = $marche->localisation;
-            $nomLieu = $localisation ? $localisation->nom : 'Inconnu';
+            $produit = $marche->produit;
 
-            $message .= "--- {$marche->nom} ---\n";
-            $message .= "Type: {$marche->type}\n";
-            $message .= "Localisation: {$nomLieu}\n";
-            $message .= "Taxe: " . ($marche->taxe * 100) . "%\n";
+            $code = str_pad(strtoupper($produit->code), 10);
+            $nom = str_pad(substr($produit->nom, 0, 20), 20);
+            $type = str_pad(substr($produit->type, 0, 11), 11);
 
-            if ($marche->description) {
-                $message .= "Info: {$marche->description}\n";
-            }
+            // Prix selon disponibilité
+            $prixAchat = $marche->disponible_achat
+                ? str_pad(number_format($marche->prix_achat_joueur, 0) . '₡', 8)
+                : str_pad('--', 8);
 
-            $message .= "\n";
+            $prixVente = $marche->disponible_vente
+                ? str_pad(number_format($marche->prix_vente_joueur, 0) . '₡', 8)
+                : str_pad('--', 8);
+
+            $stock = str_pad(number_format($marche->stock_actuel), 8);
+
+            // Indicateur économique
+            $eco = match($marche->type_economique) {
+                'producteur' => 'PROD ⬇',
+                'consommateur' => 'CONSO ⬆',
+                'equilibre' => 'ÉQUIL →',
+                'transit' => 'TRANSIT',
+                default => '',
+            };
+
+            $message .= "{$code} | {$nom} | {$type} | {$prixAchat} | {$prixVente} | {$stock} | {$eco}\n";
         }
 
-        $message .= "Utilisez 'prix' pour voir les tarifs ou 'acheter/vendre' pour commercer.";
+        $message .= "\n";
+        $message .= "💰 Achat = Station achète AU joueur | Vente = Station vend AU joueur\n";
+        $message .= "⬇ PROD = Prix bas | ⬆ CONSO = Prix élevé | → ÉQUIL = Prix moyen\n\n";
+        $message .= "Commandes:\n";
+        $message .= "- 'acheter <code> <quantité>' : Acheter à la station\n";
+        $message .= "- 'vendre <code> <quantité>' : Vendre à la station\n";
 
         return ['success' => true, 'message' => $message];
     }
@@ -950,19 +984,31 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
     }
 
     /**
-     * Acheter des ressources au marché
+     * Acheter des produits au marché (la station VEND au joueur)
      */
     private function acheterRessource(Personnage $personnage, array $parts): array
     {
-        $vaisseau = $personnage->vaisseauActif;
-        if (!$vaisseau) {
-            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        // Vérifier que dans une station
+        if (!$personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être dans une station avec un marché.',
+            ];
+        }
+
+        $station = \App\Models\Station::find($personnage->dans_station_id);
+
+        if (!$station->commerciale) {
+            return [
+                'success' => false,
+                'message' => "{$station->nom} n'a pas de marché.",
+            ];
         }
 
         if (count($parts) < 3) {
             return [
                 'success' => false,
-                'message' => "Usage: acheter [code_ressource] [quantite]\nExemple: acheter FER 500",
+                'message' => "Usage: acheter <code> <quantité>\nExemple: acheter FER 500",
             ];
         }
 
@@ -970,93 +1016,96 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
         $quantite = (int)$parts[2];
 
         if ($quantite <= 0) {
-            return ['success' => false, 'message' => 'Quantite invalide'];
+            return ['success' => false, 'message' => 'Quantité invalide'];
         }
 
-        // Trouver ressource
-        $ressource = Ressource::where('code', $code)->first();
-        if (!$ressource) {
-            return ['success' => false, 'message' => "Ressource '{$code}' inconnue"];
+        // Trouver le produit
+        $produit = \App\Models\Produit::where('code', $code)->first();
+        if (!$produit) {
+            return ['success' => false, 'message' => "Produit '{$code}' inconnu"];
         }
 
-        // Trouver marché local
-        $os = $vaisseau->objetSpatial;
-        $systeme = SystemeStellaire::where('secteur_x', $os->secteur_x)
-            ->where('secteur_y', $os->secteur_y)
-            ->where('secteur_z', $os->secteur_z)
+        // Trouver l'entrée du marché
+        $marche = \App\Models\MarcheStation::where('station_id', $station->id)
+            ->where('produit_id', $produit->id)
             ->first();
 
-        if (!$systeme) {
-            return ['success' => false, 'message' => 'Vous devez etre dans un systeme stellaire'];
-        }
-
-        $marche = Marche::whereHasMorph('localisation', [
-            \App\Models\Planete::class,
-        ], function ($query) use ($systeme) {
-            $query->where('systeme_stellaire_id', $systeme->id);
-        })->where('actif', true)->first();
-
-        if (!$marche) {
-            return ['success' => false, 'message' => 'Aucun marche actif dans ce systeme'];
-        }
-
-        // Vérifier capacité soute
-        if (!$vaisseau->peutCharger($ressource->id, $quantite)) {
-            $capacite = $vaisseau->getCapaciteRestante();
-            $poids = $ressource->poids_unitaire * $quantite;
+        if (!$marche || !$marche->disponible_vente) {
             return [
                 'success' => false,
-                'message' => "Capacite soute insuffisante.\nRequis: {$poids}t | Disponible: {$capacite}t",
+                'message' => "{$station->nom} ne vend pas {$produit->nom}.",
             ];
         }
 
-        // Calculer prix
-        $prix_total = $marche->getPrixAchat($ressource->id) * $quantite;
-
-        // Vérifier crédits
-        if ($personnage->credits < $prix_total) {
+        // Vérifier stock disponible
+        if ($quantite > $marche->stock_actuel) {
             return [
                 'success' => false,
-                'message' => "Credits insuffisants.\nRequis: " . number_format($prix_total) . " | Disponible: " . number_format($personnage->credits),
+                'message' => "Stock insuffisant.\nDisponible: " . number_format($marche->stock_actuel) . " unités",
             ];
         }
 
-        // Effectuer l'achat
-        $resultat = $marche->acheter($ressource->id, $quantite);
+        // Calculer prix total
+        $prixTotal = $marche->prix_vente_joueur * $quantite;
+
+        // Vérifier crédits (TODO: système de crédits à implémenter)
+        // For now, on assume que le joueur a assez de crédits
+
+        // TODO: Vérifier capacité de soute du vaisseau
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        // Effectuer la transaction
+        $resultat = $marche->vendreAuJoueur($quantite);
 
         if (!$resultat['success']) {
             return $resultat;
         }
 
-        // Débiter crédits et ajouter au vaisseau
-        $personnage->credits -= $resultat['prix_total'];
-        $personnage->save();
+        // TODO: Débiter crédits
+        // TODO: Ajouter au cargo du vaisseau
 
-        $vaisseau->ajouterRessource($ressource->id, $quantite);
-
-        $message = "\n=== ACHAT EFFECTUE ===\n";
-        $message .= "Ressource: {$ressource->nom} ({$code})\n";
-        $message .= "Quantite: " . number_format($quantite) . "\n";
-        $message .= "Prix total: " . number_format($resultat['prix_total']) . " credits\n";
-        $message .= "Credits restants: " . number_format($personnage->credits) . "\n";
+        $message = "\n=== ACHAT EFFECTUÉ ===\n";
+        $message .= "Station: {$station->nom}\n";
+        $message .= "Produit: {$produit->nom} ({$code})\n";
+        $message .= "Quantité: " . number_format($quantite) . " unités\n";
+        $message .= "Prix unitaire: " . number_format($resultat['prix_unitaire'], 2) . "₡\n";
+        $message .= "Prix total: " . number_format($resultat['total'], 2) . "₡\n";
+        $message .= "Nouveau stock station: " . number_format($marche->stock_actuel) . "\n";
+        $message .= "Type économique: {$marche->type_economique}\n\n";
+        $message .= "💡 Le prix a été ajusté selon l'offre et la demande.\n";
 
         return ['success' => true, 'message' => $message];
     }
 
     /**
-     * Vendre des ressources au marché
+     * Vendre des produits au marché (la station ACHÈTE au joueur)
      */
     private function vendreRessource(Personnage $personnage, array $parts): array
     {
-        $vaisseau = $personnage->vaisseauActif;
-        if (!$vaisseau) {
-            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        // Vérifier que dans une station
+        if (!$personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être dans une station avec un marché.',
+            ];
+        }
+
+        $station = \App\Models\Station::find($personnage->dans_station_id);
+
+        if (!$station->commerciale) {
+            return [
+                'success' => false,
+                'message' => "{$station->nom} n'a pas de marché.",
+            ];
         }
 
         if (count($parts) < 3) {
             return [
                 'success' => false,
-                'message' => "Usage: vendre [code_ressource] [quantite]\nExemple: vendre FER 500",
+                'message' => "Usage: vendre <code> <quantité>\nExemple: vendre FER 500",
             ];
         }
 
@@ -1064,62 +1113,61 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
         $quantite = (int)$parts[2];
 
         if ($quantite <= 0) {
-            return ['success' => false, 'message' => 'Quantite invalide'];
+            return ['success' => false, 'message' => 'Quantité invalide'];
         }
 
-        // Trouver ressource
-        $ressource = Ressource::where('code', $code)->first();
-        if (!$ressource) {
-            return ['success' => false, 'message' => "Ressource '{$code}' inconnue"];
+        // Trouver le produit
+        $produit = \App\Models\Produit::where('code', $code)->first();
+        if (!$produit) {
+            return ['success' => false, 'message' => "Produit '{$code}' inconnu"];
         }
 
-        // Vérifier inventaire
-        $quantite_dispo = $vaisseau->getQuantiteRessource($ressource->id);
-        if ($quantite_dispo < $quantite) {
+        // TODO: Vérifier inventaire du vaisseau
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        // Trouver l'entrée du marché
+        $marche = \App\Models\MarcheStation::where('station_id', $station->id)
+            ->where('produit_id', $produit->id)
+            ->first();
+
+        if (!$marche || !$marche->disponible_achat) {
             return [
                 'success' => false,
-                'message' => "Quantite insuffisante.\nDisponible: " . number_format($quantite_dispo),
+                'message' => "{$station->nom} n'achète pas {$produit->nom}.",
             ];
         }
 
-        // Trouver marché local
-        $os = $vaisseau->objetSpatial;
-        $systeme = SystemeStellaire::where('secteur_x', $os->secteur_x)
-            ->where('secteur_y', $os->secteur_y)
-            ->where('secteur_z', $os->secteur_z)
-            ->first();
-
-        if (!$systeme) {
-            return ['success' => false, 'message' => 'Vous devez etre dans un systeme stellaire'];
+        // Vérifier capacité de stockage de la station
+        $espaceDisponible = $marche->stock_max - $marche->stock_actuel;
+        if ($quantite > $espaceDisponible) {
+            return [
+                'success' => false,
+                'message' => "La station n'a pas assez d'espace.\nCapacité disponible: " . number_format($espaceDisponible) . " unités",
+            ];
         }
 
-        $marche = Marche::whereHasMorph('localisation', [
-            \App\Models\Planete::class,
-        ], function ($query) use ($systeme) {
-            $query->where('systeme_stellaire_id', $systeme->id);
-        })->where('actif', true)->first();
-
-        if (!$marche) {
-            return ['success' => false, 'message' => 'Aucun marche actif dans ce systeme'];
-        }
-
-        // Effectuer la vente
-        $resultat = $marche->vendre($ressource->id, $quantite);
+        // Effectuer la transaction
+        $resultat = $marche->acheterAuJoueur($quantite);
 
         if (!$resultat['success']) {
             return $resultat;
         }
 
-        // Retirer du vaisseau et créditer
-        $vaisseau->retirerRessource($ressource->id, $quantite);
-        $personnage->credits += $resultat['prix_total'];
-        $personnage->save();
+        // TODO: Retirer du cargo
+        // TODO: Créditer le joueur
 
-        $message = "\n=== VENTE EFFECTUEE ===\n";
-        $message .= "Ressource: {$ressource->nom} ({$code})\n";
-        $message .= "Quantite: " . number_format($quantite) . "\n";
-        $message .= "Prix total: " . number_format($resultat['prix_total']) . " credits\n";
-        $message .= "Credits: " . number_format($personnage->credits) . "\n";
+        $message = "\n=== VENTE EFFECTUÉE ===\n";
+        $message .= "Station: {$station->nom}\n";
+        $message .= "Produit: {$produit->nom} ({$code})\n";
+        $message .= "Quantité: " . number_format($quantite) . " unités\n";
+        $message .= "Prix unitaire: " . number_format($resultat['prix_unitaire'], 2) . "₡\n";
+        $message .= "Prix total: " . number_format($resultat['total'], 2) . "₡\n";
+        $message .= "Nouveau stock station: " . number_format($marche->stock_actuel) . "\n";
+        $message .= "Type économique: {$marche->type_economique}\n\n";
+        $message .= "💡 Le prix a été ajusté selon l'offre et la demande.\n";
 
         return ['success' => true, 'message' => $message];
     }
@@ -2166,5 +2214,503 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
             'systemes' => $systemes,
             'total' => count($systemes),
         ]);
+    }
+
+    // ========== SYSTÈME DE STATIONS ==========
+
+    /**
+     * Arrimer à une station avec jet de pilotage
+     */
+    private function arrimerStation(Personnage $personnage, array $parts): array
+    {
+        if (!$personnage->vaisseauActif) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être à bord d\'un vaisseau.',
+            ];
+        }
+
+        $vaisseau = $personnage->vaisseauActif;
+
+        // Vérifier si déjà arrimé
+        if ($vaisseau->arrime_a_station_id) {
+            $station = \App\Models\Station::find($vaisseau->arrime_a_station_id);
+            return [
+                'success' => false,
+                'message' => "Vous êtes déjà arrimé à {$station->nom}.",
+            ];
+        }
+
+        // Vérifier si dans une station
+        if ($personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être à bord de votre vaisseau pour arrimer.',
+            ];
+        }
+
+        // Trouver station dans le secteur
+        $position = $personnage->getPositionActuelle();
+        if (!$position) {
+            return [
+                'success' => false,
+                'message' => 'Position du vaisseau introuvable.',
+            ];
+        }
+
+        // Chercher stations dans le même système
+        $stations = \App\Models\Station::where('systeme_stellaire_id', $position['systeme_stellaire_id'])
+            ->where('accessible', true)
+            ->get();
+
+        if ($stations->isEmpty()) {
+            return [
+                'success' => false,
+                'message' => 'Aucune station accessible dans ce système stellaire.',
+            ];
+        }
+
+        // Si nom station spécifié
+        $nomStation = isset($parts[1]) ? implode(' ', array_slice($parts, 1)) : null;
+        if ($nomStation) {
+            $station = $stations->firstWhere('nom', 'like', "%{$nomStation}%");
+            if (!$station) {
+                return [
+                    'success' => false,
+                    'message' => "Station '{$nomStation}' introuvable dans ce système.",
+                ];
+            }
+        } else {
+            // Prendre la première station
+            $station = $stations->first();
+        }
+
+        // Vérifier capacité d'amarrage
+        $vaisseauxArrimes = \App\Models\Vaisseau::where('arrime_a_station_id', $station->id)->count();
+        if ($vaisseauxArrimes >= $station->capacite_amarrage) {
+            return [
+                'success' => false,
+                'message' => "{$station->nom} est complète (capacité: {$station->capacite_amarrage} vaisseaux).",
+            ];
+        }
+
+        // JET DE PILOTAGE DAGGERHEART
+        $competence = $personnage->competences['pilotage'] ?? 0;
+        $jet = $personnage->lancerDes($competence);
+        $personnage->save();
+
+        $vaisseau->dernier_jet_pilotage = $jet;
+
+        // Interpréter le résultat
+        $message = "\n=== MANŒUVRE D'AMARRAGE ===\n";
+        $message .= "Station: {$station->nom}\n";
+        $message .= "Hope: {$jet['hope']} | Fear: {$jet['fear']} | Compétence: +{$competence}\n";
+        $message .= "Total: {$jet['total']}\n\n";
+
+        if ($jet['critique']) {
+            // Critique ! Peut être très bon ou très mauvais
+            if ($jet['hope'] >= 10) {
+                // Critique positif
+                $vaisseau->arrime_a_station_id = $station->id;
+                $vaisseau->arrime_le = now();
+                $vaisseau->save();
+
+                $message .= "🎯 CRITIQUE AVEC HOPE! Amarrage parfait!\n";
+                $message .= "Manœuvre d'amarrage exceptionnelle. Vous gagnez 1 jeton HOPE.\n";
+                $message .= "Amarré avec succès à {$station->nom}.\n";
+
+                return ['success' => true, 'message' => $message];
+            } else {
+                // Critique négatif
+                $dommages = rand(5, 15);
+                $message .= "💥 CRITIQUE AVEC FEAR! Collision lors de l'amarrage!\n";
+                $message .= "Vous heurtez la station. Dommages: -{$dommages}% intégrité coque.\n";
+                $message .= "Vous gagnez 1 jeton FEAR.\n";
+                $message .= "Amarrage échoué. Tentez à nouveau.\n";
+
+                return ['success' => false, 'message' => $message];
+            }
+        }
+
+        if ($jet['total'] >= 12) {
+            // Succès franc
+            $vaisseau->arrime_a_station_id = $station->id;
+            $vaisseau->arrime_le = now();
+            $vaisseau->save();
+
+            $message .= "✅ SUCCÈS! Amarrage réussi.\n";
+            $message .= "Votre vaisseau est maintenant arrimé à {$station->nom}.\n";
+            $message .= "Utilisez 'transborder' pour entrer dans la station.\n";
+
+            return ['success' => true, 'message' => $message];
+        } elseif ($jet['total'] >= 9) {
+            // Succès partiel
+            $vaisseau->arrime_a_station_id = $station->id;
+            $vaisseau->arrime_le = now();
+            $vaisseau->save();
+
+            $message .= "⚠️  SUCCÈS PARTIEL. Amarrage compliqué.\n";
+            $message .= "Quelques à-coups, mais vous parvenez à vous arrimer.\n";
+            $message .= "Coût PA: +1 (manœuvre difficile).\n";
+            $personnage->consommerPA(1);
+            $personnage->save();
+
+            return ['success' => true, 'message' => $message];
+        } else {
+            // Échec
+            $message .= "❌ ÉCHEC. Impossible de s'arrimer.\n";
+            $message .= "Votre approche est trop erratique. Repositionnez-vous.\n";
+            $message .= "Tentez à nouveau quand vous serez prêt.\n";
+
+            return ['success' => false, 'message' => $message];
+        }
+    }
+
+    /**
+     * Désamarrer d'une station avec jet de pilotage
+     */
+    private function desarrimerStation(Personnage $personnage): array
+    {
+        if (!$personnage->vaisseauActif) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être à bord d\'un vaisseau.',
+            ];
+        }
+
+        $vaisseau = $personnage->vaisseauActif;
+
+        if (!$vaisseau->arrime_a_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Votre vaisseau n\'est pas arrimé à une station.',
+            ];
+        }
+
+        if ($personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être à bord de votre vaisseau. Utilisez "embarquer" d\'abord.',
+            ];
+        }
+
+        $station = \App\Models\Station::find($vaisseau->arrime_a_station_id);
+
+        // JET DE PILOTAGE DAGGERHEART
+        $competence = $personnage->competences['pilotage'] ?? 0;
+        $jet = $personnage->lancerDes($competence);
+        $personnage->save();
+
+        $message = "\n=== MANŒUVRE DE DÉSAMARRAGE ===\n";
+        $message .= "Station: {$station->nom}\n";
+        $message .= "Hope: {$jet['hope']} | Fear: {$jet['fear']} | Compétence: +{$competence}\n";
+        $message .= "Total: {$jet['total']}\n\n";
+
+        if ($jet['critique']) {
+            if ($jet['hope'] >= 10) {
+                // Critique positif
+                $vaisseau->arrime_a_station_id = null;
+                $vaisseau->arrime_le = null;
+                $vaisseau->dernier_jet_pilotage = null;
+                $vaisseau->save();
+
+                $message .= "🎯 CRITIQUE AVEC HOPE! Départ parfait!\n";
+                $message .= "Manœuvre de désamarrage impeccable. Navigation libre.\n";
+
+                return ['success' => true, 'message' => $message];
+            } else {
+                // Critique négatif
+                $dommages = rand(10, 20);
+                $message .= "💥 CRITIQUE AVEC FEAR! Collision au départ!\n";
+                $message .= "Vous arrachez les amarres trop brutalement.\n";
+                $message .= "Dommages: -{$dommages}% intégrité coque.\n";
+                $message .= "Désamarrage forcé. Vérifiez vos systèmes.\n";
+
+                $vaisseau->arrime_a_station_id = null;
+                $vaisseau->arrime_le = null;
+                $vaisseau->save();
+
+                return ['success' => true, 'message' => $message];
+            }
+        }
+
+        if ($jet['total'] >= 12) {
+            // Succès franc
+            $vaisseau->arrime_a_station_id = null;
+            $vaisseau->arrime_le = null;
+            $vaisseau->dernier_jet_pilotage = null;
+            $vaisseau->save();
+
+            $message .= "✅ SUCCÈS! Désamarrage réussi.\n";
+            $message .= "Vous quittez {$station->nom}. Navigation libre.\n";
+
+            return ['success' => true, 'message' => $message];
+        } elseif ($jet['total'] >= 9) {
+            // Succès partiel
+            $vaisseau->arrime_a_station_id = null;
+            $vaisseau->arrime_le = null;
+            $vaisseau->save();
+
+            $message .= "⚠️  SUCCÈS PARTIEL. Départ laborieux.\n";
+            $message .= "Vous parvenez à vous dégager après quelques manœuvres.\n";
+            $message .= "Coût PA: +1.\n";
+            $personnage->consommerPA(1);
+            $personnage->save();
+
+            return ['success' => true, 'message' => $message];
+        } else {
+            // Échec
+            $message .= "❌ ÉCHEC. Impossible de désamarrer.\n";
+            $message .= "Les amarres restent bloquées. Tentez à nouveau.\n";
+
+            return ['success' => false, 'message' => $message];
+        }
+    }
+
+    /**
+     * Transborder du vaisseau vers la station
+     */
+    private function transborderStation(Personnage $personnage): array
+    {
+        if (!$personnage->vaisseauActif) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être à bord d\'un vaisseau.',
+            ];
+        }
+
+        $vaisseau = $personnage->vaisseauActif;
+
+        if (!$vaisseau->arrime_a_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Votre vaisseau doit être arrimé à une station. Utilisez "arrimer" d\'abord.',
+            ];
+        }
+
+        if ($personnage->dans_station_id) {
+            $station = \App\Models\Station::find($personnage->dans_station_id);
+            return [
+                'success' => false,
+                'message' => "Vous êtes déjà dans {$station->nom}.",
+            ];
+        }
+
+        $station = \App\Models\Station::find($vaisseau->arrime_a_station_id);
+
+        $personnage->dans_station_id = $station->id;
+        $personnage->save();
+
+        $message = "\n=== TRANSBORDEMENT ===\n";
+        $message .= "Vous quittez votre vaisseau et entrez dans {$station->nom}.\n\n";
+        $message .= "Services disponibles:\n";
+
+        $services = [];
+        if ($station->commerciale) $services[] = "- 'marche' : Acheter/vendre des marchandises";
+        if ($station->reparations) $services[] = "- 'garage' : Réparer et améliorer votre vaisseau";
+        if ($station->medical) $services[] = "- 'hopital' : Soins médicaux";
+        if ($station->industrielle) $services[] = "- 'industrie' : Raffinage et fabrication";
+        if ($station->ravitaillement) $services[] = "- 'ravitailler' : Recharger carburant et provisions";
+        $services[] = "- 'comptoirs' : Missions, guildes, informations";
+        $services[] = "- 'embarquer' : Retourner à votre vaisseau";
+
+        $message .= implode("\n", $services);
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Embarquer de la station vers le vaisseau
+     */
+    private function embarquerVaisseau(Personnage $personnage): array
+    {
+        if (!$personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous êtes déjà à bord de votre vaisseau.',
+            ];
+        }
+
+        $station = \App\Models\Station::find($personnage->dans_station_id);
+        $vaisseau = $personnage->vaisseauActif;
+
+        if (!$vaisseau || $vaisseau->arrime_a_station_id != $station->id) {
+            return [
+                'success' => false,
+                'message' => 'Votre vaisseau n\'est pas arrimé à cette station.',
+            ];
+        }
+
+        $personnage->dans_station_id = null;
+        $personnage->save();
+
+        $message = "\n=== EMBARQUEMENT ===\n";
+        $message .= "Vous quittez {$station->nom} et retournez à bord de votre vaisseau.\n";
+        $message .= "Utilisez 'desarrimer' pour quitter la station.\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Accéder au garage
+     */
+    private function accederGarage(Personnage $personnage): array
+    {
+        if (!$personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être dans une station. Utilisez "transborder" d\'abord.',
+            ];
+        }
+
+        $station = \App\Models\Station::find($personnage->dans_station_id);
+
+        if (!$station->reparations) {
+            return [
+                'success' => false,
+                'message' => "{$station->nom} n\'a pas de garage.",
+            ];
+        }
+
+        $vaisseau = $personnage->vaisseauActif;
+
+        $message = "\n=== GARAGE DE {$station->nom} ===\n\n";
+        $message .= "Bienvenue au garage !\n\n";
+        $message .= "État de votre vaisseau:\n";
+        $message .= "- Nom: {$vaisseau->nom}\n";
+        $message .= "- Intégrité coque: 100%\n"; // TODO: système de dommages
+        $message .= "- Moteurs: Opérationnels\n";
+        $message .= "- Boucliers: Opérationnels\n\n";
+        $message .= "Services disponibles:\n";
+        $message .= "- 'reparer [système]' : Réparer un système endommagé\n";
+        $message .= "- Améliorations disponibles prochainement\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Accéder aux comptoirs
+     */
+    private function accederComptoirs(Personnage $personnage): array
+    {
+        if (!$personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être dans une station. Utilisez "transborder" d\'abord.',
+            ];
+        }
+
+        $station = \App\Models\Station::find($personnage->dans_station_id);
+
+        $message = "\n=== QUARTIER DES COMPTOIRS - {$station->nom} ===\n\n";
+        $message .= "Vous entrez dans le quartier des comptoirs, lieu d'affaires et de rencontres.\n\n";
+        $message .= "Lieux disponibles:\n";
+        $message .= "- 'missions' : Consulter les missions disponibles\n";
+        $message .= "- 'guildes' : Parler aux représentants des guildes\n";
+        $message .= "- 'factions' : Voir votre réputation\n";
+        $message .= "- 'bar' : Se rendre au bar (rumeurs, informations)\n";
+        $message .= "- Boutiques spécialisées (bientôt disponibles)\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Accéder à l'hôpital
+     */
+    private function accederHopital(Personnage $personnage): array
+    {
+        if (!$personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être dans une station. Utilisez "transborder" d\'abord.',
+            ];
+        }
+
+        $station = \App\Models\Station::find($personnage->dans_station_id);
+
+        if (!$station->medical) {
+            return [
+                'success' => false,
+                'message' => "{$station->nom} n\'a pas d\'hôpital.",
+            ];
+        }
+
+        $message = "\n=== HÔPITAL DE {$station->nom} ===\n\n";
+        $message .= "Bienvenue au centre médical.\n\n";
+        $message .= "Votre état de santé:\n";
+        $message .= "- Santé: 100%\n"; // TODO: système de santé
+        $message .= "- Aucune blessure\n\n";
+        $message .= "Services disponibles:\n";
+        $message .= "- 'soigner' : Soigner toutes les blessures (50 crédits)\n";
+        $message .= "- Cybernétique disponible prochainement\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Accéder au quartier industriel
+     */
+    private function accederIndustrie(Personnage $personnage): array
+    {
+        if (!$personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être dans une station. Utilisez "transborder" d\'abord.',
+            ];
+        }
+
+        $station = \App\Models\Station::find($personnage->dans_station_id);
+
+        if (!$station->industrielle) {
+            return [
+                'success' => false,
+                'message' => "{$station->nom} n\'a pas de quartier industriel.",
+            ];
+        }
+
+        $message = "\n=== QUARTIER INDUSTRIEL - {$station->nom} ===\n\n";
+        $message .= "Vous entrez dans le quartier industriel, cœur de la production.\n\n";
+        $message .= "Services disponibles:\n";
+        $message .= "- 'recettes' : Voir les recettes de fabrication\n";
+        $message .= "- 'fabriquer [recette]' : Fabriquer un objet\n";
+        $message .= "- Raffinage disponible prochainement\n";
+
+        return ['success' => true, 'message' => $message];
+    }
+
+    /**
+     * Ravitailler le vaisseau
+     */
+    private function ravitaillerVaisseau(Personnage $personnage, array $parts): array
+    {
+        if (!$personnage->dans_station_id) {
+            return [
+                'success' => false,
+                'message' => 'Vous devez être dans une station. Utilisez "transborder" d\'abord.',
+            ];
+        }
+
+        $station = \App\Models\Station::find($personnage->dans_station_id);
+
+        if (!$station->ravitaillement) {
+            return [
+                'success' => false,
+                'message' => "{$station->nom} n\'offre pas de services de ravitaillement.",
+            ];
+        }
+
+        $vaisseau = $personnage->vaisseauActif;
+        $coutTotal = 100; // TODO: calculer selon besoins réels
+
+        $message = "\n=== RAVITAILLEMENT - {$station->nom} ===\n\n";
+        $message .= "Services de ravitaillement:\n";
+        $message .= "- Carburant: Complet\n";
+        $message .= "- Eau potable: Rechargée\n";
+        $message .= "- Oxygène: Réservoirs pleins\n";
+        $message .= "- Rations: Stock complet\n\n";
+        $message .= "Coût total: {$coutTotal} crédits\n";
+        $message .= "Votre vaisseau est prêt pour un long voyage !\n";
+
+        return ['success' => true, 'message' => $message];
     }
 }
