@@ -57,6 +57,14 @@ class Planete extends Model
     }
 
     /**
+     * Stations orbitales autour de cette planète
+     */
+    public function stations(): HasMany
+    {
+        return $this->hasMany(Station::class);
+    }
+
+    /**
      * Génère un type de planète selon la distance à l'étoile
      * Zone habitable (zone Goldilocks): 0.95 - 1.37 UA pour type G
      */

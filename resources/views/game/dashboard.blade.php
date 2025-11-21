@@ -5,12 +5,12 @@
 @push('styles')
 <style>
     .panel {
-        background: rgba(15, 23, 42, 0.9);
+        background: rgba(10, 15, 30, 0.95);
         border: 1px solid rgba(74, 158, 255, 0.3);
     }
 
     .panel-header {
-        background: rgba(74, 158, 255, 0.1);
+        background: rgba(20, 30, 50, 0.9);
         border-bottom: 1px solid rgba(74, 158, 255, 0.3);
     }
 
