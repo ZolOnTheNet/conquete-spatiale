@@ -59,26 +59,28 @@ class AdminController extends Controller
         // Construire la requête
         $query = SystemeStellaire::withCount('planetes');
 
-        // Calculer la distance par rapport aux coordonnées saisies
-        // Distance = sqrt((x2-x1)^2 + (y2-y1)^2 + (z2-z1)^2)
+        // Calculer la distance au carré par rapport aux coordonnées saisies
+        // Distance² = (x2-x1)² + (y2-y1)² + (z2-z1)²
+        // Note: On calcule le carré en SQL (compatible SQLite) et la racine en PHP
         $query->selectRaw('systemes_stellaires.*');
         $query->selectRaw(
-            'SQRT(
-                POW((secteur_x * 10 + position_x) - ?, 2) +
-                POW((secteur_y * 10 + position_y) - ?, 2) +
-                POW((secteur_z * 10 + position_z) - ?, 2)
-            ) as distance_from_point',
-            [$coordX, $coordY, $coordZ]
+            '(
+                ((secteur_x * 10 + position_x) - ?) * ((secteur_x * 10 + position_x) - ?) +
+                ((secteur_y * 10 + position_y) - ?) * ((secteur_y * 10 + position_y) - ?) +
+                ((secteur_z * 10 + position_z) - ?) * ((secteur_z * 10 + position_z) - ?)
+            ) as distance_squared',
+            [$coordX, $coordX, $coordY, $coordY, $coordZ, $coordZ]
         );
 
         // Filtrer par distance max si spécifié
         if ($maxDistance > 0) {
-            $query->havingRaw('distance_from_point <= ?', [$maxDistance]);
+            $maxDistanceSquared = $maxDistance * $maxDistance;
+            $query->havingRaw('distance_squared <= ?', [$maxDistanceSquared]);
         }
 
         // Tri
         $validSortColumns = ['nom', 'type_etoile', 'puissance', 'detectabilite_base',
-                             'planetes_count', 'distance_from_point', 'poi_connu'];
+                             'planetes_count', 'distance_squared', 'poi_connu'];
         if (in_array($sortBy, $validSortColumns)) {
             if ($sortBy === 'planetes_count') {
                 // Tri spécial pour le count

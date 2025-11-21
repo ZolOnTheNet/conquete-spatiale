@@ -147,9 +147,9 @@
                                 </a>
                             </th>
                             <th class="px-4 py-3 text-left text-xs text-gray-400">
-                                <a href="{{ route('admin.univers', array_merge(request()->all(), ['sort_by' => 'distance_from_point', 'sort_direction' => $sortBy == 'distance_from_point' && $sortDirection == 'asc' ? 'desc' : 'asc'])) }}" class="flex items-center gap-1 hover:text-cyan-400">
+                                <a href="{{ route('admin.univers', array_merge(request()->all(), ['sort_by' => 'distance_squared', 'sort_direction' => $sortBy == 'distance_squared' && $sortDirection == 'asc' ? 'desc' : 'asc'])) }}" class="flex items-center gap-1 hover:text-cyan-400">
                                     Distance (AL)
-                                    @if($sortBy == 'distance_from_point')
+                                    @if($sortBy == 'distance_squared')
                                         <span class="text-cyan-400">{{ $sortDirection == 'asc' ? '↑' : '↓' }}</span>
                                     @else
                                         <span class="text-gray-600">-</span>
@@ -199,7 +199,7 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-sm text-purple-400 font-bold">
-                                {{ number_format($systeme->distance_from_point, 2) }}
+                                {{ number_format(sqrt($systeme->distance_squared), 2) }}
                             </td>
                             <td class="px-4 py-3 text-sm">
                                 @if($systeme->poi_connu)
