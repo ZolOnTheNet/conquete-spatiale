@@ -40,15 +40,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [AdminController::class, 'index'])->name('index');
         Route::get('/comptes', [AdminController::class, 'comptes'])->name('comptes');
         Route::get('/univers', [AdminController::class, 'univers'])->name('univers');
-<<<<<<< HEAD
         Route::get('/production', [AdminController::class, 'production'])->name('production');
         Route::post('/production/gisement/{id}', [AdminController::class, 'updateGisement'])->name('production.update');
-=======
-        Route::get('/univers/{id}', [AdminController::class, 'showSysteme'])->name('univers.show');
-        Route::post('/univers/{id}/update-puissance', [AdminController::class, 'updatePuissance'])->name('univers.update-puissance');
-        Route::post('/univers/{id}/recalculer-puissance', [AdminController::class, 'recalculerPuissance'])->name('univers.recalculer-puissance');
-        Route::get('/planetes', [AdminController::class, 'planetes'])->name('planetes');
->>>>>>> claude/fix-login-auth-issue-014o1Xok8HvSX9ZUP3saR4YW
         Route::get('/backup', [AdminController::class, 'backup'])->name('backup');
     });
 });
