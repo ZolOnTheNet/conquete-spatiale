@@ -3,6 +3,43 @@
 @section('title', 'Admin - Carte de l\'Univers')
 
 @section('content')
+<style>
+/* Tooltip personnalisé pour les systèmes stellaires */
+.system-cell {
+    position: relative;
+}
+
+.system-cell:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.95);
+    color: #fbbf24;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-size: 11px;
+    z-index: 1000;
+    pointer-events: none;
+    border: 1px solid #fbbf24;
+    margin-bottom: 2px;
+}
+
+.system-cell:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: #fbbf24;
+    z-index: 1000;
+    pointer-events: none;
+}
+</style>
+
 <div class="min-h-screen flex flex-col">
     <!-- Header -->
     <header class="bg-gray-900/90 border-b border-red-500/30 px-6 py-4">
@@ -155,22 +192,26 @@
 
                                         if ($distance < 1) {
                                             $cellContent = '*';
-                                            $cellClass = 'text-yellow-400 cursor-pointer hover:bg-yellow-900/30';
-                                            $cellTitle = $systeme->nom;
+                                            $cellClass = 'text-yellow-400 cursor-pointer hover:bg-yellow-900/30 system-cell';
+                                            $cellTitle = "{$systeme->nom} (P: {$systeme->puissance})";
+                                            $cellData = "data-secteur-x='{$secteurX}' data-secteur-y='{$secteurY}' data-secteur-z='{$secteurZ}' data-is-system='true'";
                                         } else {
                                             $cellContent = '·';
                                             $cellClass = 'text-gray-900 cursor-pointer hover:bg-gray-800';
                                             $cellTitle = "AL: {$absX}, {$absY}, {$absZ}";
+                                            $cellData = "data-is-system='false'";
                                         }
                                     } else {
                                         $cellContent = '·';
                                         $cellClass = 'text-gray-900 cursor-pointer hover:bg-gray-800';
                                         $cellTitle = "AL: {$absX}, {$absY}, {$absZ}";
+                                        $cellData = "data-is-system='false'";
                                     }
                                 @endphp
                                 <span class="{{ $cellClass }}"
-                                      onclick="clickCell({{ $absX }}, {{ $absY }}, {{ $absZ }})"
-                                      title="{{ $cellTitle }}">{{ $cellContent }}</span>
+                                      onclick="clickCell({{ $absX }}, {{ $absY }}, {{ $absZ }}, this)"
+                                      title="{{ $cellTitle }}"
+                                      {!! $cellData !!}>{{ $cellContent }}</span>
                             @endfor
                         </div>
                     @endfor
@@ -204,9 +245,20 @@ function changePlan(newPlan) {
 }
 
 // Clic sur une cellule de la carte
-function clickCell(x, y, z) {
+function clickCell(x, y, z, element) {
     const plan = '{{ $plan }}';
-    window.location.href = `/admin/carte?x=${x}&y=${y}&z=${z}&plan=${plan}`;
+    const isSystem = element.dataset.isSystem === 'true';
+
+    if (isSystem) {
+        // Si c'est un système, aller au niveau 2 (vue secteur)
+        const secteurX = element.dataset.secteurX;
+        const secteurY = element.dataset.secteurY;
+        const secteurZ = element.dataset.secteurZ;
+        window.location.href = `/admin/carte/secteur/${secteurX}/${secteurY}/${secteurZ}`;
+    } else {
+        // Sinon, juste recentrer la carte
+        window.location.href = `/admin/carte?x=${x}&y=${y}&z=${z}&plan=${plan}`;
+    }
 }
 
 // Support clavier pour navigation
