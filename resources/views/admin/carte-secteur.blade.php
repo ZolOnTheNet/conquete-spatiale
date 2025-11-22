@@ -1,3 +1,49 @@
+@extends('layouts.app')
+
+@section('title', 'Admin - Carte Secteur')
+
+@section('content')
+<div class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-gray-900/90 border-b border-red-500/30 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <h1 class="text-2xl font-orbitron text-red-400">SECTEUR ({{ $x }}, {{ $y }}, {{ $z }})</h1>
+        </div>
+        <a href="{{ route('admin.carte') }}" class="text-cyan-400 hover:text-cyan-300 text-sm">
+            ← Retour à la carte
+        </a>
+    </header>
+
+    <div class="flex-1 flex">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gray-900/80 border-r border-red-500/20 p-4">
+            <nav class="space-y-2">
+                <a href="{{ route('admin.index') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
+                    Dashboard
+                </a>
+                <a href="{{ route('admin.comptes') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
+                    Comptes
+                </a>
+                <a href="{{ route('admin.univers') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
+                    Univers
+                </a>
+                <a href="{{ route('admin.planetes') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
+                    Planètes
+                </a>
+                <a href="{{ route('admin.production') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
+                    Productions
+                </a>
+                <a href="{{ route('admin.carte') }}" class="block px-4 py-2 rounded bg-red-500/20 text-red-300">
+                    Carte
+                </a>
+                <a href="{{ route('admin.backup') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
+                    Backup
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6">
 @if($systemes->count() > 0)
     @foreach($systemes as $systeme)
     <div class="mb-4">
@@ -258,6 +304,9 @@
         <div class="text-gray-500 text-sm">Aucun système stellaire dans le secteur ({{ $x }}, {{ $y }}, {{ $z }})</div>
     </div>
 @endif
+        </main>
+    </div>
+</div>
 
 <script>
 // État du zoom pour chaque système (déclaré une seule fois)
@@ -277,31 +326,6 @@ const zoomStates = {};
 @endif
 
 // Fonctions de gestion du zoom (déclarées une seule fois)
-function updateViewBox(systemeId) {
-    const state = zoomStates[systemeId];
-    if (!state) return;
-
-    const svg = document.getElementById('sector-map-' + systemeId);
-    if (!svg) return;
-
-    // Calculer les dimensions du viewBox en fonction du zoom
-    const width = state.viewBoxWidth / state.scale;
-    const height = state.viewBoxHeight / state.scale;
-
-    // Calculer les coordonnées du coin supérieur gauche pour centrer sur centerX, centerY
-    const x = state.centerX - (width / 2);
-    const y = state.centerY - (height / 2);
-
-    svg.setAttribute('viewBox', `${x} ${y} ${width} ${height}`);
-
-    // Mettre à jour l'affichage du niveau de zoom
-    const zoomPercent = Math.round(state.scale * 100);
-    const zoomLevelEl = document.getElementById('zoom-level-' + systemeId);
-    if (zoomLevelEl) {
-        zoomLevelEl.textContent = zoomPercent + '%';
-    }
-}
-
 function zoomIn(systemeId) {
     const state = zoomStates[systemeId];
     if (!state) return;
@@ -341,4 +365,30 @@ function zoomToPlanet(planetX, planetY, systemeId) {
 
     updateViewBox(systemeId);
 }
+
+function updateViewBox(systemeId) {
+    const state = zoomStates[systemeId];
+    if (!state) return;
+
+    const svg = document.getElementById('sector-map-' + systemeId);
+    if (!svg) return;
+
+    // Calculer les dimensions du viewBox en fonction du zoom
+    const width = state.viewBoxWidth / state.scale;
+    const height = state.viewBoxHeight / state.scale;
+
+    // Calculer les coordonnées du coin supérieur gauche pour centrer sur centerX, centerY
+    const x = state.centerX - (width / 2);
+    const y = state.centerY - (height / 2);
+
+    svg.setAttribute('viewBox', `${x} ${y} ${width} ${height}`);
+
+    // Mettre à jour l'affichage du niveau de zoom
+    const zoomPercent = Math.round(state.scale * 100);
+    const zoomLevelEl = document.getElementById('zoom-level-' + systemeId);
+    if (zoomLevelEl) {
+        zoomLevelEl.textContent = zoomPercent + '%';
+    }
+}
 </script>
+@endsection
