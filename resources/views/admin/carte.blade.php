@@ -38,6 +38,22 @@
     z-index: 1000;
     pointer-events: none;
 }
+
+/* Affichage des coordonnées survolées */
+#coord-hover-display {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid #fbbf24;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+    color: #fbbf24;
+    z-index: 1000;
+    min-width: 150px;
+}
 </style>
 
 <div class="min-h-screen flex flex-col">
@@ -106,10 +122,10 @@
                 </div>
 
                 <!-- Légende -->
-                <div class="flex items-center gap-4 text-xs text-gray-400">
-                    <div><span class="text-yellow-400 font-bold">*</span> = Système stellaire</div>
-                    <div><span class="text-gray-600">::</span> = Obstacles</div>
-                    <div class="text-gray-500">Cliquez sur une étoile pour voir les détails du secteur →</div>
+                <div class="flex items-center gap-4 text-xs">
+                    <div class="text-white"><span class="text-yellow-400 font-bold">*</span> = Système stellaire</div>
+                    <div class="text-white"><span class="text-red-500 font-bold">::</span> = Obstacles</div>
+                    <div class="text-cyan-300">Cliquez sur une étoile pour voir les détails du secteur →</div>
                 </div>
             </div>
 
@@ -119,7 +135,11 @@
                 <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
                     <h2 class="text-lg font-bold text-cyan-400 mb-2">Niveau 1: Carte Univers (100 AL)</h2>
 
-                    <div class="bg-black border border-gray-700 rounded p-2">
+                    <div class="bg-black border border-gray-700 rounded p-2 relative">
+                        <!-- Affichage des coordonnées survolées -->
+                        <div id="coord-hover-display">
+                            Survolez la carte
+                        </div>
                         @php
                             // Déterminer les axes en fonction du plan
                             $halfSize = 50;
@@ -182,19 +202,18 @@
 
                                             if ($hasSystem) {
                                                 $systeme = $grille[$secteurX][$secteurY][$secteurZ];
-                                                // Vérifier si le système est proche de cette coordonnée AL
+                                                // Coordonnées absolues du système
                                                 $sysAbsX = $systeme->secteur_x * 10 + $systeme->position_x;
                                                 $sysAbsY = $systeme->secteur_y * 10 + $systeme->position_y;
                                                 $sysAbsZ = $systeme->secteur_z * 10 + $systeme->position_z;
 
-                                                // Afficher * si le système est à moins de 1 AL de cette position
-                                                $distance = sqrt(
-                                                    pow($sysAbsX - $absX, 2) +
-                                                    pow($sysAbsY - $absY, 2) +
-                                                    pow($sysAbsZ - $absZ, 2)
-                                                );
+                                                // Arrondir les coordonnées du système pour trouver la cellule AL la plus proche
+                                                $nearestCellX = round($sysAbsX);
+                                                $nearestCellY = round($sysAbsY);
+                                                $nearestCellZ = round($sysAbsZ);
 
-                                                if ($distance < 1) {
+                                                // Afficher * seulement sur la cellule AL la plus proche du système
+                                                if ($absX == $nearestCellX && $absY == $nearestCellY && $absZ == $nearestCellZ) {
                                                     $cellContent = '*';
                                                     $cellClass = 'text-yellow-400 cursor-pointer hover:bg-yellow-900/30 system-cell';
                                                     $cellTitle = "{$systeme->nom} (X:" . number_format($sysAbsX, 2) . " Y:" . number_format($sysAbsY, 2) . " Z:" . number_format($sysAbsZ, 2) . " P:{$systeme->puissance})";
@@ -214,7 +233,11 @@
                                         @endphp
                                         <span class="{{ $cellClass }}"
                                               onclick="clickCell({{ $absX }}, {{ $absY }}, {{ $absZ }}, this)"
+                                              onmouseover="updateCoordDisplay({{ $absX }}, {{ $absY }}, {{ $absZ }}, '{{ $cellContent }}')"
                                               title="{{ $cellTitle }}"
+                                              data-coord-x="{{ $absX }}"
+                                              data-coord-y="{{ $absY }}"
+                                              data-coord-z="{{ $absZ }}"
                                               {!! $cellData !!}>{{ $cellContent }}</span>
                                     @endfor
                                 </div>
@@ -241,6 +264,28 @@
 </div>
 
 <script>
+// Mettre à jour l'affichage des coordonnées survolées
+function updateCoordDisplay(x, y, z, cellContent) {
+    const display = document.getElementById('coord-hover-display');
+    let contentDesc = '';
+
+    if (cellContent === '*') {
+        contentDesc = '<span class="text-yellow-400">★ Système</span>';
+    } else if (cellContent === '::') {
+        contentDesc = '<span class="text-red-500">⚠ Obstacle</span>';
+    } else {
+        contentDesc = '<span class="text-gray-400">○ Vide</span>';
+    }
+
+    display.innerHTML = `
+        <div class="font-bold text-cyan-300 mb-1">Coordonnées:</div>
+        <div>X: ${x} AL</div>
+        <div>Y: ${y} AL</div>
+        <div>Z: ${z} AL</div>
+        <div class="mt-1 pt-1 border-t border-gray-600">${contentDesc}</div>
+    `;
+}
+
 // Navigation vers des coordonnées spécifiques
 function navigateToCoords() {
     const x = document.getElementById('coord-x').value;
