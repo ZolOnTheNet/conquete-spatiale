@@ -2,6 +2,9 @@
 """
 Analyse de la distribution des systèmes stellaires pour déterminer
 la taille optimale d'un secteur.
+
+Analyse également la taille des systèmes (distance max planète-étoile)
+pour s'assurer qu'un secteur peut contenir un système ENTIER.
 """
 
 import sqlite3
@@ -12,12 +15,108 @@ from collections import defaultdict
 # Chemin vers la base de données
 DB_PATH = Path(__file__).parent.parent / 'database' / 'database.sqlite'
 
+# Constante de conversion UA → AL
+UA_TO_AL = 1.0 / 63241.0  # 1 AL ≈ 63 241 UA
+
 def calculate_distance(x1, y1, z1, x2, y2, z2):
     """Calcule la distance euclidienne 3D en années-lumière."""
     dx = x2 - x1
     dy = y2 - y1
     dz = z2 - z1
     return math.sqrt(dx*dx + dy*dy + dz*dz)
+
+def analyze_planet_distances(conn):
+    """Analyse les distances des planètes par rapport à leur étoile."""
+    cursor = conn.cursor()
+
+    # Récupérer toutes les planètes avec leur système
+    cursor.execute("""
+        SELECT
+            s.nom as systeme_nom,
+            p.nom as planete_nom,
+            p.distance_etoile,
+            s.type_etoile
+        FROM planetes p
+        JOIN systemes_stellaires s ON p.systeme_stellaire_id = s.id
+        ORDER BY s.nom, p.distance_etoile
+    """)
+
+    planetes = cursor.fetchall()
+
+    if not planetes:
+        print("⚠️  Aucune planète trouvée dans la base de données.")
+        return None
+
+    # Analyser par système
+    systemes_data = defaultdict(list)
+    for systeme_nom, planete_nom, distance, type_etoile in planetes:
+        systemes_data[systeme_nom].append({
+            'planete': planete_nom,
+            'distance_ua': distance,
+            'distance_al': distance * UA_TO_AL,
+            'type_etoile': type_etoile
+        })
+
+    print(f"\n🪐 ANALYSE DES DISTANCES PLANÈTES-ÉTOILE:")
+    print(f"{'='*80}\n")
+    print(f"📊 Nombre de planètes: {len(planetes)}")
+    print(f"📊 Nombre de systèmes avec planètes: {len(systemes_data)}\n")
+
+    max_distance_ua = 0
+    max_distance_al = 0
+    max_systeme = None
+    max_planete = None
+
+    # Afficher chaque système
+    for systeme_nom, planetes_list in sorted(systemes_data.items()):
+        print(f"⭐ {systeme_nom} (Type {planetes_list[0]['type_etoile']}):")
+
+        for p in planetes_list:
+            print(f"   └─ {p['planete']:<15} : {p['distance_ua']:>8.2f} UA = {p['distance_al']:>12.8f} AL")
+
+            if p['distance_ua'] > max_distance_ua:
+                max_distance_ua = p['distance_ua']
+                max_distance_al = p['distance_al']
+                max_systeme = systeme_nom
+                max_planete = p['planete']
+
+        # Distance max du système (rayon)
+        max_dist_systeme = max(p['distance_ua'] for p in planetes_list)
+        max_dist_systeme_al = max_dist_systeme * UA_TO_AL
+        diametre_systeme_al = 2 * max_dist_systeme_al
+
+        print(f"   → Rayon max: {max_dist_systeme:.2f} UA = {max_dist_systeme_al:.8f} AL")
+        print(f"   → Diamètre:  {2*max_dist_systeme:.2f} UA = {diametre_systeme_al:.8f} AL\n")
+
+    print(f"\n{'='*80}")
+    print(f"📏 DISTANCE MAXIMALE PLANÈTE-ÉTOILE:")
+    print(f"{'='*80}")
+    print(f"   Système: {max_systeme}")
+    print(f"   Planète: {max_planete}")
+    print(f"   Distance: {max_distance_ua:.2f} UA")
+    print(f"   Distance: {max_distance_al:.8f} AL")
+    print(f"   Diamètre du système: {2*max_distance_al:.8f} AL")
+    print(f"{'='*80}\n")
+
+    # Vérification unités
+    if max_distance_ua > 100:
+        print(f"⚠️  ATTENTION: Distance de {max_distance_ua:.2f} UA semble très élevée !")
+        print(f"   Neptune dans notre système solaire est à ~30 UA.")
+        print(f"   Vérifiez que les distances sont bien en UA et non en AL.\n")
+
+    if max_distance_al > 0.01:
+        print(f"⚠️  ATTENTION: Distance de {max_distance_al:.6f} AL semble élevée !")
+        print(f"   Le système solaire fait ~0.00063 AL de diamètre (80 UA).")
+        print(f"   Il y a peut-être une confusion d'unités dans la base de données.\n")
+
+    return {
+        'max_distance_ua': max_distance_ua,
+        'max_distance_al': max_distance_al,
+        'max_systeme': max_systeme,
+        'max_planete': max_planete,
+        'diametre_max_al': 2 * max_distance_al
+    }
+
 
 def analyze_universe():
     """Analyse la distribution des systèmes stellaires."""
@@ -29,6 +128,9 @@ def analyze_universe():
 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+
+    # NOUVELLE SECTION: Analyser les distances des planètes
+    planet_data = analyze_planet_distances(conn)
 
     # Récupérer tous les systèmes stellaires
     cursor.execute("""
@@ -177,20 +279,43 @@ def analyze_universe():
 
     # Recommandations
     print(f"\n💡 RECOMMANDATIONS:")
-    print(f"{'-'*80}")
+    print(f"{'='*80}")
 
     max_dist_int = max(distances_int)
     max_dist_dec = max(distances)
 
-    print(f"\n1. Distance maximale observée:")
+    print(f"\n1. Distance maximale observée (entre systèmes):")
     print(f"   - Décimale: {max_dist_dec:.6f} AL")
     print(f"   - Entière:  {max_dist_int} AL")
 
-    print(f"\n2. Taille de secteur actuelle: 10 AL")
+    if planet_data:
+        print(f"\n2. Taille maximale d'un système stellaire (planète la plus éloignée):")
+        print(f"   - Système: {planet_data['max_systeme']}")
+        print(f"   - Planète: {planet_data['max_planete']}")
+        print(f"   - Rayon: {planet_data['max_distance_al']:.8f} AL ({planet_data['max_distance_ua']:.2f} UA)")
+        print(f"   - Diamètre: {planet_data['diametre_max_al']:.8f} AL ({planet_data['max_distance_ua']*2:.2f} UA)")
+
+        # CRITIQUE: Le secteur doit pouvoir contenir un système ENTIER
+        taille_min_secteur = planet_data['diametre_max_al']
+        print(f"\n   ⚠️  IMPORTANT: Un secteur doit pouvoir contenir un système ENTIER !")
+        print(f"   → Taille minimale de secteur: {taille_min_secteur:.8f} AL")
+        print(f"   → Taille minimale arrondie: {math.ceil(taille_min_secteur * 1000) / 1000:.3f} AL")
+
+        if taille_min_secteur > 10:
+            print(f"\n   ❌ PROBLÈME CRITIQUE: Taille de secteur actuelle (10 AL) trop petite !")
+            print(f"      Les planètes dépassent les limites du secteur !")
+            print(f"      → Il y a probablement une confusion d'unités (UA vs AL)")
+        elif taille_min_secteur > 1:
+            print(f"\n   ⚠️  Secteur de 10 AL peut contenir le système, mais vérifiez les unités")
+        else:
+            print(f"\n   ✅ Secteur de 10 AL peut largement contenir le plus grand système")
+            print(f"      (Marge: {10 / taille_min_secteur:.0f}× le diamètre du système)")
+
+    print(f"\n3. Taille de secteur actuelle: 10 AL")
     print(f"   - Couverture nécessaire: {math.ceil(max_dist_int / 10)} secteurs dans chaque direction")
     print(f"   - Secteurs utilisés: {len(set((int(s['abs_x']//10), int(s['abs_y']//10), int(s['abs_z']//10)) for s in distances_data))}")
 
-    print(f"\n3. Analyse de la densité:")
+    print(f"\n4. Analyse de la densité (systèmes par secteur):")
     secteurs_10 = defaultdict(int)
     for sys in distances_data:
         sect = (int(sys['abs_x']//10), int(sys['abs_y']//10), int(sys['abs_z']//10))
@@ -210,8 +335,20 @@ def analyze_universe():
     else:
         print(f"\n   ❌ Taille de secteur trop petite ! Augmenter à 50-100 AL (haute densité).")
 
+    # Résumé final
+    print(f"\n{'='*80}")
+    print(f"📋 RÉSUMÉ:")
+    print(f"{'='*80}")
+    if planet_data:
+        print(f"   • Plus grand système: {planet_data['diametre_max_al']:.8f} AL de diamètre")
+        print(f"   • Taille de secteur: 10 AL")
+        print(f"   • Ratio: {10 / planet_data['diametre_max_al']:.1f}× (le secteur peut contenir le système)")
+    print(f"   • Distance max entre systèmes: {max_dist_dec:.2f} AL")
+    print(f"   • Systèmes par secteur (moy): {len(distances_data)/len(secteurs_10):.2f}")
+    print(f"{'='*80}")
+
     conn.close()
-    print(f"\n{'='*80}\n")
+    print(f"\n")
 
 if __name__ == '__main__':
     try:
