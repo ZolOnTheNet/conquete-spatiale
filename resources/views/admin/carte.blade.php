@@ -74,11 +74,11 @@
             </nav>
         </aside>
 
-        <!-- Main Content -->
-        <main class="flex-1 p-6 overflow-auto">
+        <!-- Main Content - Two Maps Side by Side -->
+        <main class="flex-1 p-4 overflow-auto">
             <!-- Contrôles de navigation -->
-            <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4 mb-4">
-                <div class="flex items-center gap-4 mb-4">
+            <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3 mb-4">
+                <div class="flex items-center gap-4 mb-2">
                     <!-- Coordonnées -->
                     <div class="flex items-center gap-2">
                         <label class="text-gray-400 text-sm">Coordonnées:</label>
@@ -92,7 +92,7 @@
 
                     <!-- Sélection du plan -->
                     <div class="flex items-center gap-2 ml-auto">
-                        <label class="text-gray-400 text-sm">Plan d'affichage:</label>
+                        <label class="text-gray-400 text-sm">Plan:</label>
                         <button onclick="changePlan('X')" class="plan-btn px-3 py-1 rounded text-sm {{ $plan === 'X' ? 'bg-yellow-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
                             X
                         </button>
@@ -109,117 +109,131 @@
                 <div class="flex items-center gap-4 text-xs text-gray-400">
                     <div><span class="text-yellow-400 font-bold">*</span> = Système stellaire</div>
                     <div><span class="text-gray-600">::</span> = Obstacles</div>
-                    <div><span class="text-gray-700">?</span> = Inconnu</div>
-                    <div><span class="text-gray-900">·</span> = Vide</div>
+                    <div class="text-gray-500">Cliquez sur une étoile pour voir les détails du secteur →</div>
                 </div>
             </div>
 
-            <!-- Carte -->
-            <div class="bg-black border border-gray-700 rounded-lg p-2 inline-block">
-                @php
-                    // Déterminer les axes en fonction du plan
-                    $halfSize = 50;
+            <!-- Two Maps Side by Side -->
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Carte Niveau 1: Vue Secteurs (100 AL × 100 AL) -->
+                <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
+                    <h2 class="text-lg font-bold text-cyan-400 mb-2">Niveau 1: Carte Univers (100 AL)</h2>
 
-                    // Configuration des axes selon le plan choisi
-                    if ($plan === 'Z') {
-                        // Plan XY (Z fixe)
-                        $hAxisLabel = 'X';
-                        $vAxisLabel = 'Y';
-                        $fixedAxis = 'Z';
-                        $fixedValue = $centerZ;
-                    } elseif ($plan === 'Y') {
-                        // Plan XZ (Y fixe)
-                        $hAxisLabel = 'X';
-                        $vAxisLabel = 'Z';
-                        $fixedAxis = 'Y';
-                        $fixedValue = $centerY;
-                    } else {
-                        // Plan YZ (X fixe)
-                        $hAxisLabel = 'Y';
-                        $vAxisLabel = 'Z';
-                        $fixedAxis = 'X';
-                        $fixedValue = $centerX;
-                    }
-                @endphp
+                    <div class="bg-black border border-gray-700 rounded p-2">
+                        @php
+                            // Déterminer les axes en fonction du plan
+                            $halfSize = 50;
 
-                <!-- Étiquettes des axes -->
-                <div class="text-xs text-gray-500 mb-1 text-center">
-                    {{ $hAxisLabel }} (horizontal) / {{ $vAxisLabel }} (vertical) | {{ $fixedAxis }} = {{ $fixedValue }} AL
-                </div>
+                            // Configuration des axes selon le plan choisi
+                            if ($plan === 'Z') {
+                                // Plan XY (Z fixe)
+                                $hAxisLabel = 'X';
+                                $vAxisLabel = 'Y';
+                                $fixedAxis = 'Z';
+                                $fixedValue = $centerZ;
+                            } elseif ($plan === 'Y') {
+                                // Plan XZ (Y fixe)
+                                $hAxisLabel = 'X';
+                                $vAxisLabel = 'Z';
+                                $fixedAxis = 'Y';
+                                $fixedValue = $centerY;
+                            } else {
+                                // Plan YZ (X fixe)
+                                $hAxisLabel = 'Y';
+                                $vAxisLabel = 'Z';
+                                $fixedAxis = 'X';
+                                $fixedValue = $centerX;
+                            }
+                        @endphp
 
-                <!-- Grille de la carte -->
-                <div class="font-mono text-xs leading-none" style="letter-spacing: 0;">
-                    @for($v = $halfSize - 1; $v >= -$halfSize; $v--)
-                        <div class="flex">
-                            @for($h = -$halfSize; $h < $halfSize; $h++)
-                                @php
-                                    // Calculer les coordonnées absolues selon le plan
-                                    if ($plan === 'Z') {
-                                        $absX = $centerX + $h;
-                                        $absY = $centerY + $v;
-                                        $absZ = $centerZ;
-                                    } elseif ($plan === 'Y') {
-                                        $absX = $centerX + $h;
-                                        $absY = $centerY;
-                                        $absZ = $centerZ + $v;
-                                    } else {
-                                        $absX = $centerX;
-                                        $absY = $centerY + $h;
-                                        $absZ = $centerZ + $v;
-                                    }
+                        <!-- Étiquettes des axes -->
+                        <div class="text-xs text-gray-500 mb-1 text-center">
+                            {{ $hAxisLabel }} (horizontal) / {{ $vAxisLabel }} (vertical) | {{ $fixedAxis }} = {{ $fixedValue }} AL
+                        </div>
 
-                                    // Convertir en coordonnées de secteur
-                                    $secteurX = floor($absX / 10);
-                                    $secteurY = floor($absY / 10);
-                                    $secteurZ = floor($absZ / 10);
+                        <!-- Grille de la carte -->
+                        <div class="font-mono text-xs leading-none" style="letter-spacing: 0;">
+                            @for($v = $halfSize - 1; $v >= -$halfSize; $v--)
+                                <div class="flex">
+                                    @for($h = -$halfSize; $h < $halfSize; $h++)
+                                        @php
+                                            // Calculer les coordonnées absolues selon le plan
+                                            if ($plan === 'Z') {
+                                                $absX = $centerX + $h;
+                                                $absY = $centerY + $v;
+                                                $absZ = $centerZ;
+                                            } elseif ($plan === 'Y') {
+                                                $absX = $centerX + $h;
+                                                $absY = $centerY;
+                                                $absZ = $centerZ + $v;
+                                            } else {
+                                                $absX = $centerX;
+                                                $absY = $centerY + $h;
+                                                $absZ = $centerZ + $v;
+                                            }
 
-                                    // Chercher un système dans ce secteur
-                                    $hasSystem = isset($grille[$secteurX][$secteurY][$secteurZ]);
+                                            // Convertir en coordonnées de secteur
+                                            $secteurX = floor($absX / 10);
+                                            $secteurY = floor($absY / 10);
+                                            $secteurZ = floor($absZ / 10);
 
-                                    if ($hasSystem) {
-                                        $systeme = $grille[$secteurX][$secteurY][$secteurZ];
-                                        // Vérifier si le système est proche de cette coordonnée AL
-                                        $sysAbsX = $systeme->secteur_x * 10 + $systeme->position_x;
-                                        $sysAbsY = $systeme->secteur_y * 10 + $systeme->position_y;
-                                        $sysAbsZ = $systeme->secteur_z * 10 + $systeme->position_z;
+                                            // Chercher un système dans ce secteur
+                                            $hasSystem = isset($grille[$secteurX][$secteurY][$secteurZ]);
 
-                                        // Afficher * si le système est à moins de 0.5 AL de cette position
-                                        $distance = sqrt(
-                                            pow($sysAbsX - $absX, 2) +
-                                            pow($sysAbsY - $absY, 2) +
-                                            pow($sysAbsZ - $absZ, 2)
-                                        );
+                                            if ($hasSystem) {
+                                                $systeme = $grille[$secteurX][$secteurY][$secteurZ];
+                                                // Vérifier si le système est proche de cette coordonnée AL
+                                                $sysAbsX = $systeme->secteur_x * 10 + $systeme->position_x;
+                                                $sysAbsY = $systeme->secteur_y * 10 + $systeme->position_y;
+                                                $sysAbsZ = $systeme->secteur_z * 10 + $systeme->position_z;
 
-                                        if ($distance < 1) {
-                                            $cellContent = '*';
-                                            $cellClass = 'text-yellow-400 cursor-pointer hover:bg-yellow-900/30 system-cell';
-                                            $cellTitle = "{$systeme->nom} (P: {$systeme->puissance})";
-                                            $cellData = "data-secteur-x='{$secteurX}' data-secteur-y='{$secteurY}' data-secteur-z='{$secteurZ}' data-is-system='true'";
-                                        } else {
-                                            $cellContent = '·';
-                                            $cellClass = 'text-gray-900 cursor-pointer hover:bg-gray-800';
-                                            $cellTitle = "AL: {$absX}, {$absY}, {$absZ}";
-                                            $cellData = "data-is-system='false'";
-                                        }
-                                    } else {
-                                        $cellContent = '·';
-                                        $cellClass = 'text-gray-900 cursor-pointer hover:bg-gray-800';
-                                        $cellTitle = "AL: {$absX}, {$absY}, {$absZ}";
-                                        $cellData = "data-is-system='false'";
-                                    }
-                                @endphp
-                                <span class="{{ $cellClass }}"
-                                      onclick="clickCell({{ $absX }}, {{ $absY }}, {{ $absZ }}, this)"
-                                      title="{{ $cellTitle }}"
-                                      {!! $cellData !!}>{{ $cellContent }}</span>
+                                                // Afficher * si le système est à moins de 1 AL de cette position
+                                                $distance = sqrt(
+                                                    pow($sysAbsX - $absX, 2) +
+                                                    pow($sysAbsY - $absY, 2) +
+                                                    pow($sysAbsZ - $absZ, 2)
+                                                );
+
+                                                if ($distance < 1) {
+                                                    $cellContent = '*';
+                                                    $cellClass = 'text-yellow-400 cursor-pointer hover:bg-yellow-900/30 system-cell';
+                                                    $cellTitle = "{$systeme->nom} (X:" . number_format($sysAbsX, 2) . " Y:" . number_format($sysAbsY, 2) . " Z:" . number_format($sysAbsZ, 2) . " P:{$systeme->puissance})";
+                                                    $cellData = "data-secteur-x='{$secteurX}' data-secteur-y='{$secteurY}' data-secteur-z='{$secteurZ}' data-system-id='{$systeme->id}' data-is-system='true'";
+                                                } else {
+                                                    $cellContent = '·';
+                                                    $cellClass = 'text-gray-900 cursor-pointer hover:bg-gray-800';
+                                                    $cellTitle = "AL: {$absX}, {$absY}, {$absZ}";
+                                                    $cellData = "data-is-system='false'";
+                                                }
+                                            } else {
+                                                $cellContent = '·';
+                                                $cellClass = 'text-gray-900 cursor-pointer hover:bg-gray-800';
+                                                $cellTitle = "AL: {$absX}, {$absY}, {$absZ}";
+                                                $cellData = "data-is-system='false'";
+                                            }
+                                        @endphp
+                                        <span class="{{ $cellClass }}"
+                                              onclick="clickCell({{ $absX }}, {{ $absY }}, {{ $absZ }}, this)"
+                                              title="{{ $cellTitle }}"
+                                              {!! $cellData !!}>{{ $cellContent }}</span>
+                                    @endfor
+                                </div>
                             @endfor
                         </div>
-                    @endfor
+
+                        <!-- Axe X en bas -->
+                        <div class="text-xs text-gray-600 mt-1 text-center">
+                            {{ $centerX - $halfSize }} ← {{ $hAxisLabel }} → {{ $centerX + $halfSize }} AL
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Axe X en bas -->
-                <div class="text-xs text-gray-600 mt-1 text-center">
-                    {{ $centerX - $halfSize }} ← {{ $hAxisLabel }} → {{ $centerX + $halfSize }} AL
+                <!-- Carte Niveau 2: Vue Secteur (10 AL × 10 AL) -->
+                <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
+                    <h2 class="text-lg font-bold text-yellow-400 mb-2">Niveau 2: Détail Secteur</h2>
+                    <div id="secteur-detail" class="text-center text-gray-500 py-8">
+                        Cliquez sur une étoile (*) dans la carte de gauche pour afficher les détails du secteur
+                    </div>
                 </div>
             </div>
         </main>
@@ -250,15 +264,32 @@ function clickCell(x, y, z, element) {
     const isSystem = element.dataset.isSystem === 'true';
 
     if (isSystem) {
-        // Si c'est un système, aller au niveau 2 (vue secteur)
+        // Si c'est un système, charger le niveau 2 via AJAX
         const secteurX = element.dataset.secteurX;
         const secteurY = element.dataset.secteurY;
         const secteurZ = element.dataset.secteurZ;
-        window.location.href = `/admin/carte/secteur/${secteurX}/${secteurY}/${secteurZ}`;
+        loadSecteurDetail(secteurX, secteurY, secteurZ);
     } else {
         // Sinon, juste recentrer la carte
         window.location.href = `/admin/carte?x=${x}&y=${y}&z=${z}&plan=${plan}`;
     }
+}
+
+// Charger les détails d'un secteur via AJAX
+function loadSecteurDetail(x, y, z) {
+    const detailDiv = document.getElementById('secteur-detail');
+    detailDiv.innerHTML = '<div class="text-cyan-400 py-8">Chargement...</div>';
+
+    fetch(`/admin/carte/secteur/${x}/${y}/${z}`)
+        .then(response => response.text())
+        .then(html => {
+            // La vue retourne directement le HTML sans layout
+            detailDiv.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            detailDiv.innerHTML = '<div class="text-red-400 py-8">Erreur de chargement</div>';
+        });
 }
 
 // Support clavier pour navigation
