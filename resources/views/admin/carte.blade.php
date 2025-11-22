@@ -94,6 +94,21 @@
                         <button onclick="navigateToCoords()" class="bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-1 rounded text-sm">
                             Aller
                         </button>
+
+                        <!-- Navigation rapide -->
+                        <div class="flex items-center gap-1 ml-2 text-xs">
+                            @if($positionActuelle)
+                            <a href="{{ route('admin.carte', ['x' => $positionActuelle['x'], 'y' => $positionActuelle['y'], 'z' => $positionActuelle['z'], 'plan' => $plan]) }}"
+                               class="text-green-400 hover:text-green-300 underline">
+                                Position actuelle
+                            </a>
+                            <span class="text-gray-600">|</span>
+                            @endif
+                            <a href="{{ route('admin.carte', ['x' => 0, 'y' => 0, 'z' => 0, 'plan' => $plan]) }}"
+                               class="text-yellow-400 hover:text-yellow-300 underline">
+                                Sol
+                            </a>
+                        </div>
                     </div>
 
                     <!-- Sélection du plan -->

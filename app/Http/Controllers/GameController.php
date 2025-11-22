@@ -7,6 +7,7 @@ use App\Models\Arme;
 use App\Models\Bouclier;
 use App\Models\Combat;
 use App\Models\Compte;
+use App\Models\Decouverte;
 use App\Models\Ennemi;
 use App\Models\Faction;
 use App\Models\Gisement;
@@ -70,6 +71,9 @@ class GameController extends Controller
             'derniere_recuperation_pa' => null, // Démarre à la première dépense
         ]);
 
+        // Créer automatiquement les découvertes du Système Solaire (PoI connus)
+        $this->creerDecouvertesSolaires($personnage);
+
         // Si c'est le premier personnage, le définir comme principal
         if (!$compte->perso_principal) {
             $compte->perso_principal = $personnage->id;
@@ -78,6 +82,31 @@ class GameController extends Controller
 
         return redirect()->route('personnage.selection')
             ->with('success', 'Personnage créé avec succès !');
+    }
+
+    /**
+     * Créer automatiquement les découvertes du Système Solaire pour un nouveau personnage
+     */
+    protected function creerDecouvertesSolaires(Personnage $personnage): void
+    {
+        // Récupérer tous les systèmes stellaires avec poi_connu = true
+        $systemesConnus = SystemeStellaire::where('poi_connu', true)->get();
+
+        foreach ($systemesConnus as $systeme) {
+            // Créer la découverte complète (comme si déjà connu au départ)
+            Decouverte::create([
+                'personnage_id' => $personnage->id,
+                'systeme_stellaire_id' => $systeme->id,
+                'resultat_scan' => 9999, // Score max pour découverte automatique
+                'seuil_detection' => 0, // Pas de seuil pour PoI connus
+                'distance_decouverte' => 0.0,
+                'decouvert_a' => now(),
+                'coordonnees_connues' => true,
+                'type_etoile_connu' => true,
+                'nb_planetes_connu' => true,
+                'visite' => false, // Pas encore visité physiquement
+            ]);
+        }
     }
 
     public function activerPersonnage(Request $request, Personnage $personnage)

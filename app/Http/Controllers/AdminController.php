@@ -245,7 +245,22 @@ class AdminController extends Controller
             $grille[$secteurX][$secteurY][$secteurZ] = $systeme;
         }
 
-        return view('admin.carte', compact('centerX', 'centerY', 'centerZ', 'plan', 'size', 'grille'));
+        // Récupérer la position actuelle du personnage principal du compte admin (si existe)
+        $positionActuelle = null;
+        $compte = $request->user();
+        if ($compte && $compte->personnagePrincipal) {
+            $personnage = $compte->personnagePrincipal;
+            if ($personnage->vaisseauActif && $personnage->vaisseauActif->objetSpatial) {
+                $objet = $personnage->vaisseauActif->objetSpatial;
+                $positionActuelle = [
+                    'x' => round($objet->secteur_x * 10 + $objet->position_x),
+                    'y' => round($objet->secteur_y * 10 + $objet->position_y),
+                    'z' => round($objet->secteur_z * 10 + $objet->position_z),
+                ];
+            }
+        }
+
+        return view('admin.carte', compact('centerX', 'centerY', 'centerZ', 'plan', 'size', 'grille', 'positionActuelle'));
     }
 
     /**
