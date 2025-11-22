@@ -138,7 +138,7 @@
             <div class="grid grid-cols-2 gap-4">
                 <!-- Carte Niveau 1: Vue Secteurs (100 AL × 100 AL) -->
                 <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
-                    <h2 class="text-lg font-bold text-cyan-400 mb-2">Carte Univers (100 AL)</h2>
+                    <h2 class="text-lg font-bold text-cyan-400 mb-2">Carte Univers (100 AL) <span class="text-xs text-gray-500">({{ count($grille) > 0 ? array_sum(array_map(fn($x) => count($x), array_map(fn($x) => array_merge(...array_values($x)), array_values($grille)))) : 0 }} systèmes)</span></h2>
 
                     <div class="bg-black border border-gray-700 rounded p-2 relative">
                         @php
@@ -208,21 +208,16 @@
 
                                             if ($hasSystem) {
                                                 $systeme = $grille[$secteurX][$secteurY][$secteurZ];
-                                                // Coordonnées absolues du système
-                                                $sysAbsX = $systeme->secteur_x * 10 + $systeme->position_x;
-                                                $sysAbsY = $systeme->secteur_y * 10 + $systeme->position_y;
-                                                $sysAbsZ = $systeme->secteur_z * 10 + $systeme->position_z;
+                                                // Coordonnées absolues du système (entières)
+                                                $sysAbsX = intval($systeme->secteur_x * 10 + $systeme->position_x);
+                                                $sysAbsY = intval($systeme->secteur_y * 10 + $systeme->position_y);
+                                                $sysAbsZ = intval($systeme->secteur_z * 10 + $systeme->position_z);
 
-                                                // Arrondir les coordonnées du système pour trouver la cellule AL la plus proche
-                                                $nearestCellX = round($sysAbsX);
-                                                $nearestCellY = round($sysAbsY);
-                                                $nearestCellZ = round($sysAbsZ);
-
-                                                // Afficher * seulement sur la cellule AL la plus proche du système
-                                                if ($absX == $nearestCellX && $absY == $nearestCellY && $absZ == $nearestCellZ) {
+                                                // Afficher * sur la cellule AL entière du système
+                                                if ($absX == $sysAbsX && $absY == $sysAbsY && $absZ == $sysAbsZ) {
                                                     $cellContent = '*';
                                                     $cellClass = 'text-yellow-400 cursor-pointer hover:bg-yellow-900/30 system-cell';
-                                                    $cellTitle = "{$systeme->nom} (X:" . number_format($sysAbsX, 2) . " Y:" . number_format($sysAbsY, 2) . " Z:" . number_format($sysAbsZ, 2) . " P:{$systeme->puissance})";
+                                                    $cellTitle = "{$systeme->nom} (X:{$sysAbsX} Y:{$sysAbsY} Z:{$sysAbsZ} P:{$systeme->puissance})";
                                                     $cellData = "data-secteur-x='{$secteurX}' data-secteur-y='{$secteurY}' data-secteur-z='{$secteurZ}' data-system-id='{$systeme->id}' data-is-system='true'";
                                                 } else {
                                                     $cellContent = '·';
