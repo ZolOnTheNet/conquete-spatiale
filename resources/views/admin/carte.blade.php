@@ -323,8 +323,33 @@ function loadSecteurDetail(x, y, z) {
     fetch(`/admin/carte/secteur/${x}/${y}/${z}`)
         .then(response => response.text())
         .then(html => {
-            // La vue retourne directement le HTML sans layout
-            detailDiv.innerHTML = html;
+            // Créer un élément temporaire pour parser le HTML
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+
+            // Extraire et supprimer tous les scripts
+            const scripts = temp.querySelectorAll('script');
+            const scriptContents = [];
+            scripts.forEach(script => {
+                scriptContents.push(script.textContent);
+                script.remove();
+            });
+
+            // Injecter le HTML sans les scripts
+            detailDiv.innerHTML = temp.innerHTML;
+
+            // Exécuter les scripts dans l'ordre
+            scriptContents.forEach(scriptContent => {
+                try {
+                    const scriptEl = document.createElement('script');
+                    scriptEl.textContent = scriptContent;
+                    document.body.appendChild(scriptEl);
+                    // Nettoyer immédiatement
+                    document.body.removeChild(scriptEl);
+                } catch (e) {
+                    console.error('Error executing script:', e);
+                }
+            });
         })
         .catch(error => {
             console.error('Error:', error);
