@@ -204,6 +204,66 @@ class AdminController extends Controller
     }
 
     /**
+     * Carte de l'univers - Niveau 1 (vue des secteurs)
+     */
+    public function carte(Request $request)
+    {
+        // Coordonnées centrales (par défaut 0,0,0)
+        $centerX = $request->input('x', 0);
+        $centerY = $request->input('y', 0);
+        $centerZ = $request->input('z', 0);
+
+        // Plan d'affichage (par défaut Z - affiche plan XY)
+        $plan = $request->input('plan', 'Z');
+
+        // Taille de la carte (100 AL × 100 AL)
+        $size = 100;
+        $halfSize = 50;
+
+        // Charger tous les systèmes stellaires dans la zone
+        // Convertir les coordonnées secteur en coordonnées absolues
+        $systemes = SystemeStellaire::all()->map(function($systeme) {
+            $systeme->abs_x = $systeme->secteur_x * 10 + $systeme->position_x;
+            $systeme->abs_y = $systeme->secteur_y * 10 + $systeme->position_y;
+            $systeme->abs_z = $systeme->secteur_z * 10 + $systeme->position_z;
+            return $systeme;
+        });
+
+        // Créer un index par coordonnées de secteur pour accès rapide
+        $grille = [];
+        foreach ($systemes as $systeme) {
+            $secteurX = $systeme->secteur_x;
+            $secteurY = $systeme->secteur_y;
+            $secteurZ = $systeme->secteur_z;
+
+            if (!isset($grille[$secteurX])) {
+                $grille[$secteurX] = [];
+            }
+            if (!isset($grille[$secteurX][$secteurY])) {
+                $grille[$secteurX][$secteurY] = [];
+            }
+            $grille[$secteurX][$secteurY][$secteurZ] = $systeme;
+        }
+
+        return view('admin.carte', compact('centerX', 'centerY', 'centerZ', 'plan', 'size', 'grille'));
+    }
+
+    /**
+     * Carte de l'univers - Niveau 2 (vue intra-secteur)
+     */
+    public function carteSecteur($x, $y, $z)
+    {
+        // Récupérer tous les systèmes dans ce secteur
+        $systemes = SystemeStellaire::where('secteur_x', $x)
+            ->where('secteur_y', $y)
+            ->where('secteur_z', $z)
+            ->with(['planetes'])
+            ->get();
+
+        return view('admin.carte-secteur', compact('x', 'y', 'z', 'systemes'));
+    }
+
+    /**
      * Gestion des backups
      */
     public function backup()

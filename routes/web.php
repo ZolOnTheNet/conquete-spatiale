@@ -46,6 +46,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/planetes', [AdminController::class, 'planetes'])->name('planetes');
         Route::get('/production', [AdminController::class, 'production'])->name('production');
         Route::post('/production/gisement/{id}', [AdminController::class, 'updateGisement'])->name('production.update');
+        Route::get('/carte', [AdminController::class, 'carte'])->name('carte');
+        Route::get('/carte/secteur/{x}/{y}/{z}', [AdminController::class, 'carteSecteur'])->name('carte.secteur');
         Route::get('/backup', [AdminController::class, 'backup'])->name('backup');
     });
 });
