@@ -2768,4 +2768,100 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
 
         return ['success' => true, 'message' => $message];
     }
+
+    // ========== CARTE DE L'UNIVERS ==========
+
+    /**
+     * Afficher la carte de l'univers (systèmes découverts uniquement)
+     */
+    public function carte(Request $request)
+    {
+        $personnage = $request->attributes->get('personnage');
+
+        if (!$personnage) {
+            return redirect()->route('personnage.selection')
+                ->with('error', 'Veuillez sélectionner un personnage');
+        }
+
+        // Paramètres de la carte
+        $plan = $request->get('plan', 'Y'); // Y, X ou Z
+        $centerX = (int) $request->get('x', 0);
+        $centerY = (int) $request->get('y', 0);
+        $centerZ = (int) $request->get('z', 0);
+
+        // Récupérer tous les systèmes découverts par le personnage
+        $decouvertes = $personnage->decouvertes()->with('systemeStellaire')->get();
+
+        // Construire la grille des systèmes découverts
+        $grille = [];
+        foreach ($decouvertes as $decouverte) {
+            $systeme = $decouverte->systemeStellaire;
+            if ($systeme) {
+                $grille[$systeme->secteur_x][$systeme->secteur_y][$systeme->secteur_z] = $systeme;
+            }
+        }
+
+        // Position actuelle du personnage (si disponible)
+        $positionActuelle = null;
+        if ($personnage->vaisseauActif) {
+            $objet = $personnage->vaisseauActif->objetSpatial;
+            if ($objet) {
+                $positionActuelle = [
+                    'x' => (int) ($objet->secteur_x * 10 + $objet->position_x),
+                    'y' => (int) ($objet->secteur_y * 10 + $objet->position_y),
+                    'z' => (int) ($objet->secteur_z * 10 + $objet->position_z),
+                ];
+            }
+        }
+
+        return view('game.carte', compact(
+            'grille',
+            'plan',
+            'centerX',
+            'centerY',
+            'centerZ',
+            'positionActuelle',
+            'personnage'
+        ));
+    }
+
+    /**
+     * Afficher les détails d'un secteur (systèmes découverts uniquement)
+     */
+    public function carteSecteur(Request $request, $x, $y, $z)
+    {
+        $personnage = $request->attributes->get('personnage');
+
+        if (!$personnage) {
+            return response('Personnage introuvable', 404);
+        }
+
+        // Récupérer tous les systèmes découverts dans ce secteur
+        $systemesDecouverts = $personnage->decouvertes()
+            ->with('systemeStellaire')
+            ->get()
+            ->pluck('systemeStellaire')
+            ->filter(function($systeme) use ($x, $y, $z) {
+                return $systeme &&
+                       $systeme->secteur_x == $x &&
+                       $systeme->secteur_y == $y &&
+                       $systeme->secteur_z == $z;
+            });
+
+        // Charger les relations pour chaque système découvert
+        $systemes = collect();
+        foreach ($systemesDecouverts as $systeme) {
+            $systemeWithRelations = \App\Models\SystemeStellaire::where('id', $systeme->id)
+                ->with([
+                    'planetes.gisements.ressource',
+                    'planetes.stations'
+                ])
+                ->first();
+            if ($systemeWithRelations) {
+                $systemes->push($systemeWithRelations);
+            }
+        }
+
+        return view('game.carte-secteur', compact('x', 'y', 'z', 'systemes', 'personnage'));
+    }
 }

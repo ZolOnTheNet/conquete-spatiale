@@ -29,6 +29,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [GameController::class, 'dashboard'])->name('dashboard');
         Route::post('/command', [GameController::class, 'executeCommand'])->name('command');
 
+        // Carte de l'univers (systèmes découverts)
+        Route::get('/carte', [GameController::class, 'carte'])->name('carte');
+        Route::get('/carte/secteur/{x}/{y}/{z}', [GameController::class, 'carteSecteur'])->name('carte.secteur');
+
         // API AJAX pour panneaux
         Route::get('/api/status', [GameController::class, 'apiGetStatus'])->name('api.status');
         Route::get('/api/vaisseau', [GameController::class, 'apiGetVaisseau'])->name('api.vaisseau');
