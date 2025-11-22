@@ -217,11 +217,23 @@
 
             <!-- Gisements de la planète -->
             <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-6 mb-6">
+                @php
+                    // Accéder à la relation via getRelation pour éviter conflit avec attribut
+                    try {
+                        $gisementsRelation = $planete->getRelation('gisements');
+                    } catch (\Exception $e) {
+                        $gisementsRelation = collect();
+                    }
+                    if (!$gisementsRelation) {
+                        $gisementsRelation = collect();
+                    }
+                @endphp
+
                 <h2 class="text-xl font-bold text-white mb-4">
-                    Gisements ({{ $planete->gisements->count() }})
+                    Gisements ({{ $gisementsRelation->count() }})
                 </h2>
 
-                @if($planete->gisements->count() > 0)
+                @if($gisementsRelation->count() > 0)
                 <div class="mt-1">
                     <table class="w-full text-xs">
                         <thead class="text-gray-500 border-b border-gray-700/50">
@@ -234,7 +246,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-700/30">
-                            @foreach($planete->gisements as $gisement)
+                            @foreach($gisementsRelation as $gisement)
                             <tr class="hover:bg-gray-700/20" data-gisement-id="{{ $gisement->id }}">
                                 <!-- Type ressource -->
                                 <td class="py-2 px-2">
@@ -317,14 +329,25 @@
             </div>
 
             <!-- Stations orbitales -->
-            @if($planete->stations && $planete->stations->count() > 0)
+            @php
+                // Accéder à la relation via getRelation pour éviter conflit avec attribut
+                try {
+                    $stationsRelation = $planete->getRelation('stations');
+                } catch (\Exception $e) {
+                    $stationsRelation = collect();
+                }
+                if (!$stationsRelation) {
+                    $stationsRelation = collect();
+                }
+            @endphp
+            @if($stationsRelation->count() > 0)
             <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-6">
                 <h2 class="text-xl font-bold text-white mb-4">
-                    Stations orbitales ({{ $planete->stations->count() }})
+                    Stations orbitales ({{ $stationsRelation->count() }})
                 </h2>
 
                 <div class="space-y-2">
-                    @foreach($planete->stations as $station)
+                    @foreach($stationsRelation as $station)
                     <div class="bg-gray-900/50 border border-gray-600 rounded p-3">
                         <div class="flex items-center justify-between">
                             <div>

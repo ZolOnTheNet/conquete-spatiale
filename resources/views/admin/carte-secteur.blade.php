@@ -148,80 +148,32 @@
             </div>
         </div>
 
-        <script>
-        // État du zoom pour chaque système
-        const zoomStates = {};
-
-        // Initialiser l'état du zoom pour ce système
-        if (!zoomStates['{{ $systeme->id }}']) {
-            zoomStates['{{ $systeme->id }}'] = {
-                scale: 1.0,
-                centerX: 300,
-                centerY: 300,
-                viewBoxWidth: 600,
-                viewBoxHeight: 600
-            };
-        }
-
-        function updateViewBox(systemeId) {
-            const state = zoomStates[systemeId];
-            const svg = document.getElementById('sector-map-' + systemeId);
-
-            // Calculer les dimensions du viewBox en fonction du zoom
-            const width = state.viewBoxWidth / state.scale;
-            const height = state.viewBoxHeight / state.scale;
-
-            // Calculer les coordonnées du coin supérieur gauche pour centrer sur centerX, centerY
-            const x = state.centerX - (width / 2);
-            const y = state.centerY - (height / 2);
-
-            svg.setAttribute('viewBox', `${x} ${y} ${width} ${height}`);
-
-            // Mettre à jour l'affichage du niveau de zoom
-            const zoomPercent = Math.round(state.scale * 100);
-            document.getElementById('zoom-level-' + systemeId).textContent = zoomPercent + '%';
-        }
-
-        function zoomIn(systemeId) {
-            const state = zoomStates[systemeId];
-            state.scale = Math.min(state.scale * 1.1, 10); // Max 10x
-            updateViewBox(systemeId);
-        }
-
-        function zoomOut(systemeId) {
-            const state = zoomStates[systemeId];
-            state.scale = Math.max(state.scale / 1.1, 0.5); // Min 0.5x
-            updateViewBox(systemeId);
-        }
-
-        function resetZoom(systemeId) {
-            const state = zoomStates[systemeId];
-            state.scale = 1.0;
-            state.centerX = 300;
-            state.centerY = 300;
-            updateViewBox(systemeId);
-        }
-
-        function zoomToPlanet(planetX, planetY, systemeId) {
-            const state = zoomStates[systemeId];
-
-            // Centrer sur la planète
-            state.centerX = planetX;
-            state.centerY = planetY;
-
-            // Zoomer à 200% (2x)
-            state.scale = 2.0;
-
-            updateViewBox(systemeId);
-        }
-        </script>
-
         <!-- Liste des planètes avec détails complets -->
         @if($systeme->planetes->count() > 0)
         <div class="mt-3">
             <h4 class="text-xs font-bold text-gray-400 mb-2">Planètes du système ({{ $systeme->planetes->count() }}):</h4>
             <div class="space-y-2">
                 @foreach($systeme->planetes as $planete)
+                @php
+                    // Accéder aux relations via getRelation pour éviter conflit avec attributs
+                    try {
+                        $gisementsRelation = $planete->getRelation('gisements');
+                    } catch (\Exception $e) {
+                        $gisementsRelation = collect();
+                    }
+                    if (!$gisementsRelation) {
+                        $gisementsRelation = collect();
+                    }
+
+                    try {
+                        $stationsRelation = $planete->getRelation('stations');
+                    } catch (\Exception $e) {
+                        $stationsRelation = collect();
+                    }
+                    if (!$stationsRelation) {
+                        $stationsRelation = collect();
+                    }
+                @endphp
                 <div class="bg-gray-900/50 border border-gray-700 rounded p-3 text-xs hover:border-cyan-500 transition-colors">
                     <div class="flex items-center justify-between mb-2">
                         <div class="font-bold text-cyan-400 text-sm">
@@ -261,11 +213,11 @@
                     @endif
 
                     <!-- Gisements de la planète -->
-                    @if($planete->gisements && $planete->gisements->count() > 0)
+                    @if($gisementsRelation->count() > 0)
                     <div class="mt-2 pt-2 border-t border-gray-700">
-                        <div class="text-gray-500 text-xs mb-1">Gisements ({{ $planete->gisements->count() }}):</div>
+                        <div class="text-gray-500 text-xs mb-1">Gisements ({{ $gisementsRelation->count() }}):</div>
                         <div class="grid grid-cols-2 gap-1">
-                            @foreach($planete->gisements as $gisement)
+                            @foreach($gisementsRelation as $gisement)
                             <div class="bg-gray-800/50 rounded px-2 py-1 text-xs">
                                 <span class="text-yellow-400">{{ $gisement->ressource->nom }}</span>
                                 <span class="text-gray-500">x{{ $gisement->quantite }}</span>
@@ -281,11 +233,11 @@
                     @endif
 
                     <!-- Stations orbitales -->
-                    @if($planete->stations && $planete->stations->count() > 0)
+                    @if($stationsRelation->count() > 0)
                     <div class="mt-2 pt-2 border-t border-gray-700">
-                        <div class="text-gray-500 text-xs mb-1">Stations orbitales ({{ $planete->stations->count() }}):</div>
+                        <div class="text-gray-500 text-xs mb-1">Stations orbitales ({{ $stationsRelation->count() }}):</div>
                         <div class="space-y-1">
-                            @foreach($planete->stations as $station)
+                            @foreach($stationsRelation as $station)
                             <div class="bg-gray-800/50 rounded px-2 py-1 text-xs text-cyan-400">
                                 {{ $station->nom }} - {{ $station->type }}
                             </div>
@@ -306,3 +258,87 @@
         <div class="text-gray-500 text-sm">Aucun système stellaire dans le secteur ({{ $x }}, {{ $y }}, {{ $z }})</div>
     </div>
 @endif
+
+<script>
+// État du zoom pour chaque système (déclaré une seule fois)
+const zoomStates = {};
+
+// Initialiser tous les systèmes de la page
+@if($systemes->count() > 0)
+    @foreach($systemes as $systeme)
+    zoomStates['{{ $systeme->id }}'] = {
+        scale: 1.0,
+        centerX: 300,
+        centerY: 300,
+        viewBoxWidth: 600,
+        viewBoxHeight: 600
+    };
+    @endforeach
+@endif
+
+// Fonctions de gestion du zoom (déclarées une seule fois)
+function updateViewBox(systemeId) {
+    const state = zoomStates[systemeId];
+    if (!state) return;
+
+    const svg = document.getElementById('sector-map-' + systemeId);
+    if (!svg) return;
+
+    // Calculer les dimensions du viewBox en fonction du zoom
+    const width = state.viewBoxWidth / state.scale;
+    const height = state.viewBoxHeight / state.scale;
+
+    // Calculer les coordonnées du coin supérieur gauche pour centrer sur centerX, centerY
+    const x = state.centerX - (width / 2);
+    const y = state.centerY - (height / 2);
+
+    svg.setAttribute('viewBox', `${x} ${y} ${width} ${height}`);
+
+    // Mettre à jour l'affichage du niveau de zoom
+    const zoomPercent = Math.round(state.scale * 100);
+    const zoomLevelEl = document.getElementById('zoom-level-' + systemeId);
+    if (zoomLevelEl) {
+        zoomLevelEl.textContent = zoomPercent + '%';
+    }
+}
+
+function zoomIn(systemeId) {
+    const state = zoomStates[systemeId];
+    if (!state) return;
+
+    state.scale = Math.min(state.scale * 1.1, 10); // Max 10x
+    updateViewBox(systemeId);
+}
+
+function zoomOut(systemeId) {
+    const state = zoomStates[systemeId];
+    if (!state) return;
+
+    state.scale = Math.max(state.scale / 1.1, 0.5); // Min 0.5x
+    updateViewBox(systemeId);
+}
+
+function resetZoom(systemeId) {
+    const state = zoomStates[systemeId];
+    if (!state) return;
+
+    state.scale = 1.0;
+    state.centerX = 300;
+    state.centerY = 300;
+    updateViewBox(systemeId);
+}
+
+function zoomToPlanet(planetX, planetY, systemeId) {
+    const state = zoomStates[systemeId];
+    if (!state) return;
+
+    // Centrer sur la planète
+    state.centerX = planetX;
+    state.centerY = planetY;
+
+    // Zoomer à 200% (2x)
+    state.scale = 2.0;
+
+    updateViewBox(systemeId);
+}
+</script>
