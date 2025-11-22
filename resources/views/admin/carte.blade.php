@@ -41,18 +41,8 @@
 
 /* Affichage des coordonnées survolées */
 #coord-hover-display {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: rgba(0, 0, 0, 0.9);
-    border: 2px solid #fbbf24;
-    padding: 6px 10px;
-    border-radius: 4px;
-    font-family: monospace;
-    font-size: 12px;
     color: #fbbf24;
-    z-index: 1000;
-    min-width: 150px;
+    white-space: nowrap;
 }
 </style>
 
@@ -133,13 +123,15 @@
             <div class="grid grid-cols-2 gap-4">
                 <!-- Carte Niveau 1: Vue Secteurs (100 AL × 100 AL) -->
                 <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
-                    <h2 class="text-lg font-bold text-cyan-400 mb-2">Niveau 1: Carte Univers (100 AL)</h2>
-
-                    <div class="bg-black border border-gray-700 rounded p-2 relative">
+                    <div class="flex items-center justify-between mb-2 relative">
+                        <h2 class="text-lg font-bold text-cyan-400">Carte Univers (100 AL)</h2>
                         <!-- Affichage des coordonnées survolées -->
-                        <div id="coord-hover-display">
+                        <div id="coord-hover-display" class="text-lg">
                             Survolez la carte
                         </div>
+                    </div>
+
+                    <div class="bg-black border border-gray-700 rounded p-2 relative">
                         @php
                             // Déterminer les axes en fonction du plan
                             $halfSize = 50;
@@ -253,7 +245,7 @@
 
                 <!-- Carte Niveau 2: Vue Secteur (10 AL × 10 AL) -->
                 <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
-                    <h2 class="text-lg font-bold text-yellow-400 mb-2">Niveau 2: Détail Secteur</h2>
+                    <h2 class="text-lg font-bold text-yellow-400 mb-2">Détail Secteur</h2>
                     <div id="secteur-detail" class="text-center text-gray-500 py-8">
                         Cliquez sur une étoile (*) dans la carte de gauche pour afficher les détails du secteur
                     </div>
@@ -277,13 +269,7 @@ function updateCoordDisplay(x, y, z, cellContent) {
         contentDesc = '<span class="text-gray-400">○ Vide</span>';
     }
 
-    display.innerHTML = `
-        <div class="font-bold text-cyan-300 mb-1">Coordonnées:</div>
-        <div>X: ${x} AL</div>
-        <div>Y: ${y} AL</div>
-        <div>Z: ${z} AL</div>
-        <div class="mt-1 pt-1 border-t border-gray-600">${contentDesc}</div>
-    `;
+    display.innerHTML = `X: ${x} Y: ${y} Z: ${z} | ${contentDesc}`;
 }
 
 // Navigation vers des coordonnées spécifiques
