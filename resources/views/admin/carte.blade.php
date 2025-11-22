@@ -123,13 +123,7 @@
             <div class="grid grid-cols-2 gap-4">
                 <!-- Carte Niveau 1: Vue Secteurs (100 AL × 100 AL) -->
                 <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
-                    <div class="flex items-center justify-between mb-2 relative">
-                        <h2 class="text-lg font-bold text-cyan-400">Carte Univers (100 AL)</h2>
-                        <!-- Affichage des coordonnées survolées -->
-                        <div id="coord-hover-display" class="text-lg">
-                            Survolez la carte
-                        </div>
-                    </div>
+                    <h2 class="text-lg font-bold text-cyan-400 mb-2">Carte Univers (100 AL)</h2>
 
                     <div class="bg-black border border-gray-700 rounded p-2 relative">
                         @php
@@ -158,9 +152,14 @@
                             }
                         @endphp
 
-                        <!-- Étiquettes des axes -->
-                        <div class="text-xs text-gray-500 mb-1 text-center">
-                            {{ $hAxisLabel }} (horizontal) / {{ $vAxisLabel }} (vertical) | {{ $fixedAxis }} = {{ $fixedValue }} AL
+                        <!-- Étiquettes des axes et coordonnées survolées -->
+                        <div class="text-xs text-gray-500 mb-1 flex items-center justify-between">
+                            <div>
+                                {{ $hAxisLabel }} (horizontal) / {{ $vAxisLabel }} (vertical) | {{ $fixedAxis }} = {{ $fixedValue }} AL
+                            </div>
+                            <div id="coord-hover-display" class="text-xs text-yellow-400">
+                                Survolez la carte
+                            </div>
                         </div>
 
                         <!-- Grille de la carte -->
