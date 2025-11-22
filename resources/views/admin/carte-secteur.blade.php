@@ -1,49 +1,3 @@
-@extends('layouts.app')
-
-@section('title', 'Admin - Carte Secteur')
-
-@section('content')
-<div class="min-h-screen flex flex-col">
-    <!-- Header -->
-    <header class="bg-gray-900/90 border-b border-red-500/30 px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-4">
-            <h1 class="text-2xl font-orbitron text-red-400">SECTEUR ({{ $x }}, {{ $y }}, {{ $z }})</h1>
-        </div>
-        <a href="{{ route('admin.carte') }}" class="text-cyan-400 hover:text-cyan-300 text-sm">
-            ← Retour à la carte
-        </a>
-    </header>
-
-    <div class="flex-1 flex">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-gray-900/80 border-r border-red-500/20 p-4">
-            <nav class="space-y-2">
-                <a href="{{ route('admin.index') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Dashboard
-                </a>
-                <a href="{{ route('admin.comptes') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Comptes
-                </a>
-                <a href="{{ route('admin.univers') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Univers
-                </a>
-                <a href="{{ route('admin.planetes') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Planètes
-                </a>
-                <a href="{{ route('admin.production') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Productions
-                </a>
-                <a href="{{ route('admin.carte') }}" class="block px-4 py-2 rounded bg-red-500/20 text-red-300">
-                    Carte
-                </a>
-                <a href="{{ route('admin.backup') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Backup
-                </a>
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="flex-1 p-6">
 @if($systemes->count() > 0)
     @foreach($systemes as $systeme)
     <div class="mb-4">
@@ -146,7 +100,7 @@
                     <!-- Planète -->
                     <circle cx="{{ $planetX }}" cy="{{ $planetY }}" r="6" fill="{{ $planetColor }}" stroke="white" stroke-width="1.5"
                             class="planet-clickable" style="cursor: pointer;"
-                            onclick="zoomToPlanet({{ $planetX }}, {{ $planetY }}, '{{ $systeme->id }}')"
+                            onclick="zoomToPlanet_{{ $systeme->id }}({{ $planetX }}, {{ $planetY }})"
                             onmouseover="this.setAttribute('r', 8)"
                             onmouseout="this.setAttribute('r', 6)"/>
                     <text x="{{ $planetX }}" y="{{ $planetY - 12 }}" fill="white" font-size="9" text-anchor="middle"
@@ -173,17 +127,17 @@
 
             <!-- Contrôles de zoom (en bas à droite du SVG) -->
             <div class="absolute bottom-4 right-4 flex flex-col gap-1 bg-gray-900/80 border border-gray-600 rounded p-1">
-                <button onclick="zoomIn('{{ $systeme->id }}')"
+                <button onclick="zoomIn_{{ $systeme->id }}()"
                         class="w-8 h-8 bg-cyan-600 hover:bg-cyan-700 text-white rounded text-sm font-bold"
                         title="Zoom avant (+10%)">
                     +
                 </button>
-                <button onclick="zoomOut('{{ $systeme->id }}')"
+                <button onclick="zoomOut_{{ $systeme->id }}()"
                         class="w-8 h-8 bg-cyan-600 hover:bg-cyan-700 text-white rounded text-sm font-bold"
                         title="Zoom arrière (-10%)">
                     −
                 </button>
-                <button onclick="resetZoom('{{ $systeme->id }}')"
+                <button onclick="resetZoom_{{ $systeme->id }}()"
                         class="w-8 h-8 bg-yellow-600 hover:bg-yellow-700 text-white rounded text-xs font-bold"
                         title="Réinitialiser la vue">
                     R
@@ -193,6 +147,70 @@
                 </div>
             </div>
         </div>
+
+        <script>
+        // État du zoom pour ce système spécifique
+        (function() {
+            const systemeId = '{{ $systeme->id }}';
+            const state = {
+                scale: 1.0,
+                centerX: 300,
+                centerY: 300,
+                viewBoxWidth: 600,
+                viewBoxHeight: 600
+            };
+
+            function updateViewBox() {
+                const svg = document.getElementById('sector-map-' + systemeId);
+                if (!svg) return;
+
+                // Calculer les dimensions du viewBox en fonction du zoom
+                const width = state.viewBoxWidth / state.scale;
+                const height = state.viewBoxHeight / state.scale;
+
+                // Calculer les coordonnées du coin supérieur gauche pour centrer sur centerX, centerY
+                const x = state.centerX - (width / 2);
+                const y = state.centerY - (height / 2);
+
+                svg.setAttribute('viewBox', x + ' ' + y + ' ' + width + ' ' + height);
+
+                // Mettre à jour l'affichage du niveau de zoom
+                const zoomPercent = Math.round(state.scale * 100);
+                const zoomLevelEl = document.getElementById('zoom-level-' + systemeId);
+                if (zoomLevelEl) {
+                    zoomLevelEl.textContent = zoomPercent + '%';
+                }
+            }
+
+            window['zoomIn_' + systemeId] = function() {
+                state.scale = Math.min(state.scale * 1.1, 10); // Max 10x
+                updateViewBox();
+            };
+
+            window['zoomOut_' + systemeId] = function() {
+                state.scale = Math.max(state.scale / 1.1, 0.5); // Min 0.5x
+                updateViewBox();
+            };
+
+            window['resetZoom_' + systemeId] = function() {
+                state.scale = 1.0;
+                state.centerX = 300;
+                state.centerY = 300;
+                updateViewBox();
+            };
+
+            window['zoomToPlanet_' + systemeId] = function(planetX, planetY) {
+                // Centrer sur la planète
+                state.centerX = planetX;
+                state.centerY = planetY;
+
+                // Zoomer à 200% (2x)
+                state.scale = 2.0;
+
+                updateViewBox();
+            };
+        })();
+        </script>
 
         <!-- Liste des planètes avec détails complets -->
         @if($systeme->planetes->count() > 0)
@@ -304,91 +322,3 @@
         <div class="text-gray-500 text-sm">Aucun système stellaire dans le secteur ({{ $x }}, {{ $y }}, {{ $z }})</div>
     </div>
 @endif
-        </main>
-    </div>
-</div>
-
-<script>
-// État du zoom pour chaque système (déclaré une seule fois)
-const zoomStates = {};
-
-// Initialiser tous les systèmes de la page
-@if($systemes->count() > 0)
-    @foreach($systemes as $systeme)
-    zoomStates['{{ $systeme->id }}'] = {
-        scale: 1.0,
-        centerX: 300,
-        centerY: 300,
-        viewBoxWidth: 600,
-        viewBoxHeight: 600
-    };
-    @endforeach
-@endif
-
-// Fonctions de gestion du zoom (déclarées une seule fois)
-function zoomIn(systemeId) {
-    const state = zoomStates[systemeId];
-    if (!state) return;
-
-    state.scale = Math.min(state.scale * 1.1, 10); // Max 10x
-    updateViewBox(systemeId);
-}
-
-function zoomOut(systemeId) {
-    const state = zoomStates[systemeId];
-    if (!state) return;
-
-    state.scale = Math.max(state.scale / 1.1, 0.5); // Min 0.5x
-    updateViewBox(systemeId);
-}
-
-function resetZoom(systemeId) {
-    const state = zoomStates[systemeId];
-    if (!state) return;
-
-    state.scale = 1.0;
-    state.centerX = 300;
-    state.centerY = 300;
-    updateViewBox(systemeId);
-}
-
-function zoomToPlanet(planetX, planetY, systemeId) {
-    const state = zoomStates[systemeId];
-    if (!state) return;
-
-    // Centrer sur la planète
-    state.centerX = planetX;
-    state.centerY = planetY;
-
-    // Zoomer à 200% (2x)
-    state.scale = 2.0;
-
-    updateViewBox(systemeId);
-}
-
-function updateViewBox(systemeId) {
-    const state = zoomStates[systemeId];
-    if (!state) return;
-
-    const svg = document.getElementById('sector-map-' + systemeId);
-    if (!svg) return;
-
-    // Calculer les dimensions du viewBox en fonction du zoom
-    const width = state.viewBoxWidth / state.scale;
-    const height = state.viewBoxHeight / state.scale;
-
-    // Calculer les coordonnées du coin supérieur gauche pour centrer sur centerX, centerY
-    const x = state.centerX - (width / 2);
-    const y = state.centerY - (height / 2);
-
-    svg.setAttribute('viewBox', `${x} ${y} ${width} ${height}`);
-
-    // Mettre à jour l'affichage du niveau de zoom
-    const zoomPercent = Math.round(state.scale * 100);
-    const zoomLevelEl = document.getElementById('zoom-level-' + systemeId);
-    if (zoomLevelEl) {
-        zoomLevelEl.textContent = zoomPercent + '%';
-    }
-}
-</script>
-@endsection
