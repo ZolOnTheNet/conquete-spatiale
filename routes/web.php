@@ -44,6 +44,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/univers/{id}/update-puissance', [AdminController::class, 'updatePuissance'])->name('univers.update-puissance');
         Route::post('/univers/{id}/recalculer-puissance', [AdminController::class, 'recalculerPuissance'])->name('univers.recalculer-puissance');
         Route::get('/planetes', [AdminController::class, 'planetes'])->name('planetes');
+        Route::get('/planetes/{id}', [AdminController::class, 'showPlanete'])->name('planetes.show');
+        Route::post('/planetes/{id}', [AdminController::class, 'updatePlanete'])->name('planetes.update');
         Route::get('/production', [AdminController::class, 'production'])->name('production');
         Route::post('/production/gisement/{id}', [AdminController::class, 'updateGisement'])->name('production.update');
         Route::get('/carte', [AdminController::class, 'carte'])->name('carte');

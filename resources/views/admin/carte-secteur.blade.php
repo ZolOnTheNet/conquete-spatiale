@@ -119,18 +119,82 @@
             </svg>
         </div>
 
-        <!-- Liste des planètes -->
+        <!-- Liste des planètes avec détails complets -->
         @if($systeme->planetes->count() > 0)
         <div class="mt-3">
-            <h4 class="text-xs font-bold text-gray-400 mb-2">Planètes du système:</h4>
-            <div class="grid grid-cols-2 gap-2">
+            <h4 class="text-xs font-bold text-gray-400 mb-2">Planètes du système ({{ $systeme->planetes->count() }}):</h4>
+            <div class="space-y-2">
                 @foreach($systeme->planetes as $planete)
-                <div class="bg-gray-900/50 border border-gray-700 rounded p-2 text-xs">
-                    <div class="font-bold text-cyan-400">{{ $planete->nom }}</div>
-                    <div class="text-gray-400">{{ ucfirst($planete->type) }}</div>
-                    <div class="text-gray-500">{{ number_format($planete->distance_etoile, 2) }} UA | R:{{ number_format($planete->rayon, 1) }} M:{{ number_format($planete->masse, 1) }}</div>
-                    @if($planete->accessible)
-                        <div class="text-green-400 text-xs">✓ Accessible</div>
+                <div class="bg-gray-900/50 border border-gray-700 rounded p-3 text-xs hover:border-cyan-500 transition-colors">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="font-bold text-cyan-400 text-sm">
+                            {{ $planete->nom }}
+                            @if($planete->accessible)
+                                <span class="text-green-400 ml-1">✓</span>
+                            @endif
+                            @if($planete->habitable)
+                                <span class="text-blue-400 ml-1">🌍</span>
+                            @endif
+                        </div>
+                        <a href="{{ route('admin.planetes.show', $planete->id) }}"
+                           class="text-cyan-400 hover:text-cyan-300 underline text-xs">
+                            Détails →
+                        </a>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-gray-400 mb-2">
+                        <div><span class="text-gray-500">Type:</span> {{ ucfirst($planete->type) }}</div>
+                        <div><span class="text-gray-500">Distance:</span> {{ number_format($planete->distance_etoile, 2) }} UA</div>
+                        <div><span class="text-gray-500">Rayon:</span> {{ number_format($planete->rayon, 2) }} R⊕</div>
+                        <div><span class="text-gray-500">Masse:</span> {{ number_format($planete->masse, 2) }} M⊕</div>
+                        <div><span class="text-gray-500">Gravité:</span> {{ number_format($planete->gravite, 2) }} g</div>
+                        <div><span class="text-gray-500">Température:</span> {{ $planete->temperature_moyenne }}°C</div>
+                    </div>
+
+                    @if($planete->a_atmosphere)
+                    <div class="text-gray-400 mb-2">
+                        <span class="text-gray-500">Atmosphère:</span> {{ $planete->composition_atmosphere ?? 'Inconnue' }}
+                    </div>
+                    @endif
+
+                    @if($planete->habitee)
+                    <div class="text-green-400 mb-2">
+                        <span class="text-gray-500">Population:</span> {{ number_format($planete->population) }} habitants
+                    </div>
+                    @endif
+
+                    <!-- Gisements de la planète -->
+                    @if($planete->gisements && $planete->gisements->count() > 0)
+                    <div class="mt-2 pt-2 border-t border-gray-700">
+                        <div class="text-gray-500 text-xs mb-1">Gisements ({{ $planete->gisements->count() }}):</div>
+                        <div class="grid grid-cols-2 gap-1">
+                            @foreach($planete->gisements as $gisement)
+                            <div class="bg-gray-800/50 rounded px-2 py-1 text-xs">
+                                <span class="text-yellow-400">{{ $gisement->ressource->nom }}</span>
+                                <span class="text-gray-500">x{{ $gisement->quantite }}</span>
+                                @if($gisement->qualite)
+                                <span class="text-cyan-400">(Q{{ $gisement->qualite }})</span>
+                                @endif
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @else
+                    <div class="text-gray-600 text-xs italic">Aucun gisement détecté</div>
+                    @endif
+
+                    <!-- Stations orbitales -->
+                    @if($planete->stations && $planete->stations->count() > 0)
+                    <div class="mt-2 pt-2 border-t border-gray-700">
+                        <div class="text-gray-500 text-xs mb-1">Stations orbitales ({{ $planete->stations->count() }}):</div>
+                        <div class="space-y-1">
+                            @foreach($planete->stations as $station)
+                            <div class="bg-gray-800/50 rounded px-2 py-1 text-xs text-cyan-400">
+                                {{ $station->nom }} - {{ $station->type }}
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
                     @endif
                 </div>
                 @endforeach

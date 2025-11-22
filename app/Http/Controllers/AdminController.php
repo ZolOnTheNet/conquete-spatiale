@@ -204,6 +204,50 @@ class AdminController extends Controller
     }
 
     /**
+     * Afficher le détail d'une planète (avec possibilité d'édition)
+     */
+    public function showPlanete($id)
+    {
+        $planete = Planete::with([
+            'systemeStellaire',
+            'gisements.ressource',
+            'stations'
+        ])->findOrFail($id);
+
+        return view('admin.planete-detail', compact('planete'));
+    }
+
+    /**
+     * Mettre à jour une planète
+     */
+    public function updatePlanete(Request $request, $id)
+    {
+        $planete = Planete::findOrFail($id);
+
+        $validated = $request->validate([
+            'nom' => 'required|string|max:255',
+            'type' => 'required|string',
+            'rayon' => 'nullable|numeric',
+            'masse' => 'nullable|numeric',
+            'gravite' => 'nullable|numeric',
+            'distance_etoile' => 'nullable|numeric',
+            'periode_orbitale' => 'nullable|integer',
+            'temperature_moyenne' => 'nullable|integer',
+            'a_atmosphere' => 'boolean',
+            'composition_atmosphere' => 'nullable|string',
+            'habitable' => 'boolean',
+            'habitee' => 'boolean',
+            'population' => 'nullable|integer',
+            'accessible' => 'boolean',
+        ]);
+
+        $planete->update($validated);
+
+        return redirect()->route('admin.planetes.show', $id)
+            ->with('success', 'Planète mise à jour avec succès');
+    }
+
+    /**
      * Carte de l'univers - Niveau 1 (vue des secteurs)
      */
     public function carte(Request $request)
@@ -268,11 +312,14 @@ class AdminController extends Controller
      */
     public function carteSecteur($x, $y, $z)
     {
-        // Récupérer tous les systèmes dans ce secteur
+        // Récupérer tous les systèmes dans ce secteur avec toutes les relations
         $systemes = SystemeStellaire::where('secteur_x', $x)
             ->where('secteur_y', $y)
             ->where('secteur_z', $z)
-            ->with(['planetes'])
+            ->with([
+                'planetes.gisements.ressource',
+                'planetes.stations'
+            ])
             ->get();
 
         return view('admin.carte-secteur', compact('x', 'y', 'z', 'systemes'));
