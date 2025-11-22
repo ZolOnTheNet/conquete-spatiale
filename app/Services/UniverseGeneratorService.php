@@ -232,7 +232,9 @@ class UniverseGeneratorService
             'type_etoile' => 'G',
             'couleur' => 'Jaune',
             'temperature' => 5778,
+            'puissance' => 50,
             'puissance_solaire' => 50.0,
+            'detectabilite_base' => 50.0,
             'masse_solaire' => 1.0,
             'rayon_solaire' => 1.0,
             'secteur_x' => 0,
@@ -244,6 +246,7 @@ class UniverseGeneratorService
             'nb_planetes' => 8,
             'explore' => true,
             'habite' => true,
+            'poi_connu' => true,  // PoI connu dès le départ
         ]);
 
         // Données réelles du Système Solaire

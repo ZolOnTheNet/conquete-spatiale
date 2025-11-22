@@ -14,7 +14,9 @@ class SystemeStellaire extends Model
         'type_etoile',
         'couleur',
         'temperature',
+        'puissance',
         'puissance_solaire',
+        'detectabilite_base',
         'masse_solaire',
         'rayon_solaire',
         'secteur_x',
@@ -26,6 +28,7 @@ class SystemeStellaire extends Model
         'nb_planetes',
         'explore',
         'habite',
+        'poi_connu',
         'description',
         'donnees_supplementaires',
     ];
@@ -33,6 +36,7 @@ class SystemeStellaire extends Model
     protected $casts = [
         'explore' => 'boolean',
         'habite' => 'boolean',
+        'poi_connu' => 'boolean',
         'donnees_supplementaires' => 'array',
     ];
 
