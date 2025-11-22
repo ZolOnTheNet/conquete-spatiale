@@ -19,8 +19,8 @@
         </div>
 
         <!-- Carte visuelle du système -->
-        <div class="bg-black border border-gray-600 rounded p-2">
-            <svg width="100%" height="500" viewBox="0 0 600 600">
+        <div class="bg-black border border-gray-600 rounded p-2 relative">
+            <svg id="sector-map-{{ $systeme->id }}" width="100%" height="500" viewBox="0 0 600 600" class="sector-svg">
                 <!-- Grille de fond -->
                 <defs>
                     <pattern id="grid-{{ $systeme->id }}" width="60" height="60" patternUnits="userSpaceOnUse">
@@ -98,12 +98,19 @@
                             fill="none" stroke="rgba(100,100,100,0.3)" stroke-width="1" stroke-dasharray="3,3"/>
 
                     <!-- Planète -->
-                    <circle cx="{{ $planetX }}" cy="{{ $planetY }}" r="6" fill="{{ $planetColor }}" stroke="white" stroke-width="1.5"/>
-                    <text x="{{ $planetX }}" y="{{ $planetY - 12 }}" fill="white" font-size="9" text-anchor="middle">{{ $planete->nom }}</text>
-                    <text x="{{ $planetX }}" y="{{ $planetY + 18 }}" fill="rgba(200,200,200,0.6)" font-size="7" text-anchor="middle">{{ number_format($planete->distance_etoile, 1) }} UA</text>
+                    <circle cx="{{ $planetX }}" cy="{{ $planetY }}" r="6" fill="{{ $planetColor }}" stroke="white" stroke-width="1.5"
+                            class="planet-clickable" style="cursor: pointer;"
+                            onclick="zoomToPlanet({{ $planetX }}, {{ $planetY }}, '{{ $systeme->id }}')"
+                            onmouseover="this.setAttribute('r', 8)"
+                            onmouseout="this.setAttribute('r', 6)"/>
+                    <text x="{{ $planetX }}" y="{{ $planetY - 12 }}" fill="white" font-size="9" text-anchor="middle"
+                          style="pointer-events: none;">{{ $planete->nom }}</text>
+                    <text x="{{ $planetX }}" y="{{ $planetY + 18 }}" fill="rgba(200,200,200,0.6)" font-size="7" text-anchor="middle"
+                          style="pointer-events: none;">{{ number_format($planete->distance_etoile, 1) }} UA</text>
 
                     @if($planete->accessible)
-                        <text x="{{ $planetX }}" y="{{ $planetY + 28 }}" fill="lime" font-size="10" text-anchor="middle">✓</text>
+                        <text x="{{ $planetX }}" y="{{ $planetY + 28 }}" fill="lime" font-size="10" text-anchor="middle"
+                              style="pointer-events: none;">✓</text>
                     @endif
                 @endforeach
 
@@ -117,7 +124,97 @@
                 <line x1="20" y1="572" x2="20" y2="568" stroke="white" stroke-width="1"/>
                 <line x1="80" y1="572" x2="80" y2="568" stroke="white" stroke-width="1"/>
             </svg>
+
+            <!-- Contrôles de zoom (en bas à droite du SVG) -->
+            <div class="absolute bottom-4 right-4 flex flex-col gap-1 bg-gray-900/80 border border-gray-600 rounded p-1">
+                <button onclick="zoomIn('{{ $systeme->id }}')"
+                        class="w-8 h-8 bg-cyan-600 hover:bg-cyan-700 text-white rounded text-sm font-bold"
+                        title="Zoom avant (+10%)">
+                    +
+                </button>
+                <button onclick="zoomOut('{{ $systeme->id }}')"
+                        class="w-8 h-8 bg-cyan-600 hover:bg-cyan-700 text-white rounded text-sm font-bold"
+                        title="Zoom arrière (-10%)">
+                    −
+                </button>
+                <button onclick="resetZoom('{{ $systeme->id }}')"
+                        class="w-8 h-8 bg-yellow-600 hover:bg-yellow-700 text-white rounded text-xs font-bold"
+                        title="Réinitialiser la vue">
+                    R
+                </button>
+                <div id="zoom-level-{{ $systeme->id }}" class="text-xs text-center text-cyan-400 mt-1">
+                    100%
+                </div>
+            </div>
         </div>
+
+        <script>
+        // État du zoom pour chaque système
+        const zoomStates = {};
+
+        // Initialiser l'état du zoom pour ce système
+        if (!zoomStates['{{ $systeme->id }}']) {
+            zoomStates['{{ $systeme->id }}'] = {
+                scale: 1.0,
+                centerX: 300,
+                centerY: 300,
+                viewBoxWidth: 600,
+                viewBoxHeight: 600
+            };
+        }
+
+        function updateViewBox(systemeId) {
+            const state = zoomStates[systemeId];
+            const svg = document.getElementById('sector-map-' + systemeId);
+
+            // Calculer les dimensions du viewBox en fonction du zoom
+            const width = state.viewBoxWidth / state.scale;
+            const height = state.viewBoxHeight / state.scale;
+
+            // Calculer les coordonnées du coin supérieur gauche pour centrer sur centerX, centerY
+            const x = state.centerX - (width / 2);
+            const y = state.centerY - (height / 2);
+
+            svg.setAttribute('viewBox', `${x} ${y} ${width} ${height}`);
+
+            // Mettre à jour l'affichage du niveau de zoom
+            const zoomPercent = Math.round(state.scale * 100);
+            document.getElementById('zoom-level-' + systemeId).textContent = zoomPercent + '%';
+        }
+
+        function zoomIn(systemeId) {
+            const state = zoomStates[systemeId];
+            state.scale = Math.min(state.scale * 1.1, 10); // Max 10x
+            updateViewBox(systemeId);
+        }
+
+        function zoomOut(systemeId) {
+            const state = zoomStates[systemeId];
+            state.scale = Math.max(state.scale / 1.1, 0.5); // Min 0.5x
+            updateViewBox(systemeId);
+        }
+
+        function resetZoom(systemeId) {
+            const state = zoomStates[systemeId];
+            state.scale = 1.0;
+            state.centerX = 300;
+            state.centerY = 300;
+            updateViewBox(systemeId);
+        }
+
+        function zoomToPlanet(planetX, planetY, systemeId) {
+            const state = zoomStates[systemeId];
+
+            // Centrer sur la planète
+            state.centerX = planetX;
+            state.centerY = planetY;
+
+            // Zoomer à 200% (2x)
+            state.scale = 2.0;
+
+            updateViewBox(systemeId);
+        }
+        </script>
 
         <!-- Liste des planètes avec détails complets -->
         @if($systeme->planetes->count() > 0)
