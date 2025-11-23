@@ -5,12 +5,12 @@
 @push('styles')
 <style>
     .panel {
-        background: rgba(15, 23, 42, 0.9);
+        background: rgba(10, 15, 30, 0.95);
         border: 1px solid rgba(74, 158, 255, 0.3);
     }
 
     .panel-header {
-        background: rgba(74, 158, 255, 0.1);
+        background: rgba(20, 30, 50, 0.9);
         border-bottom: 1px solid rgba(74, 158, 255, 0.3);
     }
 
@@ -77,63 +77,41 @@
 
     <!-- Main 3-Column Layout -->
     <div class="flex-1 flex overflow-hidden">
-        <!-- Left Panel - Navigation -->
+        <!-- Left Panel - Navigation Contextuelle -->
         <aside class="w-64 panel border-r flex flex-col">
             <div class="panel-header px-4 py-3">
                 <h2 class="text-sm font-bold text-cyan-400">NAVIGATION</h2>
             </div>
 
-            <nav class="flex-1 overflow-y-auto p-2">
-                <!-- Lieu -->
-                <div class="mb-4">
-                    <h3 class="text-xs text-gray-500 uppercase px-2 mb-1">Lieu</h3>
-                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300" onclick="sendCommand('position')">
-                        Position
-                    </button>
-                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300" onclick="sendCommand('carte')">
-                        Carte
-                    </button>
-                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300" onclick="sendCommand('scan')">
-                        Scanner
-                    </button>
-                </div>
+            <div class="flex-1 overflow-y-auto p-2">
+                @if(isset($personnageLocation) && isset($menuSections))
+                    <!-- Menu contextuel basé sur la localisation -->
+                    @foreach($menuSections as $sectionKey => $section)
+                    <div class="mb-4">
+                        <h3 class="text-xs text-gray-500 uppercase px-2 mb-1 flex items-center gap-1">
+                            <span>{{ $section['icon'] }}</span>
+                            <span>{{ $section['label'] }}</span>
+                        </h3>
+                        @foreach($section['items'] as $item)
+                        <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400"
+                                onclick="loadView('{{ $item['route'] }}', '{{ $item['label'] }}')">
+                            {{ $item['label'] }}
+                        </button>
+                        @endforeach
+                    </div>
+                    @endforeach
+                @else
+                    <!-- Menu de fallback si pas de localisation -->
+                    <div class="text-center text-gray-500 text-sm py-4">
+                        <p>Sélectionnez un personnage</p>
+                    </div>
+                @endif
 
-                <!-- Vaisseau -->
-                <div class="mb-4">
-                    <h3 class="text-xs text-gray-500 uppercase px-2 mb-1">Vaisseau</h3>
-                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300" onclick="sendCommand('vaisseau')">
-                        Pont
-                    </button>
-                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300" onclick="sendCommand('inventaire')">
-                        Soute
-                    </button>
-                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300" onclick="sendCommand('etat-combat')">
-                        Armement
-                    </button>
-                </div>
-
-                <!-- Economie -->
-                <div class="mb-4">
-                    <h3 class="text-xs text-gray-500 uppercase px-2 mb-1">Economie</h3>
-                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300" onclick="sendCommand('marche')">
-                        Marche
-                    </button>
-                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300" onclick="sendCommand('recettes')">
-                        Recettes
-                    </button>
-                </div>
-
-                <!-- Combat -->
-                <div class="mb-4">
-                    <h3 class="text-xs text-gray-500 uppercase px-2 mb-1">Combat</h3>
-                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300" onclick="sendCommand('armes')">
-                        Armes
-                    </button>
-                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300" onclick="sendCommand('boucliers')">
-                        Boucliers
-                    </button>
-                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300" onclick="sendCommand('ennemis')">
-                        Encyclopedie
+                <!-- Console (toujours disponible) -->
+                <div class="mb-4 border-t border-cyan-500/20 pt-4">
+                    <h3 class="text-xs text-gray-500 uppercase px-2 mb-1">Système</h3>
+                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300" onclick="toggleConsole()">
+                        Console
                     </button>
                 </div>
 
@@ -144,24 +122,26 @@
                     <a href="{{ route('admin.index') }}" class="menu-item block px-3 py-2 rounded text-sm text-red-300 hover:text-red-200">
                         Dashboard Admin
                     </a>
-                    <a href="{{ route('admin.comptes') }}" class="menu-item block px-3 py-2 rounded text-sm text-red-300 hover:text-red-200">
-                        Comptes
-                    </a>
-                    <a href="{{ route('admin.univers') }}" class="menu-item block px-3 py-2 rounded text-sm text-red-300 hover:text-red-200">
-                        Univers
-                    </a>
-                    <a href="{{ route('admin.backup') }}" class="menu-item block px-3 py-2 rounded text-sm text-red-300 hover:text-red-200">
-                        Backup
-                    </a>
                 </div>
                 @endif
-            </nav>
+            </div>
 
-            <!-- Personnage Info -->
-            <div class="p-4 border-t border-cyan-500/20">
-                <div class="text-xs text-gray-500">Niveau {{ $personnage->niveau }}</div>
-                <div class="text-sm text-gray-300">{{ $personnage->prenom ?? '' }} {{ $personnage->nom }}</div>
-                <div class="text-xs text-gray-500 mt-1">XP: {{ $personnage->experience }}</div>
+            <!-- Personnage Info + Position -->
+            <div class="border-t border-cyan-500/20">
+                @if(isset($personnageLocation))
+                <!-- Position actuelle -->
+                <div class="px-4 py-2 bg-cyan-900/10">
+                    <div class="text-xs text-gray-500 mb-1">Position</div>
+                    <div class="text-xs text-cyan-400">{{ $personnageLocation->getDescription() }}</div>
+                    <div class="text-xs text-gray-600 mt-1">{{ $personnageLocation->getCoordonneesFormatees() }}</div>
+                </div>
+                @endif
+                <!-- Info personnage -->
+                <div class="p-4">
+                    <div class="text-xs text-gray-500">Niveau {{ $personnage->niveau }}</div>
+                    <div class="text-sm text-gray-300">{{ $personnage->prenom ?? '' }} {{ $personnage->nom }}</div>
+                    <div class="text-xs text-gray-500 mt-1">XP: {{ $personnage->experience }}</div>
+                </div>
             </div>
         </aside>
 
@@ -357,6 +337,89 @@
 
     // Rafraichir les stats periodiquement
     setInterval(updateStats, 60000);
+
+    // Charger une vue dans le panneau principal
+    function loadView(routeName, viewLabel, queryParams = '') {
+        // Mettre à jour le titre de la vue
+        document.getElementById('current-view').textContent = 'Vue: ' + viewLabel;
+
+        // Générer l'URL de la route
+        const routeMap = {
+            'carte': '{{ route("carte") }}',
+            'vaisseau.position': '{{ route("dashboard") }}?view=position',
+            'vaisseau.scanner': '{{ route("dashboard") }}?view=scanner',
+            'vaisseau.etat': '{{ route("dashboard") }}?view=etat',
+            'vaisseau.reparations': '{{ route("dashboard") }}?view=reparations',
+            'inventaire': '{{ route("dashboard") }}?view=inventaire',
+            'vaisseau.cargaison': '{{ route("dashboard") }}?view=cargaison',
+            'vaisseau.armes': '{{ route("dashboard") }}?view=armes',
+            'com.databases': '{{ route("dashboard") }}?view=com-databases',
+            'com.prix': '{{ route("dashboard") }}?view=com-prix',
+            'com.demandes': '{{ route("dashboard") }}?view=com-demandes',
+            'com.messages': '{{ route("dashboard") }}?view=com-messages',
+            'marche': '{{ route("dashboard") }}?view=marche',
+            'missions': '{{ route("dashboard") }}?view=missions',
+            'combat.armes': '{{ route("dashboard") }}?view=combat-armes',
+            'combat.equipement': '{{ route("dashboard") }}?view=combat-equipement',
+            'scanner': '{{ route("dashboard") }}?view=scanner',
+        };
+
+        let url = routeMap[routeName] || '{{ route("dashboard") }}';
+
+        // Ajouter les paramètres de requête si fournis
+        if (queryParams) {
+            url += queryParams;
+        }
+
+        // Charger la vue via AJAX
+        fetch(url, {
+            headers: {
+                'Accept': 'text/html',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Pour la carte, on charge tout le contenu
+            if (routeName === 'carte') {
+                mainDisplay.innerHTML = html;
+                // Extraire et exécuter les scripts
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                const scripts = temp.querySelectorAll('script');
+                scripts.forEach(script => {
+                    const newScript = document.createElement('script');
+                    newScript.textContent = script.textContent;
+                    document.body.appendChild(newScript);
+                    document.body.removeChild(newScript);
+                });
+            } else {
+                // Pour les autres vues, afficher le contenu
+                mainDisplay.innerHTML = html;
+            }
+        })
+        .catch(error => {
+            mainDisplay.innerHTML = `
+                <div class="text-center text-red-400 py-8">
+                    <p class="mb-4">Erreur de chargement de la vue</p>
+                    <p class="text-sm text-gray-500">${error.message}</p>
+                </div>
+            `;
+        });
+    }
+
+    // Basculer entre console et panneau principal
+    let consoleVisible = false;
+    function toggleConsole() {
+        consoleVisible = !consoleVisible;
+        if (consoleVisible) {
+            mainDisplay.style.display = 'none';
+            mainDisplay.nextElementSibling.style.display = 'block'; // Afficher console
+        } else {
+            mainDisplay.style.display = 'block';
+            mainDisplay.nextElementSibling.style.display = 'none'; // Masquer console
+        }
+    }
 </script>
 @endpush
 @endsection

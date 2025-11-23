@@ -30,6 +30,7 @@ class Personnage extends Model
         'max_points_action',
         'derniere_recuperation_pa',
         'vaisseau_actif_id',
+        'dans_station_id',
         'date_logs',
     ];
 
@@ -78,6 +79,22 @@ class Personnage extends Model
     public function reputations(): HasMany
     {
         return $this->hasMany(Reputation::class);
+    }
+
+    /**
+     * Mines possédées (propriétaire actuel)
+     */
+    public function mines(): HasMany
+    {
+        return $this->hasMany(Mine::class, 'proprietaire_id');
+    }
+
+    /**
+     * Mines installées (installateur initial)
+     */
+    public function minesInstalles(): HasMany
+    {
+        return $this->hasMany(Mine::class, 'installateur_id');
     }
 
     /**
@@ -310,8 +327,10 @@ class Personnage extends Model
             // Ajouter puissance du scan
             $resultat_total = $resultat_des + $puissance_scan;
 
-            // Ajuster seuil selon puissance solaire (étoiles brillantes plus faciles)
-            $ajustement_puissance = ($systeme->puissance_solaire - 50) * 2; // ±2 par tranche de 1
+            // Ajuster seuil selon puissance (étoiles brillantes plus faciles)
+            // Utiliser le champ 'puissance' s'il est disponible, sinon fallback sur 'puissance_solaire'
+            $puissance = $systeme->puissance ?? $systeme->puissance_solaire;
+            $ajustement_puissance = ($puissance - 50) * 2; // ±2 par tranche de 1
             $seuil_final = max(1, $seuil - $ajustement_puissance);
 
             $detecte = $resultat_total >= $seuil_final;
@@ -342,6 +361,8 @@ class Personnage extends Model
                         'type_etoile' => $systeme->type_etoile,
                         'couleur' => $systeme->couleur,
                         'nb_planetes' => $systeme->nb_planetes,
+                        'puissance' => $systeme->puissance,
+                        'detectabilite_base' => $systeme->detectabilite_base,
                     ],
                 ];
             }

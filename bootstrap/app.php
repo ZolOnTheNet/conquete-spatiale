@@ -27,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
             'personnage.actif' => \App\Http\Middleware\EnsureHasActivePersonnage::class,
             'admin' => \App\Http\Middleware\EnsureIsAdmin::class,
+            'requires.location' => \App\Http\Middleware\RequiresLocation::class,
         ]);
 
         //

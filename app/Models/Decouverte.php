@@ -71,6 +71,8 @@ class Decouverte extends Model
             $info['couleur'] = $systeme->couleur;
             $info['temperature'] = $systeme->temperature;
             $info['puissance_solaire'] = $systeme->puissance_solaire;
+            $info['puissance'] = $systeme->puissance;
+            $info['detectabilite_base'] = $systeme->detectabilite_base;
         }
 
         // Nombre de planètes révélé après scan réussi

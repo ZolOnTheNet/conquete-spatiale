@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Gisement extends Model
 {
@@ -61,6 +62,14 @@ class Gisement extends Model
     public function exploitant(): BelongsTo
     {
         return $this->belongsTo(Personnage::class, 'exploite_par');
+    }
+
+    /**
+     * Mines d'exploitation sur ce gisement (MAME)
+     */
+    public function mines(): HasMany
+    {
+        return $this->hasMany(Mine::class);
     }
 
     /**

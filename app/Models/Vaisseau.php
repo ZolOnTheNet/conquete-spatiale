@@ -68,6 +68,10 @@ class Vaisseau extends Model
         'esquive',
         'bonus_precision',
         'en_combat',
+        // Stations et arrimage
+        'arrime_a_station_id',
+        'arrime_le',
+        'dernier_jet_pilotage',
     ];
 
     protected $casts = [
@@ -83,6 +87,8 @@ class Vaisseau extends Model
         'esquive' => 'integer',
         'bonus_precision' => 'integer',
         'en_combat' => 'boolean',
+        'dernier_jet_pilotage' => 'array',
+        'arrime_le' => 'datetime',
     ];
 
     // Relations
