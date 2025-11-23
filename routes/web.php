@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\VaisseauController;
+use App\Http\Controllers\ComController;
 
 // Page d'accueil avec login
 Route::get('/', function () {
@@ -32,6 +34,34 @@ Route::middleware('auth')->group(function () {
         // Carte de l'univers (systèmes découverts)
         Route::get('/carte', [GameController::class, 'carte'])->name('carte');
         Route::get('/carte/secteur/{x}/{y}/{z}', [GameController::class, 'carteSecteur'])->name('carte.secteur');
+
+        // Routes Vaisseau (Timonerie, Ingénierie, Soute, Armement)
+        Route::prefix('vaisseau')->name('vaisseau.')->group(function () {
+            // Timonerie
+            Route::get('/position', [VaisseauController::class, 'position'])->name('position');
+            Route::get('/scanner', [VaisseauController::class, 'scanner'])->name('scanner');
+
+            // Ingénierie
+            Route::get('/etat', [VaisseauController::class, 'etat'])->name('etat');
+            Route::get('/reparations', [VaisseauController::class, 'reparations'])->name('reparations');
+
+            // Soute
+            Route::get('/cargaison', [VaisseauController::class, 'cargaison'])->name('cargaison');
+
+            // Armement
+            Route::get('/armes', [VaisseauController::class, 'armes'])->name('armes');
+        });
+
+        // Inventaire (accessible depuis vaisseau ou station)
+        Route::get('/inventaire', [VaisseauController::class, 'inventaire'])->name('inventaire');
+
+        // Routes COM (Communications)
+        Route::prefix('com')->name('com.')->group(function () {
+            Route::get('/databases', [ComController::class, 'databases'])->name('databases');
+            Route::get('/prix', [ComController::class, 'prix'])->name('prix');
+            Route::get('/demandes', [ComController::class, 'demandes'])->name('demandes');
+            Route::get('/messages', [ComController::class, 'messages'])->name('messages');
+        });
 
         // API AJAX pour panneaux
         Route::get('/api/status', [GameController::class, 'apiGetStatus'])->name('api.status');
