@@ -3,367 +3,367 @@
 
 ---
 
-## 📋 TABLE DES MATIÈRES
+## ğŸ“‹ TABLE DES MATIÃˆRES
 
 1. [Vue d'ensemble](#vue-densemble)
 2. [Architecture modulaire multi-univers](#architecture-modulaire)
-3. [Système de jeu core](#système-de-jeu-core)
+3. [SystÃ¨me de jeu core](#systÃ¨me-de-jeu-core)
 4. [Interface utilisateur](#interface-utilisateur)
-5. [Navigation et déplacements](#navigation-et-déplacements)
-6. [Détection et exploration](#détection-et-exploration)
-7. [Vaisseaux et équipements](#vaisseaux-et-équipements)
-8. [Économie et ressources](#économie-et-ressources)
-9. [Combat et zones de contrôle](#combat-et-zones-de-contrôle)
-10. [Réputation et factions](#réputation-et-factions)
-11. [Génération procédurale](#génération-procédurale)
-12. [Points d'intérêt (PoV)](#points-dintérêt-pov)
+5. [Navigation et dÃ©placements](#navigation-et-dÃ©placements)
+6. [DÃ©tection et exploration](#dÃ©tection-et-exploration)
+7. [Vaisseaux et Ã©quipements](#vaisseaux-et-Ã©quipements)
+8. [Ã‰conomie et ressources](#Ã©conomie-et-ressources)
+9. [Combat et zones de contrÃ´le](#combat-et-zones-de-contrÃ´le)
+10. [RÃ©putation et factions](#rÃ©putation-et-factions)
+11. [GÃ©nÃ©ration procÃ©durale](#gÃ©nÃ©ration-procÃ©durale)
+12. [Points d'intÃ©rÃªt (PoV)](#points-dintÃ©rÃªt-pov)
 13. [Architecture technique](#architecture-technique)
 
 ---
 
-## 🌌 VUE D'ENSEMBLE
+## ğŸŒŒ VUE D'ENSEMBLE
 
 ### Concept
-Jeu web d'exploration galactique au tour par tour, avec interface graphique et système de commandes. Les joueurs explorent la Voie Lactée en utilisant des données réelles (GAIA, NASA) combinées à de la génération procédurale.
+Jeu web d'exploration galactique au tour par tour, avec interface graphique et systÃ¨me de commandes. Les joueurs explorent la Voie LactÃ©e en utilisant des donnÃ©es rÃ©elles (GAIA, NASA) combinÃ©es Ã  de la gÃ©nÃ©ration procÃ©durale.
 
 ### Piliers de gameplay
-- **Exploration** : Découvrir des systèmes stellaires inconnus avec risques et récompenses
-- **Économie** : Chaîne de production complexe (extraction → raffinage → production)
-- **Commerce** : Empire commercial, routes, négoce de ressources et informations
+- **Exploration** : DÃ©couvrir des systÃ¨mes stellaires inconnus avec risques et rÃ©compenses
+- **Ã‰conomie** : ChaÃ®ne de production complexe (extraction â†’ raffinage â†’ production)
+- **Commerce** : Empire commercial, routes, nÃ©goce de ressources et informations
 - **Combat** : Affrontements tactiques tour par tour avec gestion de ressources
-- **Diplomatie** : Système de réputation avec guildes et factions
+- **Diplomatie** : SystÃ¨me de rÃ©putation avec guildes et factions
 
-**Note importante :** Le jeu ne se concentre pas sur la conquête territoriale classique et la construction d'empire militaire. L'accent est mis sur l'exploration, le commerce, et la construction d'un réseau d'influence économique. Les mécaniques de contrôle territorial sont prévues pour développement ultérieur, mais pas prioritaires au début.
+**Note importante :** Le jeu ne se concentre pas sur la conquÃªte territoriale classique et la construction d'empire militaire. L'accent est mis sur l'exploration, le commerce, et la construction d'un rÃ©seau d'influence Ã©conomique. Les mÃ©caniques de contrÃ´le territorial sont prÃ©vues pour dÃ©veloppement ultÃ©rieur, mais pas prioritaires au dÃ©but.
 
 ### Format
 - **Interface** : Web avec visualisation graphique + console de commandes
 - **Rythme** : Tour par tour (1 tour = 1 jour in-game)
-- **Mode de jeu** : **ASYNCHRONE** - Les joueurs ne jouent pas en même temps
+- **Mode de jeu** : **ASYNCHRONE** - Les joueurs ne jouent pas en mÃªme temps
 - **Multijoueur** : Persistant, joueurs humains + IA
-- **Progression** : Du vaisseau starter à un réseau commercial étendu
+- **Progression** : Du vaisseau starter Ã  un rÃ©seau commercial Ã©tendu
 
 **Implication du mode asynchrone :**
-- Les joueurs jouent à leur propre rythme
-- Combat PvP nécessite une **mécanique asymétrique automatique**
-- Règles de comportement de défense/attaque prédéfinies
+- Les joueurs jouent Ã  leur propre rythme
+- Combat PvP nÃ©cessite une **mÃ©canique asymÃ©trique automatique**
+- RÃ¨gles de comportement de dÃ©fense/attaque prÃ©dÃ©finies
 - Seuils de fuite automatique
-- Système gère les combats entre joueurs absents
+- SystÃ¨me gÃ¨re les combats entre joueurs absents
 
 ---
 
-## 🔧 ARCHITECTURE MODULAIRE MULTI-UNIVERS
+## ğŸ”§ ARCHITECTURE MODULAIRE MULTI-UNIVERS
 
 ### Objectif
 Le moteur de jeu doit supporter plusieurs univers de science-fiction sans modification majeure du code core.
 
-### Univers supportés (prévus)
+### Univers supportÃ©s (prÃ©vus)
 1. **Archiluminique** (univers original du jeu)
-2. **Conquête Spatiale** (proche de la réalité, vaisseaux avec hyper-espace)
+2. **ConquÃªte Spatiale** (proche de la rÃ©alitÃ©, vaisseaux avec hyper-espace)
 3. **Star Wars** (Guerre Civile Galactique, etc.)
 4. **Warhammer 40K** (Imperium, Chaos, Xenos)
-5. **Star Citizen** (UEE, systèmes Stanton, etc.)
+5. **Star Citizen** (UEE, systÃ¨mes Stanton, etc.)
 
 ### Couches d'abstraction
 
 ```
-┌─────────────────────────────────────┐
-│   CONTENU UNIVERS (modules)         │
-│   - Factions                         │
-│   - Vaisseaux                        │
-│   - Technologies                     │
-│   - Lore / Événements                │
-└─────────────────────────────────────┘
-              ↓
-┌─────────────────────────────────────┐
-│   RÈGLES UNIVERS                     │
-│   - Vitesses FTL                     │
-│   - Types d'armes                    │
-│   - Ressources spécifiques           │
-└─────────────────────────────────────┘
-              ↓
-┌─────────────────────────────────────┐
-│   MOTEUR CORE (universel)            │
-│   - Navigation                       │
-│   - Détection                        │
-│   - Combat (système de dés)          │
-│   - Économie                         │
-│   - Réputation                       │
-│   - Génération procédurale           │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”�
+â”‚   CONTENU UNIVERS (modules)         â”‚
+â”‚   - Factions                         â”‚
+â”‚   - Vaisseaux                        â”‚
+â”‚   - Technologies                     â”‚
+â”‚   - Lore / Ã‰vÃ©nements                â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+              â†“
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”�
+â”‚   RÃˆGLES UNIVERS                     â”‚
+â”‚   - Vitesses FTL                     â”‚
+â”‚   - Types d'armes                    â”‚
+â”‚   - Ressources spÃ©cifiques           â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+              â†“
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”�
+â”‚   MOTEUR CORE (universel)            â”‚
+â”‚   - Navigation                       â”‚
+â”‚   - DÃ©tection                        â”‚
+â”‚   - Combat (systÃ¨me de dÃ©s)          â”‚
+â”‚   - Ã‰conomie                         â”‚
+â”‚   - RÃ©putation                       â”‚
+â”‚   - GÃ©nÃ©ration procÃ©durale           â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ### Configuration par univers
-Fichiers de configuration JSON/YAML définissant :
+Fichiers de configuration JSON/YAML dÃ©finissant :
 - Noms des factions
 - Stats des vaisseaux
 - Arbres technologiques
-- Paramètres de balance (vitesses, coûts, etc.)
+- ParamÃ¨tres de balance (vitesses, coÃ»ts, etc.)
 
 ---
 
-## 🎲 SYSTÈME DE JEU CORE
+## ğŸ�² SYSTÃˆME DE JEU CORE
 
-### Système de dés : Daggerheart (2D12)
+### SystÃ¨me de dÃ©s : Daggerheart (2D12)
 
-**Mécanisme central :**
+**MÃ©canisme central :**
 
-Le système utilise des **Dés de Dualité** :
-- **2d12** de couleurs différentes : un dé d'**Espoir** (Hope) et un dé de **Peur** (Fear)
-- Formule : `Somme 2d12 + Trait + Modificateurs` vs Difficulté
+Le systÃ¨me utilise des **DÃ©s de DualitÃ©** :
+- **2d12** de couleurs diffÃ©rentes : un dÃ© d'**Espoir** (Hope) et un dÃ© de **Peur** (Fear)
+- Formule : `Somme 2d12 + Trait + Modificateurs` vs DifficultÃ©
 
-**Résolution d'action :**
+**RÃ©solution d'action :**
 
 1. **Lancer les 2d12** (Hope + Fear)
-2. **ADDITIONNER les deux dés** + Trait + Modificateurs
-   - **Trait** : valeur du trait approprié (Agilité, Force, Finesse, Instinct, Présence, Connaissance)
-   - **Modificateurs** : bonus d'équipement, circonstances, etc.
-   - **Note** : Les compétences seront détaillées ultérieurement
-3. **Comparer au seuil de difficulté** :
-   - ≥ Seuil : **Succès**
-   - < Seuil : **Échec**
+2. **ADDITIONNER les deux dÃ©s** + Trait + Modificateurs
+   - **Trait** : valeur du trait appropriÃ© (AgilitÃ©, Force, Finesse, Instinct, PrÃ©sence, Connaissance)
+   - **Modificateurs** : bonus d'Ã©quipement, circonstances, etc.
+   - **Note** : Les compÃ©tences seront dÃ©taillÃ©es ultÃ©rieurement
+3. **Comparer au seuil de difficultÃ©** :
+   - â‰¥ Seuil : **SuccÃ¨s**
+   - < Seuil : **Ã‰chec**
 
-4. **Génération de jetons** (indépendant du succès) :
-   - Si **dé d'Espoir > dé de Peur** → génère des **jetons d'Espoir** pour les joueurs
-   - Si **dé de Peur > dé d'Espoir** → génère des **jetons de Peur** pour le système (caché)
-   - Si **égalité (sauf 1-1)** → **CRITIQUE !** Réussite exceptionnelle + génère **1 jeton d'Espoir**
-   - Si **1-1** → **CATASTROPHE !** Génère **1 jeton de Peur** (système)
+4. **GÃ©nÃ©ration de jetons** (indÃ©pendant du succÃ¨s) :
+   - Si **dÃ© d'Espoir > dÃ© de Peur** â†’ gÃ©nÃ¨re des **jetons d'Espoir** pour les joueurs
+   - Si **dÃ© de Peur > dÃ© d'Espoir** â†’ gÃ©nÃ¨re des **jetons de Peur** pour le systÃ¨me (cachÃ©)
+   - Si **Ã©galitÃ© (sauf 1-1)** â†’ **CRITIQUE !** RÃ©ussite exceptionnelle + gÃ©nÃ¨re **1 jeton d'Espoir**
+   - Si **1-1** â†’ **CATASTROPHE !** GÃ©nÃ¨re **1 jeton de Peur** (systÃ¨me)
 
-**Points clés :**
-- Le résultat = **Somme des 2 dés** + modificateurs (pas le meilleur)
-- On peut **réussir avec Peur** (somme élevée mais Fear > Hope → jeton système)
-- On peut **échouer avec Espoir** (somme faible mais Hope > Fear → jeton joueur)
-- **Égalité (sauf 1-1)** = **CRITIQUE** → Réussite exceptionnelle + jeton Espoir
-- **Double 1 (1-1)** = **CATASTROPHE** → Génère jeton de Peur (complications assurées)
+**Points clÃ©s :**
+- Le rÃ©sultat = **Somme des 2 dÃ©s** + modificateurs (pas le meilleur)
+- On peut **rÃ©ussir avec Peur** (somme Ã©levÃ©e mais Fear > Hope â†’ jeton systÃ¨me)
+- On peut **Ã©chouer avec Espoir** (somme faible mais Hope > Fear â†’ jeton joueur)
+- **Ã‰galitÃ© (sauf 1-1)** = **CRITIQUE** â†’ RÃ©ussite exceptionnelle + jeton Espoir
+- **Double 1 (1-1)** = **CATASTROPHE** â†’ GÃ©nÃ¨re jeton de Peur (complications assurÃ©es)
 - Les jetons sont une ressource narrative pour influencer l'histoire
 
 ---
 
 ### Les 6 Traits
 
-Chaque personnage/vaisseau possède 6 traits (valeur numérique) :
+Chaque personnage/vaisseau possÃ¨de 6 traits (valeur numÃ©rique) :
 
 **Traits physiques :**
-- **Agilité** - Mouvement, esquive, dextérité
+- **AgilitÃ©** - Mouvement, esquive, dextÃ©ritÃ©
 - **Force** - Combat physique, puissance
-- **Finesse** - Précision, discrétion, manipulation
+- **Finesse** - PrÃ©cision, discrÃ©tion, manipulation
 
 **Traits mentaux :**
 - **Instinct** - Intuition, survie, perception
-- **Présence** - Charisme, leadership, intimidation
-- **Connaissance** - Érudition, analyse, technologie
+- **PrÃ©sence** - Charisme, leadership, intimidation
+- **Connaissance** - Ã‰rudition, analyse, technologie
 
 **Note importante :**
-- Les **Traits** représentent les **valeurs minimales** des compétences
-- Les **Compétences** sont utilisées pour les jets de dés spécifiques
-- Toutes les compétences n'ajouteront pas nécessairement au jet de dés
+- Les **Traits** reprÃ©sentent les **valeurs minimales** des compÃ©tences
+- Les **CompÃ©tences** sont utilisÃ©es pour les jets de dÃ©s spÃ©cifiques
+- Toutes les compÃ©tences n'ajouteront pas nÃ©cessairement au jet de dÃ©s
 
 ---
 
-### Les Compétences
+### Les CompÃ©tences
 
-Chaque compétence est associée à un **Trait de base**. Lors d'un jet, on utilise :
-- La valeur de la **compétence** (si applicable)
-- Le **trait associé** comme valeur minimale
+Chaque compÃ©tence est associÃ©e Ã  un **Trait de base**. Lors d'un jet, on utilise :
+- La valeur de la **compÃ©tence** (si applicable)
+- Le **trait associÃ©** comme valeur minimale
 
-**Liste des compétences :**
+**Liste des compÃ©tences :**
 
-**Compétences de Navigation & Technique :**
+**CompÃ©tences de Navigation & Technique :**
 - **Astrogation** (Connaissance) - Calculs hyperespace, navigation stellaire
-- **Pilotage** (Agilité) - Manœuvres vaisseau, combat spatial
-- **Informatique** (Connaissance) - Systèmes informatiques, piratage
-- **Mécanique** (Finesse) - Réparations, maintenance, bricolage
+- **Pilotage** (AgilitÃ©) - ManÅ“uvres vaisseau, combat spatial
+- **Informatique** (Connaissance) - SystÃ¨mes informatiques, piratage
+- **MÃ©canique** (Finesse) - RÃ©parations, maintenance, bricolage
 
-**Compétences Sociales :**
-- **Charme** (Présence) - Séduction, manipulation douce
+**CompÃ©tences Sociales :**
+- **Charme** (PrÃ©sence) - SÃ©duction, manipulation douce
 - **Coercition** (Force) - Intimidation, menaces
-- **Commandement** (Instinct) - Leadership, tactique d'équipe
-- **Négociation** (Présence) - Commerce, diplomatie
+- **Commandement** (Instinct) - Leadership, tactique d'Ã©quipe
+- **NÃ©gociation** (PrÃ©sence) - Commerce, diplomatie
 
-**Compétences de Survie & Perception :**
-- **Perception** (Instinct) - Détection, vigilance, observation
-- **Survie** (Instinct) - Environnements hostiles, débrouillardise
-- **Médecine** (Connaissance) - Soins, chirurgie, biologie
+**CompÃ©tences de Survie & Perception :**
+- **Perception** (Instinct) - DÃ©tection, vigilance, observation
+- **Survie** (Instinct) - Environnements hostiles, dÃ©brouillardise
+- **MÃ©decine** (Connaissance) - Soins, chirurgie, biologie
 
-**Compétences de Combat :**
-- **Artillerie** (Finesse) - Canons, tourelles, armes énergétiques
+**CompÃ©tences de Combat :**
+- **Artillerie** (Finesse) - Canons, tourelles, armes Ã©nergÃ©tiques
 - **Arme Lourde** (Finesse) - Railguns, torpilles, armes lourdes
 - **Missile** (Instinct) - Guidage missiles, tactique de tir
 
-**Compétences Spéciales :**
-- **Marché Noir** (Connaissance) - Contacts illégaux, contrebande, ressources rares
+**CompÃ©tences SpÃ©ciales :**
+- **MarchÃ© Noir** (Connaissance) - Contacts illÃ©gaux, contrebande, ressources rares
 
 ---
 
-### Système asymétrique : Joueurs vs Système
+### SystÃ¨me asymÃ©trique : Joueurs vs SystÃ¨me
 
 **Joueurs :**
-- Utilisent **2d12** (Dés de Dualité)
-- Génèrent des jetons d'Espoir (visibles, ressource du joueur)
-- Génèrent des jetons de Peur (invisibles, capital du système)
+- Utilisent **2d12** (DÃ©s de DualitÃ©)
+- GÃ©nÃ¨rent des jetons d'Espoir (visibles, ressource du joueur)
+- GÃ©nÃ¨rent des jetons de Peur (invisibles, capital du systÃ¨me)
 
-**Système/IA (adversaires, environnement) :**
-- Utilise **1d20** pour contrôler les ennemis
-- Accumule les jetons de Peur (CACHÉS du joueur)
-- Utilise automatiquement les jetons pour créer :
+**SystÃ¨me/IA (adversaires, environnement) :**
+- Utilise **1d20** pour contrÃ´ler les ennemis
+- Accumule les jetons de Peur (CACHÃ‰S du joueur)
+- Utilise automatiquement les jetons pour crÃ©er :
   - Complications narratives
-  - Événements imprévus
+  - Ã‰vÃ©nements imprÃ©vus
   - Dangers et embuscades
   - Renforcer ennemis
   - Rendre l'environnement hostile
 
 **Capital de Peur (invisible) :**
-Le joueur ne voit PAS combien de jetons de Peur le système possède. Cela crée de la tension et de l'incertitude.
+Le joueur ne voit PAS combien de jetons de Peur le systÃ¨me possÃ¨de. Cela crÃ©e de la tension et de l'incertitude.
 
-**Système de déclenchement :**
+**SystÃ¨me de dÃ©clenchement :**
 
 ```
-À chaque action significative (ou fin de tour) :
-1. Jet de dés : 1d60 (ou lié à fiabilité vaisseau)
-2. Si résultat < Capital Peur accumulé → ÉVÉNEMENT
-3. Événement consomme X jetons de Peur selon importance
-4. Si pas d'événement → Capital Peur continue d'augmenter
+Ã€ chaque action significative (ou fin de tour) :
+1. Jet de dÃ©s : 1d60 (ou liÃ© Ã  fiabilitÃ© vaisseau)
+2. Si rÃ©sultat < Capital Peur accumulÃ© â†’ Ã‰VÃ‰NEMENT
+3. Ã‰vÃ©nement consomme X jetons de Peur selon importance
+4. Si pas d'Ã©vÃ©nement â†’ Capital Peur continue d'augmenter
 ```
 
-**Formule de déclenchement :**
+**Formule de dÃ©clenchement :**
 ```
-Jet : 1d60 (ou 1dX selon fiabilité vaisseau)
-Capital Peur accumulé : N jetons
+Jet : 1d60 (ou 1dX selon fiabilitÃ© vaisseau)
+Capital Peur accumulÃ© : N jetons
 
-Si Jet < N → Événement déclenché
+Si Jet < N â†’ Ã‰vÃ©nement dÃ©clenchÃ©
 ```
 
 **Exemple :**
 ```
 Capital Peur : 15 jetons
-Fiabilité vaisseau : Standard (1d60)
+FiabilitÃ© vaisseau : Standard (1d60)
 Jet : 1d60 = 12
-12 < 15 → ÉVÉNEMENT !
+12 < 15 â†’ Ã‰VÃ‰NEMENT !
 
-→ Système déclenche "Embuscade pirate" (coût 8 jetons)
-→ Capital Peur restant : 15 - 8 = 7 jetons
+â†’ SystÃ¨me dÃ©clenche "Embuscade pirate" (coÃ»t 8 jetons)
+â†’ Capital Peur restant : 15 - 8 = 7 jetons
 ```
 
-**Événements et coûts en Peur :**
+**Ã‰vÃ©nements et coÃ»ts en Peur :**
 
 ```
-COMPLICATIONS MINEURES (coût 2-5 jetons)
-├─ Panne mineure (coût 1-2 PA réparation)
-├─ Déviation navigation (+0.1-0.3 AL)
-├─ Contact radio parasite / fausse alerte
-└─ Micro-météorite (-5 HP)
+COMPLICATIONS MINEURES (coÃ»t 2-5 jetons)
+â”œâ”€ Panne mineure (coÃ»t 1-2 PA rÃ©paration)
+â”œâ”€ DÃ©viation navigation (+0.1-0.3 AL)
+â”œâ”€ Contact radio parasite / fausse alerte
+â””â”€ Micro-mÃ©tÃ©orite (-5 HP)
 
-COMPLICATIONS MAJEURES (coût 6-10 jetons)
-├─ Embuscade pirate (1-3 ennemis)
-├─ Anomalie spatiale (obstacle navigation)
-├─ Panne système critique (arme/bouclier/moteur)
-└─ Rencontre hostile imprévue
+COMPLICATIONS MAJEURES (coÃ»t 6-10 jetons)
+â”œâ”€ Embuscade pirate (1-3 ennemis)
+â”œâ”€ Anomalie spatiale (obstacle navigation)
+â”œâ”€ Panne systÃ¨me critique (arme/bouclier/moteur)
+â””â”€ Rencontre hostile imprÃ©vue
 
-ÉVÉNEMENTS CRITIQUES (coût 11-20 jetons)
-├─ Embuscade coordonnée (5+ ennemis)
-├─ Catastrophe environnementale (tempête, radiation)
-├─ Trahison/sabotage interne
-└─ Apparition élite/boss ennemi
+Ã‰VÃ‰NEMENTS CRITIQUES (coÃ»t 11-20 jetons)
+â”œâ”€ Embuscade coordonnÃ©e (5+ ennemis)
+â”œâ”€ Catastrophe environnementale (tempÃªte, radiation)
+â”œâ”€ Trahison/sabotage interne
+â””â”€ Apparition Ã©lite/boss ennemi
 
-ÉVÉNEMENTS MAJEURS (coût 20+ jetons)
-├─ Flotte ennemie (10+ vaisseaux)
-├─ Désastre système (supernova, trou noir)
-├─ Intervention faction majeure
-└─ Arc narratif déclenché
+Ã‰VÃ‰NEMENTS MAJEURS (coÃ»t 20+ jetons)
+â”œâ”€ Flotte ennemie (10+ vaisseaux)
+â”œâ”€ DÃ©sastre systÃ¨me (supernova, trou noir)
+â”œâ”€ Intervention faction majeure
+â””â”€ Arc narratif dÃ©clenchÃ©
 ```
 
-**Fiabilité du vaisseau (modificateur) :**
+**FiabilitÃ© du vaisseau (modificateur) :**
 
 ```
 Vaisseau neuf/bien entretenu : 1d60 (standard)
-Vaisseau usé : 1d50 (événements plus fréquents)
-Vaisseau délabré : 1d40 (très instable)
-Vaisseau militaire : 1d80 (très fiable)
-Vaisseau prototype : 1d100 (extrêmement fiable)
+Vaisseau usÃ© : 1d50 (Ã©vÃ©nements plus frÃ©quents)
+Vaisseau dÃ©labrÃ© : 1d40 (trÃ¨s instable)
+Vaisseau militaire : 1d80 (trÃ¨s fiable)
+Vaisseau prototype : 1d100 (extrÃªmement fiable)
 ```
 
-**⚠️ COHÉRENCE NARRATIVE - RÈGLES IMPORTANTES :**
+**âš ï¸� COHÃ‰RENCE NARRATIVE - RÃˆGLES IMPORTANTES :**
 
-**1. Persistance des événements générés :**
-
-```
-Événement créé → Stocké en base de données
-├─ Position exacte (système, coordonnées)
-├─ Type (flotte pirate, anomalie, etc.)
-├─ Durée de vie / Persistance
-└─ État (actif, en mouvement, disparu)
-
-Exemple : Flotte pirate générée
-├─ Créée à : Système Alpha, secteur B-4
-├─ Reste là : 10-30 tours minimum
-├─ Peut se déplacer : Selon IA/patrouille
-├─ Disparaît si : Détruite OU événement timer écoulé
-```
-
-**2. Événements localisés :**
-
-Les événements sont **liés à un lieu spécifique** :
+**1. Persistance des Ã©vÃ©nements gÃ©nÃ©rÃ©s :**
 
 ```
-TYPE 1 : Événements fixes (persistent longtemps)
-├─ Flotte pirate → Reste dans secteur 20-50 tours
-├─ Champ d'astéroïdes → Permanent (jusqu'à exploitation)
-├─ Anomalie spatiale → Reste 50-100 tours
-└─ Base ennemie → Permanente (jusqu'à destruction)
+Ã‰vÃ©nement crÃ©Ã© â†’ StockÃ© en base de donnÃ©es
+â”œâ”€ Position exacte (systÃ¨me, coordonnÃ©es)
+â”œâ”€ Type (flotte pirate, anomalie, etc.)
+â”œâ”€ DurÃ©e de vie / Persistance
+â””â”€ Ã‰tat (actif, en mouvement, disparu)
 
-TYPE 2 : Événements temporaires (disparaissent)
-├─ Tempête solaire → 5-10 tours
-├─ Nuage ionisé → 10-20 tours
-├─ Passage flotte commerciale → 2-5 tours
-└─ Signal de détresse → 5-15 tours
-
-TYPE 3 : Événements vaisseau (suivent le joueur)
-├─ Panne système → Jusqu'à réparation
-├─ Trahison équipage → Événement narratif unique
-├─ Malus temporaire → Durée définie
-└─ Poursuite ennemie → Jusqu'à combat/fuite
+Exemple : Flotte pirate gÃ©nÃ©rÃ©e
+â”œâ”€ CrÃ©Ã©e Ã  : SystÃ¨me Alpha, secteur B-4
+â”œâ”€ Reste lÃ  : 10-30 tours minimum
+â”œâ”€ Peut se dÃ©placer : Selon IA/patrouille
+â”œâ”€ DisparaÃ®t si : DÃ©truite OU Ã©vÃ©nement timer Ã©coulÃ©
 ```
 
-**3. Vérification de cohérence avant génération :**
+**2. Ã‰vÃ©nements localisÃ©s :**
+
+Les Ã©vÃ©nements sont **liÃ©s Ã  un lieu spÃ©cifique** :
 
 ```
-Avant de déclencher un événement :
-1. Vérifier la position du joueur
-2. Vérifier les événements déjà actifs dans la zone
-3. Choisir un événement compatible avec le contexte
-4. Si flotte générée → Créer entité persistante en BDD
-5. Marquer l'événement avec timestamp et durée
+TYPE 1 : Ã‰vÃ©nements fixes (persistent longtemps)
+â”œâ”€ Flotte pirate â†’ Reste dans secteur 20-50 tours
+â”œâ”€ Champ d'astÃ©roÃ¯des â†’ Permanent (jusqu'Ã  exploitation)
+â”œâ”€ Anomalie spatiale â†’ Reste 50-100 tours
+â””â”€ Base ennemie â†’ Permanente (jusqu'Ã  destruction)
+
+TYPE 2 : Ã‰vÃ©nements temporaires (disparaissent)
+â”œâ”€ TempÃªte solaire â†’ 5-10 tours
+â”œâ”€ Nuage ionisÃ© â†’ 10-20 tours
+â”œâ”€ Passage flotte commerciale â†’ 2-5 tours
+â””â”€ Signal de dÃ©tresse â†’ 5-15 tours
+
+TYPE 3 : Ã‰vÃ©nements vaisseau (suivent le joueur)
+â”œâ”€ Panne systÃ¨me â†’ Jusqu'Ã  rÃ©paration
+â”œâ”€ Trahison Ã©quipage â†’ Ã‰vÃ©nement narratif unique
+â”œâ”€ Malus temporaire â†’ DurÃ©e dÃ©finie
+â””â”€ Poursuite ennemie â†’ Jusqu'Ã  combat/fuite
+```
+
+**3. VÃ©rification de cohÃ©rence avant gÃ©nÃ©ration :**
+
+```
+Avant de dÃ©clencher un Ã©vÃ©nement :
+1. VÃ©rifier la position du joueur
+2. VÃ©rifier les Ã©vÃ©nements dÃ©jÃ  actifs dans la zone
+3. Choisir un Ã©vÃ©nement compatible avec le contexte
+4. Si flotte gÃ©nÃ©rÃ©e â†’ CrÃ©er entitÃ© persistante en BDD
+5. Marquer l'Ã©vÃ©nement avec timestamp et durÃ©e
 
 Exemple :
-- Joueur dans système paisible (zone Empire)
-  → Pas de grosse flotte pirate (incohérent)
-  → Plutôt : panne, petite patrouille pirate isolée
+- Joueur dans systÃ¨me paisible (zone Empire)
+  â†’ Pas de grosse flotte pirate (incohÃ©rent)
+  â†’ PlutÃ´t : panne, petite patrouille pirate isolÃ©e
   
 - Joueur dans espace sauvage
-  → Flotte pirate cohérente
-  → Stockée en BDD avec position et patrouille
+  â†’ Flotte pirate cohÃ©rente
+  â†’ StockÃ©e en BDD avec position et patrouille
 ```
 
-**4. Recyclage d'événements existants :**
+**4. Recyclage d'Ã©vÃ©nements existants :**
 
 ```
-Si événement Peur doit se déclencher :
-1. Chercher événements actifs près de la position joueur
-2. Si événement compatible existe → L'utiliser (rencontre)
-3. Sinon → Créer nouvel événement
+Si Ã©vÃ©nement Peur doit se dÃ©clencher :
+1. Chercher Ã©vÃ©nements actifs prÃ¨s de la position joueur
+2. Si Ã©vÃ©nement compatible existe â†’ L'utiliser (rencontre)
+3. Sinon â†’ CrÃ©er nouvel Ã©vÃ©nement
 
 Exemple :
-- Flotte pirate générée tour 15 à Alpha-B4
+- Flotte pirate gÃ©nÃ©rÃ©e tour 15 Ã  Alpha-B4
 - Joueur arrive Alpha-B3 au tour 20
-- Capital Peur déclenche événement
-→ Au lieu de créer nouvelle flotte
-→ Utiliser la flotte existante (elle patrouille)
-→ "Vous êtes détecté par la flotte pirate !"
+- Capital Peur dÃ©clenche Ã©vÃ©nement
+â†’ Au lieu de crÃ©er nouvelle flotte
+â†’ Utiliser la flotte existante (elle patrouille)
+â†’ "Vous Ãªtes dÃ©tectÃ© par la flotte pirate !"
 ```
 
-**Implémentation technique :**
+**ImplÃ©mentation technique :**
 
 ```javascript
-// Table base de données
+// Table base de donnÃ©es
 fear_events (
   id,
   type,
@@ -375,17 +375,17 @@ fear_events (
   data_json
 )
 
-// Fonction déclenchement
+// Fonction dÃ©clenchement
 function checkFearEvent(player) {
-  // Jet de fiabilité
+  // Jet de fiabilitÃ©
   const reliability_die = player.ship.reliability_die; // ex: 60
   const roll = random(1, reliability_die);
   const fear_capital = system.fear_tokens;
   
   if (roll < fear_capital) {
-    // Événement déclenché !
+    // Ã‰vÃ©nement dÃ©clenchÃ© !
     
-    // 1. Chercher événements existants proches
+    // 1. Chercher Ã©vÃ©nements existants proches
     const nearby_events = db.query(`
       SELECT * FROM fear_events 
       WHERE position_system_id = ? 
@@ -393,15 +393,15 @@ function checkFearEvent(player) {
       AND expires_turn > ?
     `, [player.system_id, current_turn]);
     
-    // 2. Si événement compatible existe, l'utiliser
+    // 2. Si Ã©vÃ©nement compatible existe, l'utiliser
     if (nearby_events.length > 0) {
       const event = selectCompatibleEvent(nearby_events);
       triggerExistingEvent(player, event);
     } else {
-      // 3. Sinon, créer nouvel événement
+      // 3. Sinon, crÃ©er nouvel Ã©vÃ©nement
       const event = generateNewEvent(player, fear_capital);
       
-      // 4. Si événement persistant, stocker en BDD
+      // 4. Si Ã©vÃ©nement persistant, stocker en BDD
       if (event.persistent) {
         db.insert('fear_events', {
           type: event.type,
@@ -422,7 +422,7 @@ function checkFearEvent(player) {
   }
 }
 
-// Nettoyage périodique
+// Nettoyage pÃ©riodique
 function cleanupExpiredEvents() {
   db.query(`
     UPDATE fear_events 
@@ -437,11 +437,11 @@ function cleanupExpiredEvents() {
 ### Jetons d'Espoir et de Peur
 
 **Jetons d'Espoir (ressource joueurs - VISIBLE) :**
-- Dépensés volontairement par le joueur pour :
-  - **Relancer les dés** (2d12)
-  - **Activer un talent** (à définir ultérieurement)
-  - **Obtenir certains effets environnementaux** (à définir)
-  - Survivre à la mort (mécanique à définir)
+- DÃ©pensÃ©s volontairement par le joueur pour :
+  - **Relancer les dÃ©s** (2d12)
+  - **Activer un talent** (Ã  dÃ©finir ultÃ©rieurement)
+  - **Obtenir certains effets environnementaux** (Ã  dÃ©finir)
+  - Survivre Ã  la mort (mÃ©canique Ã  dÃ©finir)
 
 **Commandes :**
 ```
@@ -449,489 +449,489 @@ function cleanupExpiredEvents() {
 Jetons d'Espoir disponibles : 3
 
 > use_hope reroll
-Jeton d'Espoir dépensé (Reste : 2)
-Relance des dés autorisée
+Jeton d'Espoir dÃ©pensÃ© (Reste : 2)
+Relance des dÃ©s autorisÃ©e
 ```
 
-**Jetons de Peur (ressource système - CACHÉ) :**
-- Accumulés automatiquement quand Fear > Hope
-- Dépensés automatiquement par le système pour :
-  - Déclencher embuscades
-  - Activer capacités ennemies
+**Jetons de Peur (ressource systÃ¨me - CACHÃ‰) :**
+- AccumulÃ©s automatiquement quand Fear > Hope
+- DÃ©pensÃ©s automatiquement par le systÃ¨me pour :
+  - DÃ©clencher embuscades
+  - Activer capacitÃ©s ennemies
   - Introduire complications (pannes, anomalies)
   - Faire intervenir renforts ennemis
-  - Créer événements narratifs
+  - CrÃ©er Ã©vÃ©nements narratifs
 - Le joueur ne voit que les **effets** (pas le compteur)
 
 ---
 
 ### Exemples d'application
 
-#### Détection d'embuscade
+#### DÃ©tection d'embuscade
 ```
-Action : Détecter une embuscade pirate à l'approche d'un système
-Compétence : Perception (Instinct)
-Difficulté : 14 (furtivité ennemie)
+Action : DÃ©tecter une embuscade pirate Ã  l'approche d'un systÃ¨me
+CompÃ©tence : Perception (Instinct)
+DifficultÃ© : 14 (furtivitÃ© ennemie)
 
-Jet : 2d12 + Perception + Bonus détecteurs
-- Dé Hope : 7
-- Dé Fear : 9
+Jet : 2d12 + Perception + Bonus dÃ©tecteurs
+- DÃ© Hope : 7
+- DÃ© Fear : 9
 - Perception : +2
 - Instinct (trait minimum) : +3
-- Bonus détecteurs : +2
-→ Résultat : (7 + 9) + 2 + 2 = 20 ≥ 14 = SUCCÈS
+- Bonus dÃ©tecteurs : +2
+â†’ RÃ©sultat : (7 + 9) + 2 + 2 = 20 â‰¥ 14 = SUCCÃˆS
 (Note : On utilise Perception +2, pas Instinct +3, car Perception > trait minimum)
 
-Mais Fear > Hope (9 > 7) → +1 jeton de Peur (CACHÉ)
-→ Embuscade détectée à temps !
-→ Mais le système accumule de la Peur...
+Mais Fear > Hope (9 > 7) â†’ +1 jeton de Peur (CACHÃ‰)
+â†’ Embuscade dÃ©tectÃ©e Ã  temps !
+â†’ Mais le systÃ¨me accumule de la Peur...
 
 Affichage console :
 > approach asteroid_belt
 
-🎲 Hope: 7  |  Fear: 9
-Résultat: (7 + 9) + 2 + 2 = 20
-✓ Détection réussie !
+ğŸ�² Hope: 7  |  Fear: 9
+RÃ©sultat: (7 + 9) + 2 + 2 = 20
+âœ“ DÃ©tection rÃ©ussie !
 
-⚠️ ALERTE : 3 vaisseaux pirates détectés en embuscade !
+âš ï¸� ALERTE : 3 vaisseaux pirates dÃ©tectÃ©s en embuscade !
 Position : 2.1 UA, secteur Gamma
-Option : Éviter [2 PA] | Engager combat | Fuir
+Option : Ã‰viter [2 PA] | Engager combat | Fuir
 
-[Système : +1 Peur stocké]
+[SystÃ¨me : +1 Peur stockÃ©]
 ```
 
 #### Combat spatial
 ```
 Action : Attaquer un vaisseau ennemi
-Compétence : Artillerie (Finesse)
-Difficulté : Seuil d'Évasion ennemi (10 + Agilité + Armure)
+CompÃ©tence : Artillerie (Finesse)
+DifficultÃ© : Seuil d'Ã‰vasion ennemi (10 + AgilitÃ© + Armure)
 
 Exemple contre Corvette pirate :
-- Seuil d'Évasion : 10 + 2 (Agilité) + 2 (Armure) = 14
+- Seuil d'Ã‰vasion : 10 + 2 (AgilitÃ©) + 2 (Armure) = 14
 
 Jet : 2d12 + Artillerie + Bonus arme
-- Dé Hope : 11
-- Dé Fear : 5
+- DÃ© Hope : 11
+- DÃ© Fear : 5
 - Artillerie : +3
 - Finesse (trait minimum) : +4
 - Bonus canons : +1
-→ Résultat : (11 + 5) + 4 + 1 = 21 ≥ 14 = SUCCÈS
-(Note : On utilise Finesse +4, pas Artillerie +3, car trait > compétence)
+â†’ RÃ©sultat : (11 + 5) + 4 + 1 = 21 â‰¥ 14 = SUCCÃˆS
+(Note : On utilise Finesse +4, pas Artillerie +3, car trait > compÃ©tence)
 
-Hope > Fear (11 > 5) → +1 jeton d'Espoir pour le joueur
-→ Touché ! Et le joueur gagne une ressource narrative
+Hope > Fear (11 > 5) â†’ +1 jeton d'Espoir pour le joueur
+â†’ TouchÃ© ! Et le joueur gagne une ressource narrative
 
 Affichage console :
 > attack pirate_corvette laser_cannons
 
-🎲 Hope: 11  |  Fear: 5
-Résultat: (11 + 5) + 4 + 1 = 21
-Défense cible: 14
-✓ TOUCHÉ - 32 dégâts infligés
+ğŸ�² Hope: 11  |  Fear: 5
+RÃ©sultat: (11 + 5) + 4 + 1 = 21
+DÃ©fense cible: 14
+âœ“ TOUCHÃ‰ - 32 dÃ©gÃ¢ts infligÃ©s
 
-✓ Jeton d'Espoir gagné ! (Total : 3)
+âœ“ Jeton d'Espoir gagnÃ© ! (Total : 3)
 Corvette pirate : 68/100 HP
 ```
 
 #### Saut hyper-espace
 ```
-Action : Saut FTL vers système inconnu
-Compétence : Astrogation (Connaissance)
-Difficulté : 13 (selon distance/conditions)
+Action : Saut FTL vers systÃ¨me inconnu
+CompÃ©tence : Astrogation (Connaissance)
+DifficultÃ© : 13 (selon distance/conditions)
 
-Jet : 2d12 + Astrogation + Qualité Drive
-- Dé Hope : 6
-- Dé Fear : 9
+Jet : 2d12 + Astrogation + QualitÃ© Drive
+- DÃ© Hope : 6
+- DÃ© Fear : 9
 - Astrogation : +4
 - Connaissance (trait minimum) : +2
 - Drive : +3
-→ Résultat : (6 + 9) + 4 + 3 = 22 ≥ 13 = SUCCÈS
+â†’ RÃ©sultat : (6 + 9) + 4 + 3 = 22 â‰¥ 13 = SUCCÃˆS
 (Note : On utilise Astrogation +4, pas Connaissance +2)
 
-Mais Fear > Hope (9 > 6) → +1 jeton de Peur
-→ Arrivée réussie, mais complication possible :
-  - Déviation mineure de trajectoire
-  - Rencontre imprévue
-  - Système endommagé par le saut
+Mais Fear > Hope (9 > 6) â†’ +1 jeton de Peur
+â†’ ArrivÃ©e rÃ©ussie, mais complication possible :
+  - DÃ©viation mineure de trajectoire
+  - Rencontre imprÃ©vue
+  - SystÃ¨me endommagÃ© par le saut
 ```
 
-#### Négociation avec guilde
+#### NÃ©gociation avec guilde
 ```
-Action : Obtenir meilleur prix pour données
-Compétence : Négociation (Présence)
-Difficulté : 15
+Action : Obtenir meilleur prix pour donnÃ©es
+CompÃ©tence : NÃ©gociation (PrÃ©sence)
+DifficultÃ© : 15
 
-Jet : 2d12 + Négociation
-- Dé Hope : 10
-- Dé Fear : 10
-- Négociation : +3
-- Présence (trait minimum) : +3
-→ Résultat : (10 + 10) + 3 = 23 ≥ 15 = SUCCÈS
-(Note : On utilise Négociation +3, égal au trait)
+Jet : 2d12 + NÃ©gociation
+- DÃ© Hope : 10
+- DÃ© Fear : 10
+- NÃ©gociation : +3
+- PrÃ©sence (trait minimum) : +3
+â†’ RÃ©sultat : (10 + 10) + 3 = 23 â‰¥ 15 = SUCCÃˆS
+(Note : On utilise NÃ©gociation +3, Ã©gal au trait)
 
-Hope = Fear (10-10) ET ≠ 1-1 → **CRITIQUE !**
-→ +1 jeton d'Espoir
-→ Négociation exceptionnelle ! Bonus supplémentaire :
+Hope = Fear (10-10) ET â‰  1-1 â†’ **CRITIQUE !**
+â†’ +1 jeton d'Espoir
+â†’ NÃ©gociation exceptionnelle ! Bonus supplÃ©mentaire :
   - Prix +25% au lieu de +10%
-  - Accès données premium offert
-  - Réputation guilde +20 (au lieu de +10)
+  - AccÃ¨s donnÃ©es premium offert
+  - RÃ©putation guilde +20 (au lieu de +10)
 
 Affichage console :
 > negotiate data_sale cartographers_guild
 
-🎲 Hope: 10  |  Fear: 10
-Résultat: (10 + 10) + 3 = 23
-✓✓ CRITIQUE ! Réussite exceptionnelle !
+ğŸ�² Hope: 10  |  Fear: 10
+RÃ©sultat: (10 + 10) + 3 = 23
+âœ“âœ“ CRITIQUE ! RÃ©ussite exceptionnelle !
 
-✓ Jeton d'Espoir gagné ! (Total : 3)
+âœ“ Jeton d'Espoir gagnÃ© ! (Total : 3)
 
 Prix obtenu : 15 000 cr (+25%)
-Bonus : Accès cartes premium débloqué
+Bonus : AccÃ¨s cartes premium dÃ©bloquÃ©
 ```
 
 #### Catastrophe (1-1)
 ```
-Action : Réparer système endommagé sous le feu
-Compétence : Mécanique (Finesse)
-Difficulté : 14
+Action : RÃ©parer systÃ¨me endommagÃ© sous le feu
+CompÃ©tence : MÃ©canique (Finesse)
+DifficultÃ© : 14
 
-Jet : 2d12 + Mécanique
-- Dé Hope : 1
-- Dé Fear : 1
-- Mécanique : +2
+Jet : 2d12 + MÃ©canique
+- DÃ© Hope : 1
+- DÃ© Fear : 1
+- MÃ©canique : +2
 - Finesse (trait minimum) : +4
-→ Résultat : (1 + 1) + 4 = 6 < 14 = ÉCHEC
-(Note : On utilise Finesse +4, pas Mécanique +2)
+â†’ RÃ©sultat : (1 + 1) + 4 = 6 < 14 = Ã‰CHEC
+(Note : On utilise Finesse +4, pas MÃ©canique +2)
 
-Hope = Fear = 1-1 → CATASTROPHE !
-→ +1 jeton de Peur (système, caché)
-→ Réparation échoue catastrophiquement :
-  - Système totalement HS (au lieu de juste endommagé)
-  - Surcharge → Dégâts supplémentaires (-15 HP)
+Hope = Fear = 1-1 â†’ CATASTROPHE !
+â†’ +1 jeton de Peur (systÃ¨me, cachÃ©)
+â†’ RÃ©paration Ã©choue catastrophiquement :
+  - SystÃ¨me totalement HS (au lieu de juste endommagÃ©)
+  - Surcharge â†’ DÃ©gÃ¢ts supplÃ©mentaires (-15 HP)
   - Temps perdu (2 PA perdus)
 
 Affichage console :
 > repair shields
 
-🎲 Hope: 1  |  Fear: 1
-Résultat: (1 + 1) + 4 = 6
-✗✗ CATASTROPHE !
+ğŸ�² Hope: 1  |  Fear: 1
+RÃ©sultat: (1 + 1) + 4 = 6
+âœ—âœ— CATASTROPHE !
 
-[Système : +1 Peur stocké]
+[SystÃ¨me : +1 Peur stockÃ©]
 
-⚠️ Surcharge critique !
+âš ï¸� Surcharge critique !
 Boucliers : Hors service total
-Dégâts : -15 HP coque
+DÃ©gÃ¢ts : -15 HP coque
 PA perdus : 2
 ```
 
 ---
 
-### Adaptation pour le jeu vidéo
+### Adaptation pour le jeu vidÃ©o
 
 **Calculs automatiques :**
 - Le serveur lance les 2d12
-- Affiche les résultats (Hope: X, Fear: Y)
-- Indique succès/échec
-- Génère jetons automatiquement
+- Affiche les rÃ©sultats (Hope: X, Fear: Y)
+- Indique succÃ¨s/Ã©chec
+- GÃ©nÃ¨re jetons automatiquement
 
 **Affichage console :**
 ```
 > scan_for_threats
 
-Scan de menaces (Instinct +3, Détecteurs +2)...
-🎲 Hope: 8  |  Fear: 10
-Résultat: (8 + 10) + 3 + 2 = 23
-✓ SUCCÈS - Aucune menace immédiate détectée
+Scan de menaces (Instinct +3, DÃ©tecteurs +2)...
+ğŸ�² Hope: 8  |  Fear: 10
+RÃ©sultat: (8 + 10) + 3 + 2 = 23
+âœ“ SUCCÃˆS - Aucune menace immÃ©diate dÃ©tectÃ©e
 
-[Système : +1 Peur accumulé]
-(Le joueur ne voit pas cette ligne - Peur caché)
+[SystÃ¨me : +1 Peur accumulÃ©]
+(Le joueur ne voit pas cette ligne - Peur cachÃ©)
 
 > check_hope
 Jetons d'Espoir disponibles : 2
 
 > use_hope navigation_bonus
-Jeton d'Espoir dépensé (+2 au prochain jet de navigation)
+Jeton d'Espoir dÃ©pensÃ© (+2 au prochain jet de navigation)
 Jetons restants : 1
 ```
 
-**Utilisation automatique Peur par le système :**
+**Utilisation automatique Peur par le systÃ¨me :**
 ```
 [Joueur fait plusieurs actions avec Fear > Hope]
-[Système accumule 5 jetons de Peur]
+[SystÃ¨me accumule 5 jetons de Peur]
 
 > jump_hyperspace target_system_gamma
 
 Calcul de saut...
-🎲 Hope: 10  |  Fear: 6
-✓ Saut réussi
+ğŸ�² Hope: 10  |  Fear: 6
+âœ“ Saut rÃ©ussi
 
-[Système dépense 3 jetons Peur]
+[SystÃ¨me dÃ©pense 3 jetons Peur]
 
-⚠️ ÉVÉNEMENT : Sortie d'hyperespace perturbée !
-Champ d'astéroïdes non répertorié détecté
-Micro-dégâts : -5 HP coque
-Position : +0.3 AL de déviation
+âš ï¸� Ã‰VÃ‰NEMENT : Sortie d'hyperespace perturbÃ©e !
+Champ d'astÃ©roÃ¯des non rÃ©pertoriÃ© dÃ©tectÃ©
+Micro-dÃ©gÃ¢ts : -5 HP coque
+Position : +0.3 AL de dÃ©viation
 
-(Le joueur ne sait pas que c'était causé par les jetons Peur)
+(Le joueur ne sait pas que c'Ã©tait causÃ© par les jetons Peur)
 ```
 
 ---
 
-## 🖥️ INTERFACE UTILISATEUR
+## ğŸ–¥ï¸� INTERFACE UTILISATEUR
 
 ### Vue d'ensemble
 
-L'interface est composée de **trois zones principales** :
-- **Panneau de navigation à gauche** : Système d'onglets thématiques
+L'interface est composÃ©e de **trois zones principales** :
+- **Panneau de navigation Ã  gauche** : SystÃ¨me d'onglets thÃ©matiques
 - **Zone d'affichage centrale** : Informations contextuelles, visualisations
-- **Console à droite** : Messages + saisie commandes + boutons raccourcis
+- **Console Ã  droite** : Messages + saisie commandes + boutons raccourcis
 
-**Schéma de layout :**
+**SchÃ©ma de layout :**
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│  [LOGO/TITRE DU JEU]                          [USER INFO] [PA:10]│
-├────────────┬─────────────────────────────┬───────────────────────┤
-│            │                             │                       │
-│  ONGLETS   │    ZONE D'AFFICHAGE        │  ZONE MESSAGES        │
-│  (MENUS)   │    CENTRALE                 │  (Dialogue IA)        │
-│            │                             │  ┌─────────────────┐  │
-│ ├─ Lieu    │  ┌───────────────────────┐ │  │ > Bienvenue     │  │
-│ ├─ Service │  │                       │ │  │ > Scout LI-200  │  │
-│ ├─Personnel│  │   COCKPIT / CARTE     │ │  │ > Sol, Terre    │  │
-│ └─ Jeu     │  │   RADAR / DONNÉES     │ │  │ > 10 PA dispos  │  │
-│            │  │                       │ │  │ ...             │  │
-│ Sous-menus:│  │   (Contextuel selon   │ │  │ [Historique]    │  │
-│ • Pont     │  │    onglet sélectionné)│ │  └─────────────────┘  │
-│ • Soute    │  │                       │ │                       │
-│ • Machines │  └───────────────────────┘ │  ZONE SAISIE          │
-│ • ...      │                             │  ┌─────────────────┐  │
-│            │                             │  │ > _             │  │
-│            │                             │  └─────────────────┘  │
-│            │                             │  [BOUTONS RACCOURCIS] │
-│            │                             │  [Scan][Jump][Attack] │
-│            │                             │  [Dock][Trade][Help]  │
-└────────────┴─────────────────────────────┴───────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”�
+â”‚  [LOGO/TITRE DU JEU]                          [USER INFO] [PA:10]â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚            â”‚                             â”‚                       â”‚
+â”‚  ONGLETS   â”‚    ZONE D'AFFICHAGE        â”‚  ZONE MESSAGES        â”‚
+â”‚  (MENUS)   â”‚    CENTRALE                 â”‚  (Dialogue IA)        â”‚
+â”‚            â”‚                             â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”�  â”‚
+â”‚ â”œâ”€ Lieu    â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”� â”‚  â”‚ > Bienvenue     â”‚  â”‚
+â”‚ â”œâ”€ Service â”‚  â”‚                       â”‚ â”‚  â”‚ > Scout LI-200  â”‚  â”‚
+â”‚ â”œâ”€Personnelâ”‚  â”‚   COCKPIT / CARTE     â”‚ â”‚  â”‚ > Sol, Terre    â”‚  â”‚
+â”‚ â””â”€ Jeu     â”‚  â”‚   RADAR / DONNÃ‰ES     â”‚ â”‚  â”‚ > 10 PA dispos  â”‚  â”‚
+â”‚            â”‚  â”‚                       â”‚ â”‚  â”‚ ...             â”‚  â”‚
+â”‚ Sous-menus:â”‚  â”‚   (Contextuel selon   â”‚ â”‚  â”‚ [Historique]    â”‚  â”‚
+â”‚ â€¢ Pont     â”‚  â”‚    onglet sÃ©lectionnÃ©)â”‚ â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚
+â”‚ â€¢ Soute    â”‚  â”‚                       â”‚ â”‚                       â”‚
+â”‚ â€¢ Machines â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚  ZONE SAISIE          â”‚
+â”‚ â€¢ ...      â”‚                             â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”�  â”‚
+â”‚            â”‚                             â”‚  â”‚ > _             â”‚  â”‚
+â”‚            â”‚                             â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚
+â”‚            â”‚                             â”‚  [BOUTONS RACCOURCIS] â”‚
+â”‚            â”‚                             â”‚  [Scan][Jump][Attack] â”‚
+â”‚            â”‚                             â”‚  [Dock][Trade][Help]  â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ---
 
 ### 1. Panneau de navigation (Gauche)
 
-**4 Grands thèmes avec sous-menus :**
+**4 Grands thÃ¨mes avec sous-menus :**
 
-#### 📍 LIEU
+#### ğŸ“� LIEU
 Interaction avec le lieu actuel (Station ou Vaisseau)
 
 ```
 Lieu
-├─ Vaisseau (si dans vaisseau)
-│   ├─ Pont
-│   ├─ Soute
-│   ├─ Quartiers équipage
-│   ├─ Salle des machines
-│   └─ Systèmes (armement, boucliers, etc.)
-│
-└─ Station (si amarré/à quai)
-    ├─ Hangar / Docks
-    ├─ Marché / Commerce
-    ├─ Chantier naval (réparations, upgrades)
-    ├─ Quartier administratif (missions, guildes)
-    ├─ Cantina / Espaces sociaux
-    └─ Zones spéciales (selon station)
+â”œâ”€ Vaisseau (si dans vaisseau)
+â”‚   â”œâ”€ Pont
+â”‚   â”œâ”€ Soute
+â”‚   â”œâ”€ Quartiers Ã©quipage
+â”‚   â”œâ”€ Salle des machines
+â”‚   â””â”€ SystÃ¨mes (armement, boucliers, etc.)
+â”‚
+â””â”€ Station (si amarrÃ©/Ã  quai)
+    â”œâ”€ Hangar / Docks
+    â”œâ”€ MarchÃ© / Commerce
+    â”œâ”€ Chantier naval (rÃ©parations, upgrades)
+    â”œâ”€ Quartier administratif (missions, guildes)
+    â”œâ”€ Cantina / Espaces sociaux
+    â””â”€ Zones spÃ©ciales (selon station)
 ```
 
-#### 🛠️ SERVICE
-Compétences communes et gestion
+#### ğŸ› ï¸� SERVICE
+CompÃ©tences communes et gestion
 
 ```
 Service
-├─ Spatio-carte
-│   ├─ Carte galactique
-│   ├─ Système actuel (vue détaillée)
-│   ├─ Routes connues
-│   └─ Points d'intérêt découverts
-│
-├─ Gestion vaisseaux
-│   ├─ Flotte personnelle
-│   ├─ Statut / Réparations
-│   ├─ Équipements / Upgrades
-│   └─ Assignations équipage
-│
-├─ Gestion bases/mines
-│   ├─ Liste installations
-│   ├─ Production / Ressources
-│   ├─ Personnel assigné
-│   └─ Défenses
-│
-├─ Communication
-│   ├─ Messages / Guildes
-│   ├─ Marché (offres/demandes)
-│   └─ Intel / Rapports
-│
-└─ Économie
-    ├─ Inventaire global
-    ├─ Finances
-    ├─ Routes commerciales
-    └─ Contrats actifs
+â”œâ”€ Spatio-carte
+â”‚   â”œâ”€ Carte galactique
+â”‚   â”œâ”€ SystÃ¨me actuel (vue dÃ©taillÃ©e)
+â”‚   â”œâ”€ Routes connues
+â”‚   â””â”€ Points d'intÃ©rÃªt dÃ©couverts
+â”‚
+â”œâ”€ Gestion vaisseaux
+â”‚   â”œâ”€ Flotte personnelle
+â”‚   â”œâ”€ Statut / RÃ©parations
+â”‚   â”œâ”€ Ã‰quipements / Upgrades
+â”‚   â””â”€ Assignations Ã©quipage
+â”‚
+â”œâ”€ Gestion bases/mines
+â”‚   â”œâ”€ Liste installations
+â”‚   â”œâ”€ Production / Ressources
+â”‚   â”œâ”€ Personnel assignÃ©
+â”‚   â””â”€ DÃ©fenses
+â”‚
+â”œâ”€ Communication
+â”‚   â”œâ”€ Messages / Guildes
+â”‚   â”œâ”€ MarchÃ© (offres/demandes)
+â”‚   â””â”€ Intel / Rapports
+â”‚
+â””â”€ Ã‰conomie
+    â”œâ”€ Inventaire global
+    â”œâ”€ Finances
+    â”œâ”€ Routes commerciales
+    â””â”€ Contrats actifs
 ```
 
-#### 👥 PERSONNEL
+#### ğŸ‘¥ PERSONNEL
 Gestion du personnel du vaisseau
 
 ```
 Personnel
-├─ PJ Principal
-│   ├─ Fiche personnage
-│   ├─ Traits / Compétences
-│   ├─ Équipement personnel
-│   └─ Historique / Réputation
-│
-├─ PJ Secondaires (équipage nommé)
-│   ├─ Liste équipage
-│   ├─ Spécialisations
-│   ├─ Affectations postes
-│   └─ Moral / État
-│
-└─ Personnel non-joueur
-    ├─ Effectifs (nombre par rôle)
-    ├─ Recrutement
-    ├─ Formation
-    └─ Besoins (alimentation, confort, etc.)
+â”œâ”€ PJ Principal
+â”‚   â”œâ”€ Fiche personnage
+â”‚   â”œâ”€ Traits / CompÃ©tences
+â”‚   â”œâ”€ Ã‰quipement personnel
+â”‚   â””â”€ Historique / RÃ©putation
+â”‚
+â”œâ”€ PJ Secondaires (Ã©quipage nommÃ©)
+â”‚   â”œâ”€ Liste Ã©quipage
+â”‚   â”œâ”€ SpÃ©cialisations
+â”‚   â”œâ”€ Affectations postes
+â”‚   â””â”€ Moral / Ã‰tat
+â”‚
+â””â”€ Personnel non-joueur
+    â”œâ”€ Effectifs (nombre par rÃ´le)
+    â”œâ”€ Recrutement
+    â”œâ”€ Formation
+    â””â”€ Besoins (alimentation, confort, etc.)
 ```
 
-#### 🎮 JEU
-Méta-jeu et paramètres
+#### ğŸ�® JEU
+MÃ©ta-jeu et paramÃ¨tres
 
 ```
 Jeu
-├─ Options
-├─ Paramètres
-├─ Tutoriel / Aide
-├─ Statistiques
-├─ Succès / Objectifs
-└─ Sauvegarde / Quitter
+â”œâ”€ Options
+â”œâ”€ ParamÃ¨tres
+â”œâ”€ Tutoriel / Aide
+â”œâ”€ Statistiques
+â”œâ”€ SuccÃ¨s / Objectifs
+â””â”€ Sauvegarde / Quitter
 ```
 
 ---
 
 ### 2. Zone d'affichage centrale
 
-**Affichage contextuel selon l'onglet/sous-menu sélectionné à gauche.**
+**Affichage contextuel selon l'onglet/sous-menu sÃ©lectionnÃ© Ã  gauche.**
 
 #### Exemples d'affichages :
 
 **LIEU > Vaisseau > Pont :**
 ```
-┌─────────────────────────────────────┐
-│   VUE COCKPIT DU VAISSEAU           │
-│                                     │
-│   [Schéma 3D ou vue cockpit]        │
-│   • Indicateurs HP coque : 85/100   │
-│   • Boucliers : 100%                │
-│   • Énergie réacteur : 75%          │
-│   • Carburant : 450/500             │
-│                                     │
-│   RADAR LOCAL                       │
-│   [Carte 2D locale 360°]            │
-│   • Objets détectés dans 5 UA       │
-│                                     │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”�
+â”‚   VUE COCKPIT DU VAISSEAU           â”‚
+â”‚                                     â”‚
+â”‚   [SchÃ©ma 3D ou vue cockpit]        â”‚
+â”‚   â€¢ Indicateurs HP coque : 85/100   â”‚
+â”‚   â€¢ Boucliers : 100%                â”‚
+â”‚   â€¢ Ã‰nergie rÃ©acteur : 75%          â”‚
+â”‚   â€¢ Carburant : 450/500             â”‚
+â”‚                                     â”‚
+â”‚   RADAR LOCAL                       â”‚
+â”‚   [Carte 2D locale 360Â°]            â”‚
+â”‚   â€¢ Objets dÃ©tectÃ©s dans 5 UA       â”‚
+â”‚                                     â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
-**SERVICE > Spatio-carte > Système actuel :**
+**SERVICE > Spatio-carte > SystÃ¨me actuel :**
 ```
-┌─────────────────────────────────────┐
-│   SYSTÈME SOL                       │
-│                                     │
-│   [Carte 2D/3D du système]          │
-│   ☉ Soleil (centre)                 │
-│   • Mercure (0.39 UA)               │
-│   • Vénus (0.72 UA)                 │
-│   • Terre (1.0 UA) ← VOUS ÊTES ICI  │
-│   • Mars (1.52 UA)                  │
-│   • Ceinture astéroïdes (2.7 UA)    │
-│   • Jupiter (5.2 UA)                │
-│   ...                               │
-│                                     │
-│   Boutons :                         │
-│   [Zoom +/-] [Vue 3D] [Routes]      │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”�
+â”‚   SYSTÃˆME SOL                       â”‚
+â”‚                                     â”‚
+â”‚   [Carte 2D/3D du systÃ¨me]          â”‚
+â”‚   â˜‰ Soleil (centre)                 â”‚
+â”‚   â€¢ Mercure (0.39 UA)               â”‚
+â”‚   â€¢ VÃ©nus (0.72 UA)                 â”‚
+â”‚   â€¢ Terre (1.0 UA) â†� VOUS ÃŠTES ICI  â”‚
+â”‚   â€¢ Mars (1.52 UA)                  â”‚
+â”‚   â€¢ Ceinture astÃ©roÃ¯des (2.7 UA)    â”‚
+â”‚   â€¢ Jupiter (5.2 UA)                â”‚
+â”‚   ...                               â”‚
+â”‚                                     â”‚
+â”‚   Boutons :                         â”‚
+â”‚   [Zoom +/-] [Vue 3D] [Routes]      â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **SERVICE > Gestion vaisseaux :**
 ```
-┌─────────────────────────────────────┐
-│   SCOUT LI-200 "Explorateur"        │
-│                                     │
-│   [Schéma vaisseau avec modules]    │
-│                                     │
-│   MODULES INSTALLÉS :               │
-│   ├─ Détecteurs Mk II (Slot 1)      │
-│   ├─ Canons Laser (Slot 2)          │
-│   ├─ Boucliers Standard (Slot 3)    │
-│   └─ Drive Hyper-espace Mk I        │
-│                                     │
-│   STATISTIQUES :                    │
-│   • HP : 85/100                     │
-│   • Cargo : 15/50 unités            │
-│   • Équipage : 3/4                  │
-│   • Entretien : Bon état            │
-│                                     │
-│   [Réparer] [Upgrade] [Vendre]      │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”�
+â”‚   SCOUT LI-200 "Explorateur"        â”‚
+â”‚                                     â”‚
+â”‚   [SchÃ©ma vaisseau avec modules]    â”‚
+â”‚                                     â”‚
+â”‚   MODULES INSTALLÃ‰S :               â”‚
+â”‚   â”œâ”€ DÃ©tecteurs Mk II (Slot 1)      â”‚
+â”‚   â”œâ”€ Canons Laser (Slot 2)          â”‚
+â”‚   â”œâ”€ Boucliers Standard (Slot 3)    â”‚
+â”‚   â””â”€ Drive Hyper-espace Mk I        â”‚
+â”‚                                     â”‚
+â”‚   STATISTIQUES :                    â”‚
+â”‚   â€¢ HP : 85/100                     â”‚
+â”‚   â€¢ Cargo : 15/50 unitÃ©s            â”‚
+â”‚   â€¢ Ã‰quipage : 3/4                  â”‚
+â”‚   â€¢ Entretien : Bon Ã©tat            â”‚
+â”‚                                     â”‚
+â”‚   [RÃ©parer] [Upgrade] [Vendre]      â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **PERSONNEL > PJ Principal :**
 ```
-┌─────────────────────────────────────┐
-│   CAPITAINE JEAN MERCIER            │
-│   [Portrait/Avatar]                 │
-│                                     │
-│   TRAITS :                          │
-│   • Agilité : 3                     │
-│   • Force : 2                       │
-│   • Finesse : 4                     │
-│   • Instinct : 5                    │
-│   • Présence : 3                    │
-│   • Connaissance : 4                │
-│                                     │
-│   COMPÉTENCES : (à définir)         │
-│   • Navigation : 6                  │
-│   • Combat : 4                      │
-│   • Négociation : 5                 │
-│   ...                               │
-│                                     │
-│   RÉPUTATION :                      │
-│   • Empire Terrien : +250 (Ami)     │
-│   • Cartographes : +180 (Connu)     │
-│   • Pirates : -50 (Méfiant)         │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”�
+â”‚   CAPITAINE JEAN MERCIER            â”‚
+â”‚   [Portrait/Avatar]                 â”‚
+â”‚                                     â”‚
+â”‚   TRAITS :                          â”‚
+â”‚   â€¢ AgilitÃ© : 3                     â”‚
+â”‚   â€¢ Force : 2                       â”‚
+â”‚   â€¢ Finesse : 4                     â”‚
+â”‚   â€¢ Instinct : 5                    â”‚
+â”‚   â€¢ PrÃ©sence : 3                    â”‚
+â”‚   â€¢ Connaissance : 4                â”‚
+â”‚                                     â”‚
+â”‚   COMPÃ‰TENCES : (Ã  dÃ©finir)         â”‚
+â”‚   â€¢ Navigation : 6                  â”‚
+â”‚   â€¢ Combat : 4                      â”‚
+â”‚   â€¢ NÃ©gociation : 5                 â”‚
+â”‚   ...                               â”‚
+â”‚                                     â”‚
+â”‚   RÃ‰PUTATION :                      â”‚
+â”‚   â€¢ Empire Terrien : +250 (Ami)     â”‚
+â”‚   â€¢ Cartographes : +180 (Connu)     â”‚
+â”‚   â€¢ Pirates : -50 (MÃ©fiant)         â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
-**LIEU > Station > Marché :**
+**LIEU > Station > MarchÃ© :**
 ```
-┌─────────────────────────────────────┐
-│   MARCHÉ - STATION ALPHA CENTAURI   │
-│                                     │
-│   ACHETER :                         │
-│   Item              Prix    Stock   │
-│   ─────────────────────────────────│
-│   Carburant         50cr    1000u   │
-│   Pièces détachées  200cr   50u     │
-│   Nourriture (std)  10cr    500u    │
-│   Munitions laser   150cr   100u    │
-│   ...                               │
-│                                     │
-│   VENDRE :                          │
-│   Votre Item        Prix    Qté     │
-│   ─────────────────────────────────│
-│   Minerai fer       80cr    25u     │
-│   Données cartes    500cr   3u      │
-│   ...                               │
-│                                     │
-│   Crédits : 12 450 cr               │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”�
+â”‚   MARCHÃ‰ - STATION ALPHA CENTAURI   â”‚
+â”‚                                     â”‚
+â”‚   ACHETER :                         â”‚
+â”‚   Item              Prix    Stock   â”‚
+â”‚   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”‚
+â”‚   Carburant         50cr    1000u   â”‚
+â”‚   PiÃ¨ces dÃ©tachÃ©es  200cr   50u     â”‚
+â”‚   Nourriture (std)  10cr    500u    â”‚
+â”‚   Munitions laser   150cr   100u    â”‚
+â”‚   ...                               â”‚
+â”‚                                     â”‚
+â”‚   VENDRE :                          â”‚
+â”‚   Votre Item        Prix    QtÃ©     â”‚
+â”‚   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”‚
+â”‚   Minerai fer       80cr    25u     â”‚
+â”‚   DonnÃ©es cartes    500cr   3u      â”‚
+â”‚   ...                               â”‚
+â”‚                                     â”‚
+â”‚   CrÃ©dits : 12 450 cr               â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ---
@@ -939,25 +939,25 @@ Jeu
 ### 3. Console (Droite)
 
 #### Zone Messages (Haut)
-- **Dialogue avec l'IA du système**
-- Affichage des actions, résultats, événements
+- **Dialogue avec l'IA du systÃ¨me**
+- Affichage des actions, rÃ©sultats, Ã©vÃ©nements
 - Historique scrollable
 - Codes couleur :
   - Blanc : Informations neutres
-  - Vert : Succès, gains
+  - Vert : SuccÃ¨s, gains
   - Jaune : Avertissements
-  - Rouge : Dangers, échecs, dégâts
+  - Rouge : Dangers, Ã©checs, dÃ©gÃ¢ts
   - Bleu : Communications, messages guildes
-  - Violet : Événements spéciaux, critiques
+  - Violet : Ã‰vÃ©nements spÃ©ciaux, critiques
 
 #### Zone Saisie (Milieu)
 - **Champ texte pour commandes**
-- Commandes introduites par **mot-clé au début**
-- Auto-complétion suggérée
-- Historique commandes (flèches haut/bas)
+- Commandes introduites par **mot-clÃ© au dÃ©but**
+- Auto-complÃ©tion suggÃ©rÃ©e
+- Historique commandes (flÃ¨ches haut/bas)
 
 #### Boutons Raccourcis (Bas)
-**Actions évidentes et standards (à définir précisément ultérieurement)**
+**Actions Ã©videntes et standards (Ã  dÃ©finir prÃ©cisÃ©ment ultÃ©rieurement)**
 
 Exemples de boutons contextuels :
 
@@ -971,12 +971,12 @@ Exemples de boutons contextuels :
 [Attack] [Evade] [Target] [Flee]
 ```
 
-**À la station :**
+**Ã€ la station :**
 ```
 [Trade] [Repair] [Upgrade] [Missions]
 ```
 
-**Généraux (toujours visibles) :**
+**GÃ©nÃ©raux (toujours visibles) :**
 ```
 [Help] [Status] [End Turn]
 ```
@@ -985,36 +985,36 @@ Exemples de boutons contextuels :
 
 ```
 NAVIGATION
-> jump [système]          : Saut hyper-espace
-> travel [planète]        : Déplacement conventionnel
+> jump [systÃ¨me]          : Saut hyper-espace
+> travel [planÃ¨te]        : DÃ©placement conventionnel
 > scan                    : Scanner zone actuelle
 > dock [station]          : Amarrage
 
 COMBAT
 > attack [cible] [arme]   : Attaquer
-> evade                   : Manœuvre évasive
-> target [système]        : Cibler système spécifique
+> evade                   : ManÅ“uvre Ã©vasive
+> target [systÃ¨me]        : Cibler systÃ¨me spÃ©cifique
 > flee                    : Fuir le combat
 
 COMMERCE
-> buy [item] [quantité]   : Acheter
-> sell [item] [quantité]  : Vendre
-> trade [destination]     : Établir route commerciale
-> market                  : Afficher marché local
+> buy [item] [quantitÃ©]   : Acheter
+> sell [item] [quantitÃ©]  : Vendre
+> trade [destination]     : Ã‰tablir route commerciale
+> market                  : Afficher marchÃ© local
 
 GESTION
-> repair [système]        : Réparer
-> upgrade [système]       : Améliorer
-> assign [personnel] [poste] : Assigner équipage
-> status                  : État vaisseau/équipage
+> repair [systÃ¨me]        : RÃ©parer
+> upgrade [systÃ¨me]       : AmÃ©liorer
+> assign [personnel] [poste] : Assigner Ã©quipage
+> status                  : Ã‰tat vaisseau/Ã©quipage
 
 SOCIAL
 > contact [faction]       : Contacter
-> negotiate               : Négocier
+> negotiate               : NÃ©gocier
 > accept_mission [id]     : Accepter mission
-> reputation              : Voir réputations
+> reputation              : Voir rÃ©putations
 
-SYSTÈME
+SYSTÃˆME
 > help [commande]         : Aide
 > history                 : Historique actions
 > check_hope              : Voir jetons Espoir
@@ -1023,25 +1023,25 @@ SYSTÈME
 
 ---
 
-### Intégration des 3 zones
+### IntÃ©gration des 3 zones
 
 **Flux d'interaction :**
 
-1. **Sélection onglet/menu (Gauche)** → Change affichage central
-2. **Visualisation/Clic élément (Centre)** → Pré-remplit commande (Droite)
-3. **Validation commande (Droite)** → Résultat affiché dans messages (Droite) + mise à jour affichage (Centre)
+1. **SÃ©lection onglet/menu (Gauche)** â†’ Change affichage central
+2. **Visualisation/Clic Ã©lÃ©ment (Centre)** â†’ PrÃ©-remplit commande (Droite)
+3. **Validation commande (Droite)** â†’ RÃ©sultat affichÃ© dans messages (Droite) + mise Ã  jour affichage (Centre)
 
 **Exemple de flux complet :**
 ```
-1. Joueur clique "Service > Spatio-carte > Système actuel" (Gauche)
-   → Centre affiche carte du système Sol
+1. Joueur clique "Service > Spatio-carte > SystÃ¨me actuel" (Gauche)
+   â†’ Centre affiche carte du systÃ¨me Sol
 
 2. Joueur clique sur "Mars" dans la carte (Centre)
-   → Console pré-remplit : "> travel Mars_"
+   â†’ Console prÃ©-remplit : "> travel Mars_"
 
-3. Joueur valide ou modifie et appuie Entrée
-   → Message console : "🎲 Navigation réussie, arrivée Mars dans 3 tours"
-   → Carte centrale met à jour position
+3. Joueur valide ou modifie et appuie EntrÃ©e
+   â†’ Message console : "ğŸ�² Navigation rÃ©ussie, arrivÃ©e Mars dans 3 tours"
+   â†’ Carte centrale met Ã  jour position
 ```
 
 **Raccourcis clavier :**
@@ -1052,999 +1052,999 @@ SYSTÈME
 - `Espace` : End turn
 
 **Responsive :**
-- Petits écrans : Panneau gauche se rétracte (icônes)
+- Petits Ã©crans : Panneau gauche se rÃ©tracte (icÃ´nes)
 - Console droite peut se minimiser
 - Zone centrale reste prioritaire
 
 ---
 
-## 🚀 NAVIGATION ET DÉPLACEMENTS
+## ğŸš€ NAVIGATION ET DÃ‰PLACEMENTS
 
 ### Tour par tour
 - **1 tour = 1 jour in-game**
-- **Points d'Action (PA)** par tour : 10-15 (selon vaisseau/équipage)
+- **Points d'Action (PA)** par tour : 10-15 (selon vaisseau/Ã©quipage)
 
-### Types de déplacement
+### Types de dÃ©placement
 
 #### 1. Hyper-espace (inter-stellaire)
-**Caractéristiques :**
-- Portée : 3-6 années-lumière par saut
+**CaractÃ©ristiques :**
+- PortÃ©e : 3-6 annÃ©es-lumiÃ¨re par saut
 - Direction : Choisie par le joueur (vecteur 3D)
-- Puissance : Paramétrable (distance = f(puissance))
-- **Imprécision** : Scatter aléatoire autour de la cible
-  - Précision = f(qualité drive, calculs navigation)
+- Puissance : ParamÃ©trable (distance = f(puissance))
+- **ImprÃ©cision** : Scatter alÃ©atoire autour de la cible
+  - PrÃ©cision = f(qualitÃ© drive, calculs navigation)
   
-**Arrêts forcés :**
-Le saut s'interrompt si obstacle non détecté :
-- Champ d'astéroïdes dense
-- Gravité planétaire/stellaire
+**ArrÃªts forcÃ©s :**
+Le saut s'interrompt si obstacle non dÃ©tectÃ© :
+- Champ d'astÃ©roÃ¯des dense
+- GravitÃ© planÃ©taire/stellaire
 - Anomalie spatiale
-- **Pas à la demande du joueur** (sauf abandon saut)
+- **Pas Ã  la demande du joueur** (sauf abandon saut)
 
-**Coût :**
+**CoÃ»t :**
 - Minimum : 3-5 PA pour calculs + saut
-- Carburant hyperespace consommé
+- Carburant hyperespace consommÃ©
 - Temps de recharge entre sauts
 
-#### 2. Conventionnel (intra-système)
-**Caractéristiques :**
-- Entre objets d'un même système
-- Plus lent mais précis
-- Coût : 1-5 PA selon distance
+#### 2. Conventionnel (intra-systÃ¨me)
+**CaractÃ©ristiques :**
+- Entre objets d'un mÃªme systÃ¨me
+- Plus lent mais prÃ©cis
+- CoÃ»t : 1-5 PA selon distance
 
 **Vitesses :**
-- Subluminique : 0.01-0.3c (fraction vitesse lumière)
-- Transit planète → planète : quelques heures à jours
+- Subluminique : 0.01-0.3c (fraction vitesse lumiÃ¨re)
+- Transit planÃ¨te â†’ planÃ¨te : quelques heures Ã  jours
 
 ### Phase d'orientation (post-saut)
 
-**Après un saut hyper-espace :**
-1. **Scan obligatoire (≥1 PA)** pour déterminer position
-2. Calcul fond d'étoiles visible
-3. Reconnaissance patterns connus (étoiles brillantes)
-4. Triangulation → Position estimée
+**AprÃ¨s un saut hyper-espace :**
+1. **Scan obligatoire (â‰¥1 PA)** pour dÃ©terminer position
+2. Calcul fond d'Ã©toiles visible
+3. Reconnaissance patterns connus (Ã©toiles brillantes)
+4. Triangulation â†’ Position estimÃ©e
 
-**Coût variable :**
-- 1 PA : Orientation basique (±2 AL d'erreur)
-- 2-3 PA : Scan approfondi (±0.5 AL)
-- +X PA si zone complexe (nébuleuse, champ dense)
+**CoÃ»t variable :**
+- 1 PA : Orientation basique (Â±2 AL d'erreur)
+- 2-3 PA : Scan approfondi (Â±0.5 AL)
+- +X PA si zone complexe (nÃ©buleuse, champ dense)
 
 ---
 
-## 🔭 DÉTECTION ET EXPLORATION
+## ğŸ”­ DÃ‰TECTION ET EXPLORATION
 
-### Fond d'étoiles dynamique
+### Fond d'Ã©toiles dynamique
 
 **Concept :**
-Le vaisseau "voit" ce que ses capteurs détectent depuis sa position actuelle.
+Le vaisseau "voit" ce que ses capteurs dÃ©tectent depuis sa position actuelle.
 
 **Calcul :**
-Pour chaque étoile GAIA dans un rayon de X AL :
+Pour chaque Ã©toile GAIA dans un rayon de X AL :
 1. Distance au vaisseau
 2. Magnitude apparente depuis cette position
 3. Position angulaire relative (RA/Dec)
 4. Identifiable si assez brillante
 
 **Rendu visuel :**
-- Canvas/WebGL avec points d'étoiles
-- Densité réaliste (milliers de points)
-- Objets détectés en surbrillance colorée
+- Canvas/WebGL avec points d'Ã©toiles
+- DensitÃ© rÃ©aliste (milliers de points)
+- Objets dÃ©tectÃ©s en surbrillance colorÃ©e
 
-### Objets détectables
+### Objets dÃ©tectables
 
-| Type | Couleur UI | Difficulté détection |
+| Type | Couleur UI | DifficultÃ© dÃ©tection |
 |------|------------|---------------------|
-| Étoiles identifiées | 🟡 Jaune/Orange | Facile |
-| Planètes connues | 🔵 Bleu | Moyen |
-| Bases/Stations | 🟢 Vert | Moyen |
-| Zones extraction | 🟠 Orange pulsant | Difficile |
-| Champs astéroïdes | 🔴 Rouge diffus | Variable |
-| **Galaxies lointaines** | 🟣 Violet | **PIÈGE** |
+| Ã‰toiles identifiÃ©es | ğŸŸ¡ Jaune/Orange | Facile |
+| PlanÃ¨tes connues | ğŸ”µ Bleu | Moyen |
+| Bases/Stations | ğŸŸ¢ Vert | Moyen |
+| Zones extraction | ğŸŸ  Orange pulsant | Difficile |
+| Champs astÃ©roÃ¯des | ğŸ”´ Rouge diffus | Variable |
+| **Galaxies lointaines** | ğŸŸ£ Violet | **PIÃˆGE** |
 
-### Piège des galaxies
-- Visuellement similaires à étoiles brillantes
-- Saut vers galaxie → Échec catastrophique
-- Position résultante aléatoire (perdu)
-- Amélioration capteurs = distinguer étoiles/galaxies
+### PiÃ¨ge des galaxies
+- Visuellement similaires Ã  Ã©toiles brillantes
+- Saut vers galaxie â†’ Ã‰chec catastrophique
+- Position rÃ©sultante alÃ©atoire (perdu)
+- AmÃ©lioration capteurs = distinguer Ã©toiles/galaxies
 
-### Capacités évolutives vaisseau
+### CapacitÃ©s Ã©volutives vaisseau
 
-| Niveau | Détection | Précision navigation |
+| Niveau | DÃ©tection | PrÃ©cision navigation |
 |--------|-----------|---------------------|
-| Base | Étoiles >mag 3 | ±2 AL |
-| Amélioré | +Planètes géantes | ±1 AL |
-| Avancé | +Astéroïdes, bases | ±0.5 AL |
-| Expert | Distingue galaxies | ±0.1 AL |
+| Base | Ã‰toiles >mag 3 | Â±2 AL |
+| AmÃ©liorÃ© | +PlanÃ¨tes gÃ©antes | Â±1 AL |
+| AvancÃ© | +AstÃ©roÃ¯des, bases | Â±0.5 AL |
+| Expert | Distingue galaxies | Â±0.1 AL |
 
 ### Satellites de communication
 
 **Niveaux technologiques :**
 
 ```
-Niveau 1 : Portée système (0.5 AL)
-├─ Couvre 1 système solaire
-├─ Cartographie locale
-└─ Coût faible, déploiement rapide
+Niveau 1 : PortÃ©e systÃ¨me (0.5 AL)
+â”œâ”€ Couvre 1 systÃ¨me solaire
+â”œâ”€ Cartographie locale
+â””â”€ CoÃ»t faible, dÃ©ploiement rapide
 
-Niveau 2 : Portée étendue (1.5 AL)  
-├─ Couvre systèmes voisins proches
-├─ Crée "corridors sûrs"
-└─ Coût moyen
+Niveau 2 : PortÃ©e Ã©tendue (1.5 AL)  
+â”œâ”€ Couvre systÃ¨mes voisins proches
+â”œâ”€ CrÃ©e "corridors sÃ»rs"
+â””â”€ CoÃ»t moyen
 
-Niveau 3 : Portée longue (3 AL max)
-├─ Réseau inter-stellaire
-├─ Relais communications
-└─ Coût élevé, tech avancée
+Niveau 3 : PortÃ©e longue (3 AL max)
+â”œâ”€ RÃ©seau inter-stellaire
+â”œâ”€ Relais communications
+â””â”€ CoÃ»t Ã©levÃ©, tech avancÃ©e
 ```
 
-**Bénéfices zone couverte :**
-- Pas de scan requis (0 PA économisés)
-- Navigation précise (pas d'erreur)
-- Alertes temps réel (flottes, événements)
-- Calculs hyper-espace optimisés
+**BÃ©nÃ©fices zone couverte :**
+- Pas de scan requis (0 PA Ã©conomisÃ©s)
+- Navigation prÃ©cise (pas d'erreur)
+- Alertes temps rÃ©el (flottes, Ã©vÃ©nements)
+- Calculs hyper-espace optimisÃ©s
 
-**Modèle économique satellites :**
+**ModÃ¨le Ã©conomique satellites :**
 ```
-Propriétaire : Joueur/Guilde
-├─ Politique d'accès
-│   ├─ Gratuit pour membres guilde
-│   ├─ Abonnement pour alliés (X cr/tour)
-│   ├─ Paiement à l'usage pour neutres
-│   └─ Bloqué pour ennemis
-├─ Revenus passifs
-└─ Contrôle stratégique (cible militaire)
+PropriÃ©taire : Joueur/Guilde
+â”œâ”€ Politique d'accÃ¨s
+â”‚   â”œâ”€ Gratuit pour membres guilde
+â”‚   â”œâ”€ Abonnement pour alliÃ©s (X cr/tour)
+â”‚   â”œâ”€ Paiement Ã  l'usage pour neutres
+â”‚   â””â”€ BloquÃ© pour ennemis
+â”œâ”€ Revenus passifs
+â””â”€ ContrÃ´le stratÃ©gique (cible militaire)
 ```
 
 ---
 
-## 🛸 VAISSEAUX ET ÉQUIPEMENTS
+## ğŸ›¸ VAISSEAUX ET Ã‰QUIPEMENTS
 
 ### Fabricant starter : **Luna Industries**
-*Hommage à Lunastars (https://v2.lunastars.net)*
+*Hommage Ã  Lunastars (https://v2.lunastars.net)*
 
 **Slogan :** *"L'espace pour tous"*
 
 **Gamme produits :**
 ```
 Luna Industries
-├─ LI-100 "Sparrow" : Shuttle 800 cr
-├─ LI-200 "Scout" : Explorateur 2000 cr
-├─ LI-250 "Hauler" : Cargo 2500 cr
-└─ LI-300 "Interceptor" : Combat léger 3500 cr
+â”œâ”€ LI-100 "Sparrow" : Shuttle 800 cr
+â”œâ”€ LI-200 "Scout" : Explorateur 2000 cr
+â”œâ”€ LI-250 "Hauler" : Cargo 2500 cr
+â””â”€ LI-300 "Interceptor" : Combat lÃ©ger 3500 cr
 ```
 
 ### Classes de vaisseaux
-*Inspiré Star Citizen (robertspaceindustries.com)*
+*InspirÃ© Star Citizen (robertspaceindustries.com)*
 
-#### 1. EXPLORATION 🔭
+#### 1. EXPLORATION ğŸ”­
 ```
-Taille S (solo) : 1-2 sièges
-├─ Détection : 2D8/PA
-├─ Vitesse hyper-espace : Standard
-├─ Cargo : Minimal
-└─ Ex : Scout léger
+Taille S (solo) : 1-2 siÃ¨ges
+â”œâ”€ DÃ©tection : 2D8/PA
+â”œâ”€ Vitesse hyper-espace : Standard
+â”œâ”€ Cargo : Minimal
+â””â”€ Ex : Scout lÃ©ger
 
-Taille M (équipage) : 2-6 sièges
-├─ Détection : 3D10/PA
-├─ Portée : Excellente
-├─ Labo analyse : Oui
-└─ Ex : Explorateur longue-portée
+Taille M (Ã©quipage) : 2-6 siÃ¨ges
+â”œâ”€ DÃ©tection : 3D10/PA
+â”œâ”€ PortÃ©e : Excellente
+â”œâ”€ Labo analyse : Oui
+â””â”€ Ex : Explorateur longue-portÃ©e
 
-Taille L (grand équipage) : 6-20 sièges
-├─ Détection : 4D12+5/PA
-├─ Cartographie avancée
-├─ Drones déployables
-└─ Ex : Vaisseau reconnaissance
+Taille L (grand Ã©quipage) : 6-20 siÃ¨ges
+â”œâ”€ DÃ©tection : 4D12+5/PA
+â”œâ”€ Cartographie avancÃ©e
+â”œâ”€ Drones dÃ©ployables
+â””â”€ Ex : Vaisseau reconnaissance
 ```
 
-#### 2. COMBAT ⚔️
+#### 2. COMBAT âš”ï¸�
 ```
 Taille S : Chasseur
-├─ Détection : 1D6/PA (faible)
-├─ Armement : Fort
-├─ Manœuvrabilité : Excellente
-└─ Rôle : Interception
+â”œâ”€ DÃ©tection : 1D6/PA (faible)
+â”œâ”€ Armement : Fort
+â”œâ”€ ManÅ“uvrabilitÃ© : Excellente
+â””â”€ RÃ´le : Interception
 
 Taille M : Corvette
-├─ Détection : 2D6/PA
-├─ Blindage : Bon
-├─ Équipage : 4-8
-└─ Rôle : Patrouille
+â”œâ”€ DÃ©tection : 2D6/PA
+â”œâ”€ Blindage : Bon
+â”œâ”€ Ã‰quipage : 4-8
+â””â”€ RÃ´le : Patrouille
 
-Taille L : Frégate/Destroyer
-├─ Détection : 2D8/PA
-├─ Armement lourd
-├─ Hangar : petits vaisseaux
-└─ Rôle : Contrôle spatial
+Taille L : FrÃ©gate/Destroyer
+â”œâ”€ DÃ©tection : 2D8/PA
+â”œâ”€ Armement lourd
+â”œâ”€ Hangar : petits vaisseaux
+â””â”€ RÃ´le : ContrÃ´le spatial
 ```
 
-#### 3. COMMERCE & TRANSPORT 📦
+#### 3. COMMERCE & TRANSPORT ğŸ“¦
 ```
-Taille M : Cargo léger
-├─ Détection : 1D4/PA (minimal)
-├─ Soutes : 100-500 unités
-├─ Défense : Faible
-└─ Économique
+Taille M : Cargo lÃ©ger
+â”œâ”€ DÃ©tection : 1D4/PA (minimal)
+â”œâ”€ Soutes : 100-500 unitÃ©s
+â”œâ”€ DÃ©fense : Faible
+â””â”€ Ã‰conomique
 
 Taille L : Cargo lourd
-├─ Détection : 1D6/PA
-├─ Soutes : 1000-5000 unités
-├─ Équipage : 10-30
-└─ Rentable longues distances
+â”œâ”€ DÃ©tection : 1D6/PA
+â”œâ”€ Soutes : 1000-5000 unitÃ©s
+â”œâ”€ Ã‰quipage : 10-30
+â””â”€ Rentable longues distances
 
 Taille XL : Transport masse
-├─ Détection : 1D4/PA
-├─ Soutes : 10 000+ unités
-├─ Escorte nécessaire
-└─ Lignes commerciales
+â”œâ”€ DÃ©tection : 1D4/PA
+â”œâ”€ Soutes : 10 000+ unitÃ©s
+â”œâ”€ Escorte nÃ©cessaire
+â””â”€ Lignes commerciales
 ```
 
-#### 4. RECHERCHE 🔬
+#### 4. RECHERCHE ğŸ”¬
 ```
 Taille M : Laboratoire mobile
-├─ Détection : 3D8/PA (senseurs scientifiques)
-├─ Analyse : Spectrométrie, échantillons
-├─ Bonus identification PoV
-└─ Rôle : Études planétaires
+â”œâ”€ DÃ©tection : 3D8/PA (senseurs scientifiques)
+â”œâ”€ Analyse : SpectromÃ©trie, Ã©chantillons
+â”œâ”€ Bonus identification PoV
+â””â”€ RÃ´le : Ã‰tudes planÃ©taires
 
 Taille L : Station recherche mobile
-├─ Détection : 4D10/PA
-├─ Labs multiples
-├─ Stationnement longue durée
-└─ Rôle : Recherche approfondie
+â”œâ”€ DÃ©tection : 4D10/PA
+â”œâ”€ Labs multiples
+â”œâ”€ Stationnement longue durÃ©e
+â””â”€ RÃ´le : Recherche approfondie
 ```
 
-#### 5. CONSTRUCTION 🏗️
+#### 5. CONSTRUCTION ğŸ�—ï¸�
 ```
 Taille L : Navire-usine
-├─ Détection : 1D6/PA
-├─ Fabrique satellites, drones
-├─ Extraction ressources basique
-└─ Lent mais polyvalent
+â”œâ”€ DÃ©tection : 1D6/PA
+â”œâ”€ Fabrique satellites, drones
+â”œâ”€ Extraction ressources basique
+â””â”€ Lent mais polyvalent
 
 Taille XL : Constructor capital
-├─ Détection : 2D6/PA
-├─ Construit stations, bases
-├─ Équipage : 50-100
-└─ Infrastructure majeure
+â”œâ”€ DÃ©tection : 2D6/PA
+â”œâ”€ Construit stations, bases
+â”œâ”€ Ã‰quipage : 50-100
+â””â”€ Infrastructure majeure
 ```
 
-#### 6. DONNÉES & COMMUNICATION 📡
+#### 6. DONNÃ‰ES & COMMUNICATION ğŸ“¡
 ```
 Taille S : Relais mobile
-├─ Détection : 1D8/PA
-├─ Portée com' : 5 AL
-├─ Furtivité : Bonne
-└─ Espionnage/Intel
+â”œâ”€ DÃ©tection : 1D8/PA
+â”œâ”€ PortÃ©e com' : 5 AL
+â”œâ”€ FurtivitÃ© : Bonne
+â””â”€ Espionnage/Intel
 
 Taille M : Vaisseau SIGINT
-├─ Détection : 4D6/PA (passif)
-├─ Interception communications
-├─ Guerre électronique
-└─ Militaire spécialisé
+â”œâ”€ DÃ©tection : 4D6/PA (passif)
+â”œâ”€ Interception communications
+â”œâ”€ Guerre Ã©lectronique
+â””â”€ Militaire spÃ©cialisÃ©
 
 Taille L : Hub communication
-├─ Détection : 2D8/PA
-├─ Portée : 10 AL
-├─ Stockage données massif
-└─ Nœud réseau guilde
+â”œâ”€ DÃ©tection : 2D8/PA
+â”œâ”€ PortÃ©e : 10 AL
+â”œâ”€ Stockage donnÃ©es massif
+â””â”€ NÅ“ud rÃ©seau guilde
 ```
 
-#### 7. STATIONS MOBILES 🛰️
+#### 7. STATIONS MOBILES ğŸ›°ï¸�
 ```
 Taille XL : Station mobile
-├─ Détection : 3D8/PA
-├─ Hangar : 5-10 petits vaisseaux
-├─ Autonomie : mois/années
-├─ Équipage : 100-500
-└─ Rôle : Base avancée
+â”œâ”€ DÃ©tection : 3D8/PA
+â”œâ”€ Hangar : 5-10 petits vaisseaux
+â”œâ”€ Autonomie : mois/annÃ©es
+â”œâ”€ Ã‰quipage : 100-500
+â””â”€ RÃ´le : Base avancÃ©e
 
-Taille Capital : Cité-vaisseau
-├─ Détection : 4D10+10/PA
-├─ Population : 1000-5000
-├─ Autosuffisante
-├─ Flotte intégrée
-└─ Siège guilde/faction
+Taille Capital : CitÃ©-vaisseau
+â”œâ”€ DÃ©tection : 4D10+10/PA
+â”œâ”€ Population : 1000-5000
+â”œâ”€ Autosuffisante
+â”œâ”€ Flotte intÃ©grÃ©e
+â””â”€ SiÃ¨ge guilde/faction
 ```
 
-### Système d'équipements
+### SystÃ¨me d'Ã©quipements
 
 **Slots selon taille :**
 ```
 Taille vaisseau = Nombre slots
-├─ S : 1-2 slots détection
-├─ M : 2-4 slots détection
-├─ L : 4-8 slots détection
-└─ XL/Capital : 8-16 slots détection
+â”œâ”€ S : 1-2 slots dÃ©tection
+â”œâ”€ M : 2-4 slots dÃ©tection
+â”œâ”€ L : 4-8 slots dÃ©tection
+â””â”€ XL/Capital : 8-16 slots dÃ©tection
 ```
 
-**Types détecteurs :**
+**Types dÃ©tecteurs :**
 ```
-├─ Passif (1 slot) : 1D6, furtif
-├─ Actif Standard (1 slot) : 1D8
-├─ Longue portée (2 slots) : 1D10
-├─ Militaire (2 slots) : 1D12
-└─ Scientifique (3 slots) : 2D8 + bonus identification
+â”œâ”€ Passif (1 slot) : 1D6, furtif
+â”œâ”€ Actif Standard (1 slot) : 1D8
+â”œâ”€ Longue portÃ©e (2 slots) : 1D10
+â”œâ”€ Militaire (2 slots) : 1D12
+â””â”€ Scientifique (3 slots) : 2D8 + bonus identification
 ```
 
 **Synergie :** 
-- 3 détecteurs actifs sur M = 3D8/PA cumulés
+- 3 dÃ©tecteurs actifs sur M = 3D8/PA cumulÃ©s
 
-### Économie vaisseaux
+### Ã‰conomie vaisseaux
 
 **Prix indicatifs (Archiluminique) :**
 ```
-DÉPART (accessibles tour 1)
-├─ Shuttle léger : 500-1000 cr
-├─ Scout basique : 1500-2500 cr
-├─ Cargo starter : 2000-3000 cr
-└─ Chasseur occasion : 3000-4000 cr
+DÃ‰PART (accessibles tour 1)
+â”œâ”€ Shuttle lÃ©ger : 500-1000 cr
+â”œâ”€ Scout basique : 1500-2500 cr
+â”œâ”€ Cargo starter : 2000-3000 cr
+â””â”€ Chasseur occasion : 3000-4000 cr
 
 PROGRESSION
-├─ Vaisseaux M : 10K-50K cr
-├─ Vaisseaux L : 100K-500K cr
-└─ Capitaux XL : 5M-50M+ cr
+â”œâ”€ Vaisseaux M : 10K-50K cr
+â”œâ”€ Vaisseaux L : 100K-500K cr
+â””â”€ Capitaux XL : 5M-50M+ cr
 ```
 
 **Gestion flotte :**
 - Achat, vente (40-60% valeur neuve)
 - Stockage hangar (10K cr/mois/vaisseau)
 - Assurance (5-10% valeur/an, rembourse 80%)
-- Amélioration modulaire (slots)
+- AmÃ©lioration modulaire (slots)
 
 ---
 
-## 💰 ÉCONOMIE ET RESSOURCES
+## ğŸ’° Ã‰CONOMIE ET RESSOURCES
 
-### Chaîne de production (3 niveaux)
+### ChaÃ®ne de production (3 niveaux)
 
 ```
 EXTRACTION (sites naturels)
-├─ Minerais bruts
-├─ Glace/Eau
-├─ Gaz
-├─ Matière organique
-└─ Matière exotique (rare)
-    ↓
+â”œâ”€ Minerais bruts
+â”œâ”€ Glace/Eau
+â”œâ”€ Gaz
+â”œâ”€ MatiÃ¨re organique
+â””â”€ MatiÃ¨re exotique (rare)
+    â†“
 RAFFINAGE (stations/vaisseaux-usine)
-├─ Métaux communs (fer, aluminium)
-├─ Métaux rares (titane, platine)
-├─ Polymères
-├─ Carburants
-├─ Composés chimiques
-├─ Bio-nutriments
-└─ Matériaux exotiques
-    ↓
-PRODUCTION (usines spécialisées)
-├─ Produits SIMPLES (1 composant)
-├─ Produits INTERMÉDIAIRES (2-4 composants)
-└─ Produits COMPLEXES (5+ composants + intermédiaires)
+â”œâ”€ MÃ©taux communs (fer, aluminium)
+â”œâ”€ MÃ©taux rares (titane, platine)
+â”œâ”€ PolymÃ¨res
+â”œâ”€ Carburants
+â”œâ”€ ComposÃ©s chimiques
+â”œâ”€ Bio-nutriments
+â””â”€ MatÃ©riaux exotiques
+    â†“
+PRODUCTION (usines spÃ©cialisÃ©es)
+â”œâ”€ Produits SIMPLES (1 composant)
+â”œâ”€ Produits INTERMÃ‰DIAIRES (2-4 composants)
+â””â”€ Produits COMPLEXES (5+ composants + intermÃ©diaires)
 ```
 
-### Domaines économiques
+### Domaines Ã©conomiques
 
-#### 1. ALIMENTATION 🍽️
+#### 1. ALIMENTATION ğŸ�½ï¸�
 ```
 Basique (Simple)
-├─ Croquettes nutritives
-└─ Coût : 1 cr/unité | Moral : Affecté
+â”œâ”€ Croquettes nutritives
+â””â”€ CoÃ»t : 1 cr/unitÃ© | Moral : AffectÃ©
 
-Standard (Intermédiaire)
-├─ Repas spatiaux
-└─ Coût : 5 cr/unité | Moral : Satisfait
+Standard (IntermÃ©diaire)
+â”œâ”€ Repas spatiaux
+â””â”€ CoÃ»t : 5 cr/unitÃ© | Moral : Satisfait
 
-Qualité (Complexe)
-├─ Unités synthétiseur gourmet
-└─ Coût : 20 cr/unité | Moral : Heureux
+QualitÃ© (Complexe)
+â”œâ”€ UnitÃ©s synthÃ©tiseur gourmet
+â””â”€ CoÃ»t : 20 cr/unitÃ© | Moral : Heureux
 
 Luxe (Complexe+)
-├─ Repas réels (agriculture spatiale)
-└─ Coût : 100+ cr/unité | Moral : Loyal
+â”œâ”€ Repas rÃ©els (agriculture spatiale)
+â””â”€ CoÃ»t : 100+ cr/unitÃ© | Moral : Loyal
 ```
 
-#### 2. ÉNERGIE ⚡
+#### 2. Ã‰NERGIE âš¡
 ```
-├─ Cellules standard (10 jours autonomie)
-├─ Batteries haute capacité (30 jours)
-└─ Réacteurs fusion (100+ jours)
+â”œâ”€ Cellules standard (10 jours autonomie)
+â”œâ”€ Batteries haute capacitÃ© (30 jours)
+â””â”€ RÃ©acteurs fusion (100+ jours)
 ```
 
-#### 3. ARMEMENT 🔫
+#### 3. ARMEMENT ğŸ”«
 ```
-Simple : Armes légères, munitions
-Intermédiaire : Tourelles, missiles, boucliers
+Simple : Armes lÃ©gÃ¨res, munitions
+IntermÃ©diaire : Tourelles, missiles, boucliers
 Complexe : Lasers militaires, torpilles plasma
 ```
 
-#### 4. CONFORT 🛏️
+#### 4. CONFORT ğŸ›�ï¸�
 ```
 Minimal : Couchettes | Moral : -10%
 Standard : Cabines | Moral : neutre
-Luxe : Suites, gravité artificielle | Moral : +20%
+Luxe : Suites, gravitÃ© artificielle | Moral : +20%
 ```
 
-#### 5. ÉLECTRONIQUE 💻
+#### 5. Ã‰LECTRONIQUE ğŸ’»
 ```
 Simple : Circuits, capteurs
-Intermédiaire : Ordinateurs, navigation
+IntermÃ©diaire : Ordinateurs, navigation
 Complexe : IA tactiques, serveurs
 ```
 
-#### 6. MÉCANIQUE 🔧
+#### 6. MÃ‰CANIQUE ğŸ”§
 ```
-Simple : Pièces détachées, outils
-Intermédiaire : Moteurs subluminiques
+Simple : PiÃ¨ces dÃ©tachÃ©es, outils
+IntermÃ©diaire : Moteurs subluminiques
 Complexe : Drives hyper-espace
 ```
 
-#### 7. SANTÉ 🏥
+#### 7. SANTÃ‰ ğŸ�¥
 ```
 Basique : Trousses premiers soins
-Standard : Medkits avancés, scanners
-Avancé : Régénérateurs tissulaires, nano-médecine
+Standard : Medkits avancÃ©s, scanners
+AvancÃ© : RÃ©gÃ©nÃ©rateurs tissulaires, nano-mÃ©decine
 ```
 
-#### 8. DIVERTISSEMENT 🎮
+#### 8. DIVERTISSEMENT ğŸ�®
 ```
 Minimal : Holovids | Moral : +5%
-Standard : Bibliothèques, VR | Moral : +15%
+Standard : BibliothÃ¨ques, VR | Moral : +15%
 Premium : Holodeck immersif | Moral : +30%
 ```
 
-#### 9. ÉDUCATION 📚
+#### 9. Ã‰DUCATION ğŸ“š
 ```
-Basique : Manuels | +1% XP équipage
+Basique : Manuels | +1% XP Ã©quipage
 Standard : Simulateurs, IA tuteurs | +3% XP
-Avancé : Labs recherche | +5% XP + découvertes
+AvancÃ© : Labs recherche | +5% XP + dÃ©couvertes
 ```
 
-#### 10. CONSTRUCTION 🏗️
+#### 10. CONSTRUCTION ğŸ�—ï¸�
 ```
 Simple : Structures basiques
-Intermédiaire : Stations modulaires
+IntermÃ©diaire : Stations modulaires
 Complexe : Installations capitales
 ```
 
-#### 11. DONNÉES/INTEL 📊
+#### 11. DONNÃ‰ES/INTEL ğŸ“Š
 ```
 Simple : Cartes basiques
-Intermédiaire : Données marché, routes
+IntermÃ©diaire : DonnÃ©es marchÃ©, routes
 Complexe : Intel militaire, brevets tech
 ```
 
-#### 12. LUXE 💎
+#### 12. LUXE ğŸ’�
 ```
 Simple : Souvenirs, art mineur
-Intermédiaire : Œuvres d'art, vins
-Complexe : Antiquités, artefacts
+IntermÃ©diaire : Å’uvres d'art, vins
+Complexe : AntiquitÃ©s, artefacts
 ```
 
-### Système de personnel
+### SystÃ¨me de personnel
 
 **Besoins par production :**
 ```
-├─ Produits Simples : 1-2 ouvriers/usine
-├─ Intermédiaires : 5-10 techniciens/usine
-└─ Complexes : 20-50 spécialistes/usine
+â”œâ”€ Produits Simples : 1-2 ouvriers/usine
+â”œâ”€ IntermÃ©diaires : 5-10 techniciens/usine
+â””â”€ Complexes : 20-50 spÃ©cialistes/usine
 ```
 
-**Spécialisations :**
+**SpÃ©cialisations :**
 - Mineurs (extraction)
-- Ingénieurs (raffinage)
-- Techniciens (production simple/intermédiaire)
+- IngÃ©nieurs (raffinage)
+- Techniciens (production simple/intermÃ©diaire)
 - Scientifiques (production complexe)
-- Médecins (santé)
-- Soldats (armement/sécurité)
+- MÃ©decins (santÃ©)
+- Soldats (armement/sÃ©curitÃ©)
 - Administrateurs (gestion)
 
-**Formule productivité :**
+**Formule productivitÃ© :**
 ```
-Productivité = f(Moral, Éducation, Équipement)
-Moral = f(Alimentation, Confort, Santé, Divertissement, Salaire)
+ProductivitÃ© = f(Moral, Ã‰ducation, Ã‰quipement)
+Moral = f(Alimentation, Confort, SantÃ©, Divertissement, Salaire)
 ```
 
-### Marché de l'information
+### MarchÃ© de l'information
 
-**PoV découverts = vendables :**
+**PoV dÃ©couverts = vendables :**
 
 ```
 Valeur selon :
-├─ Rareté (nouveau vs connu)
-├─ Type (planète habitable > astéroïde)
-├─ Ressources potentielles
-├─ Position stratégique
-└─ Âge info (fraîche = cher)
+â”œâ”€ RaretÃ© (nouveau vs connu)
+â”œâ”€ Type (planÃ¨te habitable > astÃ©roÃ¯de)
+â”œâ”€ Ressources potentielles
+â”œâ”€ Position stratÃ©gique
+â””â”€ Ã‚ge info (fraÃ®che = cher)
 
 Acheteurs :
-├─ Guilde Cartographes
-│   ├─ Prix standard
-│   ├─ Diffusion publique (délai quelques tours)
-│   └─ Crédibilité = meilleur prix futur
-│
-├─ Guildes spécialisées
-│   ├─ Mineurs → astéroïdes riches
-│   ├─ Militaires → bases ennemies
-│   ├─ Scientifiques → anomalies
-│   └─ Prix premium, diffusion restreinte
-│
-└─ Joueurs/Corporations privées
-    ├─ Négociation libre
-    ├─ Exclusivité totale possible
-    └─ Espionnage économique
+â”œâ”€ Guilde Cartographes
+â”‚   â”œâ”€ Prix standard
+â”‚   â”œâ”€ Diffusion publique (dÃ©lai quelques tours)
+â”‚   â””â”€ CrÃ©dibilitÃ© = meilleur prix futur
+â”‚
+â”œâ”€ Guildes spÃ©cialisÃ©es
+â”‚   â”œâ”€ Mineurs â†’ astÃ©roÃ¯des riches
+â”‚   â”œâ”€ Militaires â†’ bases ennemies
+â”‚   â”œâ”€ Scientifiques â†’ anomalies
+â”‚   â””â”€ Prix premium, diffusion restreinte
+â”‚
+â””â”€ Joueurs/Corporations privÃ©es
+    â”œâ”€ NÃ©gociation libre
+    â”œâ”€ ExclusivitÃ© totale possible
+    â””â”€ Espionnage Ã©conomique
 ```
 
 ---
 
-## ⚔️ COMBAT ET ZONES DE CONTRÔLE
+## âš”ï¸� COMBAT ET ZONES DE CONTRÃ”LE
 
-### Zones de contrôle
+### Zones de contrÃ´le
 
 #### ZONE 1 : ESPACE EMPIRE (0-100 AL Soleil)
 ```
-Sécurité : HAUTE
-├─ Couverture satellite : 100%
-├─ Patrouilles militaires : fréquentes
-└─ Temps réponse : 1-3 tours
+SÃ©curitÃ© : HAUTE
+â”œâ”€ Couverture satellite : 100%
+â”œâ”€ Patrouilles militaires : frÃ©quentes
+â””â”€ Temps rÃ©ponse : 1-3 tours
 
-Règles d'engagement :
-✓ Attaque pirates (marqués rouge)
-✓ Attaque ennemis déclarés Empire
-✓ Légitime défense (après 1er tir reçu)
-✗ Tir en premier sur civil/neutre
-✗ Attaque autorités/police
+RÃ¨gles d'engagement :
+âœ“ Attaque pirates (marquÃ©s rouge)
+âœ“ Attaque ennemis dÃ©clarÃ©s Empire
+âœ“ LÃ©gitime dÃ©fense (aprÃ¨s 1er tir reÃ§u)
+âœ— Tir en premier sur civil/neutre
+âœ— Attaque autoritÃ©s/police
 
-Infractions → Conséquences :
-├─ Tir illégal : Amende + réputation -50
-├─ Meurtre civil : Prison + réputation -200 + bounty
-└─ Attaque autorité : Wanted permanent + flotte
+Infractions â†’ ConsÃ©quences :
+â”œâ”€ Tir illÃ©gal : Amende + rÃ©putation -50
+â”œâ”€ Meurtre civil : Prison + rÃ©putation -200 + bounty
+â””â”€ Attaque autoritÃ© : Wanted permanent + flotte
 ```
 
-#### ZONE 2 : ESPACE COLONISÉ
+#### ZONE 2 : ESPACE COLONISÃ‰
 ```
-Sécurité : MOYENNE
-├─ Couverture satellite : 60-80%
-├─ Patrouilles : occasionnelles
-└─ Temps réponse : 5-10 tours
+SÃ©curitÃ© : MOYENNE
+â”œâ”€ Couverture satellite : 60-80%
+â”œâ”€ Patrouilles : occasionnelles
+â””â”€ Temps rÃ©ponse : 5-10 tours
 
-Règles : Similaires Empire, application variable
+RÃ¨gles : Similaires Empire, application variable
 ```
 
-#### ZONE 3 : FRONTIÈRE
+#### ZONE 3 : FRONTIÃˆRE
 ```
-Sécurité : FAIBLE
-├─ Couverture satellite : 20-40%
-├─ Patrouilles : rares
-└─ Temps réponse : 20+ tours
+SÃ©curitÃ© : FAIBLE
+â”œâ”€ Couverture satellite : 20-40%
+â”œâ”€ Patrouilles : rares
+â””â”€ Temps rÃ©ponse : 20+ tours
 
-Règles : Loi du plus fort
-Détection : Peu probable
+RÃ¨gles : Loi du plus fort
+DÃ©tection : Peu probable
 ```
 
 #### ZONE 4 : ESPACE SAUVAGE
 ```
-Sécurité : NULLE
-├─ Couverture satellite : 0%
-├─ Patrouilles : inexistantes
-└─ Pas d'autorité
+SÃ©curitÃ© : NULLE
+â”œâ”€ Couverture satellite : 0%
+â”œâ”€ Patrouilles : inexistantes
+â””â”€ Pas d'autoritÃ©
 
-Règles :
-├─ AUCUNE loi
-├─ PvP libre
-├─ Ressources riches
-└─ Détection : Impossible
+RÃ¨gles :
+â”œâ”€ AUCUNE loi
+â”œâ”€ PvP libre
+â”œâ”€ Ressources riches
+â””â”€ DÃ©tection : Impossible
 ```
 
-### Système de combat (tour par tour)
+### SystÃ¨me de combat (tour par tour)
 
 **Initiative : Le Projecteur (Spotlight)**
 
 Daggerheart n'utilise **PAS d'initiative traditionnelle.**
 
 ```
-Système du Projecteur (adapté pour jeu solo/multi) :
+SystÃ¨me du Projecteur (adaptÃ© pour jeu solo/multi) :
 
 1. TOUR JOUEUR(S)
-   ├─ Joueur actif (a le Projecteur)
-   │   ├─ Effectue ses actions (dépense PA)
-   │   └─ Si multi-joueurs : passe Projecteur à allié
-   │
-   └─ Fin tour joueur(s)
+   â”œâ”€ Joueur actif (a le Projecteur)
+   â”‚   â”œâ”€ Effectue ses actions (dÃ©pense PA)
+   â”‚   â””â”€ Si multi-joueurs : passe Projecteur Ã  alliÃ©
+   â”‚
+   â””â”€ Fin tour joueur(s)
 
-2. TOUR SYSTÈME/IA
-   ├─ Active les adversaires (1d20 pour leurs actions)
-   ├─ Utilise automatiquement jetons de Peur (cachés) :
-   │   ├─ Activer ennemi supplémentaire (1 jeton)
-   │   ├─ Capacité spéciale ennemie (1-3 jetons)
-   │   ├─ Renforcer attaque (1 jeton = +1d6 dégâts)
-   │   └─ Introduire complication (2 jetons)
-   │
-   └─ Projecteur retourne au(x) joueur(s)
+2. TOUR SYSTÃˆME/IA
+   â”œâ”€ Active les adversaires (1d20 pour leurs actions)
+   â”œâ”€ Utilise automatiquement jetons de Peur (cachÃ©s) :
+   â”‚   â”œâ”€ Activer ennemi supplÃ©mentaire (1 jeton)
+   â”‚   â”œâ”€ CapacitÃ© spÃ©ciale ennemie (1-3 jetons)
+   â”‚   â”œâ”€ Renforcer attaque (1 jeton = +1d6 dÃ©gÃ¢ts)
+   â”‚   â””â”€ Introduire complication (2 jetons)
+   â”‚
+   â””â”€ Projecteur retourne au(x) joueur(s)
 
-Cycle continu jusqu'à fin combat (fuite/reddition/destruction)
+Cycle continu jusqu'Ã  fin combat (fuite/reddition/destruction)
 ```
 
 **Adaptation selon mode de jeu :**
-- **Solo/PvE** : Alternance automatique joueur → système
-- **Multi/Coop** : Joueurs se passent Projecteur → système
-- **PvP Asynchrone** : Système gère le combat avec comportements prédéfinis
+- **Solo/PvE** : Alternance automatique joueur â†’ systÃ¨me
+- **Multi/Coop** : Joueurs se passent Projecteur â†’ systÃ¨me
+- **PvP Asynchrone** : SystÃ¨me gÃ¨re le combat avec comportements prÃ©dÃ©finis
 
 ---
 
 ### Combat PvP Asynchrone
 
-**Problématique :**
-Les joueurs ne sont pas connectés en même temps. Quand un joueur A attaque un joueur B absent, le système doit gérer automatiquement la défense du joueur B.
+**ProblÃ©matique :**
+Les joueurs ne sont pas connectÃ©s en mÃªme temps. Quand un joueur A attaque un joueur B absent, le systÃ¨me doit gÃ©rer automatiquement la dÃ©fense du joueur B.
 
-**Solution : Comportements de combat prédéfinis**
+**Solution : Comportements de combat prÃ©dÃ©finis**
 
-Chaque joueur définit des **règles de comportement** pour son vaisseau/flotte :
+Chaque joueur dÃ©finit des **rÃ¨gles de comportement** pour son vaisseau/flotte :
 
 ```
-COMPORTEMENT DE DÉFENSE (à développer)
-├─ Stratégie : Offensive / Défensive / Fuite
-├─ Seuil de fuite : % HP restants (ex: fuir si <30% HP)
-├─ Priorités de cible : Plus proche / Plus faible / Plus dangereux
-├─ Utilisation capacités : Conservateur / Agressif
-└─ Gestion PA : Attaque prioritaire / Défense prioritaire
+COMPORTEMENT DE DÃ‰FENSE (Ã  dÃ©velopper)
+â”œâ”€ StratÃ©gie : Offensive / DÃ©fensive / Fuite
+â”œâ”€ Seuil de fuite : % HP restants (ex: fuir si <30% HP)
+â”œâ”€ PrioritÃ©s de cible : Plus proche / Plus faible / Plus dangereux
+â”œâ”€ Utilisation capacitÃ©s : Conservateur / Agressif
+â””â”€ Gestion PA : Attaque prioritaire / DÃ©fense prioritaire
 
-COMPORTEMENT D'ATTAQUE (à développer)
-├─ Approche : Frontal / Flanc / Distance
-├─ Sélection armes : Selon distance / Selon cible
-├─ Utilisation jetons Espoir : Jamais / Si critique / Toujours
-└─ Condition de désengagement : Jamais / Si dégâts lourds
+COMPORTEMENT D'ATTAQUE (Ã  dÃ©velopper)
+â”œâ”€ Approche : Frontal / Flanc / Distance
+â”œâ”€ SÃ©lection armes : Selon distance / Selon cible
+â”œâ”€ Utilisation jetons Espoir : Jamais / Si critique / Toujours
+â””â”€ Condition de dÃ©sengagement : Jamais / Si dÃ©gÃ¢ts lourds
 
 SEUILS DE FUITE AUTOMATIQUE
-├─ HP < X% : Fuite immédiate
-├─ Adversaires > Y : Fuite si en infériorité numérique
-├─ Systèmes critiques HS : Fuite si moteurs/armes détruites
-└─ Objectif atteint : Se retirer après mission accomplie
+â”œâ”€ HP < X% : Fuite immÃ©diate
+â”œâ”€ Adversaires > Y : Fuite si en infÃ©rioritÃ© numÃ©rique
+â”œâ”€ SystÃ¨mes critiques HS : Fuite si moteurs/armes dÃ©truites
+â””â”€ Objectif atteint : Se retirer aprÃ¨s mission accomplie
 ```
 
-**Résolution d'un combat asynchrone :**
+**RÃ©solution d'un combat asynchrone :**
 
 1. Joueur A initie l'attaque contre joueur B (absent)
-2. Le système charge les comportements prédéfinis de B
-3. Combat simulé tour par tour selon les règles :
-   - Jet de dés pour chaque action (2d12 + compétence)
-   - Application des comportements de défense de B
-   - Vérification seuils de fuite
-4. Résultat enregistré (victoire/défaite/fuite)
-5. Joueur B reçoit rapport à sa prochaine connexion
+2. Le systÃ¨me charge les comportements prÃ©dÃ©finis de B
+3. Combat simulÃ© tour par tour selon les rÃ¨gles :
+   - Jet de dÃ©s pour chaque action (2d12 + compÃ©tence)
+   - Application des comportements de dÃ©fense de B
+   - VÃ©rification seuils de fuite
+4. RÃ©sultat enregistrÃ© (victoire/dÃ©faite/fuite)
+5. Joueur B reÃ§oit rapport Ã  sa prochaine connexion
 
-**Note :** Les détails mécaniques du combat asymétrique sont à développer ultérieurement.
+**Note :** Les dÃ©tails mÃ©caniques du combat asymÃ©trique sont Ã  dÃ©velopper ultÃ©rieurement.
 
 **Phases d'un tour (joueur avec Projecteur) :**
 
 ```
-├─ Phase 1 : MOUVEMENT (coût PA)
-│   ├─ Rapprocher/Éloigner (1-3 PA)
-│   ├─ Manœuvre évasive (2 PA, +défense)
-│   └─ Interception (3 PA, bloque fuite)
-│
-├─ Phase 2 : ACTIONS (PA restants)
-│   ├─ Attaque arme (coût variable)
-│   ├─ Scan ennemi (1 PA)
-│   ├─ Contremesures (2 PA)
-│   ├─ Réparations urgentes (3 PA)
-│   ├─ Utiliser jeton Espoir (bonus/capacité)
-│   └─ Charger armes lourdes (variable)
-│
-└─ Phase 3 : RÉSOLUTION
-    ├─ Calcul dégâts
-    ├─ Check systèmes endommagés
-    ├─ Génération jetons (Hope/Fear)
-    └─ Moral équipage
+â”œâ”€ Phase 1 : MOUVEMENT (coÃ»t PA)
+â”‚   â”œâ”€ Rapprocher/Ã‰loigner (1-3 PA)
+â”‚   â”œâ”€ ManÅ“uvre Ã©vasive (2 PA, +dÃ©fense)
+â”‚   â””â”€ Interception (3 PA, bloque fuite)
+â”‚
+â”œâ”€ Phase 2 : ACTIONS (PA restants)
+â”‚   â”œâ”€ Attaque arme (coÃ»t variable)
+â”‚   â”œâ”€ Scan ennemi (1 PA)
+â”‚   â”œâ”€ Contremesures (2 PA)
+â”‚   â”œâ”€ RÃ©parations urgentes (3 PA)
+â”‚   â”œâ”€ Utiliser jeton Espoir (bonus/capacitÃ©)
+â”‚   â””â”€ Charger armes lourdes (variable)
+â”‚
+â””â”€ Phase 3 : RÃ‰SOLUTION
+    â”œâ”€ Calcul dÃ©gÃ¢ts
+    â”œâ”€ Check systÃ¨mes endommagÃ©s
+    â”œâ”€ GÃ©nÃ©ration jetons (Hope/Fear)
+    â””â”€ Moral Ã©quipage
 ```
 
-**Mécanique attaque/défense :**
+**MÃ©canique attaque/dÃ©fense :**
 
 ```
-Attaque (système 2D12 Daggerheart) :
-├─ Jet : 2d12 + Trait (Force/Finesse) + Bonus arme
-├─ SOMME des deux dés + modificateurs
-├─ Comparer au Seuil d'Évasion cible
-│   └─ Seuil Évasion = 10 + Agilité cible + Armure cible
-├─ ≥ Seuil : Touché
-├─ < Seuil : Raté
-│
-└─ Génération jetons (dés individuels) :
-    ├─ Hope > Fear : +1 jeton Espoir (visible, joueur)
-    └─ Fear > Hope : +1 jeton Peur (caché, système)
+Attaque (systÃ¨me 2D12 Daggerheart) :
+â”œâ”€ Jet : 2d12 + Trait (Force/Finesse) + Bonus arme
+â”œâ”€ SOMME des deux dÃ©s + modificateurs
+â”œâ”€ Comparer au Seuil d'Ã‰vasion cible
+â”‚   â””â”€ Seuil Ã‰vasion = 10 + AgilitÃ© cible + Armure cible
+â”œâ”€ â‰¥ Seuil : TouchÃ©
+â”œâ”€ < Seuil : RatÃ©
+â”‚
+â””â”€ GÃ©nÃ©ration jetons (dÃ©s individuels) :
+    â”œâ”€ Hope > Fear : +1 jeton Espoir (visible, joueur)
+    â””â”€ Fear > Hope : +1 jeton Peur (cachÃ©, systÃ¨me)
 
 Exemple d'attaque :
 > attack pirate_corvette cannon_laser
 
 Cible : Corvette pirate
-- Seuil d'Évasion : 10 + 2 (Agilité) + 2 (Armure) = 14
+- Seuil d'Ã‰vasion : 10 + 2 (AgilitÃ©) + 2 (Armure) = 14
 
-🎲 Hope: 9  |  Fear: 11
+ğŸ�² Hope: 9  |  Fear: 11
 Finesse +4, Canons +2
-Résultat: (9 + 11) + 4 + 2 = 26
-Défense cible: 14
-✓ TOUCHÉ - 25 dégâts
+RÃ©sultat: (9 + 11) + 4 + 2 = 26
+DÃ©fense cible: 14
+âœ“ TOUCHÃ‰ - 25 dÃ©gÃ¢ts
 
-[Système : +1 Peur stocké - Fear > Hope]
-→ Le système accumule de la Peur...
-   Peut déclencher : renfort, manœuvre risquée, etc.
+[SystÃ¨me : +1 Peur stockÃ© - Fear > Hope]
+â†’ Le systÃ¨me accumule de la Peur...
+   Peut dÃ©clencher : renfort, manÅ“uvre risquÃ©e, etc.
 
 Types d'armes :
-├─ Canons laser (2 PA, moyenne portée, précis)
-├─ Missiles (3 PA, longue portée, contrable)
-├─ Railgun (4 PA, énorme dégâts, lent)
-├─ Torpilles (5 PA, dégâts zone, anti-capital)
-└─ EMP (3 PA, désactive systèmes)
+â”œâ”€ Canons laser (2 PA, moyenne portÃ©e, prÃ©cis)
+â”œâ”€ Missiles (3 PA, longue portÃ©e, contrable)
+â”œâ”€ Railgun (4 PA, Ã©norme dÃ©gÃ¢ts, lent)
+â”œâ”€ Torpilles (5 PA, dÃ©gÃ¢ts zone, anti-capital)
+â””â”€ EMP (3 PA, dÃ©sactive systÃ¨mes)
 
-Défense :
-├─ Seuil Évasion = 10 + Agilité + Armure
-├─ Blindage (absorbe X dégâts/tour)
-├─ Boucliers (PA rechargeable)
-└─ Manœuvres actives (coût PA, +bonus temporaire)
+DÃ©fense :
+â”œâ”€ Seuil Ã‰vasion = 10 + AgilitÃ© + Armure
+â”œâ”€ Blindage (absorbe X dÃ©gÃ¢ts/tour)
+â”œâ”€ Boucliers (PA rechargeable)
+â””â”€ ManÅ“uvres actives (coÃ»t PA, +bonus temporaire)
 ```
 
-**Dommages & Systèmes :**
+**Dommages & SystÃ¨mes :**
 
 ```
 Points de Coque (HP) :
-├─ S : 50-100 HP
-├─ M : 150-300 HP
-├─ L : 400-800 HP
-├─ XL : 1000-2000 HP
-└─ Capital : 5000+ HP
+â”œâ”€ S : 50-100 HP
+â”œâ”€ M : 150-300 HP
+â”œâ”€ L : 400-800 HP
+â”œâ”€ XL : 1000-2000 HP
+â””â”€ Capital : 5000+ HP
 
-Dégâts critiques (% HP restant) :
-├─ 75% : Système -25% efficacité
-├─ 50% : Fuite, -1 PA/tour
-├─ 25% : Système majeur HS
-├─ 0% : Destruction OU reddition
+DÃ©gÃ¢ts critiques (% HP restant) :
+â”œâ”€ 75% : SystÃ¨me -25% efficacitÃ©
+â”œâ”€ 50% : Fuite, -1 PA/tour
+â”œâ”€ 25% : SystÃ¨me majeur HS
+â”œâ”€ 0% : Destruction OU reddition
 
-Systèmes ciblables (si scan réussi) :
-├─ Moteurs (immobilise)
-├─ Armes (désarme)
-├─ Senseurs (aveugle)
-├─ Générateur (coupe boucliers)
-└─ Pont (moral équipage)
+SystÃ¨mes ciblables (si scan rÃ©ussi) :
+â”œâ”€ Moteurs (immobilise)
+â”œâ”€ Armes (dÃ©sarme)
+â”œâ”€ Senseurs (aveugle)
+â”œâ”€ GÃ©nÃ©rateur (coupe boucliers)
+â””â”€ Pont (moral Ã©quipage)
 ```
 
 ### Types ennemis PNJ
 
 ```
 Pirates solitaires (S-M)
-├─ IA : Opportuniste
-├─ Fuit si <40% HP
-└─ Butin : Moyen
+â”œâ”€ IA : Opportuniste
+â”œâ”€ Fuit si <40% HP
+â””â”€ Butin : Moyen
 
 Gangs pirates (3-6 vaisseaux)
-├─ IA : Coordonnée
-├─ Fuit si leader détruit
-└─ Butin : Bon
+â”œâ”€ IA : CoordonnÃ©e
+â”œâ”€ Fuit si leader dÃ©truit
+â””â”€ Butin : Bon
 
 Cartels (10+ vaisseaux + base)
-├─ IA : Tactique
-├─ Renforts si base attaquée
-└─ Butin : Excellent
+â”œâ”€ IA : Tactique
+â”œâ”€ Renforts si base attaquÃ©e
+â””â”€ Butin : Excellent
 
-Renégats/Mercenaires
-├─ IA : Variable selon contrat
-├─ Équipement militaire
-└─ Ne fuit jamais si payé
+RenÃ©gats/Mercenaires
+â”œâ”€ IA : Variable selon contrat
+â”œâ”€ Ã‰quipement militaire
+â””â”€ Ne fuit jamais si payÃ©
 
-Autorités (Police/Militaire)
-├─ IA : Légaliste
-├─ Scan d'abord
-└─ Appel renforts si perdant
+AutoritÃ©s (Police/Militaire)
+â”œâ”€ IA : LÃ©galiste
+â”œâ”€ Scan d'abord
+â””â”€ Appel renforts si perdant
 ```
 
 ---
 
-## 🏛️ RÉPUTATION ET FACTIONS
+## ğŸ�›ï¸� RÃ‰PUTATION ET FACTIONS
 
-### Système de réputation
+### SystÃ¨me de rÃ©putation
 
-**Par guilde/faction indépendante :**
+**Par guilde/faction indÃ©pendante :**
 
 ```
-Paliers réputation (0-25000+ pts) :
-├─ Étranger (0) : Accès basique
-├─ Connu (500) : -5% prix, missions Rang 1
-├─ Ami (2000) : -10% prix, missions Rang 2, accès données
-├─ Respecté (5000) : -15% prix, missions Rang 3, équipements spéciaux
-├─ Honoré (10000) : -20% prix, missions Rang 4, blueprints rares
-└─ Légende (25000) : -25% prix, missions uniques, siège guilde ?
+Paliers rÃ©putation (0-25000+ pts) :
+â”œâ”€ Ã‰tranger (0) : AccÃ¨s basique
+â”œâ”€ Connu (500) : -5% prix, missions Rang 1
+â”œâ”€ Ami (2000) : -10% prix, missions Rang 2, accÃ¨s donnÃ©es
+â”œâ”€ RespectÃ© (5000) : -15% prix, missions Rang 3, Ã©quipements spÃ©ciaux
+â”œâ”€ HonorÃ© (10000) : -20% prix, missions Rang 4, blueprints rares
+â””â”€ LÃ©gende (25000) : -25% prix, missions uniques, siÃ¨ge guilde ?
 
-Réputation négative possible (ennemi)
+RÃ©putation nÃ©gative possible (ennemi)
 ```
 
 **Guildes principales :**
 
 ```
-GUILDES IMPÉRIALES (IA au début)
-├─ Empire Terrien (militaire/admin)
-├─ Guilde des Cartographes
-├─ Guilde des Marchands
-├─ Académie Scientifique
-└─ Autres selon univers
+GUILDES IMPÃ‰RIALES (IA au dÃ©but)
+â”œâ”€ Empire Terrien (militaire/admin)
+â”œâ”€ Guilde des Cartographes
+â”œâ”€ Guilde des Marchands
+â”œâ”€ AcadÃ©mie Scientifique
+â””â”€ Autres selon univers
 
-GUILDES JOUEURS (créables)
-├─ Gérées par joueurs
-├─ Peuvent définir propres règles
-├─ Commerce, exploration, militaire, etc.
-└─ Territoires contrôlés
+GUILDES JOUEURS (crÃ©ables)
+â”œâ”€ GÃ©rÃ©es par joueurs
+â”œâ”€ Peuvent dÃ©finir propres rÃ¨gles
+â”œâ”€ Commerce, exploration, militaire, etc.
+â””â”€ Territoires contrÃ´lÃ©s
 ```
 
-**Actions affectant réputation :**
+**Actions affectant rÃ©putation :**
 
 ```
-├─ Tuer pirate : Empire +10, Pirates -20
-├─ Tuer civil neutre : Toutes factions -100
-├─ Mission guilde réussie : +50-200 pts
-├─ Trahison contrat : -200-500 pts
-├─ Partage données : Cartographes +5-50
-└─ Commerce régulier : +1-5 pts/transaction
+â”œâ”€ Tuer pirate : Empire +10, Pirates -20
+â”œâ”€ Tuer civil neutre : Toutes factions -100
+â”œâ”€ Mission guilde rÃ©ussie : +50-200 pts
+â”œâ”€ Trahison contrat : -200-500 pts
+â”œâ”€ Partage donnÃ©es : Cartographes +5-50
+â””â”€ Commerce rÃ©gulier : +1-5 pts/transaction
 ```
 
 ---
 
-## 🌌 GÉNÉRATION PROCÉDURALE
+## ğŸŒŒ GÃ‰NÃ‰RATION PROCÃ‰DURALE
 
-### Sources de données réelles
+### Sources de donnÃ©es rÃ©elles
 
 **Bases exploitables :**
 
-1. **ESA GAIA** (Étoiles)
-   - 1.8+ milliards d'étoiles cartographiées
+1. **ESA GAIA** (Ã‰toiles)
+   - 1.8+ milliards d'Ã©toiles cartographiÃ©es
    - Positions 3D, distances, mouvements
-   - Type spectral, magnitude, température
+   - Type spectral, magnitude, tempÃ©rature
    - API TAP accessible
 
-2. **NASA Exoplanet Archive** (Planètes connues)
-   - 29 000+ exoplanètes confirmées
-   - Masse, rayon, période orbitale
-   - Distance étoile hôte
+2. **NASA Exoplanet Archive** (PlanÃ¨tes connues)
+   - 29 000+ exoplanÃ¨tes confirmÃ©es
+   - Masse, rayon, pÃ©riode orbitale
+   - Distance Ã©toile hÃ´te
    - API REST/TAP
 
-3. **JPL Small-Body Database** (Astéroïdes/Comètes)
-   - Tous astéroïdes/comètes système solaire
-   - Paramètres orbitaux
+3. **JPL Small-Body Database** (AstÃ©roÃ¯des/ComÃ¨tes)
+   - Tous astÃ©roÃ¯des/comÃ¨tes systÃ¨me solaire
+   - ParamÃ¨tres orbitaux
    - Composition physique
    - API JSON
 
-4. **JPL Horizons** (Éphémérides)
-   - Positions précises temps réel
-   - Planètes, lunes, astéroïdes
+4. **JPL Horizons** (Ã‰phÃ©mÃ©rides)
+   - Positions prÃ©cises temps rÃ©el
+   - PlanÃ¨tes, lunes, astÃ©roÃ¯des
    - Calculs orbitaux
    - API REST
 
-### Algorithme de génération systèmes
+### Algorithme de gÃ©nÃ©ration systÃ¨mes
 
 **Principe :**
 ```
-Seed = GAIA source_id de l'étoile
-→ Génération reproductible identique pour tous
+Seed = GAIA source_id de l'Ã©toile
+â†’ GÃ©nÃ©ration reproductible identique pour tous
 ```
 
 **Budget de masse :**
 ```
-Budget = Masse_étoile (M☉) × 50 unités
+Budget = Masse_Ã©toile (Mâ˜‰) Ã— 50 unitÃ©s
 
 Exemple :
-- 1 M☉ (type Soleil) = 50 unités
-- 0.5 M☉ (naine rouge) = 25 unités
-- 2 M☉ (type A) = 100 unités
+- 1 Mâ˜‰ (type Soleil) = 50 unitÃ©s
+- 0.5 Mâ˜‰ (naine rouge) = 25 unitÃ©s
+- 2 Mâ˜‰ (type A) = 100 unitÃ©s
 ```
 
 ### Profils stellaires
 
-#### TYPE O/B (Géantes bleues) - 15-60 M☉
+#### TYPE O/B (GÃ©antes bleues) - 15-60 Mâ˜‰
 ```
-Budget : 80-200 unités
+Budget : 80-200 unitÃ©s
 Zone habitable : 50-100 UA (trop lointaine)
-Génération :
-├─ 30% : Géante gazeuse massive (50-80 u)
-├─ 40% : Ceintures astéroïdes épaisses (10-20 u)
-├─ 20% : Planètes rocheuses irradiées (5-15 u)
-└─ 10% : Vide
-Intérêt : Minéral riche, dangereux
+GÃ©nÃ©ration :
+â”œâ”€ 30% : GÃ©ante gazeuse massive (50-80 u)
+â”œâ”€ 40% : Ceintures astÃ©roÃ¯des Ã©paisses (10-20 u)
+â”œâ”€ 20% : PlanÃ¨tes rocheuses irradiÃ©es (5-15 u)
+â””â”€ 10% : Vide
+IntÃ©rÃªt : MinÃ©ral riche, dangereux
 ```
 
-#### TYPE A (Blanches) - 1.4-2.1 M☉
+#### TYPE A (Blanches) - 1.4-2.1 Mâ˜‰
 ```
-Budget : 40-80 unités
+Budget : 40-80 unitÃ©s
 Zone habitable : 4-10 UA
-Génération :
-├─ 40% : Géante gazeuse (30-50 u)
-├─ 30% : Telluriques intérieures (10-20 u)
-├─ 20% : Ceintures (5-15 u)
-└─ 10% : Mini-système
-Intérêt : Commerce, bases militaires
+GÃ©nÃ©ration :
+â”œâ”€ 40% : GÃ©ante gazeuse (30-50 u)
+â”œâ”€ 30% : Telluriques intÃ©rieures (10-20 u)
+â”œâ”€ 20% : Ceintures (5-15 u)
+â””â”€ 10% : Mini-systÃ¨me
+IntÃ©rÃªt : Commerce, bases militaires
 ```
 
-#### TYPE F (Jaune-blanc) - 1.04-1.4 M☉
+#### TYPE F (Jaune-blanc) - 1.04-1.4 Mâ˜‰
 ```
-Budget : 35-60 unités
+Budget : 35-60 unitÃ©s
 Zone habitable : 1.5-3 UA
-Génération équilibrée :
-├─ 35% : 1-2 gazeuses (20-40 u)
-├─ 40% : 2-4 telluriques (15-30 u)
-├─ 15% : Ceinture (5-10 u)
-└─ 10% : Lunes multiples
-Intérêt : Colonies potentielles
+GÃ©nÃ©ration Ã©quilibrÃ©e :
+â”œâ”€ 35% : 1-2 gazeuses (20-40 u)
+â”œâ”€ 40% : 2-4 telluriques (15-30 u)
+â”œâ”€ 15% : Ceinture (5-10 u)
+â””â”€ 10% : Lunes multiples
+IntÃ©rÃªt : Colonies potentielles
 ```
 
-#### TYPE G (Solaire) - 0.8-1.04 M☉
+#### TYPE G (Solaire) - 0.8-1.04 Mâ˜‰
 ```
-Budget : 30-50 unités
-Zone habitable : 0.9-1.5 UA ⭐ OPTIMAL
-Génération type Système Solaire :
-├─ 25% : 1-2 gazeuses extérieures (15-30 u)
-├─ 45% : 3-5 telluriques (12-25 u)
-├─ 20% : Ceinture astéroïdes (5-10 u)
-└─ 10% : Système riche lunes
-Intérêt : COLONISATION PRIORITAIRE
+Budget : 30-50 unitÃ©s
+Zone habitable : 0.9-1.5 UA â­� OPTIMAL
+GÃ©nÃ©ration type SystÃ¨me Solaire :
+â”œâ”€ 25% : 1-2 gazeuses extÃ©rieures (15-30 u)
+â”œâ”€ 45% : 3-5 telluriques (12-25 u)
+â”œâ”€ 20% : Ceinture astÃ©roÃ¯des (5-10 u)
+â””â”€ 10% : SystÃ¨me riche lunes
+IntÃ©rÃªt : COLONISATION PRIORITAIRE
 ```
 
-#### TYPE K (Orange) - 0.45-0.8 M☉
+#### TYPE K (Orange) - 0.45-0.8 Mâ˜‰
 ```
-Budget : 20-40 unités
+Budget : 20-40 unitÃ©s
 Zone habitable : 0.3-0.9 UA (proche)
-Génération compacte :
-├─ 30% : 1 gazeuse moyenne (10-20 u)
-├─ 50% : 2-4 telluriques rapprochées (10-25 u)
-├─ 15% : Ceinture fine (3-8 u)
-└─ 5% : Système pauvre
-Intérêt : Stable, longue durée vie
+GÃ©nÃ©ration compacte :
+â”œâ”€ 30% : 1 gazeuse moyenne (10-20 u)
+â”œâ”€ 50% : 2-4 telluriques rapprochÃ©es (10-25 u)
+â”œâ”€ 15% : Ceinture fine (3-8 u)
+â””â”€ 5% : SystÃ¨me pauvre
+IntÃ©rÃªt : Stable, longue durÃ©e vie
 ```
 
-#### TYPE M (Naine rouge) - 0.08-0.45 M☉
+#### TYPE M (Naine rouge) - 0.08-0.45 Mâ˜‰
 ```
-Budget : 10-30 unités
-Zone habitable : 0.05-0.3 UA (très proche)
-Génération minimaliste :
-├─ 20% : 1 petite gazeuse (5-15 u)
-├─ 60% : 1-3 telluriques verrouillées (5-20 u)
-├─ 15% : Astéroïdes épars (2-5 u)
-└─ 5% : Vide
-Intérêt : Nombreuses, verrouillage gravitationnel
+Budget : 10-30 unitÃ©s
+Zone habitable : 0.05-0.3 UA (trÃ¨s proche)
+GÃ©nÃ©ration minimaliste :
+â”œâ”€ 20% : 1 petite gazeuse (5-15 u)
+â”œâ”€ 60% : 1-3 telluriques verrouillÃ©es (5-20 u)
+â”œâ”€ 15% : AstÃ©roÃ¯des Ã©pars (2-5 u)
+â””â”€ 5% : Vide
+IntÃ©rÃªt : Nombreuses, verrouillage gravitationnel
 ```
 
-#### NAINES BRUNES - 0.01-0.08 M☉
+#### NAINES BRUNES - 0.01-0.08 Mâ˜‰
 ```
-Budget : 5-15 unités
+Budget : 5-15 unitÃ©s
 Pas de zone habitable
-Génération rare :
-├─ 40% : 1-2 planètes errantes capturées
-└─ 60% : Vide
-Intérêt : Cachettes, bases clandestines
+GÃ©nÃ©ration rare :
+â”œâ”€ 40% : 1-2 planÃ¨tes errantes capturÃ©es
+â””â”€ 60% : Vide
+IntÃ©rÃªt : Cachettes, bases clandestines
 ```
 
-### Coûts budgétaires par objet
+### CoÃ»ts budgÃ©taires par objet
 
 ```
-GÉANTES GAZEUSES
-├─ Super-Jupiter (>10 MJ) : 40-60 u + 2D6 lunes
-├─ Jupiter (1-10 MJ) : 25-40 u + 2D4 lunes
-└─ Neptune (0.1-1 MJ) : 15-25 u + 1D4 lunes
+GÃ‰ANTES GAZEUSES
+â”œâ”€ Super-Jupiter (>10 MJ) : 40-60 u + 2D6 lunes
+â”œâ”€ Jupiter (1-10 MJ) : 25-40 u + 2D4 lunes
+â””â”€ Neptune (0.1-1 MJ) : 15-25 u + 1D4 lunes
 
-PLANÈTES TELLURIQUES
-├─ Super-Terre (>2 MT) : 12-20 u + 1D3 lunes
-├─ Terrestre (0.5-2 MT) : 8-15 u + 1D2 lunes
-└─ Mars-like (<0.5 MT) : 5-10 u + 0-2 lunes
+PLANÃˆTES TELLURIQUES
+â”œâ”€ Super-Terre (>2 MT) : 12-20 u + 1D3 lunes
+â”œâ”€ Terrestre (0.5-2 MT) : 8-15 u + 1D2 lunes
+â””â”€ Mars-like (<0.5 MT) : 5-10 u + 0-2 lunes
 
 LUNES
-├─ Majeure (Titan/Ganymède) : 3-8 u
-├─ Standard (Lune) : 2-5 u
-└─ Petite : 1-3 u
+â”œâ”€ Majeure (Titan/GanymÃ¨de) : 3-8 u
+â”œâ”€ Standard (Lune) : 2-5 u
+â””â”€ Petite : 1-3 u
 
-CEINTURES ASTÉROÏDES
-├─ Dense : 10-20 u (2D6 sites extraction)
-├─ Moyenne : 5-10 u (1D6 sites)
-└─ Éparse : 2-5 u (1D3 sites)
+CEINTURES ASTÃ‰ROÃ�DES
+â”œâ”€ Dense : 10-20 u (2D6 sites extraction)
+â”œâ”€ Moyenne : 5-10 u (1D6 sites)
+â””â”€ Ã‰parse : 2-5 u (1D3 sites)
 
-OBJETS SPÉCIAUX
-├─ Planète océan : 10-18 u
-├─ Planète désertique : 8-14 u
-├─ Monde glacé : 6-12 u
-├─ Planète volcanique : 7-13 u
-└─ Planète morte : 4-8 u
+OBJETS SPÃ‰CIAUX
+â”œâ”€ PlanÃ¨te ocÃ©an : 10-18 u
+â”œâ”€ PlanÃ¨te dÃ©sertique : 8-14 u
+â”œâ”€ Monde glacÃ© : 6-12 u
+â”œâ”€ PlanÃ¨te volcanique : 7-13 u
+â””â”€ PlanÃ¨te morte : 4-8 u
 ```
 
 ### Implantations humaines
@@ -2052,201 +2052,201 @@ OBJETS SPÉCIAUX
 **Zones spatiales (<200 AL Soleil) :**
 
 ```
-ZONE 1 : CŒUR EMPIRE (0-100 AL)
-├─ Densité : Forte (80% systèmes G/K colonisés)
-├─ Contrôle : Empire Terrien centralisé
-├─ Population : ~50 milliards
-├─ Sécurité : Haute
-└─ Systèmes majeurs :
-    ├─ Sol (Terre) : 10 milliards
-    ├─ Alpha Centauri : 5 milliards
-    └─ 50-100 autres colonies
+ZONE 1 : CÅ’UR EMPIRE (0-100 AL)
+â”œâ”€ DensitÃ© : Forte (80% systÃ¨mes G/K colonisÃ©s)
+â”œâ”€ ContrÃ´le : Empire Terrien centralisÃ©
+â”œâ”€ Population : ~50 milliards
+â”œâ”€ SÃ©curitÃ© : Haute
+â””â”€ SystÃ¨mes majeurs :
+    â”œâ”€ Sol (Terre) : 10 milliards
+    â”œâ”€ Alpha Centauri : 5 milliards
+    â””â”€ 50-100 autres colonies
 
-ZONE 2 : FRONTIÈRE COLONIALE (100-150 AL)
-├─ Densité : Moyenne (40% habités)
-├─ Contrôle : Mixte (Gouverneurs + Guildes)
-├─ Population : ~10 milliards
-├─ Sécurité : Moyenne à faible
-└─ Colonies indépendantes
+ZONE 2 : FRONTIÃˆRE COLONIALE (100-150 AL)
+â”œâ”€ DensitÃ© : Moyenne (40% habitÃ©s)
+â”œâ”€ ContrÃ´le : Mixte (Gouverneurs + Guildes)
+â”œâ”€ Population : ~10 milliards
+â”œâ”€ SÃ©curitÃ© : Moyenne Ã  faible
+â””â”€ Colonies indÃ©pendantes
 
 ZONE 3 : ESPACE PIONNIER (150-200 AL)
-├─ Densité : Faible (10% habités)
-├─ Contrôle : Factions, Guildes, Cartels
-├─ Population : ~1 milliard
-├─ Sécurité : Nulle
-└─ Avant-postes isolés
+â”œâ”€ DensitÃ© : Faible (10% habitÃ©s)
+â”œâ”€ ContrÃ´le : Factions, Guildes, Cartels
+â”œâ”€ Population : ~1 milliard
+â”œâ”€ SÃ©curitÃ© : Nulle
+â””â”€ Avant-postes isolÃ©s
 
-AU-DELÀ 200 AL : TERRA INCOGNITA
-├─ Quelques éclaireurs
-├─ Bases secrètes (rumeurs)
-└─ Futur contenu (aliens ?)
+AU-DELÃ€ 200 AL : TERRA INCOGNITA
+â”œâ”€ Quelques Ã©claireurs
+â”œâ”€ Bases secrÃ¨tes (rumeurs)
+â””â”€ Futur contenu (aliens ?)
 ```
 
-**Génération colonies :**
+**GÃ©nÃ©ration colonies :**
 
 ```
-Pour planète habitable :
-├─ Roll 1D100 selon distance Terre :
-│   ├─ 0-50 AL : 80% colonisée
-│   ├─ 50-100 AL : 60% colonisée
-│   ├─ 100-150 AL : 30% colonisée
-│   ├─ 150-200 AL : 10% colonisée
-│   └─ >200 AL : 2% colonisée
-│
-└─ Si colonisée, taille (1D100) :
-    ├─ 1-20 : Avant-poste (100-1000)
-    ├─ 21-50 : Petite colonie (1K-50K)
-    ├─ 51-80 : Colonie établie (50K-1M)
-    ├─ 81-95 : Monde mineur (1M-100M)
-    └─ 96-100 : Monde majeur (100M-5B)
+Pour planÃ¨te habitable :
+â”œâ”€ Roll 1D100 selon distance Terre :
+â”‚   â”œâ”€ 0-50 AL : 80% colonisÃ©e
+â”‚   â”œâ”€ 50-100 AL : 60% colonisÃ©e
+â”‚   â”œâ”€ 100-150 AL : 30% colonisÃ©e
+â”‚   â”œâ”€ 150-200 AL : 10% colonisÃ©e
+â”‚   â””â”€ >200 AL : 2% colonisÃ©e
+â”‚
+â””â”€ Si colonisÃ©e, taille (1D100) :
+    â”œâ”€ 1-20 : Avant-poste (100-1000)
+    â”œâ”€ 21-50 : Petite colonie (1K-50K)
+    â”œâ”€ 51-80 : Colonie Ã©tablie (50K-1M)
+    â”œâ”€ 81-95 : Monde mineur (1M-100M)
+    â””â”€ 96-100 : Monde majeur (100M-5B)
 ```
 
 ---
 
-## 📍 POINTS D'INTÉRÊT (PoV)
+## ğŸ“� POINTS D'INTÃ‰RÃŠT (PoV)
 
-### Définition
-**Point of Value (PoV)** : Tout objet/entité que la base de données doit stocker car il a une valeur (stratégique, économique, scientifique).
+### DÃ©finition
+**Point of Value (PoV)** : Tout objet/entitÃ© que la base de donnÃ©es doit stocker car il a une valeur (stratÃ©gique, Ã©conomique, scientifique).
 
 ### Types de PoV
 
-#### PoV HYPERSPATIAUX (>1 AL, entre systèmes)
+#### PoV HYPERSPATIAUX (>1 AL, entre systÃ¨mes)
 ```
 Naturels :
-├─ Étoiles (GAIA source principale)
-├─ Naines brunes
-├─ Nuages interstellaires
-└─ Trous noirs vagabonds (très rare)
+â”œâ”€ Ã‰toiles (GAIA source principale)
+â”œâ”€ Naines brunes
+â”œâ”€ Nuages interstellaires
+â””â”€ Trous noirs vagabonds (trÃ¨s rare)
 
 Artificiels :
-├─ Stations relais lointaines
-├─ Vaisseaux en transit
-├─ Balises navigation
-└─ Champs de mines (pièges)
+â”œâ”€ Stations relais lointaines
+â”œâ”€ Vaisseaux en transit
+â”œâ”€ Balises navigation
+â””â”€ Champs de mines (piÃ¨ges)
 ```
 
-#### PoV LOCAUX (dans système, <1 AL)
+#### PoV LOCAUX (dans systÃ¨me, <1 AL)
 ```
 Naturels :
-├─ Planètes (telluriques, gazeuses)
-├─ Lunes
-├─ Ceintures astéroïdes
-├─ Comètes
-└─ Anomalies (nuages, champs magnétiques)
+â”œâ”€ PlanÃ¨tes (telluriques, gazeuses)
+â”œâ”€ Lunes
+â”œâ”€ Ceintures astÃ©roÃ¯des
+â”œâ”€ ComÃ¨tes
+â””â”€ Anomalies (nuages, champs magnÃ©tiques)
 
 Artificiels :
-├─ Bases (actives, abandonnées, ruines)
-├─ Satellites/Stations
-├─ Mines/Extraction
-├─ Épaves vaisseaux
-└─ Balises/Relais
+â”œâ”€ Bases (actives, abandonnÃ©es, ruines)
+â”œâ”€ Satellites/Stations
+â”œâ”€ Mines/Extraction
+â”œâ”€ Ã‰paves vaisseaux
+â””â”€ Balises/Relais
 ```
 
-### Système de détection PoV
+### SystÃ¨me de dÃ©tection PoV
 
-**Mécanique en 2 phases :**
+**MÃ©canique en 2 phases :**
 
 #### PHASE 1 : ACCUMULATION
 ```
-Chaque tour en mode détection : +XDY (selon équipement)
-Somme cumulée : S
-Condition : S ≥ Valeur_Recherche du PoV
-Si atteint → Passage Phase 2
+Chaque tour en mode dÃ©tection : +XDY (selon Ã©quipement)
+Somme cumulÃ©e : S
+Condition : S â‰¥ Valeur_Recherche du PoV
+Si atteint â†’ Passage Phase 2
 ```
 
-#### PHASE 2 : RÉSOLUTION
+#### PHASE 2 : RÃ‰SOLUTION
 ```
-1 jet de dés (1D% ou 2D12)
+1 jet de dÃ©s (1D% ou 2D12)
 Seuil selon type objet :
-├─ Passif (planète, épave) : 90%+ succès
-├─ Actif furtif (base camouflée) : 50%
-└─ Contremesures actives : 20%
+â”œâ”€ Passif (planÃ¨te, Ã©pave) : 90%+ succÃ¨s
+â”œâ”€ Actif furtif (base camouflÃ©e) : 50%
+â””â”€ Contremesures actives : 20%
 
-Succès → PoV détecté et révélé au joueur
+SuccÃ¨s â†’ PoV dÃ©tectÃ© et rÃ©vÃ©lÃ© au joueur
 ```
 
 ### Valeurs de recherche (exemples)
 
 | Objet | Valeur Recherche | Notes |
 |-------|------------------|-------|
-| Étoile | 5-15 | Selon magnitude |
-| Planète géante | 20-30 | Proche = facile |
-| Planète tellurique | 40-60 | Petite, sombre |
-| Lune | 60-80 | Très petite |
-| Ceinture astéroïdes | 30-50 | Zone étendue |
-| Base active | 50-100 | Émissions + contremesures |
-| Base fantôme | 100-200 | Contremesures militaires |
-| Épave | 80-120 | Passive, petite |
-| Station relais | 30-60 | Émissions fortes |
+| Ã‰toile | 5-15 | Selon magnitude |
+| PlanÃ¨te gÃ©ante | 20-30 | Proche = facile |
+| PlanÃ¨te tellurique | 40-60 | Petite, sombre |
+| Lune | 60-80 | TrÃ¨s petite |
+| Ceinture astÃ©roÃ¯des | 30-50 | Zone Ã©tendue |
+| Base active | 50-100 | Ã‰missions + contremesures |
+| Base fantÃ´me | 100-200 | Contremesures militaires |
+| Ã‰pave | 80-120 | Passive, petite |
+| Station relais | 30-60 | Ã‰missions fortes |
 
-### Équipement détection
+### Ã‰quipement dÃ©tection
 
 ```
 Niveau Base : 1D6/PA
-Niveau Amélioré : 2D6/PA
-Niveau Avancé : 3D6/PA
+Niveau AmÃ©liorÃ© : 2D6/PA
+Niveau AvancÃ© : 3D6/PA
 Niveau Militaire : 4D6+bonus/PA
 
 Modificateurs :
-├─ +bonus si zone cartographiée
-├─ -malus si brouillage actif
-└─ +bonus si intel préalable
+â”œâ”€ +bonus si zone cartographiÃ©e
+â”œâ”€ -malus si brouillage actif
+â””â”€ +bonus si intel prÃ©alable
 ```
 
-### Marché de l'information
+### MarchÃ© de l'information
 
-**PoV découverts = vendables :**
+**PoV dÃ©couverts = vendables :**
 
 ```
 Acheteurs :
-├─ Guilde Cartographes
-│   └─ Diffusion publique (quelques tours délai)
-│
-├─ Guildes spécialisées
-│   └─ Diffusion restreinte (membres)
-│
-└─ Joueurs/Corporations privées
-    └─ Exclusivité totale possible
+â”œâ”€ Guilde Cartographes
+â”‚   â””â”€ Diffusion publique (quelques tours dÃ©lai)
+â”‚
+â”œâ”€ Guildes spÃ©cialisÃ©es
+â”‚   â””â”€ Diffusion restreinte (membres)
+â”‚
+â””â”€ Joueurs/Corporations privÃ©es
+    â””â”€ ExclusivitÃ© totale possible
 ```
 
-**Valeur dépend de :**
-- Rareté (nouveau système vs déjà connu)
-- Type (planète habitable > astéroïde banal)
+**Valeur dÃ©pend de :**
+- RaretÃ© (nouveau systÃ¨me vs dÃ©jÃ  connu)
+- Type (planÃ¨te habitable > astÃ©roÃ¯de banal)
 - Ressources potentielles
-- Position stratégique
-- Fraîcheur de l'information
+- Position stratÃ©gique
+- FraÃ®cheur de l'information
 
 ---
 
-## 💻 ARCHITECTURE TECHNIQUE
+## ğŸ’» ARCHITECTURE TECHNIQUE
 
 ### Stack technique
 
 ```
 FRONTEND
-├─ HTML/CSS/JavaScript
-├─ Interface console (commandes texte)
-├─ Canvas/WebGL (visualisation optionnelle)
-└─ Framework : Vanilla JS ou React/Vue léger
+â”œâ”€ HTML/CSS/JavaScript
+â”œâ”€ Interface console (commandes texte)
+â”œâ”€ Canvas/WebGL (visualisation optionnelle)
+â””â”€ Framework : Vanilla JS ou React/Vue lÃ©ger
 
 BACKEND
-├─ Node.js + Express (API REST)
-├─ Python (optionnel, pour scripts GAIA)
-└─ WebSocket (temps réel si nécessaire)
+â”œâ”€ Node.js + Express (API REST)
+â”œâ”€ Python (optionnel, pour scripts GAIA)
+â””â”€ WebSocket (temps rÃ©el si nÃ©cessaire)
 
-BASE DE DONNÉES
-├─ MySQL/PostgreSQL (principal)
-├─ IndexedDB (cache client-side)
-└─ Redis (cache serveur, sessions)
+BASE DE DONNÃ‰ES
+â”œâ”€ MySQL/PostgreSQL (principal)
+â”œâ”€ IndexedDB (cache client-side)
+â””â”€ Redis (cache serveur, sessions)
 
 APIs EXTERNES
-├─ ESA GAIA TAP (étoiles)
-├─ NASA Exoplanet Archive (planètes)
-├─ JPL Horizons (éphémérides)
-└─ JPL Small-Body DB (astéroïdes)
+â”œâ”€ ESA GAIA TAP (Ã©toiles)
+â”œâ”€ NASA Exoplanet Archive (planÃ¨tes)
+â”œâ”€ JPL Horizons (Ã©phÃ©mÃ©rides)
+â””â”€ JPL Small-Body DB (astÃ©roÃ¯des)
 ```
 
-### Tables base de données (schéma indicatif)
+### Tables base de donnÃ©es (schÃ©ma indicatif)
 
 ```sql
 -- JOUEURS
@@ -2266,7 +2266,7 @@ ships (
     docked_at_station_id
 )
 
--- SYSTÈMES STELLAIRES
+-- SYSTÃˆMES STELLAIRES
 systems (
     id, gaia_source_id,
     ra, dec, distance_ly,
@@ -2276,7 +2276,7 @@ systems (
     control_faction_id
 )
 
--- PLANÈTES/OBJETS
+-- PLANÃˆTES/OBJETS
 planets (
     id, system_id,
     type (telluric/gas/asteroid_belt/etc),
@@ -2294,7 +2294,7 @@ installations (
     production_json
 )
 
--- POINTS D'INTÉRÊT
+-- POINTS D'INTÃ‰RÃŠT
 pov (
     id, system_id,
     type (hyperspatial/local),
@@ -2313,7 +2313,7 @@ satellites (
     operational
 )
 
--- ÉVÉNEMENTS PEUR (persistance et cohérence narrative)
+-- Ã‰VÃ‰NEMENTS PEUR (persistance et cohÃ©rence narrative)
 fear_events (
     id, 
     type (pirate_fleet/anomaly/disaster/etc),
@@ -2322,11 +2322,11 @@ fear_events (
     created_turn,
     expires_turn,
     status (active/expired/destroyed),
-    data_json (détails spécifiques événement),
+    data_json (dÃ©tails spÃ©cifiques Ã©vÃ©nement),
     fear_cost_consumed
 )
 
--- RÉPUTATION
+-- RÃ‰PUTATION
 reputation (
     player_id, faction_id,
     points, rank
@@ -2356,7 +2356,7 @@ game_turns (
     events_json
 )
 
--- MARCHÉ
+-- MARCHÃ‰
 market_listings (
     id, seller_id, item_type,
     quantity, price_per_unit,
@@ -2364,21 +2364,21 @@ market_listings (
 )
 ```
 
-### Workflow requêtes GAIA
+### Workflow requÃªtes GAIA
 
 ```
-1. Joueur entre en zone inexplorée
-2. Backend vérifie si système en DB
+1. Joueur entre en zone inexplorÃ©e
+2. Backend vÃ©rifie si systÃ¨me en DB
 3. Si non :
-   a. Requête GAIA TAP (étoile + voisines)
-   b. Parse données (type, masse, position)
-   c. Génération procédurale système (seed = source_id)
+   a. RequÃªte GAIA TAP (Ã©toile + voisines)
+   b. Parse donnÃ©es (type, masse, position)
+   c. GÃ©nÃ©ration procÃ©durale systÃ¨me (seed = source_id)
    d. Stockage DB
 4. Si oui : Chargement depuis DB
-5. Retour données au client
+5. Retour donnÃ©es au client
 ```
 
-**Exemple requête GAIA (ADQL) :**
+**Exemple requÃªte GAIA (ADQL) :**
 
 ```sql
 SELECT source_id, ra, dec, parallax, 
@@ -2396,58 +2396,58 @@ LIMIT 100
 ### Optimisations
 
 **Cache agressif :**
-- Systèmes explorés stockés DB
-- Fond d'étoiles pré-calculé par position
-- Éphémérides planètes calculées à la demande
+- SystÃ¨mes explorÃ©s stockÃ©s DB
+- Fond d'Ã©toiles prÃ©-calculÃ© par position
+- Ã‰phÃ©mÃ©rides planÃ¨tes calculÃ©es Ã  la demande
 
-**Calculs distribués :**
-- Génération procédurale côté serveur
-- Rendu visuel côté client
+**Calculs distribuÃ©s :**
+- GÃ©nÃ©ration procÃ©durale cÃ´tÃ© serveur
+- Rendu visuel cÃ´tÃ© client
 - WebWorkers pour calculs lourds
 
-**Pagination données :**
+**Pagination donnÃ©es :**
 - Chargement zone par zone
-- Pas de chargement galaxie entière
+- Pas de chargement galaxie entiÃ¨re
 - Secteurs de 10-50 AL
 
 ---
 
-## 📝 NOTES DE DÉVELOPPEMENT
+## ğŸ“� NOTES DE DÃ‰VELOPPEMENT
 
-### Priorités Phase 1 (MVP)
-1. ✅ Système navigation tour par tour
-2. ✅ Détection basique (1D6)
-3. ✅ Génération procédurale simple (étoiles GAIA)
-4. ✅ Combat PvE basique
-5. ✅ Économie simplifiée (3-5 ressources)
-6. ✅ Interface console fonctionnelle
+### PrioritÃ©s Phase 1 (MVP)
+1. âœ… SystÃ¨me navigation tour par tour
+2. âœ… DÃ©tection basique (1D6)
+3. âœ… GÃ©nÃ©ration procÃ©durale simple (Ã©toiles GAIA)
+4. âœ… Combat PvE basique
+5. âœ… Ã‰conomie simplifiÃ©e (3-5 ressources)
+6. âœ… Interface console fonctionnelle
 
 ### Phase 2 (Expansion)
-- Système réputation complet
+- SystÃ¨me rÃ©putation complet
 - Guildes joueurs
-- Génération planètes avancée
-- Marché dynamique
+- GÃ©nÃ©ration planÃ¨tes avancÃ©e
+- MarchÃ© dynamique
 - PvP
 
 ### Phase 3 (Endgame)
 - Stations mobiles
 - Construction
 - Diplomatie complexe
-- Événements galactiques
+- Ã‰vÃ©nements galactiques
 - Multi-univers (Star Wars, etc.)
 
-### Système de dés à finaliser
-**Système retenu : Daggerheart (2D12)**
+### SystÃ¨me de dÃ©s Ã  finaliser
+**SystÃ¨me retenu : Daggerheart (2D12)**
 
-**Caractéristiques finales :**
-- Somme des 2d12 + modificateurs vs Difficulté
+**CaractÃ©ristiques finales :**
+- Somme des 2d12 + modificateurs vs DifficultÃ©
 - Jetons d'Espoir (visibles, ressource joueur)
-- Jetons de Peur (CACHÉS, capital système)
-- Système utilise automatiquement Peur pour générer aventure
+- Jetons de Peur (CACHÃ‰S, capital systÃ¨me)
+- SystÃ¨me utilise automatiquement Peur pour gÃ©nÃ©rer aventure
 
-**Implémentation technique :**
+**ImplÃ©mentation technique :**
 ```javascript
-// Jet de dés
+// Jet de dÃ©s
 function rollDaggerheart(trait, bonus, difficulty) {
   const hope = random(1, 12);
   const fear = random(1, 12);
@@ -2455,23 +2455,23 @@ function rollDaggerheart(trait, bonus, difficulty) {
   
   let critical = false;
   
-  // Génération jetons
+  // GÃ©nÃ©ration jetons
   if (hope > fear) {
     player.hope_tokens++;
-    notifyPlayer("✓ Jeton d'Espoir gagné !");
+    notifyPlayer("âœ“ Jeton d'Espoir gagnÃ© !");
   } else if (fear > hope) {
-    system.fear_tokens++; // CACHÉ
-    // Note : Déclenchement vérifié séparément
+    system.fear_tokens++; // CACHÃ‰
+    // Note : DÃ©clenchement vÃ©rifiÃ© sÃ©parÃ©ment
   } else if (hope === fear && hope !== 1) {
-    // CRITIQUE ! (égalité sauf 1-1)
+    // CRITIQUE ! (Ã©galitÃ© sauf 1-1)
     player.hope_tokens++;
     critical = true;
-    notifyPlayer("✓✓ CRITIQUE ! Réussite exceptionnelle !");
+    notifyPlayer("âœ“âœ“ CRITIQUE ! RÃ©ussite exceptionnelle !");
   } else if (hope === 1 && fear === 1) {
-    // CATASTROPHE (1-1) : génère Peur
-    system.fear_tokens++; // CACHÉ
+    // CATASTROPHE (1-1) : gÃ©nÃ¨re Peur
+    system.fear_tokens++; // CACHÃ‰
     critical = "catastrophe";
-    notifyPlayer("✗✗ CATASTROPHE !");
+    notifyPlayer("âœ—âœ— CATASTROPHE !");
   }
   
   return {
@@ -2483,30 +2483,30 @@ function rollDaggerheart(trait, bonus, difficulty) {
   };
 }
 
-// Vérification déclenchement Peur (après action significative ou fin tour)
+// VÃ©rification dÃ©clenchement Peur (aprÃ¨s action significative ou fin tour)
 function checkFearTrigger(player) {
-  // Fiabilité selon état vaisseau
+  // FiabilitÃ© selon Ã©tat vaisseau
   const reliability_die = player.ship.reliability_die; // ex: 60
   const roll = random(1, reliability_die);
   const fear_capital = system.fear_tokens;
   
   if (roll < fear_capital) {
-    // ÉVÉNEMENT DÉCLENCHÉ !
+    // Ã‰VÃ‰NEMENT DÃ‰CLENCHÃ‰ !
     
-    // 1. Chercher événements existants proches
+    // 1. Chercher Ã©vÃ©nements existants proches
     const nearby = findNearbyFearEvents(player);
     
-    // 2. Utiliser événement existant ou créer nouveau
+    // 2. Utiliser Ã©vÃ©nement existant ou crÃ©er nouveau
     const event = nearby.length > 0 
       ? selectCompatibleEvent(nearby, fear_capital)
       : generateNewFearEvent(player, fear_capital);
     
-    // 3. Si événement persistant, stocker en BDD
+    // 3. Si Ã©vÃ©nement persistant, stocker en BDD
     if (event.persistent) {
       storeFearEvent(event, player);
     }
     
-    // 4. Déclencher l'événement
+    // 4. DÃ©clencher l'Ã©vÃ©nement
     triggerFearEvent(player, event);
     
     // 5. Consommer jetons Peur
@@ -2518,7 +2518,7 @@ function checkFearTrigger(player) {
   return false;
 }
 
-// Recherche événements Peur proches
+// Recherche Ã©vÃ©nements Peur proches
 function findNearbyFearEvents(player) {
   return db.query(`
     SELECT * FROM fear_events 
@@ -2529,18 +2529,18 @@ function findNearbyFearEvents(player) {
   `, [player.system_id, current_turn]);
 }
 
-// Génération nouvel événement selon capital Peur
+// GÃ©nÃ©ration nouvel Ã©vÃ©nement selon capital Peur
 function generateNewFearEvent(player, fear_capital) {
   let event_type, fear_cost, duration, persistent;
   
   if (fear_capital >= 20) {
-    // Événement majeur
+    // Ã‰vÃ©nement majeur
     event_type = selectRandom(['fleet', 'disaster', 'faction_intervention']);
     fear_cost = random(20, 30);
     duration = random(30, 100);
     persistent = true;
   } else if (fear_capital >= 11) {
-    // Événement critique
+    // Ã‰vÃ©nement critique
     event_type = selectRandom(['ambush_coordinated', 'catastrophe', 'elite_enemy']);
     fear_cost = random(11, 20);
     duration = random(20, 50);
@@ -2568,7 +2568,7 @@ function generateNewFearEvent(player, fear_capital) {
   };
 }
 
-// Nettoyage événements expirés (chaque tour)
+// Nettoyage Ã©vÃ©nements expirÃ©s (chaque tour)
 function cleanupExpiredFearEvents() {
   db.query(`
     UPDATE fear_events 
@@ -2578,7 +2578,7 @@ function cleanupExpiredFearEvents() {
 }
 ```
 
-### Références
+### RÃ©fÃ©rences
 - **Lunastars** : https://v2.lunastars.net
 - **Empire Galactique (JDR)** : https://jeuderole.empiregalactique.site
 - **Star Citizen** : https://robertsspaceindustries.com
@@ -2587,23 +2587,23 @@ function cleanupExpiredFearEvents() {
 
 ---
 
-## 🔄 CHANGELOG & ÉVOLUTIONS
+## ğŸ”„ CHANGELOG & Ã‰VOLUTIONS
 
 ### Version 0.1 (Document initial)
-- Concepts core définis
+- Concepts core dÃ©finis
 - Architecture modulaire multi-univers
-- Système 2D12 Daggerheart proposé
-- Luna Industries nommée
-- Génération procédurale complète
+- SystÃ¨me 2D12 Daggerheart proposÃ©
+- Luna Industries nommÃ©e
+- GÃ©nÃ©ration procÃ©durale complÃ¨te
 
-### À valider/modifier
-- [ ] Balance économique (prix vaisseaux, ressources)
-- [ ] Système de dés final (2D12 vs D20)
+### Ã€ valider/modifier
+- [ ] Balance Ã©conomique (prix vaisseaux, ressources)
+- [ ] SystÃ¨me de dÃ©s final (2D12 vs D20)
 - [ ] Noms factions/guildes Archiluminique
 - [ ] Contenu aliens (Phase future)
-- [ ] Règles PvP détaillées
+- [ ] RÃ¨gles PvP dÃ©taillÃ©es
 
 ---
 
-**Document vivant - Dernière mise à jour : 2025-10-30**
+**Document vivant - DerniÃ¨re mise Ã  jour : 2025-10-30**
 

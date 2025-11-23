@@ -1,370 +1,377 @@
-# 📋 TODO LIST COMPLÈTE - CONQUÊTE GALACTIQUE
+# ğŸ“‹ TODO LIST COMPLÃˆTE - CONQUÃŠTE GALACTIQUE
+
+> âš ï¸� **DOCUMENT OBSOLÃˆTE** - Ce document initial (17/11/2025) ne reflÃ¨te plus l'Ã©tat actuel du projet.
+>
+> **Voir le document mis Ã  jour** : [`../TODO.md`](../TODO.md) (Version 2.0 - 23/11/2025)
+>
+> Ce fichier est conservÃ© pour rÃ©fÃ©rence historique uniquement.
 
 **Version :** 1.0
-**Date création :** 2025-11-17
-**Délai initial :** 2 jours pour MVP fonctionnel
+**Date crÃ©ation :** 2025-11-17
+**DÃ©lai initial :** 2 jours pour MVP fonctionnel
+**Statut :** ğŸ—„ï¸� ARCHIVÃ‰ - Voir TODO.md pour plan actuel
 
 ---
 
-## 🎯 LÉGENDE
+## ğŸ�¯ LÃ‰GENDE
 
-- 🔥 **Priorité HAUTE** - À faire en 2 jours
-- ⚡ **Priorité MOYENNE** - Fonctionnalités principales
-- 🌟 **Priorité BASSE** - Features avancées
-- ✅ **TERMINÉ**
-- 🚧 **EN COURS**
-- ⏸️ **EN ATTENTE**
+- ğŸ”¥ **PrioritÃ© HAUTE** - Ã€ faire en 2 jours
+- âš¡ **PrioritÃ© MOYENNE** - FonctionnalitÃ©s principales
+- ğŸŒŸ **PrioritÃ© BASSE** - Features avancÃ©es
+- âœ… **TERMINÃ‰**
+- ğŸš§ **EN COURS**
+- â�¸ï¸� **EN ATTENTE**
 
 ---
 
-## ✅ PHASE 0 : INFRASTRUCTURE DE BASE (TERMINÉ)
+## âœ… PHASE 0 : INFRASTRUCTURE DE BASE (TERMINÃ‰)
 
-### Base de données
-- ✅ Migrations Compte, Personnage, ObjetSpatial, Vaisseau, Base
-- ✅ Relations Eloquent et models
-- ✅ Système de coordonnées (secteur + position)
+### Base de donnÃ©es
+- âœ… Migrations Compte, Personnage, ObjetSpatial, Vaisseau, Base
+- âœ… Relations Eloquent et models
+- âœ… SystÃ¨me de coordonnÃ©es (secteur + position)
 
 ### Interface
-- ✅ GameController avec processeur de commandes
-- ✅ Interface console style terminal
-- ✅ Layout 3 panneaux basique
+- âœ… GameController avec processeur de commandes
+- âœ… Interface console style terminal
+- âœ… Layout 3 panneaux basique
 
-### Système de jeu
-- ✅ Système Daggerheart 2D12
-- ✅ Jetons Hope/Fear
-- ✅ 6 Traits de base
+### SystÃ¨me de jeu
+- âœ… SystÃ¨me Daggerheart 2D12
+- âœ… Jetons Hope/Fear
+- âœ… 6 Traits de base
 
-### Données de test
-- ✅ Seeder avec compte test
-- ✅ Personnage et vaisseau de départ
+### DonnÃ©es de test
+- âœ… Seeder avec compte test
+- âœ… Personnage et vaisseau de dÃ©part
 
 ---
 
-## 🔥 PHASE 1 : MVP FONCTIONNEL (2 JOURS - PRIORITÉ HAUTE)
+## ğŸ”¥ PHASE 1 : MVP FONCTIONNEL (2 JOURS - PRIORITÃ‰ HAUTE)
 
 ### Jour 1 - Authentification et Navigation
 
 #### 1. Authentification (4h)
-- [ ] 🔥 Système d'authentification (login, register, logout)
-- [ ] 🔥 Gestion de session personnage actif
-- [ ] 🔥 Middleware de protection des routes
-- [ ] 🔥 Page de création de personnage
+- [ ] ğŸ”¥ SystÃ¨me d'authentification (login, register, logout)
+- [ ] ğŸ”¥ Gestion de session personnage actif
+- [ ] ğŸ”¥ Middleware de protection des routes
+- [ ] ğŸ”¥ Page de crÃ©ation de personnage
 
-#### 2. Système de Déplacement (4h)
-- [ ] 🔥 Commande de déplacement conventionnel fonctionnelle
-- [ ] 🔥 Commande de saut hyperespace fonctionnelle
-- [ ] 🔥 Système de Points d'Action (PA) et gestion des tours
-- [ ] 🔥 Calculs de consommation d'énergie selon formules GDD
-- [ ] 🔥 Validation déplacement (énergie suffisante)
+#### 2. SystÃ¨me de DÃ©placement (4h)
+- [ ] ğŸ”¥ Commande de dÃ©placement conventionnel fonctionnelle
+- [ ] ğŸ”¥ Commande de saut hyperespace fonctionnelle
+- [ ] ğŸ”¥ SystÃ¨me de Points d'Action (PA) et gestion des tours
+- [ ] ğŸ”¥ Calculs de consommation d'Ã©nergie selon formules GDD
+- [ ] ğŸ”¥ Validation dÃ©placement (Ã©nergie suffisante)
 
-### Jour 2 - Génération Procédurale et Interface
+### Jour 2 - GÃ©nÃ©ration ProcÃ©durale et Interface
 
-#### 3. Génération Procédurale (5h)
-- [ ] 🔥 Génération procédurale de systèmes stellaires (base)
-- [ ] 🔥 Classification des étoiles (O, B, A, F, G, K, M)
-- [ ] 🔥 Génération de planètes dans les systèmes
-- [ ] 🔥 Migration et model SystemeStellaire
-- [ ] 🔥 Migration et model Planete
-- [ ] 🔥 Seeder avec quelques systèmes de départ
+#### 3. GÃ©nÃ©ration ProcÃ©durale (5h)
+- [ ] ğŸ”¥ GÃ©nÃ©ration procÃ©durale de systÃ¨mes stellaires (base)
+- [ ] ğŸ”¥ Classification des Ã©toiles (O, B, A, F, G, K, M)
+- [ ] ğŸ”¥ GÃ©nÃ©ration de planÃ¨tes dans les systÃ¨mes
+- [ ] ğŸ”¥ Migration et model SystemeStellaire
+- [ ] ğŸ”¥ Migration et model Planete
+- [ ] ğŸ”¥ Seeder avec quelques systÃ¨mes de dÃ©part
 
-#### 4. Détection et Exploration (2h)
-- [ ] 🔥 Système de détection basique (formule GDD)
-- [ ] 🔥 Découverte de systèmes stellaires (algorithme GDD)
-- [ ] 🔥 Commande "scan" ou "detecter"
-- [ ] 🔥 Affichage des systèmes découverts
+#### 4. DÃ©tection et Exploration (2h)
+- [ ] ğŸ”¥ SystÃ¨me de dÃ©tection basique (formule GDD)
+- [ ] ğŸ”¥ DÃ©couverte de systÃ¨mes stellaires (algorithme GDD)
+- [ ] ğŸ”¥ Commande "scan" ou "detecter"
+- [ ] ğŸ”¥ Affichage des systÃ¨mes dÃ©couverts
 
-#### 5. Interface Améliorée (1h)
-- [ ] 🔥 Panneau Navigation avec infos dynamiques
-- [ ] 🔥 Panneau Info Contextuelle avec stats temps réel
-- [ ] 🔥 Mise à jour AJAX des panneaux
-- [ ] 🔥 Historique des commandes dans la console
+#### 5. Interface AmÃ©liorÃ©e (1h)
+- [ ] ğŸ”¥ Panneau Navigation avec infos dynamiques
+- [ ] ğŸ”¥ Panneau Info Contextuelle avec stats temps rÃ©el
+- [ ] ğŸ”¥ Mise Ã  jour AJAX des panneaux
+- [ ] ğŸ”¥ Historique des commandes dans la console
 
 ---
 
-## ⚡ PHASE 2 : FONCTIONNALITÉS PRINCIPALES (1-2 SEMAINES)
+## âš¡ PHASE 2 : FONCTIONNALITÃ‰S PRINCIPALES (1-2 SEMAINES)
 
-### 6. Économie de Base (3-4 jours)
+### 6. Ã‰conomie de Base (3-4 jours)
 
 #### Ressources et Commerce
-- [ ] ⚡ Système de ressources (21 matières premières selon GDD)
-- [ ] ⚡ Migration et model Ressource
-- [ ] ⚡ Chaîne de transformation industrielle (3 niveaux)
-- [ ] ⚡ Système de commerce basique (achat/vente)
-- [ ] ⚡ Gestion de l'inventaire et soutes vaisseaux
-- [ ] ⚡ Commandes "acheter", "vendre", "inventaire"
+- [ ] âš¡ SystÃ¨me de ressources (21 matiÃ¨res premiÃ¨res selon GDD)
+- [ ] âš¡ Migration et model Ressource
+- [ ] âš¡ ChaÃ®ne de transformation industrielle (3 niveaux)
+- [ ] âš¡ SystÃ¨me de commerce basique (achat/vente)
+- [ ] âš¡ Gestion de l'inventaire et soutes vaisseaux
+- [ ] âš¡ Commandes "acheter", "vendre", "inventaire"
 
 #### Extraction et Production
-- [ ] ⚡ Système de gisements miniers sur planètes
-- [ ] ⚡ Extraction de ressources (mining)
-- [ ] ⚡ Commande "extraire" ou "miner"
-- [ ] ⚡ Production automatique en arrière-plan
+- [ ] âš¡ SystÃ¨me de gisements miniers sur planÃ¨tes
+- [ ] âš¡ Extraction de ressources (mining)
+- [ ] âš¡ Commande "extraire" ou "miner"
+- [ ] âš¡ Production automatique en arriÃ¨re-plan
 
-### 7. Vaisseaux Avancés (2-3 jours)
+### 7. Vaisseaux AvancÃ©s (2-3 jours)
 
-#### Modules et Systèmes
-- [ ] ⚡ Module MicroHE pour sauts intra-système
-- [ ] ⚡ Système de recharge d'énergie
-- [ ] ⚡ Gestion du combustible pour vaisseaux
-- [ ] ⚡ 12 emplacements de modules vaisseaux
-- [ ] ⚡ Installation/désinstallation de modules
-- [ ] ⚡ Commandes "installer", "desinstaller", "modules"
+#### Modules et SystÃ¨mes
+- [ ] âš¡ Module MicroHE pour sauts intra-systÃ¨me
+- [ ] âš¡ SystÃ¨me de recharge d'Ã©nergie
+- [ ] âš¡ Gestion du combustible pour vaisseaux
+- [ ] âš¡ 12 emplacements de modules vaisseaux
+- [ ] âš¡ Installation/dÃ©sinstallation de modules
+- [ ] âš¡ Commandes "installer", "desinstaller", "modules"
 
 #### Maintenance
-- [ ] ⚡ Système de pannes et maintenance
-- [ ] ⚡ Réparation de vaisseaux
-- [ ] ⚡ Vétusté et score de panne
-- [ ] ⚡ Commandes "reparer", "entretien", "statut_vaisseau"
+- [ ] âš¡ SystÃ¨me de pannes et maintenance
+- [ ] âš¡ RÃ©paration de vaisseaux
+- [ ] âš¡ VÃ©tustÃ© et score de panne
+- [ ] âš¡ Commandes "reparer", "entretien", "statut_vaisseau"
 
 #### Informatique
-- [ ] ⚡ Système informatique et programmes
-- [ ] ⚡ Migration et model Programme
-- [ ] ⚡ Installation de programmes
-- [ ] ⚡ Commande "programmes"
+- [ ] âš¡ SystÃ¨me informatique et programmes
+- [ ] âš¡ Migration et model Programme
+- [ ] âš¡ Installation de programmes
+- [ ] âš¡ Commande "programmes"
 
 ### 8. Progression Personnage (2 jours)
 
-#### Compétences et XP
-- [ ] ⚡ Amélioration des 16 compétences (selon GDD)
-- [ ] ⚡ Learning by doing (XP par utilisation)
-- [ ] ⚡ Système de niveau et progression
-- [ ] ⚡ Affichage progression compétences
+#### CompÃ©tences et XP
+- [ ] âš¡ AmÃ©lioration des 16 compÃ©tences (selon GDD)
+- [ ] âš¡ Learning by doing (XP par utilisation)
+- [ ] âš¡ SystÃ¨me de niveau et progression
+- [ ] âš¡ Affichage progression compÃ©tences
 
 #### Jetons Daggerheart
-- [ ] ⚡ Gestion des jetons Hope et utilisation
-- [ ] ⚡ Commande "utiliser_hope"
-- [ ] ⚡ Événements Fear cachés (système narratif)
-- [ ] ⚡ Déclenchement événements aléatoires
+- [ ] âš¡ Gestion des jetons Hope et utilisation
+- [ ] âš¡ Commande "utiliser_hope"
+- [ ] âš¡ Ã‰vÃ©nements Fear cachÃ©s (systÃ¨me narratif)
+- [ ] âš¡ DÃ©clenchement Ã©vÃ©nements alÃ©atoires
 
 ### 9. Bases Spatiales (3 jours)
 
 #### Construction et Gestion
-- [ ] ⚡ Construction de bases spatiales (L'Arche)
-- [ ] ⚡ 13 types de modules de base (selon GDD)
-- [ ] ⚡ Système de gestionnaire de base
-- [ ] ⚡ Commandes "construire_base", "ajouter_module"
+- [ ] âš¡ Construction de bases spatiales (L'Arche)
+- [ ] âš¡ 13 types de modules de base (selon GDD)
+- [ ] âš¡ SystÃ¨me de gestionnaire de base
+- [ ] âš¡ Commandes "construire_base", "ajouter_module"
 
 #### Production
-- [ ] ⚡ Production d'énergie dans les bases
-- [ ] ⚡ Production de ressources dans les bases
-- [ ] ⚡ Système de population dans les bases
-- [ ] ⚡ Affichage production et capacités
+- [ ] âš¡ Production d'Ã©nergie dans les bases
+- [ ] âš¡ Production de ressources dans les bases
+- [ ] âš¡ SystÃ¨me de population dans les bases
+- [ ] âš¡ Affichage production et capacitÃ©s
 
 ---
 
-## ⚡ PHASE 3 : COMBAT ET INTERACTIONS (1-2 SEMAINES)
+## âš¡ PHASE 3 : COMBAT ET INTERACTIONS (1-2 SEMAINES)
 
 ### 10. Combat PvE (3-4 jours)
 
-#### Système de Combat
-- [ ] ⚡ Combat PvE basique (vaisseaux IA)
-- [ ] ⚡ Système d'armement vaisseaux
-- [ ] ⚡ Calcul des dommages et résistance
-- [ ] ⚡ Migration et model Arme
-- [ ] ⚡ Commandes "attaquer", "fuir"
+#### SystÃ¨me de Combat
+- [ ] âš¡ Combat PvE basique (vaisseaux IA)
+- [ ] âš¡ SystÃ¨me d'armement vaisseaux
+- [ ] âš¡ Calcul des dommages et rÃ©sistance
+- [ ] âš¡ Migration et model Arme
+- [ ] âš¡ Commandes "attaquer", "fuir"
 
 #### IA Ennemie
-- [ ] ⚡ Comportements automatiques en combat
-- [ ] ⚡ Vaisseaux IA et patrouilles
-- [ ] ⚡ Génération ennemis selon secteur
-- [ ] ⚡ Saut d'urgence (3 niveaux selon GDD)
+- [ ] âš¡ Comportements automatiques en combat
+- [ ] âš¡ Vaisseaux IA et patrouilles
+- [ ] âš¡ GÃ©nÃ©ration ennemis selon secteur
+- [ ] âš¡ Saut d'urgence (3 niveaux selon GDD)
 
 ### 11. Combat PvP (2-3 jours)
 
 #### Asynchrone
-- [ ] ⚡ Combat PvP asynchrone
-- [ ] ⚡ Règles d'engagement PvP
-- [ ] ⚡ Résolution combat différé
-- [ ] ⚡ Notifications de combat
+- [ ] âš¡ Combat PvP asynchrone
+- [ ] âš¡ RÃ¨gles d'engagement PvP
+- [ ] âš¡ RÃ©solution combat diffÃ©rÃ©
+- [ ] âš¡ Notifications de combat
 
-### 12. Réputation et Factions (2 jours)
+### 12. RÃ©putation et Factions (2 jours)
 
-#### Système Social
-- [ ] ⚡ Système de réputation avec factions
-- [ ] ⚡ Migration et model Faction
-- [ ] ⚡ Guildes impériales et joueurs
-- [ ] ⚡ Actions influençant la réputation
-- [ ] ⚡ Commande "reputation"
+#### SystÃ¨me Social
+- [ ] âš¡ SystÃ¨me de rÃ©putation avec factions
+- [ ] âš¡ Migration et model Faction
+- [ ] âš¡ Guildes impÃ©riales et joueurs
+- [ ] âš¡ Actions influenÃ§ant la rÃ©putation
+- [ ] âš¡ Commande "reputation"
 
-#### Quêtes
-- [ ] ⚡ Système de quêtes/missions
-- [ ] ⚡ Migration et model Quete
-- [ ] ⚡ PNJ et interactions
-- [ ] ⚡ Commandes "quetes", "accepter_quete"
+#### QuÃªtes
+- [ ] âš¡ SystÃ¨me de quÃªtes/missions
+- [ ] âš¡ Migration et model Quete
+- [ ] âš¡ PNJ et interactions
+- [ ] âš¡ Commandes "quetes", "accepter_quete"
 
 ---
 
-## 🌟 PHASE 4 : FEATURES AVANCÉES (1 MOIS+)
+## ğŸŒŸ PHASE 4 : FEATURES AVANCÃ‰ES (1 MOIS+)
 
-### 13. Système de Tâches (3 jours)
-- [ ] 🌟 Système de tâches asynchrones (moteur)
-- [ ] 🌟 Queue de tâches par personnage
-- [ ] 🌟 Production automatique en arrière-plan
-- [ ] 🌟 Commande "taches"
+### 13. SystÃ¨me de TÃ¢ches (3 jours)
+- [ ] ğŸŒŸ SystÃ¨me de tÃ¢ches asynchrones (moteur)
+- [ ] ğŸŒŸ Queue de tÃ¢ches par personnage
+- [ ] ğŸŒŸ Production automatique en arriÃ¨re-plan
+- [ ] ğŸŒŸ Commande "taches"
 
 ### 14. Carte et Visualisation (4-5 jours)
-- [ ] 🌟 Carte 2D de l'univers
-- [ ] 🌟 Visualisation des routes et systèmes
-- [ ] 🌟 Filtres et recherche sur la carte
-- [ ] 🌟 Zoom et navigation carte
-- [ ] 🌟 Annotations et markers personnalisés
+- [ ] ğŸŒŸ Carte 2D de l'univers
+- [ ] ğŸŒŸ Visualisation des routes et systÃ¨mes
+- [ ] ğŸŒŸ Filtres et recherche sur la carte
+- [ ] ğŸŒŸ Zoom et navigation carte
+- [ ] ğŸŒŸ Annotations et markers personnalisÃ©s
 
-### 15. Interface Avancée (3 jours)
-- [ ] 🌟 Auto-complétion des commandes
-- [ ] 🌟 Syst de notifications temps réel
-- [ ] 🌟 WebSockets pour mise à jour live
-- [ ] 🌟 Chat en jeu
-- [ ] 🌟 Système d'aide contextuelle
+### 15. Interface AvancÃ©e (3 jours)
+- [ ] ğŸŒŸ Auto-complÃ©tion des commandes
+- [ ] ğŸŒŸ Syst de notifications temps rÃ©el
+- [ ] ğŸŒŸ WebSockets pour mise Ã  jour live
+- [ ] ğŸŒŸ Chat en jeu
+- [ ] ğŸŒŸ SystÃ¨me d'aide contextuelle
 
-### 16. Vaisseaux Étendus (2 jours)
-- [ ] 🌟 Modèles de vaisseaux A-1, M, E, F
-- [ ] 🌟 Système de convois et escortes
-- [ ] 🌟 Remorquage de vaisseaux
+### 16. Vaisseaux Ã‰tendus (2 jours)
+- [ ] ğŸŒŸ ModÃ¨les de vaisseaux A-1, M, E, F
+- [ ] ğŸŒŸ SystÃ¨me de convois et escortes
+- [ ] ğŸŒŸ Remorquage de vaisseaux
 
 ### 17. Tutoriel et Onboarding (2 jours)
-- [ ] 🌟 Tutoriel interactif pour nouveaux joueurs
-- [ ] 🌟 Système de tips contextuels
-- [ ] 🌟 Guide progressif des commandes
+- [ ] ğŸŒŸ Tutoriel interactif pour nouveaux joueurs
+- [ ] ğŸŒŸ SystÃ¨me de tips contextuels
+- [ ] ğŸŒŸ Guide progressif des commandes
 
 ### 18. Multi-Univers (1 semaine)
-- [ ] 🌟 Support multi-univers (Star Wars, W40K, etc.)
-- [ ] 🌟 Sélecteur d'univers à la création de compte
-- [ ] 🌟 Données spécifiques par univers
-- [ ] 🌟 Lore et événements par univers
+- [ ] ğŸŒŸ Support multi-univers (Star Wars, W40K, etc.)
+- [ ] ğŸŒŸ SÃ©lecteur d'univers Ã  la crÃ©ation de compte
+- [ ] ğŸŒŸ DonnÃ©es spÃ©cifiques par univers
+- [ ] ğŸŒŸ Lore et Ã©vÃ©nements par univers
 
 ---
 
-## 🌟 PHASE 5 : QUALITÉ ET PRODUCTION (2 SEMAINES)
+## ğŸŒŸ PHASE 5 : QUALITÃ‰ ET PRODUCTION (2 SEMAINES)
 
-### 19. Tests et Qualité (1 semaine)
-- [ ] 🌟 Tests unitaires models
-- [ ] 🌟 Tests fonctionnels commandes
-- [ ] 🌟 Tests d'intégration système de jeu
-- [ ] 🌟 Couverture de code >80%
-- [ ] 🌟 Tests de performance
+### 19. Tests et QualitÃ© (1 semaine)
+- [ ] ğŸŒŸ Tests unitaires models
+- [ ] ğŸŒŸ Tests fonctionnels commandes
+- [ ] ğŸŒŸ Tests d'intÃ©gration systÃ¨me de jeu
+- [ ] ğŸŒŸ Couverture de code >80%
+- [ ] ğŸŒŸ Tests de performance
 
 ### 20. Documentation (3 jours)
-- [ ] 🌟 Documentation API
-- [ ] 🌟 Guide utilisateur complet
-- [ ] 🌟 Wiki du jeu (lore, mécaniques)
-- [ ] 🌟 Documentation développeur
+- [ ] ğŸŒŸ Documentation API
+- [ ] ğŸŒŸ Guide utilisateur complet
+- [ ] ğŸŒŸ Wiki du jeu (lore, mÃ©caniques)
+- [ ] ğŸŒŸ Documentation dÃ©veloppeur
 
 ### 21. Performance et Optimisation (4 jours)
-- [ ] 🌟 Optimisation requêtes SQL
-- [ ] 🌟 Cache Redis pour sessions
-- [ ] 🌟 Queue Laravel pour tâches lourdes
-- [ ] 🌟 Indexes optimaux base de données
-- [ ] 🌟 Pagination résultats
+- [ ] ğŸŒŸ Optimisation requÃªtes SQL
+- [ ] ğŸŒŸ Cache Redis pour sessions
+- [ ] ğŸŒŸ Queue Laravel pour tÃ¢ches lourdes
+- [ ] ğŸŒŸ Indexes optimaux base de donnÃ©es
+- [ ] ğŸŒŸ Pagination rÃ©sultats
 
 ### 22. Sauvegarde et Monitoring (2 jours)
-- [ ] 🌟 Sauvegarde automatique et manuelle
-- [ ] 🌟 Système de backup base de données
-- [ ] 🌟 Logs et monitoring serveur
-- [ ] 🌟 Alertes automatiques
+- [ ] ğŸŒŸ Sauvegarde automatique et manuelle
+- [ ] ğŸŒŸ SystÃ¨me de backup base de donnÃ©es
+- [ ] ğŸŒŸ Logs et monitoring serveur
+- [ ] ğŸŒŸ Alertes automatiques
 
 ### 23. Administration (3 jours)
-- [ ] 🌟 Mode administrateur
-- [ ] 🌟 Panel admin (gestion joueurs, univers)
-- [ ] 🌟 Système de modération
-- [ ] 🌟 Outils de debug
+- [ ] ğŸŒŸ Mode administrateur
+- [ ] ğŸŒŸ Panel admin (gestion joueurs, univers)
+- [ ] ğŸŒŸ SystÃ¨me de modÃ©ration
+- [ ] ğŸŒŸ Outils de debug
 
 ---
 
-## 🌟 PHASE 6 : DÉPLOIEMENT (1 SEMAINE)
+## ğŸŒŸ PHASE 6 : DÃ‰PLOIEMENT (1 SEMAINE)
 
 ### 24. Production (5 jours)
-- [ ] 🌟 Déploiement en production
-- [ ] 🌟 Configuration serveur production
-- [ ] 🌟 CI/CD pipeline
-- [ ] 🌟 SSL/HTTPS
-- [ ] 🌟 Domaine et DNS
-- [ ] 🌟 Monitoring production
-- [ ] 🌟 Backup automatique production
+- [ ] ğŸŒŸ DÃ©ploiement en production
+- [ ] ğŸŒŸ Configuration serveur production
+- [ ] ğŸŒŸ CI/CD pipeline
+- [ ] ğŸŒŸ SSL/HTTPS
+- [ ] ğŸŒŸ Domaine et DNS
+- [ ] ğŸŒŸ Monitoring production
+- [ ] ğŸŒŸ Backup automatique production
 
 ---
 
-## 📊 STATISTIQUES
+## ğŸ“Š STATISTIQUES
 
-**Total tâches :** 86
-**Terminées :** 10 ✅
-**Priorité Haute (2 jours) :** 24 🔥
-**Priorité Moyenne (1-2 mois) :** 36 ⚡
-**Priorité Basse (avancé) :** 26 🌟
+**Total tÃ¢ches :** 86
+**TerminÃ©es :** 10 âœ…
+**PrioritÃ© Haute (2 jours) :** 24 ğŸ”¥
+**PrioritÃ© Moyenne (1-2 mois) :** 36 âš¡
+**PrioritÃ© Basse (avancÃ©) :** 26 ğŸŒŸ
 
 ### Progression par phase
-- Phase 0 (Infrastructure) : 100% ✅
-- Phase 1 (MVP 2 jours) : 0% 🚧
-- Phase 2 (Fonctionnalités) : 0%
+- Phase 0 (Infrastructure) : 100% âœ…
+- Phase 1 (MVP 2 jours) : 0% ğŸš§
+- Phase 2 (FonctionnalitÃ©s) : 0%
 - Phase 3 (Combat) : 0%
-- Phase 4 (Avancé) : 0%
-- Phase 5 (Qualité) : 0%
+- Phase 4 (AvancÃ©) : 0%
+- Phase 5 (QualitÃ©) : 0%
 - Phase 6 (Production) : 0%
 
 ---
 
-## 🎯 OBJECTIFS PAR DÉLAI
+## ğŸ�¯ OBJECTIFS PAR DÃ‰LAI
 
 ### Fin Jour 1 (J+1)
-✅ Authentification fonctionnelle
-✅ Déplacement conventionnel
-✅ Système PA de base
-✅ Session personnage
+âœ… Authentification fonctionnelle
+âœ… DÃ©placement conventionnel
+âœ… SystÃ¨me PA de base
+âœ… Session personnage
 
 ### Fin Jour 2 (J+2)
-✅ Génération systèmes stellaires
-✅ Détection et exploration
-✅ Interface 3 panneaux améliorée
-✅ Saut hyperespace
-✅ MVP JOUABLE
+âœ… GÃ©nÃ©ration systÃ¨mes stellaires
+âœ… DÃ©tection et exploration
+âœ… Interface 3 panneaux amÃ©liorÃ©e
+âœ… Saut hyperespace
+âœ… MVP JOUABLE
 
 ### Fin Semaine 1 (J+7)
-✅ Économie de base
-✅ Ressources et commerce
-✅ Modules vaisseaux
-✅ Bases spatiales basiques
+âœ… Ã‰conomie de base
+âœ… Ressources et commerce
+âœ… Modules vaisseaux
+âœ… Bases spatiales basiques
 
 ### Fin Semaine 2 (J+14)
-✅ Combat PvE
-✅ Réputation
-✅ Quêtes de base
-✅ Progression personnage
+âœ… Combat PvE
+âœ… RÃ©putation
+âœ… QuÃªtes de base
+âœ… Progression personnage
 
 ### Fin Mois 1 (J+30)
-✅ Features avancées
-✅ Interface complète
-✅ Tests
-✅ Documentation
+âœ… Features avancÃ©es
+âœ… Interface complÃ¨te
+âœ… Tests
+âœ… Documentation
 
 ### Fin Mois 2 (J+60)
-✅ Production ready
-✅ Multi-univers
-✅ Admin panel
-✅ Déploiement
+âœ… Production ready
+âœ… Multi-univers
+âœ… Admin panel
+âœ… DÃ©ploiement
 
 ---
 
-## 📝 NOTES IMPORTANTES
+## ğŸ“� NOTES IMPORTANTES
 
-### Priorités selon le porteur de projet
+### PrioritÃ©s selon le porteur de projet
 1. **MVP jouable en 2 jours** = Critical
 2. Navigation et exploration = Haute
-3. Économie et commerce = Moyenne
+3. Ã‰conomie et commerce = Moyenne
 4. Combat = Moyenne
 5. Features sociales = Basse
 
-### Valeurs du GDD à respecter
-- ⚠️ Toujours utiliser les formules exactes du GDD
-- ⚠️ Ne pas inventer de nouvelles valeurs
-- ⚠️ Système Fear doit rester caché
-- ⚠️ Un PJ pilote un vaisseau (pas joueur = vaisseau)
+### Valeurs du GDD Ã  respecter
+- âš ï¸� Toujours utiliser les formules exactes du GDD
+- âš ï¸� Ne pas inventer de nouvelles valeurs
+- âš ï¸� SystÃ¨me Fear doit rester cachÃ©
+- âš ï¸� Un PJ pilote un vaisseau (pas joueur = vaisseau)
 
 ### Architecture technique
-- ✅ Laravel 12
-- ✅ MariaDB externe
-- ✅ Pattern MVC
-- ✅ Eloquent ORM
-- ✅ Système coordonnées secteur + position
+- âœ… Laravel 12
+- âœ… MariaDB externe
+- âœ… Pattern MVC
+- âœ… Eloquent ORM
+- âœ… SystÃ¨me coordonnÃ©es secteur + position
 
 ---
 
-**Dernière mise à jour :** 2025-11-17
-**Prochaine révision :** Fin Jour 2 (après MVP)
+**DerniÃ¨re mise Ã  jour :** 2025-11-17
+**Prochaine rÃ©vision :** Fin Jour 2 (aprÃ¨s MVP)

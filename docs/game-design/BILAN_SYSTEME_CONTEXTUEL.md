@@ -1,235 +1,235 @@
-# 📊 BILAN - SYSTÈME DE MENU CONTEXTUEL ET LOCALISATION
+# üìä BILAN - SYST√àME DE MENU CONTEXTUEL ET LOCALISATION
 
 **Date**: 2025-11-23  
 **Version**: Phase 1 - Fondations  
-**Statut**: ✅ Architecture complète, 🚧 Vues en développement
+**Statut**: ‚úÖ Architecture compl√®te, üöß Vues en d√©veloppement
 
 ---
 
-## 🎯 Vue d'ensemble
+## üéØ Vue d'ensemble
 
-Le système de menu contextuel et de localisation permet une interface utilisateur qui s'adapte automatiquement selon la position du personnage dans l'univers du jeu. Ce système est au cœur de l'expérience de jeu et définit quelles actions sont disponibles selon le contexte.
+Le syst√®me de menu contextuel et de localisation permet une interface utilisateur qui s'adapte automatiquement selon la position du personnage dans l'univers du jeu. Ce syst√®me est au c≈ìur de l'exp√©rience de jeu et d√©finit quelles actions sont disponibles selon le contexte.
 
 ---
 
-## ✅ RÉALISATIONS - PHASE 1 (FONDATIONS)
+## ‚úÖ R√âALISATIONS - PHASE 1 (FONDATIONS)
 
 ### 1. Architecture de base
 
 #### Helper PersonnageLocation (`app/Helpers/PersonnageLocation.php`)
-**Statut**: ✅ **COMPLET**
+**Statut**: ‚úÖ **COMPLET**
 
-Fonctionnalités implémentées:
-- ✅ Détection automatique de la localisation du personnage
-- ✅ Support des types: vaisseau, station, navette, planète
-- ✅ Support des états: amarré, en orbite, en déplacement, à la surface
-- ✅ Méthodes de contrôle d'accès:
+Fonctionnalit√©s impl√©ment√©es:
+- ‚úÖ D√©tection automatique de la localisation du personnage
+- ‚úÖ Support des types: vaisseau, station, navette, plan√®te
+- ‚úÖ Support des √©tats: amarr√©, en orbite, en d√©placement, √† la surface
+- ‚úÖ M√©thodes de contr√¥le d'acc√®s:
   - `estDansVaisseau()`
   - `estDansStation()`
   - `peutAccederMarchePhysique()`
   - `peutAccederDonneesMarche()`
   - `peutAccederCombat()`
-- ✅ Génération dynamique des sections de menu selon localisation
-- ✅ Formatage des coordonnées (secteur + position absolue)
-- ✅ Description textuelle de la localisation
+- ‚úÖ G√©n√©ration dynamique des sections de menu selon localisation
+- ‚úÖ Formatage des coordonn√©es (secteur + position absolue)
+- ‚úÖ Description textuelle de la localisation
 
 #### View Composer (`app/View/Composers/PersonnageLocationComposer.php`)
-**Statut**: ✅ **COMPLET**
+**Statut**: ‚úÖ **COMPLET**
 
-- ✅ Injection automatique des données de localisation dans toutes les vues
-- ✅ Variables injectées: `$personnageLocation`, `$menuSections`
-- ✅ Enregistré pour `layouts.app` et `game.*`
+- ‚úÖ Injection automatique des donn√©es de localisation dans toutes les vues
+- ‚úÖ Variables inject√©es: `$personnageLocation`, `$menuSections`
+- ‚úÖ Enregistr√© pour `layouts.app` et `game.*`
 
 #### Middleware RequiresLocation (`app/Http/Middleware/RequiresLocation.php`)
-**Statut**: ✅ **COMPLET**
+**Statut**: ‚úÖ **COMPLET**
 
-- ✅ Restriction d'accès basée sur la localisation
-- ✅ Support des modes: `vaisseau`, `station`, `marche-physique`, `combat`
-- ✅ Réponses JSON pour requêtes AJAX
-- ✅ Page d'erreur dédiée pour requêtes standard
-- ✅ Enregistré comme alias `requires.location`
+- ‚úÖ Restriction d'acc√®s bas√©e sur la localisation
+- ‚úÖ Support des modes: `vaisseau`, `station`, `marche-physique`, `combat`
+- ‚úÖ R√©ponses JSON pour requ√™tes AJAX
+- ‚úÖ Page d'erreur d√©di√©e pour requ√™tes standard
+- ‚úÖ Enregistr√© comme alias `requires.location`
 
 ### 2. Interface utilisateur
 
 #### Dashboard contextuel (`resources/views/game/dashboard.blade.php`)
-**Statut**: ✅ **COMPLET**
+**Statut**: ‚úÖ **COMPLET**
 
-- ✅ Menu de gauche dynamique basé sur la localisation
-- ✅ Affichage de la position actuelle (type + coordonnées)
-- ✅ Fonction `loadView()` pour chargement AJAX dans panneau principal
-- ✅ Support des paramètres de requête pour la carte
-- ✅ Gestion des scripts pour vues dynamiques
+- ‚úÖ Menu de gauche dynamique bas√© sur la localisation
+- ‚úÖ Affichage de la position actuelle (type + coordonn√©es)
+- ‚úÖ Fonction `loadView()` pour chargement AJAX dans panneau principal
+- ‚úÖ Support des param√®tres de requ√™te pour la carte
+- ‚úÖ Gestion des scripts pour vues dynamiques
 
 #### Composant menu contextuel (`resources/views/components/contextual-menu.blade.php`)
-**Statut**: ✅ **CRÉÉ** (non encore utilisé dans le dashboard actuel)
+**Statut**: ‚úÖ **CR√â√â** (non encore utilis√© dans le dashboard actuel)
 
-- ✅ Composant réutilisable
-- ✅ Affichage des informations de localisation
-- ✅ Génération automatique des sections de menu
-- ⏳ À intégrer dans le dashboard pour remplacer l'implémentation directe
+- ‚úÖ Composant r√©utilisable
+- ‚úÖ Affichage des informations de localisation
+- ‚úÖ G√©n√©ration automatique des sections de menu
+- ‚è≥ √Ä int√©grer dans le dashboard pour remplacer l'impl√©mentation directe
 
-#### Intégration de la carte
-**Statut**: ✅ **COMPLET**
+#### Int√©gration de la carte
+**Statut**: ‚úÖ **COMPLET**
 
-- ✅ Carte chargée dans le panneau principal du dashboard
-- ✅ Vue partielle `carte-content.blade.php` pour AJAX
-- ✅ Détection AJAX dans `GameController::carte()`
-- ✅ Navigation dans la carte via AJAX (zoom, changement de plan)
-- ✅ Tous les scripts exécutés correctement après chargement AJAX
+- ‚úÖ Carte charg√©e dans le panneau principal du dashboard
+- ‚úÖ Vue partielle `carte-content.blade.php` pour AJAX
+- ‚úÖ D√©tection AJAX dans `GameController::carte()`
+- ‚úÖ Navigation dans la carte via AJAX (zoom, changement de plan)
+- ‚úÖ Tous les scripts ex√©cut√©s correctement apr√®s chargement AJAX
 
-### 3. Contrôleurs et routes
+### 3. Contr√¥leurs et routes
 
 #### VaisseauController (`app/Http/Controllers/VaisseauController.php`)
-**Statut**: ✅ **COMPLET**
+**Statut**: ‚úÖ **COMPLET**
 
-Routes implémentées:
-- ✅ `/vaisseau/position` - Affichage position détaillée
-- ✅ `/vaisseau/scanner` - Scanner (placeholder)
-- ✅ `/vaisseau/etat` - État du vaisseau (placeholder)
-- ✅ `/vaisseau/reparations` - Réparations (placeholder)
-- ✅ `/vaisseau/cargaison` - Cargaison (placeholder)
-- ✅ `/vaisseau/armes` - Armes embarquées (placeholder)
-- ✅ `/inventaire` - Inventaire personnel (placeholder)
+Routes impl√©ment√©es:
+- ‚úÖ `/vaisseau/position` - Affichage position d√©taill√©e
+- ‚úÖ `/vaisseau/scanner` - Scanner (placeholder)
+- ‚úÖ `/vaisseau/etat` - √âtat du vaisseau (placeholder)
+- ‚úÖ `/vaisseau/reparations` - R√©parations (placeholder)
+- ‚úÖ `/vaisseau/cargaison` - Cargaison (placeholder)
+- ‚úÖ `/vaisseau/armes` - Armes embarqu√©es (placeholder)
+- ‚úÖ `/inventaire` - Inventaire personnel (placeholder)
 
-Toutes les méthodes:
-- ✅ Supportent les requêtes AJAX
-- ✅ Vérifient la présence du personnage
-- ✅ Retournent des vues partielles pour AJAX
+Toutes les m√©thodes:
+- ‚úÖ Supportent les requ√™tes AJAX
+- ‚úÖ V√©rifient la pr√©sence du personnage
+- ‚úÖ Retournent des vues partielles pour AJAX
 
 #### ComController (`app/Http/Controllers/ComController.php`)
-**Statut**: ✅ **COMPLET**
+**Statut**: ‚úÖ **COMPLET**
 
-Routes implémentées:
-- ✅ `/com/databases` - Bases de données (placeholder)
-- ✅ `/com/prix` - Prix des marchés (placeholder)
-- ✅ `/com/demandes` - Demandes stations (placeholder)
-- ✅ `/com/messages` - Messages sous-réseaux (placeholder)
+Routes impl√©ment√©es:
+- ‚úÖ `/com/databases` - Bases de donn√©es (placeholder)
+- ‚úÖ `/com/prix` - Prix des march√©s (placeholder)
+- ‚úÖ `/com/demandes` - Demandes stations (placeholder)
+- ‚úÖ `/com/messages` - Messages sous-r√©seaux (placeholder)
 
-Toutes les méthodes:
-- ✅ Supportent les requêtes AJAX
-- ✅ Vérifient la présence du personnage
-- ✅ Retournent des vues partielles pour AJAX
+Toutes les m√©thodes:
+- ‚úÖ Supportent les requ√™tes AJAX
+- ‚úÖ V√©rifient la pr√©sence du personnage
+- ‚úÖ Retournent des vues partielles pour AJAX
 
 ### 4. Vues
 
 #### Vues Vaisseau - Timonerie
-- ✅ `position.blade.php` - **FONCTIONNELLE** avec données réelles
-- 🚧 `scanner.blade.php` - **PLACEHOLDER**
+- ‚úÖ `position.blade.php` - **FONCTIONNELLE** avec donn√©es r√©elles
+- üöß `scanner.blade.php` - **PLACEHOLDER**
 
-#### Vues Vaisseau - Ingénierie
-- 🚧 `etat.blade.php` - **PLACEHOLDER**
-- 🚧 `reparations.blade.php` - **PLACEHOLDER**
+#### Vues Vaisseau - Ing√©nierie
+- üöß `etat.blade.php` - **PLACEHOLDER**
+- üöß `reparations.blade.php` - **PLACEHOLDER**
 
 #### Vues Vaisseau - Soute
-- 🚧 `inventaire.blade.php` - **PLACEHOLDER**
-- 🚧 `cargaison.blade.php` - **PLACEHOLDER**
+- üöß `inventaire.blade.php` - **PLACEHOLDER**
+- üöß `cargaison.blade.php` - **PLACEHOLDER**
 
 #### Vues Vaisseau - Armement
-- 🚧 `armes.blade.php` - **PLACEHOLDER**
+- üöß `armes.blade.php` - **PLACEHOLDER**
 
 #### Vues COM
-- 🚧 `databases.blade.php` - **PLACEHOLDER**
-- 🚧 `prix.blade.php` - **PLACEHOLDER**
-- 🚧 `demandes.blade.php` - **PLACEHOLDER**
-- 🚧 `messages.blade.php` - **PLACEHOLDER**
+- üöß `databases.blade.php` - **PLACEHOLDER**
+- üöß `prix.blade.php` - **PLACEHOLDER**
+- üöß `demandes.blade.php` - **PLACEHOLDER**
+- üöß `messages.blade.php` - **PLACEHOLDER**
 
 ---
 
-## 🚧 PHASE 2 - IMPLÉMENTATION DES VUES
+## üöß PHASE 2 - IMPL√âMENTATION DES VUES
 
-### Priorité HAUTE - Timonerie
+### Priorit√© HAUTE - Timonerie
 
 #### Scanner
 **Fichier**: `resources/views/game/vaisseau/partials/scanner.blade.php`
 
 **Objectifs**:
-- [ ] Afficher les objets spatiaux à proximité
-- [ ] Détection des stations
-- [ ] Détection des vaisseaux
-- [ ] Détection des planètes
-- [ ] Détection des anomalies/PoI
+- [ ] Afficher les objets spatiaux √† proximit√©
+- [ ] D√©tection des stations
+- [ ] D√©tection des vaisseaux
+- [ ] D√©tection des plan√®tes
+- [ ] D√©tection des anomalies/PoI
 - [ ] Calcul des distances
 - [ ] Filtres par type d'objet
 - [ ] Tri par distance
 
-**Logique métier à implémenter**:
-- [ ] Requête pour récupérer objets dans un rayon donné
+**Logique m√©tier √† impl√©menter**:
+- [ ] Requ√™te pour r√©cup√©rer objets dans un rayon donn√©
 - [ ] Calcul de distance 3D entre objets spatiaux
-- [ ] Vérification si objets découverts (via `decouvertes`)
-- [ ] Niveau de détail selon distance et puissance du scanner
+- [ ] V√©rification si objets d√©couverts (via `decouvertes`)
+- [ ] Niveau de d√©tail selon distance et puissance du scanner
 
-**Modèles concernés**:
+**Mod√®les concern√©s**:
 - `ObjetSpatial` (position des objets)
-- `SystemeStellaire` (systèmes)
-- `Planete` (planètes)
+- `SystemeStellaire` (syst√®mes)
+- `Planete` (plan√®tes)
 - `Station` (stations)
 - `Vaisseau` (autres vaisseaux si multiplayer)
 
 ---
 
-### Priorité HAUTE - Soute
+### Priorit√© HAUTE - Soute
 
 #### Inventaire Personnel
 **Fichier**: `resources/views/game/vaisseau/partials/inventaire.blade.php`
 
 **Objectifs**:
 - [ ] Lister les objets du personnage
-- [ ] Catégoriser par type (armes, équipement, consommables, objets)
-- [ ] Afficher poids total / capacité
-- [ ] Actions: Utiliser, Équiper, Jeter, Transférer
-- [ ] Détails au survol (tooltips)
+- [ ] Cat√©goriser par type (armes, √©quipement, consommables, objets)
+- [ ] Afficher poids total / capacit√©
+- [ ] Actions: Utiliser, √âquiper, Jeter, Transf√©rer
+- [ ] D√©tails au survol (tooltips)
 
-**Logique métier à implémenter**:
-- [ ] Relation `Personnage → items` (table pivot `personnage_items`)
-- [ ] Gestion du poids et de la capacité de transport
+**Logique m√©tier √† impl√©menter**:
+- [ ] Relation `Personnage ‚Üí items` (table pivot `personnage_items`)
+- [ ] Gestion du poids et de la capacit√© de transport
 - [ ] Actions d'utilisation d'objets
-- [ ] Système d'équipement
+- [ ] Syst√®me d'√©quipement
 
-**Tables à créer**:
-- [ ] `items` (définition des objets)
+**Tables √† cr√©er**:
+- [ ] `items` (d√©finition des objets)
 - [ ] `personnage_items` (inventaire)
 
 #### Cargaison du Vaisseau
 **Fichier**: `resources/views/game/vaisseau/partials/cargaison.blade.php`
 
 **Objectifs**:
-- [ ] Lister les ressources transportées
-- [ ] Afficher quantité / capacité max
+- [ ] Lister les ressources transport√©es
+- [ ] Afficher quantit√© / capacit√© max
 - [ ] Grouper par type de ressource
-- [ ] Actions: Jeter, Transférer vers inventaire personnel
+- [ ] Actions: Jeter, Transf√©rer vers inventaire personnel
 - [ ] Indicateur de surcharge
 
-**Logique métier à implémenter**:
-- [ ] Relation `Vaisseau → ressources` (table pivot `vaisseau_cargaison`)
-- [ ] Calcul de l'espace utilisé vs capacité
-- [ ] Transfert ressources ↔ inventaire personnel
+**Logique m√©tier √† impl√©menter**:
+- [ ] Relation `Vaisseau ‚Üí ressources` (table pivot `vaisseau_cargaison`)
+- [ ] Calcul de l'espace utilis√© vs capacit√©
+- [ ] Transfert ressources ‚Üî inventaire personnel
 - [ ] Largage de ressources
 
-**Tables à créer**:
-- [ ] `vaisseau_cargaison` (ressources transportées)
+**Tables √† cr√©er**:
+- [ ] `vaisseau_cargaison` (ressources transport√©es)
 
 ---
 
-### Priorité MOYENNE - Ingénierie
+### Priorit√© MOYENNE - Ing√©nierie
 
-#### État du Vaisseau
+#### √âtat du Vaisseau
 **Fichier**: `resources/views/game/vaisseau/partials/etat.blade.php`
 
 **Objectifs**:
-- [ ] Afficher intégrité coque (%)
-- [ ] Afficher état boucliers (%)
-- [ ] Afficher énergie disponible
-- [ ] État des systèmes (propulsion, armes, vie, senseurs)
+- [ ] Afficher int√©grit√© coque (%)
+- [ ] Afficher √©tat boucliers (%)
+- [ ] Afficher √©nergie disponible
+- [ ] √âtat des syst√®mes (propulsion, armes, vie, senseurs)
 - [ ] Indicateurs visuels (barres de progression, alertes)
-- [ ] Alertes si systèmes critiques
+- [ ] Alertes si syst√®mes critiques
 
-**Logique métier à implémenter**:
+**Logique m√©tier √† impl√©menter**:
 - [ ] Attributs `Vaisseau`: `coque_actuelle`, `coque_max`, `boucliers_actuels`, `boucliers_max`
 - [ ] Attributs `Vaisseau`: `energie_actuelle`, `energie_max`
-- [ ] Table `vaisseau_systemes` pour état détaillé des sous-systèmes
-- [ ] Calcul des dégâts et réparations
+- [ ] Table `vaisseau_systemes` pour √©tat d√©taill√© des sous-syst√®mes
+- [ ] Calcul des d√©g√¢ts et r√©parations
 
-**Migration à créer**:
+**Migration √† cr√©er**:
 ```php
 Schema::table('vaisseaux', function (Blueprint $table) {
     $table->integer('coque_actuelle')->default(100);
@@ -241,82 +241,82 @@ Schema::table('vaisseaux', function (Blueprint $table) {
 });
 ```
 
-#### Réparations
+#### R√©parations
 **Fichier**: `resources/views/game/vaisseau/partials/reparations.blade.php`
 
 **Objectifs**:
-- [ ] Lister composants endommagés
-- [ ] Afficher coût réparation (ressources + temps)
-- [ ] Bouton "Réparer" (si ressources disponibles)
-- [ ] Progression réparation en cours
-- [ ] Réparation automatique dans station (optionnel)
+- [ ] Lister composants endommag√©s
+- [ ] Afficher co√ªt r√©paration (ressources + temps)
+- [ ] Bouton "R√©parer" (si ressources disponibles)
+- [ ] Progression r√©paration en cours
+- [ ] R√©paration automatique dans station (optionnel)
 
-**Logique métier à implémenter**:
-- [ ] Système de dommages par composant
-- [ ] Calcul coût réparation (matériaux + temps)
-- [ ] File d'attente de réparations
+**Logique m√©tier √† impl√©menter**:
+- [ ] Syst√®me de dommages par composant
+- [ ] Calcul co√ªt r√©paration (mat√©riaux + temps)
+- [ ] File d'attente de r√©parations
 - [ ] Commande `reparer <composant>`
 
 ---
 
-### Priorité MOYENNE - Armement
+### Priorit√© MOYENNE - Armement
 
-#### Armes Embarquées
+#### Armes Embarqu√©es
 **Fichier**: `resources/views/game/vaisseau/partials/armes.blade.php`
 
 **Objectifs**:
-- [ ] Lister armes installées sur le vaisseau
+- [ ] Lister armes install√©es sur le vaisseau
 - [ ] Afficher munitions restantes par arme
-- [ ] Afficher état de l'arme (opérationnelle, endommagée)
-- [ ] Bouton "Tester" (tir à blanc)
-- [ ] Installation/désinstallation d'armes
+- [ ] Afficher √©tat de l'arme (op√©rationnelle, endommag√©e)
+- [ ] Bouton "Tester" (tir √† blanc)
+- [ ] Installation/d√©sinstallation d'armes
 
-**Logique métier à implémenter**:
-- [ ] Relation `Vaisseau → armes` (table pivot `vaisseau_armes`)
-- [ ] Modèle `Arme` avec types (laser, missile, torpille, etc.)
+**Logique m√©tier √† impl√©menter**:
+- [ ] Relation `Vaisseau ‚Üí armes` (table pivot `vaisseau_armes`)
+- [ ] Mod√®le `Arme` avec types (laser, missile, torpille, etc.)
 - [ ] Gestion munitions par arme
-- [ ] Slots d'armes limités par modèle de vaisseau
+- [ ] Slots d'armes limit√©s par mod√®le de vaisseau
 
-**Tables à créer**:
-- [ ] `armes` (définition des armes)
-- [ ] `vaisseau_armes` (armes installées)
+**Tables √† cr√©er**:
+- [ ] `armes` (d√©finition des armes)
+- [ ] `vaisseau_armes` (armes install√©es)
 
 ---
 
-### Priorité HAUTE - COM (Communications)
+### Priorit√© HAUTE - COM (Communications)
 
-#### Bases de Données
+#### Bases de Donn√©es
 **Fichier**: `resources/views/game/com/partials/databases.blade.php`
 
 **Objectifs**:
-- [ ] Lister stations à proximité (rayon COM)
+- [ ] Lister stations √† proximit√© (rayon COM)
 - [ ] Afficher informations: nom, faction, services
-- [ ] Afficher ressources disponibles à la vente
+- [ ] Afficher ressources disponibles √† la vente
 - [ ] Distance et direction
 - [ ] Bouton "Mettre le cap"
 
-**Logique métier à implémenter**:
-- [ ] Calcul rayon COM selon équipement vaisseau
-- [ ] Requête stations dans rayon
-- [ ] Accès aux données publiques des stations
-- [ ] Interface avec système de marché
+**Logique m√©tier √† impl√©menter**:
+- [ ] Calcul rayon COM selon √©quipement vaisseau
+- [ ] Requ√™te stations dans rayon
+- [ ] Acc√®s aux donn√©es publiques des stations
+- [ ] Interface avec syst√®me de march√©
 
-#### Prix des Marchés
+#### Prix des March√©s
 **Fichier**: `resources/views/game/com/partials/prix.blade.php`
 
 **Objectifs**:
 - [ ] Tableau des ressources avec prix dans stations proches
 - [ ] Colonnes: Ressource | Station | Prix Achat | Prix Vente | Distance
 - [ ] Tri par prix, distance, ressource
-- [ ] Mise en évidence des opportunités (écarts importants)
-- [ ] Rafraîchissement périodique
+- [ ] Mise en √©vidence des opportunit√©s (√©carts importants)
+- [ ] Rafra√Æchissement p√©riodique
 
-**Logique métier à implémenter**:
+**Logique m√©tier √† impl√©menter**:
 - [ ] Table `marche_prix` (prix dynamiques par station/ressource)
-- [ ] Calcul des opportunités commerciales
-- [ ] Actualisation des prix (système économique)
+- [ ] Calcul des opportunit√©s commerciales
+- [ ] Actualisation des prix (syst√®me √©conomique)
 
-**Tables à créer**:
+**Tables √† cr√©er**:
 - [ ] `marche_prix` (station_id, ressource_id, prix_achat, prix_vente, stock, timestamp)
 
 #### Demandes des Stations
@@ -324,62 +324,62 @@ Schema::table('vaisseaux', function (Blueprint $table) {
 
 **Objectifs**:
 - [ ] Lister demandes actives des stations
-- [ ] Afficher: Ressource demandée | Quantité | Prix offert | Station
+- [ ] Afficher: Ressource demand√©e | Quantit√© | Prix offert | Station
 - [ ] Filtrer par type de demande (urgent, standard)
 - [ ] Bouton "Accepter contrat" (si ressources en cargaison)
 
-**Logique métier à implémenter**:
+**Logique m√©tier √† impl√©menter**:
 - [ ] Table `station_demandes` (besoins des stations)
-- [ ] Système de contrats/missions
-- [ ] Calcul récompenses selon distance/urgence
+- [ ] Syst√®me de contrats/missions
+- [ ] Calcul r√©compenses selon distance/urgence
 
-**Tables à créer**:
+**Tables √† cr√©er**:
 - [ ] `station_demandes` (station_id, ressource_id, quantite, prix_offert, urgence, expiration)
 - [ ] `contrats` (personnage_id, demande_id, statut, date_acceptation)
 
-#### Messages et Sous-Réseaux
+#### Messages et Sous-R√©seaux
 **Fichier**: `resources/views/game/com/partials/messages.blade.php`
 
 **Objectifs**:
-- [ ] Boîte de réception des messages
-- [ ] Liste des sous-réseaux disponibles (publics/payants)
-- [ ] Bouton "S'abonner" pour sous-réseaux payants
+- [ ] Bo√Æte de r√©ception des messages
+- [ ] Liste des sous-r√©seaux disponibles (publics/payants)
+- [ ] Bouton "S'abonner" pour sous-r√©seaux payants
 - [ ] Envoyer un message
 - [ ] Messages de faction/guilde
 - [ ] Annonces commerciales
 
-**Logique métier à implémenter**:
+**Logique m√©tier √† impl√©menter**:
 - [ ] Table `messages` (messagerie inter-joueurs)
 - [ ] Table `sous_reseaux` (canaux de communication)
-- [ ] Table `abonnements` (accès aux sous-réseaux payants)
-- [ ] Système de modération
+- [ ] Table `abonnements` (acc√®s aux sous-r√©seaux payants)
+- [ ] Syst√®me de mod√©ration
 
-**Tables à créer**:
+**Tables √† cr√©er**:
 - [ ] `messages` (expediteur_id, destinataire_id, sujet, contenu, lu, date)
 - [ ] `sous_reseaux` (nom, description, prix_abonnement, public)
 - [ ] `abonnements` (personnage_id, sous_reseau_id, date_debut, date_fin)
 
 ---
 
-## 🔮 PHASE 3 - FONCTIONNALITÉS AVANCÉES
+## üîÆ PHASE 3 - FONCTIONNALIT√âS AVANC√âES
 
-### Système de Combat
-**Statut**: ❌ **NON COMMENCÉ**
+### Syst√®me de Combat
+**Statut**: ‚ùå **NON COMMENC√â**
 
-**Contrôleur à créer**: `CombatController.php`
+**Contr√¥leur √† cr√©er**: `CombatController.php`
 
-**Vues à créer**:
+**Vues √† cr√©er**:
 - [ ] `game/combat/armes.blade.php` - Catalogue d'armes personnelles
-- [ ] `game/combat/equipement.blade.php` - Armures et équipement
+- [ ] `game/combat/equipement.blade.php` - Armures et √©quipement
 
 **Logique**:
 - [ ] Combat au sol (personnel)
 - [ ] Combat spatial (vaisseau)
-- [ ] Système de statistiques (vie, armure, esquive)
-- [ ] Équipement d'armes/armures
+- [ ] Syst√®me de statistiques (vie, armure, esquive)
+- [ ] √âquipement d'armes/armures
 - [ ] Combats contre IA ou autres joueurs
 
-**Tables à créer**:
+**Tables √† cr√©er**:
 - [ ] `armes_personnelles`
 - [ ] `armures`
 - [ ] `personnage_equipement`
@@ -387,22 +387,22 @@ Schema::table('vaisseaux', function (Blueprint $table) {
 
 ---
 
-### Système de Marché (Station)
-**Statut**: ❌ **NON COMMENCÉ**
+### Syst√®me de March√© (Station)
+**Statut**: ‚ùå **NON COMMENC√â**
 
-**Contrôleur à créer**: `MarcheController.php`
+**Contr√¥leur √† cr√©er**: `MarcheController.php`
 
-**Vues à créer**:
-- [ ] `game/station/marche.blade.php` - Interface marché physique
+**Vues √† cr√©er**:
+- [ ] `game/station/marche.blade.php` - Interface march√© physique
 
 **Logique**:
 - [ ] Achat/vente ressources dans station
 - [ ] Prix dynamiques selon offre/demande
-- [ ] Stock limité par station
-- [ ] Transactions sécurisées
+- [ ] Stock limit√© par station
+- [ ] Transactions s√©curis√©es
 - [ ] Historique des transactions
 
-**Middleware à appliquer**:
+**Middleware √† appliquer**:
 ```php
 Route::get('/marche', [MarcheController::class, 'index'])
     ->middleware('requires.location:station');
@@ -410,83 +410,83 @@ Route::get('/marche', [MarcheController::class, 'index'])
 
 ---
 
-### Système de Déplacement
-**Statut**: ❌ **NON COMMENCÉ**
+### Syst√®me de D√©placement
+**Statut**: ‚ùå **NON COMMENC√â**
 
 **Objectifs**:
-- [ ] Déplacement vaisseau dans secteur
-- [ ] Déplacement inter-secteurs (saut)
+- [ ] D√©placement vaisseau dans secteur
+- [ ] D√©placement inter-secteurs (saut)
 - [ ] Calcul consommation carburant
 - [ ] Trajectoires optimales
 - [ ] Interception possible par autres joueurs
 - [ ] Zones dangereuses (pirates, anomalies)
 
-**Commandes à implémter**:
-- [ ] `cap <x> <y> <z>` - Définir destination
-- [ ] `deplacer` - Lancer le déplacement
-- [ ] `arreter` - Arrêter déplacement
+**Commandes √† impl√©mter**:
+- [ ] `cap <x> <y> <z>` - D√©finir destination
+- [ ] `deplacer` - Lancer le d√©placement
+- [ ] `arreter` - Arr√™ter d√©placement
 - [ ] `saut <secteur_x> <secteur_y> <secteur_z>` - Saut FTL
 
 ---
 
-### Système de Stations (Menu Station)
-**Statut**: ❌ **NON COMMENCÉ**
+### Syst√®me de Stations (Menu Station)
+**Statut**: ‚ùå **NON COMMENC√â**
 
-**Contrôleur à créer**: `StationController.php`
+**Contr√¥leur √† cr√©er**: `StationController.php`
 
-**Vues à créer**:
+**Vues √† cr√©er**:
 - [ ] `game/station/dashboard.blade.php` - Tableau de bord station
 - [ ] `game/station/quitter.blade.php` - Embarquer dans vaisseau
 - [ ] `game/station/missions.blade.php` - Missions disponibles
 
 **Logique**:
-- [ ] Embarquer/débarquer du vaisseau
-- [ ] Accès aux services de la station
+- [ ] Embarquer/d√©barquer du vaisseau
+- [ ] Acc√®s aux services de la station
 - [ ] Missions et contrats locaux
-- [ ] Réputation avec faction de la station
+- [ ] R√©putation avec faction de la station
 
 ---
 
-### Système de Missions
-**Statut**: ❌ **NON COMMENCÉ**
+### Syst√®me de Missions
+**Statut**: ‚ùå **NON COMMENC√â**
 
-**Contrôleur à créer**: `MissionController.php`
+**Contr√¥leur √† cr√©er**: `MissionController.php`
 
 **Objectifs**:
-- [ ] Génération de missions procédurales
-- [ ] Types: Transport, Exploration, Élimination, Collecte
-- [ ] Récompenses: Crédits, Réputation, Objets
-- [ ] Chaînes de missions
+- [ ] G√©n√©ration de missions proc√©durales
+- [ ] Types: Transport, Exploration, √âlimination, Collecte
+- [ ] R√©compenses: Cr√©dits, R√©putation, Objets
+- [ ] Cha√Ænes de missions
 - [ ] Missions de faction
 
-**Tables à créer**:
-- [ ] `missions` (définition)
-- [ ] `personnage_missions` (missions actives/complétées)
-- [ ] `objectifs_mission` (étapes mission)
+**Tables √† cr√©er**:
+- [ ] `missions` (d√©finition)
+- [ ] `personnage_missions` (missions actives/compl√©t√©es)
+- [ ] `objectifs_mission` (√©tapes mission)
 
 ---
 
-## 📋 TODO LIST CONSOLIDÉE
+## üìã TODO LIST CONSOLID√âE
 
-### TODO - IMMÉDIAT (Phase 2)
+### TODO - IMM√âDIAT (Phase 2)
 
 #### Architecture
-- [ ] Créer migrations pour attributs vaisseau (coque, boucliers, énergie)
-- [ ] Créer table `vaisseau_cargaison`
-- [ ] Créer table `items` et `personnage_items`
-- [ ] Créer table `marche_prix`
-- [ ] Créer table `station_demandes`
+- [ ] Cr√©er migrations pour attributs vaisseau (coque, boucliers, √©nergie)
+- [ ] Cr√©er table `vaisseau_cargaison`
+- [ ] Cr√©er table `items` et `personnage_items`
+- [ ] Cr√©er table `marche_prix`
+- [ ] Cr√©er table `station_demandes`
 
 #### Vues Vaisseau
-- [ ] Implémenter vue Scanner avec détection objets à proximité
-- [ ] Implémenter vue État du Vaisseau avec données réelles
-- [ ] Implémenter vue Cargaison avec gestion ressources
-- [ ] Implémenter vue Inventaire avec gestion items personnage
+- [ ] Impl√©menter vue Scanner avec d√©tection objets √† proximit√©
+- [ ] Impl√©menter vue √âtat du Vaisseau avec donn√©es r√©elles
+- [ ] Impl√©menter vue Cargaison avec gestion ressources
+- [ ] Impl√©menter vue Inventaire avec gestion items personnage
 
 #### Vues COM
-- [ ] Implémenter vue Bases de Données avec stations à proximité
-- [ ] Implémenter vue Prix des Marchés avec tableau comparatif
-- [ ] Implémenter vue Demandes avec contrats disponibles
+- [ ] Impl√©menter vue Bases de Donn√©es avec stations √† proximit√©
+- [ ] Impl√©menter vue Prix des March√©s avec tableau comparatif
+- [ ] Impl√©menter vue Demandes avec contrats disponibles
 
 #### Commandes
 - [ ] Ajouter commandes de gestion inventaire (`utiliser`, `equiper`, `jeter`)
@@ -497,247 +497,247 @@ Route::get('/marche', [MarcheController::class, 'index'])
 
 ### TODO - COURT TERME
 
-#### Système Économique
-- [ ] Créer modèle `MarchePrix` avec relations
-- [ ] Implémenter fluctuation des prix (cron job)
-- [ ] Créer système d'offre/demande dynamique
-- [ ] Implémenter marché physique dans stations
+#### Syst√®me √âconomique
+- [ ] Cr√©er mod√®le `MarchePrix` avec relations
+- [ ] Impl√©menter fluctuation des prix (cron job)
+- [ ] Cr√©er syst√®me d'offre/demande dynamique
+- [ ] Impl√©menter march√© physique dans stations
 
-#### Système de Messagerie
-- [ ] Créer tables `messages`, `sous_reseaux`, `abonnements`
-- [ ] Créer `MessageController`
-- [ ] Implémenter envoi/réception messages
-- [ ] Implémenter système d'abonnement sous-réseaux
+#### Syst√®me de Messagerie
+- [ ] Cr√©er tables `messages`, `sous_reseaux`, `abonnements`
+- [ ] Cr√©er `MessageController`
+- [ ] Impl√©menter envoi/r√©ception messages
+- [ ] Impl√©menter syst√®me d'abonnement sous-r√©seaux
 
 #### Interface Station
-- [ ] Créer menu contextuel pour localisation "station"
-- [ ] Implémenter vue Marché (achat/vente physique)
-- [ ] Implémenter vue Missions
-- [ ] Implémenter action "Quitter station" (embarquer vaisseau)
+- [ ] Cr√©er menu contextuel pour localisation "station"
+- [ ] Impl√©menter vue March√© (achat/vente physique)
+- [ ] Impl√©menter vue Missions
+- [ ] Impl√©menter action "Quitter station" (embarquer vaisseau)
 
 ---
 
 ### TODO - MOYEN TERME (Phase 3)
 
 #### Combat
-- [ ] Créer système de combat personnel
-- [ ] Créer système de combat spatial
-- [ ] Implémenter armes personnelles et armures
-- [ ] Implémenter armes embarquées sur vaisseau
+- [ ] Cr√©er syst√®me de combat personnel
+- [ ] Cr√©er syst√®me de combat spatial
+- [ ] Impl√©menter armes personnelles et armures
+- [ ] Impl√©menter armes embarqu√©es sur vaisseau
 
-#### Déplacement
-- [ ] Implémenter déplacement dans secteur
-- [ ] Implémenter sauts FTL inter-secteurs
+#### D√©placement
+- [ ] Impl√©menter d√©placement dans secteur
+- [ ] Impl√©menter sauts FTL inter-secteurs
 - [ ] Calculer consommation carburant
-- [ ] Gérer collisions et interceptions
+- [ ] G√©rer collisions et interceptions
 
 #### Stations & Bases
-- [ ] Permettre création de bases personnelles
+- [ ] Permettre cr√©ation de bases personnelles
 - [ ] Connecter mines MAME aux bases
-- [ ] Gérer transfert automatique ressources mine → base
-- [ ] Implémenter défense des bases
+- [ ] G√©rer transfert automatique ressources mine ‚Üí base
+- [ ] Impl√©menter d√©fense des bases
 
 ---
 
 ### TODO - LONG TERME (Phase 4+)
 
 #### Multiplayer
-- [ ] Détection autres joueurs dans secteur
+- [ ] D√©tection autres joueurs dans secteur
 - [ ] Combat PvP
 - [ ] Commerce entre joueurs
 - [ ] Alliances et factions
 
-#### Économie Avancée
-- [ ] Marché galactique (agrégation prix)
-- [ ] Économie joueur (production → vente)
+#### √âconomie Avanc√©e
+- [ ] March√© galactique (agr√©gation prix)
+- [ ] √âconomie joueur (production ‚Üí vente)
 - [ ] Routes commerciales automatiques
 
 #### Exploration
-- [ ] Génération procédurale systèmes
-- [ ] Anomalies spatiales (événements aléatoires)
+- [ ] G√©n√©ration proc√©durale syst√®mes
+- [ ] Anomalies spatiales (√©v√©nements al√©atoires)
 - [ ] Artefacts et technologies anciennes
-- [ ] Terraformation planètes
+- [ ] Terraformation plan√®tes
 
 ---
 
-## 🔧 CONCEPTS NON FINALISÉS
+## üîß CONCEPTS NON FINALIS√âS
 
-### 1. Système de Temps Réel vs Tour par Tour
-**Statut**: ⚠️ **À DÉFINIR**
+### 1. Syst√®me de Temps R√©el vs Tour par Tour
+**Statut**: ‚ö†Ô∏è **√Ä D√âFINIR**
 
 **Questions**:
-- Le déplacement est-il en temps réel ou au tour?
-- Les réparations prennent-elles du temps réel?
-- Les combats sont-ils instantanés ou progressifs?
+- Le d√©placement est-il en temps r√©el ou au tour?
+- Les r√©parations prennent-elles du temps r√©el?
+- Les combats sont-ils instantan√©s ou progressifs?
 
-**Impact**: Affecte toute la conception des mécaniques de jeu.
+**Impact**: Affecte toute la conception des m√©caniques de jeu.
 
 ---
 
 ### 2. Rayon d'Action du Scanner et COM
-**Statut**: ⚠️ **À DÉFINIR**
+**Statut**: ‚ö†Ô∏è **√Ä D√âFINIR**
 
-**Paramètres à définir**:
-- Rayon de détection du scanner (en AL)
-- Rayon du réseau COM (en AL)
-- Dégradation des informations selon distance
-- Amélioration possible avec équipement
+**Param√®tres √† d√©finir**:
+- Rayon de d√©tection du scanner (en AL)
+- Rayon du r√©seau COM (en AL)
+- D√©gradation des informations selon distance
+- Am√©lioration possible avec √©quipement
 
 **Proposition**:
-- Scanner: 5 AL par défaut, jusqu'à 20 AL avec équipement
-- COM: 10 AL par défaut, jusqu'à 50 AL avec équipement
+- Scanner: 5 AL par d√©faut, jusqu'√† 20 AL avec √©quipement
+- COM: 10 AL par d√©faut, jusqu'√† 50 AL avec √©quipement
 
 ---
 
-### 3. Capacité de Transport
-**Statut**: ⚠️ **À DÉFINIR**
+### 3. Capacit√© de Transport
+**Statut**: ‚ö†Ô∏è **√Ä D√âFINIR**
 
 **Questions**:
 - Poids vs Volume (ou les deux)?
-- Limitation inventaire personnel? (actuellement illimité)
-- Pénalités si surcharge?
+- Limitation inventaire personnel? (actuellement illimit√©)
+- P√©nalit√©s si surcharge?
 
 **Proposition**:
 - Inventaire personnel: 50 kg max
-- Cargaison vaisseau: Variable selon modèle (100-10000 unités)
-- Surcharge: Réduction vitesse déplacement
+- Cargaison vaisseau: Variable selon mod√®le (100-10000 unit√©s)
+- Surcharge: R√©duction vitesse d√©placement
 
 ---
 
-### 4. Système de Carburant/Énergie
-**Statut**: ⚠️ **À IMPLÉMENTER**
+### 4. Syst√®me de Carburant/√ânergie
+**Statut**: ‚ö†Ô∏è **√Ä IMPL√âMENTER**
 
 **Actuellement**:
-- Vaisseau a attribut `energie_actuelle` prévu mais non utilisé
-- Pas de consommation pour déplacement
-- Pas de ravitaillement nécessaire
+- Vaisseau a attribut `energie_actuelle` pr√©vu mais non utilis√©
+- Pas de consommation pour d√©placement
+- Pas de ravitaillement n√©cessaire
 
-**À implémenter**:
-- [ ] Consommation énergie pour déplacement
-- [ ] Consommation énergie pour scanner/COM
-- [ ] Consommation munitions/énergie pour armes
+**√Ä impl√©menter**:
+- [ ] Consommation √©nergie pour d√©placement
+- [ ] Consommation √©nergie pour scanner/COM
+- [ ] Consommation munitions/√©nergie pour armes
 - [ ] Stations de ravitaillement
-- [ ] Panne sèche = immobilisation
+- [ ] Panne s√®che = immobilisation
 
 ---
 
-### 5. Système de Faction/Réputation
-**Statut**: ⚠️ **NON COMMENCÉ**
+### 5. Syst√®me de Faction/R√©putation
+**Statut**: ‚ö†Ô∏è **NON COMMENC√â**
 
 **Concept**:
-- Réputation par faction (hostile, neutre, amical, allié)
-- Influence accès stations, prix, missions
-- Gain/perte réputation selon actions
+- R√©putation par faction (hostile, neutre, amical, alli√©)
+- Influence acc√®s stations, prix, missions
+- Gain/perte r√©putation selon actions
 
-**Tables à créer**:
+**Tables √† cr√©er**:
 - [ ] `factions` (nom, description, zone_influence)
 - [ ] `personnage_reputations` (personnage_id, faction_id, niveau)
 
 ---
 
-### 6. Systèmes de Compétences
-**Statut**: ⚠️ **NON COMMENCÉ**
+### 6. Syst√®mes de Comp√©tences
+**Statut**: ‚ö†Ô∏è **NON COMMENC√â**
 
 **Concept**:
-- Compétences de pilotage (vitesse, manœuvrabilité)
-- Compétences techniques (réparation, scanner)
-- Compétences commerciales (négociation prix)
-- Compétences combat (précision, dégâts)
+- Comp√©tences de pilotage (vitesse, man≈ìuvrabilit√©)
+- Comp√©tences techniques (r√©paration, scanner)
+- Comp√©tences commerciales (n√©gociation prix)
+- Comp√©tences combat (pr√©cision, d√©g√¢ts)
 
 **Progression**:
 - XP par action
-- Niveaux par compétence
-- Arbres de compétences
+- Niveaux par comp√©tence
+- Arbres de comp√©tences
 
 ---
 
-## 📈 MÉTRIQUES DE PROGRESSION
+## üìà M√âTRIQUES DE PROGRESSION
 
-### Phase 1 (Fondations) - TERMINÉE ✅
-- Architecture: **100%** ✅
-- Routes & Contrôleurs: **100%** ✅
-- Vues (structure): **100%** ✅
-- Vues (contenu): **15%** 🚧 (1/7 fonctionnelle)
+### Phase 1 (Fondations) - TERMIN√âE ‚úÖ
+- Architecture: **100%** ‚úÖ
+- Routes & Contr√¥leurs: **100%** ‚úÖ
+- Vues (structure): **100%** ‚úÖ
+- Vues (contenu): **15%** üöß (1/7 fonctionnelle)
 
-### Phase 2 (Vues & Logique Métier) - EN COURS 🚧
-- Migrations: **0%** ❌
-- Modèles: **30%** 🚧 (Vaisseau, ObjetSpatial existants)
-- Vues Vaisseau: **14%** 🚧 (1/7)
-- Vues COM: **0%** ❌
-- Système Économique: **0%** ❌
+### Phase 2 (Vues & Logique M√©tier) - EN COURS üöß
+- Migrations: **0%** ‚ùå
+- Mod√®les: **30%** üöß (Vaisseau, ObjetSpatial existants)
+- Vues Vaisseau: **14%** üöß (1/7)
+- Vues COM: **0%** ‚ùå
+- Syst√®me √âconomique: **0%** ‚ùå
 
-### Phase 3 (Fonctionnalités Avancées) - NON COMMENCÉE ❌
+### Phase 3 (Fonctionnalit√©s Avanc√©es) - NON COMMENC√âE ‚ùå
 - Combat: **0%**
-- Déplacement: **0%**
+- D√©placement: **0%**
 - Stations: **0%**
 - Missions: **0%**
 
-### Phase 4+ (Multiplayer & Avancé) - NON COMMENCÉE ❌
+### Phase 4+ (Multiplayer & Avanc√©) - NON COMMENC√âE ‚ùå
 - Multiplayer: **0%**
-- Économie avancée: **0%**
-- Exploration procédurale: **0%**
+- √âconomie avanc√©e: **0%**
+- Exploration proc√©durale: **0%**
 
 ---
 
-## 🎯 PRIORITÉS RECOMMANDÉES
+## üéØ PRIORIT√âS RECOMMAND√âES
 
-### Sprint 1 (Immédiat)
-1. ✅ Scanner fonctionnel
-2. ✅ Cargaison fonctionnelle
-3. ✅ Inventaire fonctionnel
-4. ✅ Prix des marchés (COM) fonctionnel
+### Sprint 1 (Imm√©diat)
+1. ‚úÖ Scanner fonctionnel
+2. ‚úÖ Cargaison fonctionnelle
+3. ‚úÖ Inventaire fonctionnel
+4. ‚úÖ Prix des march√©s (COM) fonctionnel
 
-**Objectif**: Interface complète pour vaisseau, permettant navigation et gestion basique.
+**Objectif**: Interface compl√®te pour vaisseau, permettant navigation et gestion basique.
 
 ### Sprint 2
-1. ✅ État du vaisseau
-2. ✅ Système de réparation
-3. ✅ Marché physique (station)
-4. ✅ Embarquer/débarquer vaisseau
+1. ‚úÖ √âtat du vaisseau
+2. ‚úÖ Syst√®me de r√©paration
+3. ‚úÖ March√© physique (station)
+4. ‚úÖ Embarquer/d√©barquer vaisseau
 
-**Objectif**: Interaction complète avec stations, gestion maintenance vaisseau.
+**Objectif**: Interaction compl√®te avec stations, gestion maintenance vaisseau.
 
 ### Sprint 3
-1. ✅ Déplacement basique (dans secteur)
-2. ✅ Consommation énergie
-3. ✅ Système de temps
-4. ✅ Demandes stations (COM)
+1. ‚úÖ D√©placement basique (dans secteur)
+2. ‚úÖ Consommation √©nergie
+3. ‚úÖ Syst√®me de temps
+4. ‚úÖ Demandes stations (COM)
 
-**Objectif**: Mobilité et premier cycle économique (transport ressources).
+**Objectif**: Mobilit√© et premier cycle √©conomique (transport ressources).
 
 ### Sprint 4
-1. ✅ Système de missions simple
-2. ✅ Messages/communication
-3. ✅ Armes embarquées
-4. ✅ Combat spatial basique
+1. ‚úÖ Syst√®me de missions simple
+2. ‚úÖ Messages/communication
+3. ‚úÖ Armes embarqu√©es
+4. ‚úÖ Combat spatial basique
 
-**Objectif**: Boucle de gameplay complète (exploration → missions → combat → récompenses).
+**Objectif**: Boucle de gameplay compl√®te (exploration ‚Üí missions ‚Üí combat ‚Üí r√©compenses).
 
 ---
 
-## 📝 NOTES IMPORTANTES
+## üìù NOTES IMPORTANTES
 
 ### Architecture Actuelle - Points Forts
-- ✅ Séparation claire des responsabilités (Helper, Controller, View)
-- ✅ Support AJAX intégré dès le départ
-- ✅ Middleware réutilisable pour restrictions de localisation
-- ✅ View Composer pour injection automatique des données
-- ✅ Structure évolutive et modulaire
+- ‚úÖ S√©paration claire des responsabilit√©s (Helper, Controller, View)
+- ‚úÖ Support AJAX int√©gr√© d√®s le d√©part
+- ‚úÖ Middleware r√©utilisable pour restrictions de localisation
+- ‚úÖ View Composer pour injection automatique des donn√©es
+- ‚úÖ Structure √©volutive et modulaire
 
 ### Architecture Actuelle - Points d'Attention
-- ⚠️ Beaucoup de vues en placeholder (risque d'oubli)
-- ⚠️ Pas encore de tests unitaires
-- ⚠️ Certaines mécaniques de jeu non définies
-- ⚠️ Pas de documentation API pour développeurs externes
+- ‚ö†Ô∏è Beaucoup de vues en placeholder (risque d'oubli)
+- ‚ö†Ô∏è Pas encore de tests unitaires
+- ‚ö†Ô∏è Certaines m√©caniques de jeu non d√©finies
+- ‚ö†Ô∏è Pas de documentation API pour d√©veloppeurs externes
 
 ### Recommandations
-1. **Tests**: Créer tests unitaires pour `PersonnageLocation` et middleware
-2. **Documentation**: Documenter API des contrôleurs pour futures extensions
-3. **Validation**: Définir les mécaniques de jeu avant d'implémenter
+1. **Tests**: Cr√©er tests unitaires pour `PersonnageLocation` et middleware
+2. **Documentation**: Documenter API des contr√¥leurs pour futures extensions
+3. **Validation**: D√©finir les m√©caniques de jeu avant d'impl√©menter
 4. **Refactoring**: Utiliser le composant `contextual-menu.blade.php` dans le dashboard
 
 ---
 
-**Dernière mise à jour**: 2025-11-23  
+**Derni√®re mise √† jour**: 2025-11-23  
 **Auteur**: Claude (Assistant IA)  
-**Statut du document**: 📘 Actif - À mettre à jour après chaque sprint
+**Statut du document**: üìò Actif - √Ä mettre √† jour apr√®s chaque sprint

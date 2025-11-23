@@ -1,70 +1,70 @@
-# 💡 IDÉES FUTURES
-## Conquête Spatiale
+# üí° ID√âES FUTURES
+## Conqu√™te Spatiale
 
-**Document de collecte d'idées** - À trier et intégrer dans les phases futures
+**Document de collecte d'id√©es** - √Ä trier et int√©grer dans les phases futures
 
 ---
 
-## 🎨 Interface & Style Visuel
+## üé® Interface & Style Visuel
 
-### Thèmes Visuels par Type de Vaisseau
+### Th√®mes Visuels par Type de Vaisseau
 **Date :** 2025-11-18
 **Source :** Retour interface console
 
-**Idée :** Styles visuels différents selon type/modèle de vaisseau
+**Id√©e :** Styles visuels diff√©rents selon type/mod√®le de vaisseau
 
 **Exemples :**
-- **Style "Nostromo" (Alien)** : Interface rétro-futuriste, terminaux CRT, ambiance industrielle cargo
+- **Style "Nostromo" (Alien)** : Interface r√©tro-futuriste, terminaux CRT, ambiance industrielle cargo
   - Pour vaisseaux cargo/transport
   - Console type terminal vert phosphorescent
   - Ambiance sonore industrielle
 
 - **Style "Enterprise" (Star Trek)** : Interface propre, LCARS, high-tech
   - Pour vaisseaux militaires/exploration
-  - Panneaux colorés, interface tactile moderne
+  - Panneaux color√©s, interface tactile moderne
 
-- **Style "Serenity" (Firefly)** : Interface rustique, bricolée
+- **Style "Serenity" (Firefly)** : Interface rustique, bricol√©e
   - Pour vaisseaux pirates/contrebande
-  - Aspect usé, réparations visibles
+  - Aspect us√©, r√©parations visibles
 
-**Implémentation possible :**
-- Thèmes CSS par modèle de vaisseau
-- Modification cosmétique pure (pas gameplay)
-- Skins/habillages déblocables ou achetables
-- Système de "personnalisation de cockpit"
+**Impl√©mentation possible :**
+- Th√®mes CSS par mod√®le de vaisseau
+- Modification cosm√©tique pure (pas gameplay)
+- Skins/habillages d√©blocables ou achetables
+- Syst√®me de "personnalisation de cockpit"
 
-**À intégrer dans :** Phase 4+ (Features Avancées)
+**√Ä int√©grer dans :** Phase 4+ (Features Avanc√©es)
 
 ---
 
-## 🛸 Vaisseaux - Extensions
+## üõ∏ Vaisseaux - Extensions
 
-### Modifications Cosmétiques
+### Modifications Cosm√©tiques
 **Date :** 2025-11-18
 
-**Idées :**
-- **Peintures personnalisées** : Couleurs, motifs, emblèmes
-- **Décoration intérieure** : Cockpit, cabine
-- **Éclairage ambiant** : Changement couleurs interface
-- **Sons personnalisés** : Alarmes, notifications
-- **Mascottes/talismans** : Objets décoratifs visibles
+**Id√©es :**
+- **Peintures personnalis√©es** : Couleurs, motifs, embl√®mes
+- **D√©coration int√©rieure** : Cockpit, cabine
+- **√âclairage ambiant** : Changement couleurs interface
+- **Sons personnalis√©s** : Alarmes, notifications
+- **Mascottes/talismans** : Objets d√©coratifs visibles
 
-**Système possible :**
-- Boutique cosmétiques (crédits ou monnaie premium)
-- Récompenses quêtes/achievements
-- Crafting (peinture à partir de ressources)
+**Syst√®me possible :**
+- Boutique cosm√©tiques (cr√©dits ou monnaie premium)
+- R√©compenses qu√™tes/achievements
+- Crafting (peinture √† partir de ressources)
 
-**Valeur ajoutée :**
-- Personnalisation identité joueur
-- Monétisation optionnelle (si nécessaire)
-- Contenu régulier (nouveaux skins)
-
----
-
-## 📋 À Classer
-
-*(Section pour nouvelles idées en vrac)*
+**Valeur ajout√©e :**
+- Personnalisation identit√© joueur
+- Mon√©tisation optionnelle (si n√©cessaire)
+- Contenu r√©gulier (nouveaux skins)
 
 ---
 
-**Dernière mise à jour :** 2025-11-18
+## üìã √Ä Classer
+
+*(Section pour nouvelles id√©es en vrac)*
+
+---
+
+**Derni√®re mise √† jour :** 2025-11-18

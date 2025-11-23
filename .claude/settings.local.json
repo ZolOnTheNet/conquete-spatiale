@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php -l:*)",
+      "Bash(test:*)",
+      "Bash(python text2linux.py:*)",
+      "Bash(pip install:*)",
+      "Bash(python fix-encoding.py:*)",
+      "Bash(python fix-double-encoding.py:*)",
+      "Bash(python -c:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

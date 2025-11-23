@@ -1,171 +1,171 @@
-# 💰 SYSTÈME ÉCONOMIQUE COMPLET
-## Jeu de Conquête Galactique
+# ğŸ’° SYSTÃˆME Ã‰CONOMIQUE COMPLET
+## Jeu de ConquÃªte Galactique
 
 ---
 
-## ⚠️ DISCLAIMER
-Données issues du wiki - Inspiré de Star Citizen - À équilibrer.
+## âš ï¸� DISCLAIMER
+DonnÃ©es issues du wiki - InspirÃ© de Star Citizen - Ã€ Ã©quilibrer.
 
 ---
 
-## 🎯 Référence
+## ğŸ�¯ RÃ©fÃ©rence
 
-Voir si le système **Star Citizen** pourrait être utilisé, et à quel degré...
+Voir si le systÃ¨me **Star Citizen** pourrait Ãªtre utilisÃ©, et Ã  quel degrÃ©...
 
 ---
 
-## 🏭 Nœuds Économiques
+## ğŸ�­ NÅ“uds Ã‰conomiques
 
 ### Principe
 
-**Chaque secteur peut être un nœud économique.**
+**Chaque secteur peut Ãªtre un nÅ“ud Ã©conomique.**
 
 ### Fonctionnement de Base
 
-**Cycle économique :**
+**Cycle Ã©conomique :**
 ```
-Hommes + Machines → Production
-     ↓
+Hommes + Machines â†’ Production
+     â†“
 Hommes maintiennent Machines
-     ↓
-Systèmes de survie maintiennent Hommes
-     ↓
-Besoins Hommes → Produits nécessaires
+     â†“
+SystÃ¨mes de survie maintiennent Hommes
+     â†“
+Besoins Hommes â†’ Produits nÃ©cessaires
 ```
 
 ---
 
 ### Besoins des Hommes (3 Niveaux)
 
-#### 1. Systèmes de Survie (Misère/Minimal)
-- Oxygène
+#### 1. SystÃ¨mes de Survie (MisÃ¨re/Minimal)
+- OxygÃ¨ne
 - Eau
 - Nourriture basique
-- Température viable
+- TempÃ©rature viable
 
-#### 2. Systèmes de Confort (Normal)
-- Logement décent
-- Nourriture variée
-- Hygiène
-- Vêtements
+#### 2. SystÃ¨mes de Confort (Normal)
+- Logement dÃ©cent
+- Nourriture variÃ©e
+- HygiÃ¨ne
+- VÃªtements
 - Communication
 
-#### 3. Systèmes de Bien-Être (Luxe)
+#### 3. SystÃ¨mes de Bien-ÃŠtre (Luxe)
 - Divertissement
 - Culture
-- Éducation
+- Ã‰ducation
 - Services premium
 - Produits de luxe
 
 ---
 
-### Structure Nœud Économique
+### Structure NÅ“ud Ã‰conomique
 
-**Possède des unités** qui influencent :
+**PossÃ¨de des unitÃ©s** qui influencent :
 - Survie
 - Confort
 - Luxe
 
-**Chaque unité consomme :**
-- **Hommes** (main d'œuvre)
-- **Machines** (équipements)
-- **Consommables** (entrées/produits)
+**Chaque unitÃ© consomme :**
+- **Hommes** (main d'Å“uvre)
+- **Machines** (Ã©quipements)
+- **Consommables** (entrÃ©es/produits)
 
-**Chaque unité influence :**
-- Systèmes (survie, normal, luxe)
+**Chaque unitÃ© influence :**
+- SystÃ¨mes (survie, normal, luxe)
 
-**Les hommes sont des unités économiques.**
+**Les hommes sont des unitÃ©s Ã©conomiques.**
 
 ---
 
-## ⛏️ Production Minière (21 Matières Premières)
+## â›�ï¸� Production MiniÃ¨re (21 MatiÃ¨res PremiÃ¨res)
 
-### Métaux et Minerais
+### MÃ©taux et Minerais
 
 1. **Graphite** : Pour carbone
 2. **Uranium** : Peu de production (dangereux)
-3. **Hydrogène** : Gaz léger
-4. **Bauxite** : Aluminium et autres métaux
-5. **Platine** : Métal précieux
-6. **Aluminium** : Métal léger
-7. **Zinc** : Métal
-8. **Nickel** : Métal
-9. **Tungstène** : Métal résistant
-10. **Fer** : Métal de base
-11. **Niobium** : Pour aciers haute résistance
+3. **HydrogÃ¨ne** : Gaz lÃ©ger
+4. **Bauxite** : Aluminium et autres mÃ©taux
+5. **Platine** : MÃ©tal prÃ©cieux
+6. **Aluminium** : MÃ©tal lÃ©ger
+7. **Zinc** : MÃ©tal
+8. **Nickel** : MÃ©tal
+9. **TungstÃ¨ne** : MÃ©tal rÃ©sistant
+10. **Fer** : MÃ©tal de base
+11. **Niobium** : Pour aciers haute rÃ©sistance
 
-### Ressources Élémentaires
+### Ressources Ã‰lÃ©mentaires
 
-12. **Argiles** : Terre élémentaire
+12. **Argiles** : Terre Ã©lÃ©mentaire
 13. **Sables** : Production silicium, verre
-14. **Oxygène** : Gaz vital
+14. **OxygÃ¨ne** : Gaz vital
 15. **Glaces** : Eau
 16. **Bitumes** : Hydrocarbures
 
-### Matériaux Exotiques (Étoiles)
+### MatÃ©riaux Exotiques (Ã‰toiles)
 
-17. **Nacrétoile** : Matériau spatial rare
-18. **Plazétoile** : Matériau énergétique
-19. **Argétoile** : Matériau conducteur
-20. **Tyrétoile** : Matériau ?
+17. **NacrÃ©toile** : MatÃ©riau spatial rare
+18. **PlazÃ©toile** : MatÃ©riau Ã©nergÃ©tique
+19. **ArgÃ©toile** : MatÃ©riau conducteur
+20. **TyrÃ©toile** : MatÃ©riau ?
 
 ### Chimie
 
-21. **Éléments Chimiques** : Ensemble produits chimiques
+21. **Ã‰lÃ©ments Chimiques** : Ensemble produits chimiques
 
 ---
 
-## 🏭 Production Industrielle (Transformation)
+## ğŸ�­ Production Industrielle (Transformation)
 
-### Matériaux de Base
+### MatÃ©riaux de Base
 
 **Acier :**
 ```
-Fer + Graphite → Acier
+Fer + Graphite â†’ Acier
 ```
 
 **Diamant :**
 ```
-Graphite (haute pression) → Diamant
+Graphite (haute pression) â†’ Diamant
 ```
 
 ---
 
-### Matériaux Intermédiaires
+### MatÃ©riaux IntermÃ©diaires
 
 **Plastacier :**
 ```
-Acier + Plazétoile → Plastacier
+Acier + PlazÃ©toile â†’ Plastacier
 ```
 - Acier des coques de vaisseaux
 
-**Électronique :**
+**Ã‰lectronique :**
 ```
-Sable + Plazétoile + Or → Électronique
+Sable + PlazÃ©toile + Or â†’ Ã‰lectronique
 ```
 
 **Verrerie :**
 ```
-Sable + Plazétoile → Verrerie
+Sable + PlazÃ©toile â†’ Verrerie
 ```
 
-**Mécanique :**
+**MÃ©canique :**
 ```
-Acier + Bitumes → Mécanique
+Acier + Bitumes â†’ MÃ©canique
 ```
 
 ---
 
-### Composants Avancés
+### Composants AvancÃ©s
 
 **Moteur :**
 ```
-Mécanique + Électronique + Argétoile + Niobium → Moteur
+MÃ©canique + Ã‰lectronique + ArgÃ©toile + Niobium â†’ Moteur
 ```
 
 **Batterie :**
 ```
-Niobium + Électronique + Nacrétoile → Batterie
+Niobium + Ã‰lectronique + NacrÃ©toile â†’ Batterie
 ```
 
 ---
@@ -174,117 +174,117 @@ Niobium + Électronique + Nacrétoile → Batterie
 
 **Unitek :**
 ```
-Plastacier + Moteur + Électronique + Mécanique + Verrerie → Unitek
+Plastacier + Moteur + Ã‰lectronique + MÃ©canique + Verrerie â†’ Unitek
 ```
 
 **Vaisseaux / Bases :**
 ```
-Ensemble d'Uniteks → Vaisseau / Base
+Ensemble d'Uniteks â†’ Vaisseau / Base
 ```
 
 ---
 
-## 🌱 Production Agricole
+## ğŸŒ± Production Agricole
 
 ### Ressources de Base
 
 **Terreaux :**
 ```
-Argiles + Sables → Terreaux
+Argiles + Sables â†’ Terreaux
 ```
 
 **Engrais :**
 ```
-Hydrogène + Azote → Engrais
+HydrogÃ¨ne + Azote â†’ Engrais
 ```
 
 ### Production Alimentaire
 
 **Plantes :**
 ```
-Terreaux + Glaces + Engrais → Plantes
+Terreaux + Glaces + Engrais â†’ Plantes
 ```
 
-**Crocket / Nourritures / Denrées Alimentaires :**
+**Crocket / Nourritures / DenrÃ©es Alimentaires :**
 ```
-Plantes + Viandes → Nourriture
+Plantes + Viandes â†’ Nourriture
 ```
 
 ---
 
-## 💊 Production Médicale
+## ğŸ’Š Production MÃ©dicale
 
-**Principe :** 1 niveau de médicaments = 1 module de production
+**Principe :** 1 niveau de mÃ©dicaments = 1 module de production
 
-### 3 Types de Médicaments
+### 3 Types de MÃ©dicaments
 
-#### 1. Médicaments Courants (Médocs)
-- Accessibles à tous
+#### 1. MÃ©dicaments Courants (MÃ©docs)
+- Accessibles Ã  tous
 - Prix bas
-- Efficacité standard
+- EfficacitÃ© standard
 
-#### 2. Médicaments Contrôlés (Pharmadocs)
-- Accès restreint
+#### 2. MÃ©dicaments ContrÃ´lÃ©s (Pharmadocs)
+- AccÃ¨s restreint
 - Prix moyen
-- Efficacité supérieure
-- Nécessite autorisation
+- EfficacitÃ© supÃ©rieure
+- NÃ©cessite autorisation
 
-#### 3. Stupéfiants
-- Illégaux (sauf zones spéciales)
-- Prix élevé (marché noir)
-- Effets variés
-- Risques légaux
+#### 3. StupÃ©fiants
+- IllÃ©gaux (sauf zones spÃ©ciales)
+- Prix Ã©levÃ© (marchÃ© noir)
+- Effets variÃ©s
+- Risques lÃ©gaux
 
 ---
 
-## 📊 Chaîne de Production Complète
+## ğŸ“Š ChaÃ®ne de Production ComplÃ¨te
 
 ### Exemple : Vaisseau
 
 ```
-ÉTAPE 1 : Extraction
-├─ Fer (mine)
-├─ Graphite (mine)
-├─ Sable (mine)
-├─ Plazétoile (mine spatiale)
-└─ Etc.
+Ã‰TAPE 1 : Extraction
+â”œâ”€ Fer (mine)
+â”œâ”€ Graphite (mine)
+â”œâ”€ Sable (mine)
+â”œâ”€ PlazÃ©toile (mine spatiale)
+â””â”€ Etc.
 
-ÉTAPE 2 : Raffinage
-├─ Fer + Graphite → Acier
-├─ Sable + Plazétoile → Électronique
-└─ Etc.
+Ã‰TAPE 2 : Raffinage
+â”œâ”€ Fer + Graphite â†’ Acier
+â”œâ”€ Sable + PlazÃ©toile â†’ Ã‰lectronique
+â””â”€ Etc.
 
-ÉTAPE 3 : Composants
-├─ Acier + Plazétoile → Plastacier
-├─ Mécanique + Électronique + ... → Moteur
-└─ Etc.
+Ã‰TAPE 3 : Composants
+â”œâ”€ Acier + PlazÃ©toile â†’ Plastacier
+â”œâ”€ MÃ©canique + Ã‰lectronique + ... â†’ Moteur
+â””â”€ Etc.
 
-ÉTAPE 4 : Assemblage
-├─ Plastacier + Moteur + ... → Unitek
-└─ Uniteks → Vaisseau
+Ã‰TAPE 4 : Assemblage
+â”œâ”€ Plastacier + Moteur + ... â†’ Unitek
+â””â”€ Uniteks â†’ Vaisseau
 
-ÉTAPE 5 : Finalisation
-└─ Vaisseau → Livraison / Vente
+Ã‰TAPE 5 : Finalisation
+â””â”€ Vaisseau â†’ Livraison / Vente
 ```
 
 ---
 
-## 👷 Système de Personnel
+## ğŸ‘· SystÃ¨me de Personnel
 
 ### Types de Personnel
 
 **Extraction :**
 - **Mineurs** : Exploitation gisements
-- Opérateurs MAME
+- OpÃ©rateurs MAME
 
 **Transformation :**
-- **Ingénieurs** : Raffinage
-- **Techniciens** : Production simple/intermédiaire
+- **IngÃ©nieurs** : Raffinage
+- **Techniciens** : Production simple/intermÃ©diaire
 - **Scientifiques** : Production complexe
 
 **Services :**
-- **Médecins** : Santé
-- **Soldats** : Armement/Sécurité
+- **MÃ©decins** : SantÃ©
+- **Soldats** : Armement/SÃ©curitÃ©
 - **Administrateurs** : Gestion
 
 ---
@@ -294,80 +294,80 @@ Plantes + Viandes → Nourriture
 **Produits Simples :**
 - 1-2 ouvriers / usine
 
-**Produits Intermédiaires :**
+**Produits IntermÃ©diaires :**
 - 5-10 techniciens / usine
 
 **Produits Complexes :**
-- 20-50 spécialistes / usine
+- 20-50 spÃ©cialistes / usine
 
 ---
 
-### Formule Productivité
+### Formule ProductivitÃ©
 
 ```
-Productivité = f(Moral, Éducation, Équipement)
+ProductivitÃ© = f(Moral, Ã‰ducation, Ã‰quipement)
 
-Moral = f(Alimentation, Confort, Santé, Divertissement, Salaire)
+Moral = f(Alimentation, Confort, SantÃ©, Divertissement, Salaire)
 ```
 
 **Facteurs :**
-- **Moral** : État psychologique travailleurs
-- **Éducation** : Niveau compétences
-- **Équipement** : Qualité outils/machines
+- **Moral** : Ã‰tat psychologique travailleurs
+- **Ã‰ducation** : Niveau compÃ©tences
+- **Ã‰quipement** : QualitÃ© outils/machines
 
 ---
 
-## 🛒 Marchés et Commerce
+## ğŸ›’ MarchÃ©s et Commerce
 
-### Types de Marchés
+### Types de MarchÃ©s
 
-**Marché Standard :**
-- Matières premières basiques
-- Prix régulés
-- Transactions sécurisées
+**MarchÃ© Standard :**
+- MatiÃ¨res premiÃ¨res basiques
+- Prix rÃ©gulÃ©s
+- Transactions sÃ©curisÃ©es
 
 **Bourse :**
 - Ressources standards
 - Prix fluctuants (offre/demande)
-- Spéculation possible
+- SpÃ©culation possible
 
-**Antiquités / Souk :**
-- Équipements rares
+**AntiquitÃ©s / Souk :**
+- Ã‰quipements rares
 - Objets uniques
-- Négociation
+- NÃ©gociation
 
-**Marché Noir :**
-- Produits illégaux
-- Stupéfiants
-- Équipements militaires
+**MarchÃ© Noir :**
+- Produits illÃ©gaux
+- StupÃ©fiants
+- Ã‰quipements militaires
 - Informations sensibles
-- Prix élevés, risques légaux
+- Prix Ã©levÃ©s, risques lÃ©gaux
 
 ---
 
-### Données / Intel
+### DonnÃ©es / Intel
 
 **Informations vendables :**
-- Cartes systèmes
-- Données marchés
+- Cartes systÃ¨mes
+- DonnÃ©es marchÃ©s
 - Routes commerciales
 - Intel militaire
 - Brevets technologiques
 
 **Valeur selon :**
-- Rareté
-- Actualité
-- Utilité stratégique
+- RaretÃ©
+- ActualitÃ©
+- UtilitÃ© stratÃ©gique
 
 ---
 
-## 💡 Opportunités Économiques
+## ğŸ’¡ OpportunitÃ©s Ã‰conomiques
 
 ### Objectif
 
-Créer **monde dynamique** permettant générer opportunités pour joueur.
+CrÃ©er **monde dynamique** permettant gÃ©nÃ©rer opportunitÃ©s pour joueur.
 
-### Types d'Opportunités
+### Types d'OpportunitÃ©s
 
 **Missions :**
 - Transport marchandises
@@ -375,8 +375,8 @@ Créer **monde dynamique** permettant générer opportunités pour joueur.
 - Exploration zones
 
 **Contrats :**
-- Fourniture régulière
-- Exclusivités
+- Fourniture rÃ©guliÃ¨re
+- ExclusivitÃ©s
 - Partenariats
 
 **Alliances :**
@@ -387,73 +387,73 @@ Créer **monde dynamique** permettant générer opportunités pour joueur.
 **Conflits :**
 - Guerres commerciales
 - Blocus
-- Sabotage économique
+- Sabotage Ã©conomique
 
 **Divers :**
-- Chasse à l'homme (bounty)
+- Chasse Ã  l'homme (bounty)
 - Piraterie
 - Escorte
 - Contrebande
 
-→ Créer **action et interaction** entre joueurs
+â†’ CrÃ©er **action et interaction** entre joueurs
 
 ---
 
-## 📈 Dynamique Économique
+## ğŸ“ˆ Dynamique Ã‰conomique
 
 ### Offre et Demande
 
 **Principe :**
-- Prix fluctuent selon disponibilité
+- Prix fluctuent selon disponibilitÃ©
 - Production influence prix
 - Demande influence production
 
 **Exemple :**
 ```
-Fer abundant → Prix bas → Moins de mines
-Fer rare → Prix haut → Plus de mines ouvrent
+Fer abundant â†’ Prix bas â†’ Moins de mines
+Fer rare â†’ Prix haut â†’ Plus de mines ouvrent
 ```
 
 ---
 
-### Événements Économiques
+### Ã‰vÃ©nements Ã‰conomiques
 
-**Pénuries :**
+**PÃ©nuries :**
 - Ressource devient rare
 - Prix explosent
-- Opportunités transport
+- OpportunitÃ©s transport
 
 **Surplus :**
 - Surproduction
 - Prix s'effondrent
-- Opportunités stockage
+- OpportunitÃ©s stockage
 
 **Crises :**
-- Guerre détruit production
-- Routes commerciales coupées
-- Marchés parallèles émergent
+- Guerre dÃ©truit production
+- Routes commerciales coupÃ©es
+- MarchÃ©s parallÃ¨les Ã©mergent
 
 **Booms :**
-- Découverte nouveau gisement
+- DÃ©couverte nouveau gisement
 - Nouvelle technologie
-- Ruée vers ressource
+- RuÃ©e vers ressource
 
 ---
 
-## 🏗️ Investissement et Développement
+## ğŸ�—ï¸� Investissement et DÃ©veloppement
 
 ### Investir dans Bases
 
 **Joueur peut :**
-- Investir crédits dans base
-- Choisir modules à construire
-- Développer production
-- Créer emplois
+- Investir crÃ©dits dans base
+- Choisir modules Ã  construire
+- DÃ©velopper production
+- CrÃ©er emplois
 
 **Retour sur investissement :**
 - Revenus passifs
-- Part des bénéfices
-- Contrôle économique zone
+- Part des bÃ©nÃ©fices
+- ContrÃ´le Ã©conomique zone
 
 ---
 
@@ -461,61 +461,61 @@ Fer rare → Prix haut → Plus de mines ouvrent
 
 **Principe :**
 - Gestion accessible
-- Mais nécessite autres joueurs rapidement
+- Mais nÃ©cessite autres joueurs rapidement
 
 **Actions :**
-- Définir production
+- DÃ©finir production
 - Fixer prix
-- Gérer stocks
+- GÃ©rer stocks
 - Recruter personnel
 
 ---
 
-## 🌐 Économie Globale
+## ğŸŒ� Ã‰conomie Globale
 
-### Réseaux Commerciaux
+### RÃ©seaux Commerciaux
 
-**Routes établies :**
-- Entre grandes cités
+**Routes Ã©tablies :**
+- Entre grandes citÃ©s
 - Hubs commerciaux
 - Prix stables
 
-**Zones frontières :**
+**Zones frontiÃ¨res :**
 - Prix volatils
-- Opportunités risquées
-- Profits potentiels élevés
+- OpportunitÃ©s risquÃ©es
+- Profits potentiels Ã©levÃ©s
 
 ---
 
 ### Guildes Marchandes
 
-**Rôle :**
-- Régulation marchés
+**RÃ´le :**
+- RÃ©gulation marchÃ©s
 - Protection convois
 - Informations commerciales
 - Missions membres
 
 **Avantages membres :**
-- Prix préférentiels
-- Accès données
+- Prix prÃ©fÃ©rentiels
+- AccÃ¨s donnÃ©es
 - Protection
-- Réseau
+- RÃ©seau
 
 ---
 
-## 💭 Idées Futures
+## ğŸ’­ IdÃ©es Futures
 
-**Évolutions possibles :**
+**Ã‰volutions possibles :**
 - Krachs boursiers
 - Monopoles / Cartels joueurs
 - Taxation gouvernementale
-- Contrebande organisée
-- Économie planètes
+- Contrebande organisÃ©e
+- Ã‰conomie planÃ¨tes
 - Monnaies multiples
-- Système bancaire (prêts, intérêts)
+- SystÃ¨me bancaire (prÃªts, intÃ©rÃªts)
 - Assurances cargo
-- Contrats futures (spéculation)
+- Contrats futures (spÃ©culation)
 
 ---
 
-**Document vivant - Dernière mise à jour : 2025-11-01**
+**Document vivant - DerniÃ¨re mise Ã  jour : 2025-11-01**

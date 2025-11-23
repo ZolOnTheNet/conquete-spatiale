@@ -1,0 +1,27 @@
+{
+    "recommendations": [
+        // ===== ESSENTIEL =====
+        "editorconfig.editorconfig",        // Support .editorconfig (encodage, EOL)
+
+        // ===== PHP & LARAVEL =====
+        "bmewburn.vscode-intelephense-client", // IntelliSense PHP
+        "onecentlin.laravel-blade",            // Support Blade Laravel
+        "onecentlin.laravel5-snippets",        // Snippets Laravel
+
+        // ===== MARKDOWN =====
+        "yzhang.markdown-all-in-one",       // Outils Markdown complets
+        "davidanson.vscode-markdownlint",   // Linter Markdown
+
+        // ===== GIT =====
+        "eamodio.gitlens",                  // Git avancé (historique, blame, etc.)
+
+        // ===== QUALITÉ CODE =====
+        "streetsidesoftware.code-spell-checker",           // Correcteur orthographique
+        "streetsidesoftware.code-spell-checker-french",    // Dictionnaire français
+
+        // ===== UTILITAIRES =====
+        "editorconfig.editorconfig",        // Force UTF-8 et LF selon .editorconfig
+        "formulahendry.auto-rename-tag",    // Renommage auto balises HTML/Blade
+        "mikestead.dotenv"                  // Support fichiers .env
+    ]
+}

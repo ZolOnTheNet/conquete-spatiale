@@ -1,18 +1,18 @@
 # Configuration MariaDB Externe
 
-Ce guide explique comment configurer l'application pour utiliser une base MariaDB sur une machine externe en réseau local.
+Ce guide explique comment configurer l'application pour utiliser une base MariaDB sur une machine externe en r√©seau local.
 
-## 📋 Prérequis
+## üìã Pr√©requis
 
-- MariaDB installé sur la machine distante
-- Connexion réseau entre les deux machines
+- MariaDB install√© sur la machine distante
+- Connexion r√©seau entre les deux machines
 - Droits d'administration sur le serveur MariaDB
 
 ---
 
-## 🖥️ Configuration du Serveur MariaDB (Machine Externe)
+## üñ•Ô∏è Configuration du Serveur MariaDB (Machine Externe)
 
-### 1. Installation de MariaDB (si nécessaire)
+### 1. Installation de MariaDB (si n√©cessaire)
 
 **Debian/Ubuntu:**
 ```bash
@@ -22,64 +22,64 @@ sudo systemctl start mariadb
 sudo systemctl enable mariadb
 ```
 
-**Configuration sécurisée:**
+**Configuration s√©curis√©e:**
 ```bash
 sudo mysql_secure_installation
 ```
 
 ### 2. Configurer MariaDB pour accepter les connexions externes
 
-**Éditer le fichier de configuration:**
+**√âditer le fichier de configuration:**
 ```bash
 sudo nano /etc/mysql/mariadb.conf.d/50-server.cnf
 ```
 
 **Modifier la ligne bind-address:**
 ```ini
-# Avant (n'écoute que localhost)
+# Avant (n'√©coute que localhost)
 bind-address = 127.0.0.1
 
-# Après (écoute sur toutes les interfaces)
+# Apr√®s (√©coute sur toutes les interfaces)
 bind-address = 0.0.0.0
 
-# OU spécifier l'IP locale spécifique
-bind-address = 192.168.1.100  # Remplacer par l'IP réelle du serveur
+# OU sp√©cifier l'IP locale sp√©cifique
+bind-address = 192.168.1.100  # Remplacer par l'IP r√©elle du serveur
 ```
 
-**Redémarrer MariaDB:**
+**Red√©marrer MariaDB:**
 ```bash
 sudo systemctl restart mariadb
 ```
 
-### 3. Créer la base de données et l'utilisateur
+### 3. Cr√©er la base de donn√©es et l'utilisateur
 
-**Connexion à MariaDB:**
+**Connexion √† MariaDB:**
 ```bash
 sudo mysql -u root -p
 ```
 
-**Créer la base de données:**
+**Cr√©er la base de donn√©es:**
 ```sql
 CREATE DATABASE conquete_spatiale CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-**Créer un utilisateur pour l'accès distant:**
+**Cr√©er un utilisateur pour l'acc√®s distant:**
 ```sql
--- Remplacer '192.168.1.%' par votre plage réseau
--- Ou '%' pour autoriser toutes les IPs (moins sécurisé)
+-- Remplacer '192.168.1.%' par votre plage r√©seau
+-- Ou '%' pour autoriser toutes les IPs (moins s√©curis√©)
 CREATE USER 'conquete_user'@'192.168.1.%' IDENTIFIED BY 'VotreMotDePasseSecurise123!';
 
--- Accorder tous les privilèges sur la base
+-- Accorder tous les privil√®ges sur la base
 GRANT ALL PRIVILEGES ON conquete_spatiale.* TO 'conquete_user'@'192.168.1.%';
 
 -- Appliquer les changements
 FLUSH PRIVILEGES;
 
--- Vérifier les utilisateurs créés
+-- V√©rifier les utilisateurs cr√©√©s
 SELECT User, Host FROM mysql.user WHERE User = 'conquete_user';
 ```
 
-**Pour un accès depuis n'importe quelle IP (développement uniquement):**
+**Pour un acc√®s depuis n'importe quelle IP (d√©veloppement uniquement):**
 ```sql
 CREATE USER 'conquete_user'@'%' IDENTIFIED BY 'VotreMotDePasseSecurise123!';
 GRANT ALL PRIVILEGES ON conquete_spatiale.* TO 'conquete_user'@'%';
@@ -95,13 +95,13 @@ EXIT;
 
 **Ubuntu/Debian avec UFW:**
 ```bash
-# Autoriser le port MariaDB (3306) depuis votre réseau local
+# Autoriser le port MariaDB (3306) depuis votre r√©seau local
 sudo ufw allow from 192.168.1.0/24 to any port 3306
 
-# OU autoriser depuis une IP spécifique
+# OU autoriser depuis une IP sp√©cifique
 sudo ufw allow from 192.168.1.50 to any port 3306
 
-# Vérifier les règles
+# V√©rifier les r√®gles
 sudo ufw status
 ```
 
@@ -111,28 +111,28 @@ sudo firewall-cmd --permanent --add-port=3306/tcp
 sudo firewall-cmd --reload
 ```
 
-### 5. Vérifier que MariaDB écoute bien
+### 5. V√©rifier que MariaDB √©coute bien
 
 ```bash
-# Vérifier les ports en écoute
+# V√©rifier les ports en √©coute
 sudo netstat -tlnp | grep 3306
 
 # OU avec ss
 sudo ss -tlnp | grep 3306
 
-# Résultat attendu :
+# R√©sultat attendu :
 # tcp  0  0 0.0.0.0:3306  0.0.0.0:*  LISTEN  1234/mariadbd
 ```
 
 ---
 
-## 💻 Configuration de l'Application Laravel (Machine de Développement)
+## üíª Configuration de l'Application Laravel (Machine de D√©veloppement)
 
 ### 1. Tester la connexion au serveur MariaDB
 
-**Depuis votre machine de développement:**
+**Depuis votre machine de d√©veloppement:**
 ```bash
-# Installer le client MySQL/MariaDB si nécessaire
+# Installer le client MySQL/MariaDB si n√©cessaire
 sudo apt install mysql-client  # Ubuntu/Debian
 # ou
 brew install mysql-client      # macOS
@@ -141,13 +141,13 @@ brew install mysql-client      # macOS
 mysql -h 192.168.1.100 -u conquete_user -p
 # Entrer le mot de passe
 
-# Si connexion réussie, vous verrez:
+# Si connexion r√©ussie, vous verrez:
 # MariaDB [(none)]>
 ```
 
 ### 2. Configurer le fichier .env
 
-**Éditer le fichier `.env` du projet Laravel:**
+**√âditer le fichier `.env` du projet Laravel:**
 ```env
 DB_CONNECTION=mysql
 DB_HOST=192.168.1.100          # IP de votre serveur MariaDB
@@ -157,7 +157,7 @@ DB_USERNAME=conquete_user
 DB_PASSWORD=VotreMotDePasseSecurise123!
 ```
 
-### 3. Exécuter les migrations
+### 3. Ex√©cuter les migrations
 
 ```bash
 # Vider le cache de configuration
@@ -166,13 +166,13 @@ php artisan config:clear
 # Tester la connexion
 php artisan db:show
 
-# Exécuter les migrations
+# Ex√©cuter les migrations
 php artisan migrate:fresh --seed --seeder=GameSeeder
 ```
 
 ---
 
-## 🔒 Sécurité - Recommandations
+## üîí S√©curit√© - Recommandations
 
 ### 1. Connexion SSL/TLS (Production)
 
@@ -189,18 +189,18 @@ DB_SSLMODE=require
 MYSQL_ATTR_SSL_CA=/chemin/vers/ca-cert.pem
 ```
 
-### 2. Restrictions réseau
+### 2. Restrictions r√©seau
 
 ```bash
 # Ne jamais utiliser '%' en production
-# Toujours limiter aux IPs nécessaires
+# Toujours limiter aux IPs n√©cessaires
 CREATE USER 'conquete_user'@'192.168.1.50' IDENTIFIED BY 'MotDePasse';
 ```
 
 ### 3. Mot de passe fort
 
 ```bash
-# Générer un mot de passe fort
+# G√©n√©rer un mot de passe fort
 openssl rand -base64 32
 ```
 
@@ -219,11 +219,11 @@ general_log_file = /var/log/mysql/mysql.log
 
 ---
 
-## 🧪 Tests de Connexion
+## üß™ Tests de Connexion
 
 ### Script de test rapide
 
-**Créer un fichier `test-db-connection.php`:**
+**Cr√©er un fichier `test-db-connection.php`:**
 ```php
 <?php
 $host = '192.168.1.100';
@@ -234,65 +234,65 @@ $pass = 'VotreMotDePasseSecurise123!';
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8mb4", $user, $pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    echo "✓ Connexion à MariaDB réussie !\n";
+    echo "‚úì Connexion √† MariaDB r√©ussie !\n";
 
-    // Tester une requête
+    // Tester une requ√™te
     $stmt = $pdo->query("SELECT VERSION()");
     $version = $stmt->fetchColumn();
-    echo "✓ Version MariaDB: $version\n";
+    echo "‚úì Version MariaDB: $version\n";
 
 } catch (PDOException $e) {
-    echo "❌ Erreur de connexion: " . $e->getMessage() . "\n";
+    echo "‚ùå Erreur de connexion: " . $e->getMessage() . "\n";
 }
 ```
 
-**Exécuter:**
+**Ex√©cuter:**
 ```bash
 php test-db-connection.php
 ```
 
 ---
 
-## 🐛 Dépannage
+## üêõ D√©pannage
 
-### Problème: "Connection refused"
+### Probl√®me: "Connection refused"
 
 **Causes possibles:**
-- MariaDB n'écoute pas sur 0.0.0.0
+- MariaDB n'√©coute pas sur 0.0.0.0
 - Pare-feu bloque le port 3306
 - IP incorrecte
 
 **Solutions:**
 ```bash
-# Vérifier bind-address
+# V√©rifier bind-address
 sudo grep bind-address /etc/mysql/mariadb.conf.d/50-server.cnf
 
-# Vérifier le port
+# V√©rifier le port
 sudo netstat -tlnp | grep 3306
 
 # Tester avec telnet
 telnet 192.168.1.100 3306
 ```
 
-### Problème: "Access denied"
+### Probl√®me: "Access denied"
 
 **Causes possibles:**
 - Mauvais utilisateur/mot de passe
-- Host non autorisé dans MariaDB
+- Host non autoris√© dans MariaDB
 
 **Solutions:**
 ```sql
--- Vérifier les utilisateurs autorisés
+-- V√©rifier les utilisateurs autoris√©s
 SELECT User, Host FROM mysql.user;
 
--- Recréer l'utilisateur si nécessaire
+-- Recr√©er l'utilisateur si n√©cessaire
 DROP USER 'conquete_user'@'ancien_host';
 CREATE USER 'conquete_user'@'nouveau_host' IDENTIFIED BY 'MotDePasse';
 GRANT ALL PRIVILEGES ON conquete_spatiale.* TO 'conquete_user'@'nouveau_host';
 FLUSH PRIVILEGES;
 ```
 
-### Problème: "Too many connections"
+### Probl√®me: "Too many connections"
 
 **Solution:**
 ```sql
@@ -307,9 +307,9 @@ max_connections = 200
 
 ---
 
-## 📊 Monitoring
+## üìä Monitoring
 
-### Vérifier les connexions actives
+### V√©rifier les connexions actives
 
 ```sql
 -- Voir les connexions actives
@@ -321,7 +321,7 @@ FROM information_schema.processlist
 GROUP BY user, host;
 ```
 
-### Logs en temps réel
+### Logs en temps r√©el
 
 ```bash
 # Suivre les logs MariaDB
@@ -330,7 +330,7 @@ sudo tail -f /var/log/mysql/error.log
 
 ---
 
-## 🔄 Configuration Exemple Complète
+## üîÑ Configuration Exemple Compl√®te
 
 ### Serveur MariaDB (192.168.1.100)
 

@@ -1,8 +1,8 @@
-# 🔄 Scripts de Synchronisation
+# üîÑ Scripts de Synchronisation
 
 Scripts pour synchroniser automatiquement la branche Claude vers votre branche `dev`.
 
-## 📁 Fichiers
+## üìÅ Fichiers
 
 - `sync-to-dev.sh` - Script Bash (Linux/macOS)
 - `sync-to-dev.ps1` - Script PowerShell (Windows)
@@ -10,12 +10,12 @@ Scripts pour synchroniser automatiquement la branche Claude vers votre branche `
 
 ---
 
-## 🐧 Linux / macOS - Bash
+## üêß Linux / macOS - Bash
 
 ### Utilisation
 
 ```bash
-# Rendre le script exécutable (première fois)
+# Rendre le script ex√©cutable (premi√®re fois)
 chmod +x sync-to-dev.sh
 
 # Lancer la synchronisation
@@ -24,26 +24,26 @@ chmod +x sync-to-dev.sh
 
 ### Ce que fait le script
 
-1. ✅ Vérifie que vous êtes dans un repo Git
-2. ✅ Sauvegarde (stash) vos modifications non commitées
-3. ✅ Récupère les dernières modifications distantes
-4. ✅ Bascule sur la branche `dev`
-5. ✅ Fusionne votre branche Claude dans `dev`
-6. ✅ Push vers `origin/dev`
-7. ✅ Retourne sur votre branche d'origine
-8. ✅ Restaure vos modifications si nécessaire
+1. ‚úÖ V√©rifie que vous √™tes dans un repo Git
+2. ‚úÖ Sauvegarde (stash) vos modifications non commit√©es
+3. ‚úÖ R√©cup√®re les derni√®res modifications distantes
+4. ‚úÖ Bascule sur la branche `dev`
+5. ‚úÖ Fusionne votre branche Claude dans `dev`
+6. ‚úÖ Push vers `origin/dev`
+7. ‚úÖ Retourne sur votre branche d'origine
+8. ‚úÖ Restaure vos modifications si n√©cessaire
 
 ### Gestion automatique
 
-- 🔒 Détecte les modifications non commitées
-- 💾 Propose de les stasher automatiquement
-- ⚠️ Détecte les conflits de fusion
-- 🔄 Propose de retourner sur la branche d'origine
-- 📦 Propose de restaurer le stash
+- üîí D√©tecte les modifications non commit√©es
+- üíæ Propose de les stasher automatiquement
+- ‚ö†Ô∏è D√©tecte les conflits de fusion
+- üîÑ Propose de retourner sur la branche d'origine
+- üì¶ Propose de restaurer le stash
 
 ---
 
-## 🪟 Windows - PowerShell
+## ü™ü Windows - PowerShell
 
 ### Utilisation
 
@@ -57,15 +57,15 @@ chmod +x sync-to-dev.sh
 
 ### Mode Force
 
-Le paramètre `-Force` répond automatiquement "Oui" à toutes les questions :
+Le param√®tre `-Force` r√©pond automatiquement "Oui" √† toutes les questions :
 - Stash automatique des modifications
-- Création automatique de la branche dev
+- Cr√©ation automatique de la branche dev
 - Retour automatique sur la branche d'origine
 - Restauration automatique du stash
 
-### Politique d'exécution
+### Politique d'ex√©cution
 
-Si vous avez une erreur `execution_policy`, exécutez :
+Si vous avez une erreur `execution_policy`, ex√©cutez :
 
 ```powershell
 # Autoriser pour la session actuelle
@@ -77,11 +77,11 @@ Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 
 ---
 
-## 🗄️ Configuration MariaDB Externe
+## üóÑÔ∏è Configuration MariaDB Externe
 
 Voir le fichier `CONFIG_MARIADB.md` pour un guide complet.
 
-### Résumé rapide
+### R√©sum√© rapide
 
 **Sur le serveur MariaDB:**
 ```sql
@@ -114,7 +114,7 @@ DB_PASSWORD=VotreMotDePasse
 
 ---
 
-## 🚨 Dépannage
+## üö® D√©pannage
 
 ### Script Bash : Permission denied
 
@@ -130,10 +130,10 @@ Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 
 ### Git : Conflits de fusion
 
-Si le script détecte des conflits :
+Si le script d√©tecte des conflits :
 
 ```bash
-# Résoudre manuellement les conflits
+# R√©soudre manuellement les conflits
 git add .
 git commit
 git push origin dev
@@ -141,13 +141,13 @@ git push origin dev
 
 ### MariaDB : Connection refused
 
-Vérifiez :
-1. MariaDB écoute sur 0.0.0.0 (bind-address)
+V√©rifiez :
+1. MariaDB √©coute sur 0.0.0.0 (bind-address)
 2. Le pare-feu autorise le port 3306
 3. L'IP est correcte
 
 ```bash
-# Vérifier le port
+# V√©rifier le port
 sudo netstat -tlnp | grep 3306
 
 # Tester la connexion
@@ -156,9 +156,9 @@ telnet 192.168.1.100 3306
 
 ---
 
-## 📝 Workflow Recommandé
+## üìù Workflow Recommand√©
 
-### Développement quotidien
+### D√©veloppement quotidien
 
 ```bash
 # 1. Travailler sur votre branche Claude
@@ -166,23 +166,23 @@ git checkout claude/init-conquete-spatiale-01VxY9SzWwKRZJBY64swHVuf
 
 # 2. Faire vos commits
 git add .
-git commit -m "feat: nouvelle fonctionnalité"
+git commit -m "feat: nouvelle fonctionnalit√©"
 git push
 
 # 3. Synchroniser vers dev
 ./sync-to-dev.sh
 
-# 4. Continuer le développement
+# 4. Continuer le d√©veloppement
 git checkout claude/init-conquete-spatiale-01VxY9SzWwKRZJBY64swHVuf
 ```
 
-### Avant une démo/présentation
+### Avant une d√©mo/pr√©sentation
 
 ```bash
 # Synchroniser tout vers dev
 ./sync-to-dev.sh
 
-# Vérifier que dev est à jour
+# V√©rifier que dev est √† jour
 git checkout dev
 git log --oneline -5
 
@@ -192,32 +192,32 @@ php artisan serve
 
 ---
 
-## 🔐 Sécurité
+## üîê S√©curit√©
 
-### Branches protégées
+### Branches prot√©g√©es
 
-Pour protéger la branche `dev` sur GitHub :
+Pour prot√©ger la branche `dev` sur GitHub :
 
-1. Aller dans Settings → Branches
-2. Ajouter une règle pour `dev`
+1. Aller dans Settings ‚Üí Branches
+2. Ajouter une r√®gle pour `dev`
 3. Cocher :
-   - ✅ Require pull request reviews
-   - ✅ Require status checks to pass
-   - ✅ Include administrators
+   - ‚úÖ Require pull request reviews
+   - ‚úÖ Require status checks to pass
+   - ‚úÖ Include administrators
 
 ### Pas de secrets dans Git
 
 ```bash
-# Vérifier qu'aucun secret n'est tracké
+# V√©rifier qu'aucun secret n'est track√©
 git ls-files | xargs grep -l "password\|secret\|key"
 
-# Le .env ne doit JAMAIS être commité
+# Le .env ne doit JAMAIS √™tre commit√©
 cat .gitignore | grep .env
 ```
 
 ---
 
-## 📚 Ressources
+## üìö Ressources
 
 - [Documentation Laravel](https://laravel.com/docs)
 - [MariaDB Documentation](https://mariadb.org/documentation/)
@@ -225,5 +225,5 @@ cat .gitignore | grep .env
 
 ---
 
-**Créé le :** 2025-11-17
-**Projet :** Conquête Galactique
+**Cr√©√© le :** 2025-11-17
+**Projet :** Conqu√™te Galactique

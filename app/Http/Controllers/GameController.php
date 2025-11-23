@@ -252,8 +252,13 @@ class GameController extends Controller
         $parts = explode(' ', trim($command));
         $action = strtolower($parts[0] ?? '');
 
+        // Détection commandes admin (préfixe /adm)
+        if (str_starts_with($action, '/adm')) {
+            return $this->processAdminCommand($command, $personnage);
+        }
+
         return match ($action) {
-            'help', 'aide' => $this->showHelp(),
+            'help', 'aide' => $this->showHelp($personnage),
             'status', 'statut' => $this->showStatus($personnage),
             'position', 'pos' => $this->showPosition($personnage),
             'vaisseau', 'ship' => $this->showShip($personnage),
@@ -309,11 +314,11 @@ class GameController extends Controller
         };
     }
 
-    private function showHelp(): array
+    private function showHelp(Personnage $personnage): array
     {
-        return [
-            'success' => true,
-            'message' => "
+        $isAdmin = $personnage->compte->is_admin ?? false;
+
+        $help = "
 COMMANDES DISPONIBLES:
   help, aide                  - Afficher cette aide
   status, statut              - Afficher le statut du personnage
@@ -346,8 +351,403 @@ COMBAT:
   equiper, equip [type] [code] [slot] - Equiper arme/bouclier
   etat-combat, combat         - Voir etat combat du vaisseau
   reparer, repair [quantite]  - Reparer la coque
-            ",
+";
+
+        // Ajouter les commandes admin si l'utilisateur est admin
+        if ($isAdmin) {
+            $help .= "
+[ADMIN] COMMANDES D'ADMINISTRATION:
+  /adm scan                   - Scanner avec infos détection avancées
+  /adm mv perso <id> vaisseau <id>     - Placer personnage dans vaisseau
+  /adm mv perso <id> station <id>      - Placer personnage dans station
+  /adm mv vaisseau <id> station <id>   - Amarrer vaisseau à station
+  /adm mv vaisseau <id> <x> <y> <z>    - Téléporter vaisseau (secteur)
+  /adm tp <sx> <sy> <sz>      - Téléporter personnage actuel (saut sans énergie)
+  /adm give pa <quantite>     - Donner des PA au personnage
+  /adm give credits <quantite> - Donner des crédits
+  /adm info perso <id>        - Info détaillée personnage
+  /adm info vaisseau <id>     - Info détaillée vaisseau
+  /adm list persos            - Liste tous les personnages
+  /adm list vaisseaux         - Liste tous les vaisseaux
+";
+        }
+
+        return [
+            'success' => true,
+            'message' => $help,
         ];
+    }
+
+    /**
+     * Traitement des commandes d'administration
+     */
+    private function processAdminCommand(string $command, Personnage $personnage): array
+    {
+        // Vérifier que l'utilisateur est admin
+        if (!$personnage->compte->is_admin) {
+            return [
+                'success' => false,
+                'message' => '[ERREUR] Accès refusé. Commandes /adm réservées aux administrateurs.',
+            ];
+        }
+
+        $parts = preg_split('/\s+/', trim($command));
+        // Retirer le /adm pour analyser la sous-commande
+        array_shift($parts); // Enlève "/adm"
+        $subCommand = strtolower($parts[0] ?? '');
+
+        return match ($subCommand) {
+            'scan' => $this->adminScan($personnage),
+            'mv', 'move' => $this->adminMove($personnage, $parts),
+            'tp', 'teleport' => $this->adminTeleport($personnage, $parts),
+            'give' => $this->adminGive($personnage, $parts),
+            'info' => $this->adminInfo($personnage, $parts),
+            'list' => $this->adminList($personnage, $parts),
+            default => [
+                'success' => false,
+                'message' => "[ADMIN] Sous-commande inconnue: {$subCommand}\nTapez 'help' pour voir les commandes admin.",
+            ],
+        };
+    }
+
+    /**
+     * [ADMIN] Scanner avec informations détaillées sur la détection
+     */
+    private function adminScan(Personnage $personnage): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau || !$vaisseau->objetSpatial) {
+            return ['success' => false, 'message' => '[ERREUR] Aucun vaisseau actif.'];
+        }
+
+        $result = $this->scanSystems($personnage, ['scan']);
+
+        // Ajouter des informations admin supplémentaires
+        $systemes = SystemeStellaire::all();
+        $position = $vaisseau->objetSpatial;
+
+        $adminInfo = "\n\n[ADMIN] INFORMATIONS DÉTECTION:\n";
+        $adminInfo .= "Position actuelle: ({$position->secteur_x}, {$position->secteur_y}, {$position->secteur_z})\n";
+        $adminInfo .= "Systèmes proches de la détection:\n\n";
+
+        foreach ($systemes->take(10) as $systeme) {
+            $distance = sqrt(
+                pow($systeme->secteur_x - $position->secteur_x, 2) +
+                pow($systeme->secteur_y - $position->secteur_y, 2) +
+                pow($systeme->secteur_z - $position->secteur_z, 2)
+            );
+
+            $seuil = $this->calculerSeuilDetection($distance);
+            $dejaDecouvert = Decouverte::where('personnage_id', $personnage->id)
+                ->where('systeme_stellaire_id', $systeme->id)
+                ->exists();
+
+            if (!$dejaDecouvert && $distance < 50) {
+                $adminInfo .= sprintf(
+                    "  %s (%.2f AL) - Seuil: %d - %s\n",
+                    $systeme->nom,
+                    $distance,
+                    $seuil,
+                    $seuil < 100 ? "PROCHE DÉTECTION!" : "Trop loin"
+                );
+            }
+        }
+
+        $result['message'] .= $adminInfo;
+        return $result;
+    }
+
+    /**
+     * [ADMIN] Déplacer objets (personnage, vaisseau)
+     */
+    private function adminMove(Personnage $personnage, array $parts): array
+    {
+        // Format: /adm mv <type> <id> <destination> [<dest_id>|<x> <y> <z>]
+        $type = strtolower($parts[1] ?? '');
+        $id = intval($parts[2] ?? 0);
+        $destination = strtolower($parts[3] ?? '');
+
+        if ($type === 'perso' || $type === 'personnage') {
+            return $this->adminMovePersonnage($id, $destination, array_slice($parts, 4));
+        } elseif ($type === 'vaisseau' || $type === 'ship') {
+            return $this->adminMoveVaisseau($id, $destination, array_slice($parts, 4));
+        }
+
+        return [
+            'success' => false,
+            'message' => "[ADMIN] Usage: /adm mv <perso|vaisseau> <id> <destination> [params]\n" .
+                        "Exemples:\n" .
+                        "  /adm mv perso 1 vaisseau 5\n" .
+                        "  /adm mv perso 1 station 3\n" .
+                        "  /adm mv vaisseau 2 station 3\n" .
+                        "  /adm mv vaisseau 2 10 20 5  (secteur)",
+        ];
+    }
+
+    private function adminMovePersonnage(int $persoId, string $destination, array $params): array
+    {
+        $perso = Personnage::find($persoId);
+        if (!$perso) {
+            return ['success' => false, 'message' => "[ADMIN] Personnage #{$persoId} introuvable."];
+        }
+
+        if ($destination === 'vaisseau' || $destination === 'ship') {
+            $vaisseauId = intval($params[0] ?? 0);
+            $vaisseau = \App\Models\Vaisseau::find($vaisseauId);
+            if (!$vaisseau) {
+                return ['success' => false, 'message' => "[ADMIN] Vaisseau #{$vaisseauId} introuvable."];
+            }
+
+            $perso->dans_vaisseau_id = $vaisseau->id;
+            $perso->dans_station_id = null;
+            $perso->save();
+
+            return [
+                'success' => true,
+                'message' => "[ADMIN] {$perso->nom} placé dans {$vaisseau->nom}.",
+            ];
+        } elseif ($destination === 'station') {
+            $stationId = intval($params[0] ?? 0);
+            $station = \App\Models\Station::find($stationId);
+            if (!$station) {
+                return ['success' => false, 'message' => "[ADMIN] Station #{$stationId} introuvable."];
+            }
+
+            $perso->dans_station_id = $station->id;
+            $perso->dans_vaisseau_id = null;
+            $perso->save();
+
+            return [
+                'success' => true,
+                'message' => "[ADMIN] {$perso->nom} placé dans {$station->nom}.",
+            ];
+        }
+
+        return ['success' => false, 'message' => "[ADMIN] Destination invalide: {$destination}"];
+    }
+
+    private function adminMoveVaisseau(int $vaisseauId, string $destination, array $params): array
+    {
+        $vaisseau = \App\Models\Vaisseau::find($vaisseauId);
+        if (!$vaisseau || !$vaisseau->objetSpatial) {
+            return ['success' => false, 'message' => "[ADMIN] Vaisseau #{$vaisseauId} introuvable."];
+        }
+
+        if ($destination === 'station') {
+            $stationId = intval($params[0] ?? 0);
+            $station = \App\Models\Station::find($stationId);
+            if (!$station) {
+                return ['success' => false, 'message' => "[ADMIN] Station #{$stationId} introuvable."];
+            }
+
+            $vaisseau->amarree_station_id = $station->id;
+            $vaisseau->save();
+
+            // Mettre à jour position objet spatial
+            $systeme = $station->systemeStellaire;
+            $objet = $vaisseau->objetSpatial;
+            $objet->secteur_x = $systeme->secteur_x;
+            $objet->secteur_y = $systeme->secteur_y;
+            $objet->secteur_z = $systeme->secteur_z;
+            $objet->position_x = $systeme->position_x;
+            $objet->position_y = $systeme->position_y;
+            $objet->position_z = $systeme->position_z;
+            $objet->save();
+
+            return [
+                'success' => true,
+                'message' => "[ADMIN] {$vaisseau->nom} amarré à {$station->nom}.",
+            ];
+        } else {
+            // Téléportation vers secteur (x y z)
+            $x = intval($destination);
+            $y = intval($params[0] ?? 0);
+            $z = intval($params[1] ?? 0);
+
+            $objet = $vaisseau->objetSpatial;
+            $objet->secteur_x = $x;
+            $objet->secteur_y = $y;
+            $objet->secteur_z = $z;
+            $objet->save();
+
+            $vaisseau->amarree_station_id = null;
+            $vaisseau->save();
+
+            return [
+                'success' => true,
+                'message' => "[ADMIN] {$vaisseau->nom} téléporté en secteur ({$x}, {$y}, {$z}).",
+            ];
+        }
+    }
+
+    /**
+     * [ADMIN] Téléporter le personnage actuel
+     */
+    private function adminTeleport(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau || !$vaisseau->objetSpatial) {
+            return ['success' => false, 'message' => '[ADMIN] Aucun vaisseau actif.'];
+        }
+
+        $sx = intval($parts[1] ?? 0);
+        $sy = intval($parts[2] ?? 0);
+        $sz = intval($parts[3] ?? 0);
+
+        $objet = $vaisseau->objetSpatial;
+        $objet->secteur_x = $sx;
+        $objet->secteur_y = $sy;
+        $objet->secteur_z = $sz;
+        $objet->save();
+
+        $vaisseau->amarree_station_id = null;
+        $vaisseau->save();
+
+        return [
+            'success' => true,
+            'message' => "[ADMIN] Téléportation vers secteur ({$sx}, {$sy}, {$sz}).\nPas de coût énergétique.",
+        ];
+    }
+
+    /**
+     * [ADMIN] Donner des ressources au personnage
+     */
+    private function adminGive(Personnage $personnage, array $parts): array
+    {
+        $type = strtolower($parts[1] ?? '');
+        $quantite = intval($parts[2] ?? 0);
+
+        if ($quantite <= 0) {
+            return ['success' => false, 'message' => '[ADMIN] Quantité invalide.'];
+        }
+
+        if ($type === 'pa') {
+            $personnage->points_action = min(
+                $personnage->points_action + $quantite,
+                $personnage->max_points_action
+            );
+            $personnage->save();
+
+            return [
+                'success' => true,
+                'message' => "[ADMIN] +{$quantite} PA donnés. Total: {$personnage->points_action}/{$personnage->max_points_action}",
+            ];
+        } elseif ($type === 'credits' || $type === 'argent') {
+            // TODO: Ajouter système de crédits au personnage
+            return [
+                'success' => false,
+                'message' => '[ADMIN] Système de crédits pas encore implémenté.',
+            ];
+        }
+
+        return [
+            'success' => false,
+            'message' => "[ADMIN] Type invalide: {$type}\nTypes disponibles: pa, credits",
+        ];
+    }
+
+    /**
+     * [ADMIN] Informations détaillées
+     */
+    private function adminInfo(Personnage $personnage, array $parts): array
+    {
+        $type = strtolower($parts[1] ?? '');
+        $id = intval($parts[2] ?? 0);
+
+        if ($type === 'perso' || $type === 'personnage') {
+            $perso = Personnage::with(['compte', 'vaisseauActif'])->find($id);
+            if (!$perso) {
+                return ['success' => false, 'message' => "[ADMIN] Personnage #{$id} introuvable."];
+            }
+
+            $msg = "[ADMIN] PERSONNAGE #{$perso->id}\n";
+            $msg .= "Nom: {$perso->nom} {$perso->prenom}\n";
+            $msg .= "Compte: {$perso->compte->adresse_mail} (ID: {$perso->compte_id})\n";
+            $msg .= "Niveau: {$perso->niveau} | XP: {$perso->experience}\n";
+            $msg .= "PA: {$perso->points_action}/{$perso->max_points_action}\n";
+            $msg .= "Vaisseau actif: " . ($perso->vaisseauActif ? "{$perso->vaisseauActif->nom} (ID: {$perso->vaisseau_actif_id})" : "Aucun") . "\n";
+            $msg .= "Dans station: " . ($perso->dans_station_id ?? 'Non') . "\n";
+            $msg .= "Dans vaisseau: " . ($perso->dans_vaisseau_id ?? 'Non') . "\n";
+
+            return ['success' => true, 'message' => $msg];
+        } elseif ($type === 'vaisseau' || $type === 'ship') {
+            $vaisseau = \App\Models\Vaisseau::with(['proprietaire', 'objetSpatial'])->find($id);
+            if (!$vaisseau) {
+                return ['success' => false, 'message' => "[ADMIN] Vaisseau #{$id} introuvable."];
+            }
+
+            $msg = "[ADMIN] VAISSEAU #{$vaisseau->id}\n";
+            $msg .= "Nom: {$vaisseau->nom}\n";
+            $msg .= "Modèle: {$vaisseau->modele}\n";
+            $msg .= "Propriétaire: " . ($vaisseau->proprietaire ? "{$vaisseau->proprietaire->nom} (ID: {$vaisseau->proprietaire_id})" : "Aucun") . "\n";
+            if ($vaisseau->objetSpatial) {
+                $obj = $vaisseau->objetSpatial;
+                $msg .= "Position: Secteur ({$obj->secteur_x}, {$obj->secteur_y}, {$obj->secteur_z})\n";
+                $msg .= "          Absolue ({$obj->position_x}, {$obj->position_y}, {$obj->position_z})\n";
+            }
+            $msg .= "Amarré: " . ($vaisseau->amarree_station_id ? "Station #{$vaisseau->amarree_station_id}" : "Non") . "\n";
+
+            return ['success' => true, 'message' => $msg];
+        }
+
+        return [
+            'success' => false,
+            'message' => "[ADMIN] Usage: /adm info <perso|vaisseau> <id>",
+        ];
+    }
+
+    /**
+     * [ADMIN] Lister objets
+     */
+    private function adminList(Personnage $personnage, array $parts): array
+    {
+        $type = strtolower($parts[1] ?? '');
+
+        if ($type === 'persos' || $type === 'personnages') {
+            $persos = Personnage::with('compte')->orderBy('id')->get();
+
+            $msg = "[ADMIN] LISTE DES PERSONNAGES (" . $persos->count() . "):\n\n";
+            foreach ($persos as $p) {
+                $msg .= sprintf(
+                    "ID %d: %s %s (Compte: %s) - Niveau %d\n",
+                    $p->id,
+                    $p->nom,
+                    $p->prenom ?? '',
+                    $p->compte->adresse_mail ?? 'N/A',
+                    $p->niveau
+                );
+            }
+
+            return ['success' => true, 'message' => $msg];
+        } elseif ($type === 'vaisseaux' || $type === 'ships') {
+            $vaisseaux = \App\Models\Vaisseau::with('proprietaire')->orderBy('id')->get();
+
+            $msg = "[ADMIN] LISTE DES VAISSEAUX (" . $vaisseaux->count() . "):\n\n";
+            foreach ($vaisseaux as $v) {
+                $msg .= sprintf(
+                    "ID %d: %s (%s) - Propriétaire: %s\n",
+                    $v->id,
+                    $v->nom,
+                    $v->modele,
+                    $v->proprietaire ? $v->proprietaire->nom : 'Aucun'
+                );
+            }
+
+            return ['success' => true, 'message' => $msg];
+        }
+
+        return [
+            'success' => false,
+            'message' => "[ADMIN] Usage: /adm list <persos|vaisseaux>",
+        ];
+    }
+
+    /**
+     * Calculer le seuil de détection selon la distance (pour admin scan)
+     */
+    private function calculerSeuilDetection(float $distance): int
+    {
+        return intval(max(10, min(100, $distance * 2)));
     }
 
     private function showStatus(Personnage $personnage): array

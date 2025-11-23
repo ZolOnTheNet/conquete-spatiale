@@ -1,122 +1,122 @@
-# 📋 RÉCAPITULATIF SESSION - 2025-11-01
-## Intégration Wiki Complète + Corrections
+# ğŸ“‹ RÃ‰CAPITULATIF SESSION - 2025-11-01
+## IntÃ©gration Wiki ComplÃ¨te + Corrections
 
 ---
 
-## ✅ PHASE 1 : INTÉGRATION WIKI
+## âœ… PHASE 1 : INTÃ‰GRATION WIKI
 
-### Documents Créés (5)
+### Documents CrÃ©Ã©s (5)
 
 1. **GDD_Vaisseaux_Complet.md** (11 KB)
-   - 12 Emplacements détaillés
-   - Système soute (3 niveaux)
+   - 12 Emplacements dÃ©taillÃ©s
+   - SystÃ¨me soute (3 niveaux)
    - 2 types propulsion + formules
-   - Modèles A-0, A-1, M, E, F
+   - ModÃ¨les A-0, A-1, M, E, F
 
 2. **GDD_Bases_Spatiales.md** (8.6 KB)
-   - L'Arche (module maître)
+   - L'Arche (module maÃ®tre)
    - 13 modules spatiaux
-   - Système gestionnaire
+   - SystÃ¨me gestionnaire
 
 3. **GDD_Univers_Generation.md** (11 KB)
-   - Moteur générique multi-univers
-   - 2 générateurs (Simple, À chemins)
-   - Classification étoiles + Courbe Gauss
+   - Moteur gÃ©nÃ©rique multi-univers
+   - 2 gÃ©nÃ©rateurs (Simple, Ã€ chemins)
+   - Classification Ã©toiles + Courbe Gauss
 
 4. **GDD_Economie_Complete.md** (8.6 KB)
-   - 21 matières premières
-   - Chaîne transformation
-   - 3 types médicaments
+   - 21 matiÃ¨res premiÃ¨res
+   - ChaÃ®ne transformation
+   - 3 types mÃ©dicaments
 
 5. **GDD_Architecture_Technique.md** (17 KB)
    - Pattern MVC
-   - Classes OOP complètes
+   - Classes OOP complÃ¨tes
    - Tables SQL
 
 ---
 
-## ✅ PHASE 2 : CORRECTIONS IMPORTANTES
+## âœ… PHASE 2 : CORRECTIONS IMPORTANTES
 
-### Documents Créés (2)
+### Documents CrÃ©Ã©s (2)
 
 6. **GDD_Systeme_Decouverte.md** (8 KB)
-   - Algorithme découverte systèmes
-   - Formules complètes
-   - Basé sur puissance solaire
+   - Algorithme dÃ©couverte systÃ¨mes
+   - Formules complÃ¨tes
+   - BasÃ© sur puissance solaire
 
 7. **CORRECTIONS_IMPORTANTES.md** (7 KB)
    - 5 corrections majeures
    - Principe PJ (pas vaisseau)
    - Module MicroHE
-   - Coordonnées secteur+position
-   - Tâches de traitement
+   - CoordonnÃ©es secteur+position
+   - TÃ¢ches de traitement
 
-### Document Mis à Jour
+### Document Mis Ã  Jour
 
-- **GDD_Central.md** : Section corrections ajoutée
+- **GDD_Central.md** : Section corrections ajoutÃ©e
 
 ---
 
-## 📊 CORRECTIONS DÉTAILLÉES
+## ğŸ“Š CORRECTIONS DÃ‰TAILLÃ‰ES
 
 ### 1. Principe Personnage Joueur
 
-**❌ AVANT :**
+**â�Œ AVANT :**
 ```
 Joueur = Vaisseau actif
 ```
 
-**✅ APRÈS :**
+**âœ… APRÃˆS :**
 ```
 Joueur (Compte)
-└─ PJ Principal (actif)
-   └─ Vaisseau actif
-└─ PJ Secondaires
-   └─ Vaisseaux possédés
+â””â”€ PJ Principal (actif)
+   â””â”€ Vaisseau actif
+â””â”€ PJ Secondaires
+   â””â”€ Vaisseaux possÃ©dÃ©s
 ```
 
 **Impact :**
-- Flexibilité gameplay
-- Multi-archétypes possible
-- Jeu social amélioré
+- FlexibilitÃ© gameplay
+- Multi-archÃ©types possible
+- Jeu social amÃ©liorÃ©
 
 ---
 
 ### 2. Module MicroHE
 
-**Nouveau système propulsion :**
-- Petits sauts intra-système
-- Portée : 0.1-2 UA
+**Nouveau systÃ¨me propulsion :**
+- Petits sauts intra-systÃ¨me
+- PortÃ©e : 0.1-2 UA
 - Entre conventionnel et HE
 
 **Usage :**
 ```
-Arrivée système (30 UA du centre)
-├─ Option 1 : Conventionnel (10-15 PA)
-├─ Option 2 : MicroHE (3-5 PA) ← NOUVEAU
-└─ Option 3 : Rester périphérie
+ArrivÃ©e systÃ¨me (30 UA du centre)
+â”œâ”€ Option 1 : Conventionnel (10-15 PA)
+â”œâ”€ Option 2 : MicroHE (3-5 PA) â†� NOUVEAU
+â””â”€ Option 3 : Rester pÃ©riphÃ©rie
 ```
 
-**À étudier ultérieurement.**
+**Ã€ Ã©tudier ultÃ©rieurement.**
 
 ---
 
-### 3. Système Coordonnées
+### 3. SystÃ¨me CoordonnÃ©es
 
-**Structure hiérarchique :**
+**Structure hiÃ©rarchique :**
 
 ```
 SECTEUR (entier)
-├─ (150, -23, 88) ← Zone de l'espace
-│
-└─ POSITION (décimale)
-   └─ (150.12, -23.14, 88.1) ← Position précise
+â”œâ”€ (150, -23, 88) â†� Zone de l'espace
+â”‚
+â””â”€ POSITION (dÃ©cimale)
+   â””â”€ (150.12, -23.14, 88.1) â†� Position prÃ©cise
 ```
 
 **Avantages :**
 - Performance (index sur secteur)
-- Précision (calculs exacts)
-- Génération procédurale simplifiée
+- PrÃ©cision (calculs exacts)
+- GÃ©nÃ©ration procÃ©durale simplifiÃ©e
 
 **SQL :**
 ```sql
@@ -126,172 +126,172 @@ position_x DECIMAL(10,3), position_y DECIMAL(10,3), position_z DECIMAL(10,3)
 
 ---
 
-### 4. Tâches de Traitement
+### 4. TÃ¢ches de Traitement
 
-**Système asynchrone :**
+**SystÃ¨me asynchrone :**
 - Automatique (moteur)
-- Semi-automatique (lancé par joueur)
-- Joueur (nécessite action)
+- Semi-automatique (lancÃ© par joueur)
+- Joueur (nÃ©cessite action)
 
 **Exemples :**
 - Production usine (auto)
-- Réparation (semi-auto)
+- RÃ©paration (semi-auto)
 - Combat (joueur)
 
-**À détailler ultérieurement.**
+**Ã€ dÃ©tailler ultÃ©rieurement.**
 
 ---
 
-### 5. Système Découverte
+### 5. SystÃ¨me DÃ©couverte
 
 **Algorithme complet :**
 
 ```
-Seuil = 500 + (Distance × 100)
-Points initiaux = PSol + (6 - Distance) × 10
-Lancé/PA = (SysExpl) D (2 × PSol)
+Seuil = 500 + (Distance Ã— 100)
+Points initiaux = PSol + (6 - Distance) Ã— 10
+LancÃ©/PA = (SysExpl) D (2 Ã— PSol)
 ```
 
 **Principe :**
-- Accumulation points de tâche
-- Quand atteint seuil → découverte
-- Plus on cherche → plus on trouve
+- Accumulation points de tÃ¢che
+- Quand atteint seuil â†’ dÃ©couverte
+- Plus on cherche â†’ plus on trouve
 
 **Exemple :**
 ```
 PSol = 50, Distance = 4.245, SysExpl = 1
 Seuil = 925
 Points initiaux = 68
-Lancé/PA = 1D100
+LancÃ©/PA = 1D100
 Estimation = 17 PA
 ```
 
 ---
 
-## 📁 STRUCTURE FINALE DOCUMENTATION
+## ğŸ“� STRUCTURE FINALE DOCUMENTATION
 
 ```
-📚 Documentation Complète (17 fichiers, ~200 KB)
+ğŸ“š Documentation ComplÃ¨te (17 fichiers, ~200 KB)
 
 INDEX PRINCIPAL
-├─ GDD_Central.md ⭐ (avec section corrections)
-├─ GUIDE_DEMARRAGE.md
-└─ README_GDD.md
+â”œâ”€ GDD_Central.md â­� (avec section corrections)
+â”œâ”€ GUIDE_DEMARRAGE.md
+â””â”€ README_GDD.md
 
-RÉFÉRENCE EXHAUSTIVE
-└─ GDD_Conquete_Galactique.md (60 KB)
+RÃ‰FÃ‰RENCE EXHAUSTIVE
+â””â”€ GDD_Conquete_Galactique.md (60 KB)
 
-DOCUMENTS THÉMATIQUES (Wiki)
-├─ GDD_Combat_Detaille.md
-├─ GDD_Vaisseaux_Complet.md ✨
-├─ GDD_Bases_Spatiales.md ✨
-├─ GDD_Univers_Generation.md ✨
-├─ GDD_Economie_Complete.md ✨
-├─ GDD_Architecture_Technique.md ✨
-├─ GDD_Systeme_Decouverte.md ✨ NOUVEAU
-├─ GDD_Univers_Conquete_Spatiale.md
-└─ GDD_Interface.md
+DOCUMENTS THÃ‰MATIQUES (Wiki)
+â”œâ”€ GDD_Combat_Detaille.md
+â”œâ”€ GDD_Vaisseaux_Complet.md âœ¨
+â”œâ”€ GDD_Bases_Spatiales.md âœ¨
+â”œâ”€ GDD_Univers_Generation.md âœ¨
+â”œâ”€ GDD_Economie_Complete.md âœ¨
+â”œâ”€ GDD_Architecture_Technique.md âœ¨
+â”œâ”€ GDD_Systeme_Decouverte.md âœ¨ NOUVEAU
+â”œâ”€ GDD_Univers_Conquete_Spatiale.md
+â””â”€ GDD_Interface.md
 
-CORRECTIONS & INTÉGRATION
-├─ CORRECTIONS_IMPORTANTES.md ✨ NOUVEAU
-├─ INTEGRATION_COMPLETE.md
-└─ INTEGRATION_WIKI.md
+CORRECTIONS & INTÃ‰GRATION
+â”œâ”€ CORRECTIONS_IMPORTANTES.md âœ¨ NOUVEAU
+â”œâ”€ INTEGRATION_COMPLETE.md
+â””â”€ INTEGRATION_WIKI.md
 ```
 
 ---
 
-## 📦 FICHIERS DANS /mnt/project/
+## ğŸ“¦ FICHIERS DANS /mnt/project/
 
-**✅ Tous les fichiers sont copiés dans la zone de documents du projet.**
+**âœ… Tous les fichiers sont copiÃ©s dans la zone de documents du projet.**
 
 Total : **17 fichiers markdown**
 
 ---
 
-## 🎯 POINTS CLÉS VALIDÉS
+## ğŸ�¯ POINTS CLÃ‰S VALIDÃ‰S
 
-### Intégration Wiki
-✓ Vaisseaux (12 emplacements, formules exactes)  
-✓ Bases spatiales (Arche + 13 modules)  
-✓ Univers (générateurs + classifications)  
-✓ Économie (21 ressources + chaîne complète)  
-✓ Architecture (classes OOP + SQL)  
+### IntÃ©gration Wiki
+âœ“ Vaisseaux (12 emplacements, formules exactes)  
+âœ“ Bases spatiales (Arche + 13 modules)  
+âœ“ Univers (gÃ©nÃ©rateurs + classifications)  
+âœ“ Ã‰conomie (21 ressources + chaÃ®ne complÃ¨te)  
+âœ“ Architecture (classes OOP + SQL)  
 
 ### Corrections Importantes
-✓ PJ ≠ Vaisseau (PJ pilote vaisseau)  
-✓ PJ secondaires possibles  
-✓ Module MicroHE défini  
-✓ Coordonnées secteur + position  
-✓ Tâches de traitement conceptualisé  
-✓ Système découverte algorithmique  
+âœ“ PJ â‰  Vaisseau (PJ pilote vaisseau)  
+âœ“ PJ secondaires possibles  
+âœ“ Module MicroHE dÃ©fini  
+âœ“ CoordonnÃ©es secteur + position  
+âœ“ TÃ¢ches de traitement conceptualisÃ©  
+âœ“ SystÃ¨me dÃ©couverte algorithmique  
 
 ---
 
-## 🔜 PROCHAINES ÉTAPES
+## ğŸ”œ PROCHAINES Ã‰TAPES
 
-### Immédiat
+### ImmÃ©diat
 - [ ] Relire documents avec corrections
 - [ ] Valider concepts
 
 ### Court Terme
-- [ ] Étudier en détail MicroHE
-- [ ] Spécifier système tâches
-- [ ] Implémenter coordonnées SQL
-- [ ] Tester algorithme découverte
+- [ ] Ã‰tudier en dÃ©tail MicroHE
+- [ ] SpÃ©cifier systÃ¨me tÃ¢ches
+- [ ] ImplÃ©menter coordonnÃ©es SQL
+- [ ] Tester algorithme dÃ©couverte
 
 ### Moyen Terme
-- [ ] Équilibrer valeurs MicroHE
-- [ ] Interface gestion tâches
-- [ ] Tests performance coordonnées
-- [ ] Compléter modèles vaisseaux (M, E, F)
+- [ ] Ã‰quilibrer valeurs MicroHE
+- [ ] Interface gestion tÃ¢ches
+- [ ] Tests performance coordonnÃ©es
+- [ ] ComplÃ©ter modÃ¨les vaisseaux (M, E, F)
 
 ### Long Terme
-- [ ] Développer autres cités spatiales
-- [ ] Définir toutes les factions
-- [ ] Créer wireframes interface
-- [ ] Commencer implémentation
+- [ ] DÃ©velopper autres citÃ©s spatiales
+- [ ] DÃ©finir toutes les factions
+- [ ] CrÃ©er wireframes interface
+- [ ] Commencer implÃ©mentation
 
 ---
 
-## 📝 NOTES SESSION
+## ğŸ“� NOTES SESSION
 
-**Durée :** Session complète intégration + corrections
+**DurÃ©e :** Session complÃ¨te intÃ©gration + corrections
 
-**Méthodologie :**
-1. Écoute complète du wiki fourni
-2. Intégration sans invention
+**MÃ©thodologie :**
+1. Ã‰coute complÃ¨te du wiki fourni
+2. IntÃ©gration sans invention
 3. Conservation valeurs exactes
 4. Correction suite retours utilisateur
 5. Clarifications conceptuelles
 
-**Qualité :**
-- Aucune donnée inventée
+**QualitÃ© :**
+- Aucune donnÃ©e inventÃ©e
 - Tout vient du wiki ou des corrections utilisateur
-- Documentation structurée et navigable
-- Prête pour développement
+- Documentation structurÃ©e et navigable
+- PrÃªte pour dÃ©veloppement
 
 ---
 
-## ✅ VALIDATION
+## âœ… VALIDATION
 
 **Documentation :**
-- [x] Complète
-- [x] Structurée
+- [x] ComplÃ¨te
+- [x] StructurÃ©e
 - [x] Navigable
-- [x] Corrigée
+- [x] CorrigÃ©e
 
 **Concepts :**
-- [x] PJ vs Vaisseau clarifié
-- [x] MicroHE défini
-- [x] Coordonnées spécifiées
-- [x] Découverte algorithmisée
+- [x] PJ vs Vaisseau clarifiÃ©
+- [x] MicroHE dÃ©fini
+- [x] CoordonnÃ©es spÃ©cifiÃ©es
+- [x] DÃ©couverte algorithmisÃ©e
 
 **Fichiers :**
 - [x] Tous dans /mnt/user-data/outputs/
 - [x] Tous dans /mnt/project/
-- [x] Index central à jour
+- [x] Index central Ã  jour
 
 ---
 
-**Session terminée : 2025-11-01**
-**Statut : COMPLET ✅**
+**Session terminÃ©e : 2025-11-01**
+**Statut : COMPLET âœ…**

@@ -1,37 +1,37 @@
 # Guide d'Installation - Windows 11
 
-Ce guide vous permettra de configurer rapidement votre environnement de développement sur Windows 11 pour travailler sur le projet "Conquête Spatiale".
+Ce guide vous permettra de configurer rapidement votre environnement de d√©veloppement sur Windows 11 pour travailler sur le projet "Conqu√™te Spatiale".
 
-## Prérequis
+## Pr√©requis
 
 ### 1. Installer PHP 8.2+
 
-> **Note importante** : XAMPP pour Windows s'arrête actuellement à **PHP 8.2.12** - ce qui est **parfait pour Laravel 12** ! Si vous voulez absolument PHP 8.3, utilisez l'installation standalone (Option B).
+> **Note importante** : XAMPP pour Windows s'arr√™te actuellement √† **PHP 8.2.12** - ce qui est **parfait pour Laravel 12** ! Si vous voulez absolument PHP 8.3, utilisez l'installation standalone (Option B).
 
-**Option A : Via XAMPP (Recommandé pour débutants - Simple et Complet)**
-1. Télécharger XAMPP : https://www.apachefriends.org/fr/download.html
-2. **Installer XAMPP avec PHP 8.2.12** (dernière version Windows disponible)
+**Option A : Via XAMPP (Recommand√© pour d√©butants - Simple et Complet)**
+1. T√©l√©charger XAMPP : https://www.apachefriends.org/fr/download.html
+2. **Installer XAMPP avec PHP 8.2.12** (derni√®re version Windows disponible)
 3. Ajouter PHP au PATH :
-   - Ouvrir les "Variables d'environnement système"
+   - Ouvrir les "Variables d'environnement syst√®me"
    - Modifier la variable `Path`
    - Ajouter : `C:\xampp\php`
 
-> ✅ **XAMPP 8.2.12 est parfaitement adapté pour Laravel 12 !**
+> ‚úÖ **XAMPP 8.2.12 est parfaitement adapt√© pour Laravel 12 !**
 
-**Option B : Via PHP 8.3 standalone (Pour avoir la toute dernière version)**
+**Option B : Via PHP 8.3 standalone (Pour avoir la toute derni√®re version)**
 
-📘 **Guide complet** : [INSTALLATION_PHP_WINDOWS.md](INSTALLATION_PHP_WINDOWS.md)
+üìò **Guide complet** : [INSTALLATION_PHP_WINDOWS.md](INSTALLATION_PHP_WINDOWS.md)
 
-**Lien direct - PHP 8.3.15 pour Windows (Non Thread Safe - recommandé pour Laravel)** :
+**Lien direct - PHP 8.3.15 pour Windows (Non Thread Safe - recommand√© pour Laravel)** :
 ```
 https://windows.php.net/downloads/releases/php-8.3.15-nts-Win32-vs16-x64.zip
 ```
 
 Installation rapide :
-1. Télécharger le ZIP ci-dessus
+1. T√©l√©charger le ZIP ci-dessus
 2. Extraire dans `C:\php`
 3. Copier `php.ini-development` vers `php.ini`
-4. Activer les extensions nécessaires dans `php.ini` :
+4. Activer les extensions n√©cessaires dans `php.ini` :
    ```ini
    extension=curl
    extension=fileinfo
@@ -42,43 +42,43 @@ Installation rapide :
    extension=sqlite3
    extension=zip
    ```
-5. Ajouter `C:\php` au PATH système
+5. Ajouter `C:\php` au PATH syst√®me
 
-> 📖 Pour les détails complets, consultez [INSTALLATION_PHP_WINDOWS.md](INSTALLATION_PHP_WINDOWS.md)
+> üìñ Pour les d√©tails complets, consultez [INSTALLATION_PHP_WINDOWS.md](INSTALLATION_PHP_WINDOWS.md)
 
-**Vérification :**
+**V√©rification :**
 ```bash
 php -v
 ```
-Vous devriez voir PHP 8.2.x ou supérieur.
+Vous devriez voir PHP 8.2.x ou sup√©rieur.
 
 ### 2. Installer Composer
 
-1. Télécharger : https://getcomposer.org/Composer-Setup.exe
-2. Exécuter l'installeur (il détectera automatiquement PHP)
-3. Redémarrer le terminal
+1. T√©l√©charger : https://getcomposer.org/Composer-Setup.exe
+2. Ex√©cuter l'installeur (il d√©tectera automatiquement PHP)
+3. Red√©marrer le terminal
 
-**Vérification :**
+**V√©rification :**
 ```bash
 composer --version
 ```
 
 ### 3. Installer Node.js
 
-1. Télécharger la version LTS : https://nodejs.org/
-2. Installer avec les options par défaut
-3. Redémarrer le terminal
+1. T√©l√©charger la version LTS : https://nodejs.org/
+2. Installer avec les options par d√©faut
+3. Red√©marrer le terminal
 
-**Vérification :**
+**V√©rification :**
 ```bash
 node -v
 npm -v
 ```
 
-### 4. Installer Git (si pas déjà installé)
+### 4. Installer Git (si pas d√©j√† install√©)
 
-1. Télécharger : https://git-scm.com/download/win
-2. Installer avec les options par défaut
+1. T√©l√©charger : https://git-scm.com/download/win
+2. Installer avec les options par d√©faut
 3. Configurer Git :
    ```bash
    git config --global user.name "Votre Nom"
@@ -97,7 +97,7 @@ cd C:\Users\VotreNom\Documents\Projets
 git clone https://github.com/ZolOnTheNet/conquete-spatiale.git
 cd conquete-spatiale
 
-# Se placer sur la branche de développement
+# Se placer sur la branche de d√©veloppement
 git checkout claude/setup-windows-dev-01ALQ5gscjmMzXQXmaL42LNo
 ```
 
@@ -112,22 +112,22 @@ git checkout claude/setup-windows-dev-01ALQ5gscjmMzXQXmaL42LNo
 **OU Installation manuelle :**
 
 ```bash
-# Installer les dépendances PHP
+# Installer les d√©pendances PHP
 composer install
 
 # Copier le fichier d'environnement
 copy .env.example .env
 
-# Générer la clé d'application
+# G√©n√©rer la cl√© d'application
 php artisan key:generate
 
-# Créer la base de données SQLite
+# Cr√©er la base de donn√©es SQLite
 type nul > database\database.sqlite
 
-# Exécuter les migrations
+# Ex√©cuter les migrations
 php artisan migrate
 
-# Installer les dépendances Node.js
+# Installer les d√©pendances Node.js
 npm install
 
 # Compiler les assets
@@ -136,9 +136,9 @@ npm run build
 
 ## Lancement du Projet
 
-### Option 1 : Lancement automatique (Recommandé)
+### Option 1 : Lancement automatique (Recommand√©)
 
-Utiliser le script batch pour démarrer tous les services :
+Utiliser le script batch pour d√©marrer tous les services :
 
 ```bash
 .\scripts\start-dev.bat
@@ -147,7 +147,7 @@ Utiliser le script batch pour démarrer tous les services :
 Ce script lance :
 - Le serveur Laravel (http://localhost:8000)
 - Le worker de queue
-- Les logs en temps réel
+- Les logs en temps r√©el
 - Vite pour le hot-reload des assets
 
 ### Option 2 : Lancement manuel
@@ -175,9 +175,9 @@ composer dev
 
 ## Commandes Utiles
 
-### Développement
+### D√©veloppement
 ```bash
-# Lancer le serveur de développement
+# Lancer le serveur de d√©veloppement
 php artisan serve
 
 # Lancer Vite pour le hot-reload
@@ -186,18 +186,18 @@ npm run dev
 # Compiler les assets pour production
 npm run build
 
-# Exécuter les tests
+# Ex√©cuter les tests
 composer test
 # ou
 php artisan test
 ```
 
-### Base de données
+### Base de donn√©es
 ```bash
-# Exécuter les migrations
+# Ex√©cuter les migrations
 php artisan migrate
 
-# Réinitialiser la base de données
+# R√©initialiser la base de donn√©es
 php artisan migrate:fresh
 
 # Avec seeders
@@ -218,10 +218,10 @@ php artisan view:clear
 
 ### Git
 ```bash
-# Récupérer les dernières modifications
+# R√©cup√©rer les derni√®res modifications
 git pull origin claude/setup-windows-dev-01ALQ5gscjmMzXQXmaL42LNo
 
-# Voir l'état des fichiers
+# Voir l'√©tat des fichiers
 git status
 
 # Commit et push
@@ -232,69 +232,69 @@ git push -u origin claude/setup-windows-dev-01ALQ5gscjmMzXQXmaL42LNo
 
 ## Synchronisation entre Ubuntu et Windows
 
-Pour travailler de manière fluide entre les deux systèmes :
+Pour travailler de mani√®re fluide entre les deux syst√®mes :
 
 ### 1. Toujours Pull avant de travailler
 ```bash
 git pull
 ```
 
-### 2. Commit régulièrement
+### 2. Commit r√©guli√®rement
 ```bash
 git add .
 git commit -m "Description claire"
 git push
 ```
 
-### 3. Fichiers à ne pas commiter
+### 3. Fichiers √† ne pas commiter
 
-Le fichier `.gitignore` gère déjà cela, mais vérifiez que ces fichiers ne sont jamais commités :
+Le fichier `.gitignore` g√®re d√©j√† cela, mais v√©rifiez que ces fichiers ne sont jamais commit√©s :
 - `.env` (configuration locale)
 - `node_modules/`
 - `vendor/`
 - `database/database.sqlite`
 
-### 4. Après un Pull sur Windows
+### 4. Apr√®s un Pull sur Windows
 
 Si vous pullez des modifications depuis Ubuntu :
 ```bash
-# Mettre à jour les dépendances si composer.json a changé
+# Mettre √† jour les d√©pendances si composer.json a chang√©
 composer install
 
-# Mettre à jour les dépendances Node si package.json a changé
+# Mettre √† jour les d√©pendances Node si package.json a chang√©
 npm install
 
-# Exécuter les nouvelles migrations si nécessaire
+# Ex√©cuter les nouvelles migrations si n√©cessaire
 php artisan migrate
 ```
 
-## Résolution des Problèmes Courants
+## R√©solution des Probl√®mes Courants
 
 ### PHP n'est pas reconnu
-- Vérifier que PHP est bien dans le PATH système
-- Redémarrer le terminal/PowerShell
+- V√©rifier que PHP est bien dans le PATH syst√®me
+- Red√©marrer le terminal/PowerShell
 
 ### Extension PHP manquante
 - Ouvrir `php.ini`
-- Décommenter (retirer le `;`) devant l'extension nécessaire
-- Exemple : `;extension=pdo_sqlite` → `extension=pdo_sqlite`
-- Redémarrer le serveur
+- D√©commenter (retirer le `;`) devant l'extension n√©cessaire
+- Exemple : `;extension=pdo_sqlite` ‚Üí `extension=pdo_sqlite`
+- Red√©marrer le serveur
 
-### Port 8000 déjà utilisé
+### Port 8000 d√©j√† utilis√©
 ```bash
 # Utiliser un autre port
 php artisan serve --port=8001
 ```
 
-### Problèmes de permissions
-Sous Windows, exécuter PowerShell/CMD en tant qu'Administrateur si nécessaire.
+### Probl√®mes de permissions
+Sous Windows, ex√©cuter PowerShell/CMD en tant qu'Administrateur si n√©cessaire.
 
 ### SQLite ne fonctionne pas
-- Vérifier que le fichier `database/database.sqlite` existe
+- V√©rifier que le fichier `database/database.sqlite` existe
 - Si non : `type nul > database\database.sqlite`
-- Vérifier que l'extension SQLite est activée dans `php.ini`
+- V√©rifier que l'extension SQLite est activ√©e dans `php.ini`
 
-### npm install échoue
+### npm install √©choue
 ```bash
 # Nettoyer le cache npm
 npm cache clean --force
@@ -303,30 +303,30 @@ npm install
 
 ## Scripts PowerShell
 
-### Politique d'exécution
+### Politique d'ex√©cution
 
-Si les scripts PowerShell ne s'exécutent pas :
+Si les scripts PowerShell ne s'ex√©cutent pas :
 ```powershell
-# Exécuter en tant qu'Administrateur
+# Ex√©cuter en tant qu'Administrateur
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
-## Différences Ubuntu vs Windows
+## Diff√©rences Ubuntu vs Windows
 
 ### Chemins de fichiers
 - Ubuntu : `/` (slash)
 - Windows : `\` (backslash)
-- Laravel gère cela automatiquement via les helpers
+- Laravel g√®re cela automatiquement via les helpers
 
 ### Permissions
-- Sur Windows, généralement pas de problèmes de permissions
+- Sur Windows, g√©n√©ralement pas de probl√®mes de permissions
 - Sur Ubuntu, parfois besoin de `chmod`
 
 ### Variables d'environnement
-- Les deux systèmes utilisent le même `.env`
-- Faire attention aux chemins absolus si vous en définissez
+- Les deux syst√®mes utilisent le m√™me `.env`
+- Faire attention aux chemins absolus si vous en d√©finissez
 
-## Éditeurs Recommandés
+## √âditeurs Recommand√©s
 
 - **VS Code** : https://code.visualstudio.com/
   - Extensions utiles :
@@ -337,81 +337,81 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
     - GitLens
 
 - **PhpStorm** : https://www.jetbrains.com/phpstorm/
-  - Support Laravel intégré
+  - Support Laravel int√©gr√©
 
-## Travailler avec différentes versions de PHP
+## Travailler avec diff√©rentes versions de PHP
 
 ### Question : Puis-je avoir PHP 8.2.12 (XAMPP) sur Windows et 8.3 sur Ubuntu ?
 
-**Réponse courte** : Oui, et **c'est parfaitement OK pour Laravel 12** !
+**R√©ponse courte** : Oui, et **c'est parfaitement OK pour Laravel 12** !
 
 ### Contexte
 
-XAMPP pour Windows s'arrête actuellement à **PHP 8.2.12**. C'est la seule version facile disponible avec XAMPP.
+XAMPP pour Windows s'arr√™te actuellement √† **PHP 8.2.12**. C'est la seule version facile disponible avec XAMPP.
 
-**Bonne nouvelle** : Laravel 12 fonctionne parfaitement avec PHP 8.2+ et 8.3. Les différences entre les deux versions sont minimes.
+**Bonne nouvelle** : Laravel 12 fonctionne parfaitement avec PHP 8.2+ et 8.3. Les diff√©rences entre les deux versions sont minimes.
 
 ### Deux Options
 
-**Option 1 : XAMPP 8.2.12 (Recommandé si vous débutez)**
-- ✅ Simple à installer
-- ✅ Inclut Apache, MySQL, phpMyAdmin
-- ✅ Parfaitement compatible avec Laravel 12
-- ✅ Pas de configuration complexe
+**Option 1 : XAMPP 8.2.12 (Recommand√© si vous d√©butez)**
+- ‚úÖ Simple √† installer
+- ‚úÖ Inclut Apache, MySQL, phpMyAdmin
+- ‚úÖ Parfaitement compatible avec Laravel 12
+- ‚úÖ Pas de configuration complexe
 
-**Option 2 : PHP 8.3 Standalone (Pour les développeurs expérimentés)**
-- ✅ Dernière version de PHP
-- ✅ Plus léger (pas d'Apache, MySQL)
-- ⚠️ Configuration manuelle requise
-- 📘 Voir : [INSTALLATION_PHP_WINDOWS.md](INSTALLATION_PHP_WINDOWS.md)
+**Option 2 : PHP 8.3 Standalone (Pour les d√©veloppeurs exp√©riment√©s)**
+- ‚úÖ Derni√®re version de PHP
+- ‚úÖ Plus l√©ger (pas d'Apache, MySQL)
+- ‚ö†Ô∏è Configuration manuelle requise
+- üìò Voir : [INSTALLATION_PHP_WINDOWS.md](INSTALLATION_PHP_WINDOWS.md)
 
-### Si vous utilisez des versions différentes (8.2 vs 8.3)
+### Si vous utilisez des versions diff√©rentes (8.2 vs 8.3)
 
 **Bonnes pratiques** :
 
-1. **Développez avec la version la plus basse (8.2.12)** :
+1. **D√©veloppez avec la version la plus basse (8.2.12)** :
    - Codez sur Windows avec XAMPP 8.2.12
    - Testez sur Ubuntu avec 8.3
    - Jamais l'inverse
 
-2. **Évitez les fonctionnalités PHP 8.3-only** :
+2. **√âvitez les fonctionnalit√©s PHP 8.3-only** :
    - Ne pas utiliser `json_validate()` (nouveau en 8.3)
-   - Ne pas utiliser les nouvelles fonctionnalités Random
-   - S'en tenir aux fonctionnalités PHP 8.2
+   - Ne pas utiliser les nouvelles fonctionnalit√©s Random
+   - S'en tenir aux fonctionnalit√©s PHP 8.2
 
-3. **Vérifiez la compatibilité** :
+3. **V√©rifiez la compatibilit√©** :
    ```bash
    php scripts\check-php-version.php
    ```
 
 4. **Committez toujours `composer.lock`** :
-   - Les dépendances seront identiques sur les deux systèmes
-   - Garantit la même version de Laravel et packages
+   - Les d√©pendances seront identiques sur les deux syst√®mes
+   - Garantit la m√™me version de Laravel et packages
 
 ### En Pratique
 
-Pour votre projet "Conquête Spatiale" :
+Pour votre projet "Conqu√™te Spatiale" :
 
-- ✅ **Windows avec XAMPP 8.2.12** : Parfait
-- ✅ **Ubuntu avec PHP 8.3** : Parfait
-- ✅ **Laravel 12** : Supporte les deux
+- ‚úÖ **Windows avec XAMPP 8.2.12** : Parfait
+- ‚úÖ **Ubuntu avec PHP 8.3** : Parfait
+- ‚úÖ **Laravel 12** : Supporte les deux
 
-**Vous ne rencontrerez aucun problème** tant que vous :
-- Utilisez les fonctionnalités standard de Laravel
-- Ne codez pas avec des fonctions spécifiques à PHP 8.3
-- Testez régulièrement sur les deux environnements
+**Vous ne rencontrerez aucun probl√®me** tant que vous :
+- Utilisez les fonctionnalit√©s standard de Laravel
+- Ne codez pas avec des fonctions sp√©cifiques √† PHP 8.3
+- Testez r√©guli√®rement sur les deux environnements
 
-### Différences Mineures PHP 8.2 vs 8.3
+### Diff√©rences Mineures PHP 8.2 vs 8.3
 
-**Nouvelles en 8.3 (à éviter si vous restez en 8.2)** :
-- `json_validate()` → Utiliser `json_decode()` à la place
-- Typed class constants → Ne pas typer les constantes
-- `Random\Randomizer::getBytesFromString()` → Utiliser les fonctions random classiques
+**Nouvelles en 8.3 (√† √©viter si vous restez en 8.2)** :
+- `json_validate()` ‚Üí Utiliser `json_decode()` √† la place
+- Typed class constants ‚Üí Ne pas typer les constantes
+- `Random\Randomizer::getBytesFromString()` ‚Üí Utiliser les fonctions random classiques
 
-**Pour 99% du code Laravel** : Aucune différence notable
+**Pour 99% du code Laravel** : Aucune diff√©rence notable
 
 ## Support
 
 Pour plus d'informations sur le jeu, consultez :
 - `/docs/game-design/GDD_Central.md` - Documentation principale
-- `/docs/game-design/GUIDE_DEMARRAGE.md` - Guide de démarrage du projet
+- `/docs/game-design/GUIDE_DEMARRAGE.md` - Guide de d√©marrage du projet

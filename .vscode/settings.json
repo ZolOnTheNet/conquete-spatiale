@@ -1,0 +1,66 @@
+{
+    // ===== ENCODAGE =====
+    // Toujours utiliser UTF-8 pour tous les fichiers
+    "files.encoding": "utf8",
+
+    // Afficher l'encodage dans la barre de statut
+    "files.autoGuessEncoding": false,
+
+    // ===== FINS DE LIGNES =====
+    // Toujours utiliser LF (Linux) même sur Windows
+    "files.eol": "\n",
+
+    // Insérer une ligne vide à la fin des fichiers
+    "files.insertFinalNewline": true,
+
+    // Supprimer les espaces en fin de ligne à la sauvegarde
+    "files.trimTrailingWhitespace": true,
+
+    // ===== FORMATAGE =====
+    // Encoder en UTF-8 à la sauvegarde
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1000,
+
+    // ===== MARKDOWN =====
+    // Configuration spécifique pour les fichiers .md
+    "[markdown]": {
+        "files.encoding": "utf8",
+        "files.eol": "\n",
+        "files.trimTrailingWhitespace": true,
+        "editor.wordWrap": "on",
+        "editor.quickSuggestions": {
+            "comments": "off",
+            "strings": "off",
+            "other": "off"
+        }
+    },
+
+    // ===== PHP =====
+    "[php]": {
+        "files.encoding": "utf8",
+        "files.eol": "\n"
+    },
+
+    // ===== JAVASCRIPT =====
+    "[javascript]": {
+        "files.encoding": "utf8",
+        "files.eol": "\n"
+    },
+
+    // ===== PYTHON =====
+    "[python]": {
+        "files.encoding": "utf8",
+        "files.eol": "\n"
+    },
+
+    // ===== AFFICHAGE =====
+    // Afficher les caractères invisibles
+    "editor.renderWhitespace": "boundary",
+    "editor.renderControlCharacters": true,
+
+    // ===== LARAVEL BLADE =====
+    "[blade]": {
+        "files.encoding": "utf8",
+        "files.eol": "\n"
+    }
+}
