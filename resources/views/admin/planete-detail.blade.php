@@ -38,6 +38,9 @@
                 <a href="{{ route('admin.production') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
                     Productions
                 </a>
+                <a href="{{ route('admin.mines') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
+                    Mines (MAME)
+                </a>
                 <a href="{{ route('admin.carte') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
                     Carte
                 </a>
@@ -229,9 +232,14 @@
                     }
                 @endphp
 
-                <h2 class="text-xl font-bold text-white mb-4">
-                    Gisements ({{ $gisementsRelation->count() }})
-                </h2>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-white">
+                        Gisements ({{ $gisementsRelation->count() }})
+                    </h2>
+                    <button onclick="creerGisement()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-bold">
+                        ➕ Créer un gisement
+                    </button>
+                </div>
 
                 @if($gisementsRelation->count() > 0)
                 <div class="mt-1">
@@ -242,6 +250,7 @@
                                 <th class="text-left py-2 px-2">Richesse</th>
                                 <th class="text-left py-2 px-2">Qté Totale</th>
                                 <th class="text-left py-2 px-2">Qté Restante</th>
+                                <th class="text-left py-2 px-2">Mines</th>
                                 <th class="text-right py-2 px-2">Actions</th>
                             </tr>
                         </thead>
@@ -309,12 +318,33 @@
                                     </div>
                                 </td>
 
-                                <!-- Bouton sauvegarder -->
+                                <!-- Nombre de mines -->
+                                <td class="py-2 px-2">
+                                    @php
+                                        try {
+                                            $minesRelation = $gisement->getRelation('mines');
+                                        } catch (\Exception $e) {
+                                            $minesRelation = collect();
+                                        }
+                                        if (!$minesRelation) {
+                                            $minesRelation = collect();
+                                        }
+                                    @endphp
+                                    <span class="text-gray-400 text-xs">{{ $minesRelation->count() }} mine(s)</span>
+                                </td>
+
+                                <!-- Boutons actions -->
                                 <td class="py-2 px-2 text-right">
-                                    <button class="save-gisement-btn bg-green-600/80 hover:bg-green-600 text-white px-3 py-1 rounded text-xs"
-                                            data-gisement-id="{{ $gisement->id }}">
-                                        💾 Sauvegarder
-                                    </button>
+                                    <div class="flex gap-1 justify-end">
+                                        <button class="save-gisement-btn bg-green-600/80 hover:bg-green-600 text-white px-3 py-1 rounded text-xs"
+                                                data-gisement-id="{{ $gisement->id }}">
+                                            💾 Sauvegarder
+                                        </button>
+                                        <button onclick="creerMine({{ $gisement->id }}, '{{ $gisement->ressource->nom }}')"
+                                                class="bg-blue-600/80 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
+                                            ⛏️ Créer mine
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                             @endforeach
@@ -327,6 +357,72 @@
                     </div>
                 @endif
             </div>
+
+            <!-- Mines d'exploitation (MAME) -->
+            @php
+                // Accéder à la relation mines
+                try {
+                    $minesRelation = $planete->getRelation('mines');
+                } catch (\Exception $e) {
+                    $minesRelation = collect();
+                }
+                if (!$minesRelation) {
+                    $minesRelation = collect();
+                }
+            @endphp
+            @if($minesRelation->count() > 0)
+            <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-6 mb-6">
+                <h2 class="text-xl font-bold text-white mb-4">
+                    Mines d'exploitation - MAME ({{ $minesRelation->count() }})
+                </h2>
+
+                <div class="space-y-2">
+                    @foreach($minesRelation as $mine)
+                    <div class="bg-gray-900/50 border border-gray-600 rounded p-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="text-cyan-400 font-bold">{{ $mine->nom }}</div>
+                                <div class="text-xs text-gray-400 mt-1">
+                                    <span>Gisement: <span class="text-yellow-400">{{ $mine->gisement->ressource->nom }}</span></span>
+                                    <span class="mx-2">|</span>
+                                    <span>Emplacement: {{ ucfirst($mine->emplacement) }}</span>
+                                    <span class="mx-2">|</span>
+                                    <span>Statut: <span class="
+                                        @if($mine->statut == 'active') text-green-400
+                                        @elseif($mine->statut == 'inactive') text-gray-400
+                                        @elseif($mine->statut == 'maintenance') text-orange-400
+                                        @else text-red-400
+                                        @endif
+                                    ">{{ ucfirst($mine->statut) }}</span></span>
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    <span>Extraction: {{ $mine->taux_extraction }} u/jour</span>
+                                    <span class="mx-2">|</span>
+                                    <span>Stock: {{ number_format($mine->stock_actuel) }} / {{ number_format($mine->capacite_stockage) }}</span>
+                                    <span class="mx-2">|</span>
+                                    <span>Usure: {{ $mine->niveau_usure }}%</span>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="ravitaillerMine({{ $mine->id }})"
+                                        class="bg-yellow-600/80 hover:bg-yellow-600 text-white px-3 py-1 rounded text-xs">
+                                    ⚡ Ravitailler
+                                </button>
+                                <button onclick="maintenanceMine({{ $mine->id }})"
+                                        class="bg-orange-600/80 hover:bg-orange-600 text-white px-3 py-1 rounded text-xs">
+                                    🔧 Maintenance
+                                </button>
+                                <button onclick="supprimerMine({{ $mine->id }}, '{{ $mine->nom }}')"
+                                        class="bg-red-600/80 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">
+                                    🗑️ Supprimer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
 
             <!-- Stations orbitales -->
             @php
@@ -364,8 +460,288 @@
     </div>
 </div>
 
-<!-- JavaScript pour édition gisements -->
+<!-- JavaScript pour édition gisements et mines -->
 <script>
+// Créer un nouveau gisement
+function creerGisement() {
+    const planeteId = {{ $planete->id }};
+    const ressources = @json($ressources);
+
+    // Créer dialogue HTML pour saisir les infos
+    const html = `
+        <div id="dialog-gisement" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+            <div class="bg-gray-800 border border-gray-600 rounded-lg p-6 max-w-md w-full">
+                <h3 class="text-xl font-bold text-white mb-4">Créer un gisement</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-1">Ressource</label>
+                        <select id="gisement-ressource" class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
+                            ${ressources.map(r => `<option value="${r.id}">${r.nom}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-1">Richesse (%)</label>
+                        <input type="number" id="gisement-richesse" value="${Math.floor(Math.random() * 81) + 20}" min="1" max="100"
+                               class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-1">Quantité totale</label>
+                        <input type="number" id="gisement-quantite" value="${Math.floor(Math.random() * 15000000) + 1000000}"
+                               class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
+                    </div>
+                </div>
+                <div class="flex gap-2 mt-6">
+                    <button onclick="submitCreerGisement()" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold">
+                        Créer
+                    </button>
+                    <button onclick="document.getElementById('dialog-gisement').remove()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">
+                        Annuler
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function submitCreerGisement() {
+    const planeteId = {{ $planete->id }};
+    const ressourceId = document.getElementById('gisement-ressource').value;
+    const richesse = document.getElementById('gisement-richesse').value;
+    const quantite = document.getElementById('gisement-quantite').value;
+
+    fetch('{{ route('admin.production.gisement.store') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            planete_id: planeteId,
+            ressource_id: ressourceId,
+            richesse: richesse,
+            quantite_totale: quantite
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            location.reload();
+        } else {
+            alert('Erreur: ' + (result.message || 'Erreur inconnue'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur de connexion');
+    });
+}
+
+// Créer une mine sur un gisement
+function creerMine(gisementId, ressourceNom) {
+    const planeteId = {{ $planete->id }};
+    const planeteNom = '{{ $planete->nom }}';
+
+    const html = `
+        <div id="dialog-mine" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+            <div class="bg-gray-800 border border-gray-600 rounded-lg p-6 max-w-md w-full">
+                <h3 class="text-xl font-bold text-white mb-4">Créer une mine (MAME)</h3>
+                <p class="text-sm text-gray-400 mb-4">Gisement de <span class="text-yellow-400">${ressourceNom}</span></p>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-1">Nom de la mine</label>
+                        <input type="text" id="mine-nom" value="MAME-${ressourceNom}-${planeteNom}-${Math.floor(Math.random() * 1000)}"
+                               class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-1">Emplacement</label>
+                        <select id="mine-emplacement" class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
+                            <option value="surface">Surface</option>
+                            <option value="orbite">Orbite</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-1">Taux d'extraction (u/jour)</label>
+                        <input type="number" id="mine-taux" value="100" min="1" step="0.01"
+                               class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-1">Capacité de stockage</label>
+                        <input type="number" id="mine-capacite" value="10000" min="100"
+                               class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
+                    </div>
+                </div>
+                <div class="flex gap-2 mt-6">
+                    <button onclick="submitCreerMine(${gisementId})" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold">
+                        Créer
+                    </button>
+                    <button onclick="document.getElementById('dialog-mine').remove()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">
+                        Annuler
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function submitCreerMine(gisementId) {
+    const planeteId = {{ $planete->id }};
+    const nom = document.getElementById('mine-nom').value;
+    const emplacement = document.getElementById('mine-emplacement').value;
+    const taux = document.getElementById('mine-taux').value;
+    const capacite = document.getElementById('mine-capacite').value;
+
+    fetch('{{ route('admin.mines.store') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            nom: nom,
+            planete_id: planeteId,
+            gisement_id: gisementId,
+            emplacement: emplacement,
+            taux_extraction: taux,
+            capacite_stockage: capacite
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            location.reload();
+        } else {
+            alert('Erreur: ' + (result.message || 'Erreur inconnue'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur de connexion');
+    });
+}
+
+// Ravitailler une mine
+function ravitaillerMine(mineId) {
+    const html = `
+        <div id="dialog-ravitailler" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+            <div class="bg-gray-800 border border-gray-600 rounded-lg p-6 max-w-md w-full">
+                <h3 class="text-xl font-bold text-white mb-4">Ravitailler la mine</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-1">Énergie (unités)</label>
+                        <input type="number" id="ravit-energie" value="1000" min="0"
+                               class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-1">Pièces de rechange</label>
+                        <input type="number" id="ravit-pieces-rechange" value="50" min="0"
+                               class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-1">Pièces d'usure</label>
+                        <input type="number" id="ravit-pieces-usure" value="100" min="0"
+                               class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
+                    </div>
+                </div>
+                <div class="flex gap-2 mt-6">
+                    <button onclick="submitRavitailler(${mineId})" class="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded font-bold">
+                        Ravitailler
+                    </button>
+                    <button onclick="document.getElementById('dialog-ravitailler').remove()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">
+                        Annuler
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function submitRavitailler(mineId) {
+    const energie = document.getElementById('ravit-energie').value;
+    const piecesRechange = document.getElementById('ravit-pieces-rechange').value;
+    const piecesUsure = document.getElementById('ravit-pieces-usure').value;
+
+    fetch(`/admin/mines/${mineId}/ravitailler`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            energie: energie,
+            pieces_rechange: piecesRechange,
+            pieces_usure: piecesUsure
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            location.reload();
+        } else {
+            alert('Erreur: ' + (result.message || 'Erreur inconnue'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur de connexion');
+    });
+}
+
+// Maintenance d'une mine
+function maintenanceMine(mineId) {
+    if (!confirm('Effectuer la maintenance de cette mine? (Réinitialise l\'usure à 0%)')) {
+        return;
+    }
+
+    fetch(`/admin/mines/${mineId}/maintenance`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            alert(result.message);
+            location.reload();
+        } else {
+            alert('Erreur: ' + (result.message || 'Erreur inconnue'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur de connexion');
+    });
+}
+
+// Supprimer une mine
+function supprimerMine(mineId, nom) {
+    if (!confirm(`Supprimer définitivement la mine "${nom}"?`)) {
+        return;
+    }
+
+    fetch(`/admin/mines/${mineId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Erreur lors de la suppression');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur de connexion');
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Boutons recalculer
     document.querySelectorAll('.recalc-btn').forEach(btn => {

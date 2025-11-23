@@ -65,6 +65,14 @@ class Planete extends Model
     }
 
     /**
+     * Mines d'exploitation sur cette planète
+     */
+    public function mines(): HasMany
+    {
+        return $this->hasMany(Mine::class);
+    }
+
+    /**
      * Génère un type de planète selon la distance à l'étoile
      * Zone habitable (zone Goldilocks): 0.95 - 1.37 UA pour type G
      */

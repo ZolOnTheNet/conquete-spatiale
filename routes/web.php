@@ -52,9 +52,18 @@ Route::middleware('auth')->group(function () {
         Route::post('/planetes/{id}', [AdminController::class, 'updatePlanete'])->name('planetes.update');
         Route::get('/production', [AdminController::class, 'production'])->name('production');
         Route::post('/production/gisement/{id}', [AdminController::class, 'updateGisement'])->name('production.update');
+        Route::post('/production/gisement', [AdminController::class, 'storeGisement'])->name('production.gisement.store');
         Route::get('/carte', [AdminController::class, 'carte'])->name('carte');
         Route::get('/carte/secteur/{x}/{y}/{z}', [AdminController::class, 'carteSecteur'])->name('carte.secteur');
         Route::get('/backup', [AdminController::class, 'backup'])->name('backup');
+
+        // Routes pour les mines (MAME)
+        Route::get('/mines', [AdminController::class, 'mines'])->name('mines');
+        Route::post('/mines', [AdminController::class, 'storeMine'])->name('mines.store');
+        Route::post('/mines/{id}', [AdminController::class, 'updateMine'])->name('mines.update');
+        Route::delete('/mines/{id}', [AdminController::class, 'destroyMine'])->name('mines.destroy');
+        Route::post('/mines/{id}/ravitailler', [AdminController::class, 'ravitaillerMine'])->name('mines.ravitailler');
+        Route::post('/mines/{id}/maintenance', [AdminController::class, 'maintenanceMine'])->name('mines.maintenance');
     });
 });
 

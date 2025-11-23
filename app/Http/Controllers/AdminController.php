@@ -9,6 +9,7 @@ use App\Models\Planete;
 use App\Models\Combat;
 use App\Models\Gisement;
 use App\Models\Ressource;
+use App\Models\Mine;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -211,10 +212,15 @@ class AdminController extends Controller
         $planete = Planete::with([
             'systemeStellaire',
             'gisements.ressource',
-            'stations'
+            'gisements.mines',
+            'stations',
+            'mines.gisement.ressource'
         ])->findOrFail($id);
 
-        return view('admin.planete-detail', compact('planete'));
+        // Charger toutes les ressources pour le sélecteur de nouveau gisement
+        $ressources = Ressource::orderBy('nom')->get();
+
+        return view('admin.planete-detail', compact('planete', 'ressources'));
     }
 
     /**
@@ -390,5 +396,180 @@ class AdminController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Liste de toutes les mines (MAME)
+     */
+    public function mines()
+    {
+        $mines = Mine::with(['planete.systemeStellaire', 'gisement.ressource', 'proprietaire', 'installateur'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return view('admin.mines', compact('mines'));
+    }
+
+    /**
+     * Créer une mine sur un gisement
+     */
+    public function storeMine(Request $request)
+    {
+        $validated = $request->validate([
+            'nom' => 'required|string|max:255',
+            'planete_id' => 'required|exists:planetes,id',
+            'gisement_id' => 'required|exists:gisements,id',
+            'emplacement' => 'required|in:surface,orbite',
+            'capacite_stockage' => 'nullable|integer|min:100',
+            'taux_extraction' => 'nullable|numeric|min:1',
+        ]);
+
+        // Valeurs par défaut
+        $validated['capacite_stockage'] = $validated['capacite_stockage'] ?? 10000;
+        $validated['taux_extraction'] = $validated['taux_extraction'] ?? 100.0;
+        $validated['statut'] = 'active';
+        $validated['stock_actuel'] = 0;
+        $validated['niveau_usure'] = 0;
+        $validated['derniere_extraction'] = now();
+
+        $mine = Mine::create($validated);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Mine créée avec succès',
+                'mine' => $mine
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Mine créée avec succès');
+    }
+
+    /**
+     * Mettre à jour une mine
+     */
+    public function updateMine(Request $request, $id)
+    {
+        $mine = Mine::findOrFail($id);
+
+        $validated = $request->validate([
+            'nom' => 'nullable|string|max:255',
+            'taux_extraction' => 'nullable|numeric|min:1',
+            'capacite_stockage' => 'nullable|integer|min:100',
+            'statut' => 'nullable|in:active,inactive,maintenance,endommagee',
+            'stock_energie' => 'nullable|integer|min:0',
+            'stock_pieces_rechange' => 'nullable|integer|min:0',
+            'stock_pieces_usure' => 'nullable|integer|min:0',
+            'niveau_usure' => 'nullable|integer|min:0|max:100',
+        ]);
+
+        $mine->update($validated);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Mine mise à jour avec succès',
+                'mine' => $mine
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Mine mise à jour avec succès');
+    }
+
+    /**
+     * Supprimer une mine
+     */
+    public function destroyMine($id)
+    {
+        $mine = Mine::findOrFail($id);
+        $nom = $mine->nom;
+        $mine->delete();
+
+        return redirect()->route('admin.mines')
+            ->with('success', "Mine \"{$nom}\" supprimée avec succès");
+    }
+
+    /**
+     * Ravitailler une mine (admin)
+     */
+    public function ravitaillerMine(Request $request, $id)
+    {
+        $mine = Mine::findOrFail($id);
+
+        $validated = $request->validate([
+            'energie' => 'nullable|integer|min:0',
+            'pieces_rechange' => 'nullable|integer|min:0',
+            'pieces_usure' => 'nullable|integer|min:0',
+        ]);
+
+        $mine->ravitailler(
+            $validated['energie'] ?? 0,
+            $validated['pieces_rechange'] ?? 0,
+            $validated['pieces_usure'] ?? 0
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mine ravitaillée avec succès',
+            'mine' => $mine->fresh()
+        ]);
+    }
+
+    /**
+     * Forcer la maintenance d'une mine (admin)
+     */
+    public function maintenanceMine($id)
+    {
+        $mine = Mine::findOrFail($id);
+
+        $result = $mine->effectuerMaintenance();
+
+        if (!$result['succes']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message']
+            ], 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $result['message'],
+            'mine' => $mine->fresh()
+        ]);
+    }
+
+    /**
+     * Créer un gisement sur une planète
+     */
+    public function storeGisement(Request $request)
+    {
+        $validated = $request->validate([
+            'planete_id' => 'required|exists:planetes,id',
+            'ressource_id' => 'required|exists:ressources,id',
+            'latitude' => 'nullable|numeric|min:-90|max:90',
+            'longitude' => 'nullable|numeric|min:-180|max:180',
+            'richesse' => 'nullable|integer|min:1|max:100',
+            'quantite_totale' => 'nullable|integer|min:1',
+        ]);
+
+        // Valeurs par défaut
+        $validated['latitude'] = $validated['latitude'] ?? rand(-9000, 9000) / 100;
+        $validated['longitude'] = $validated['longitude'] ?? rand(-18000, 18000) / 100;
+        $validated['richesse'] = $validated['richesse'] ?? rand(20, 100);
+        $validated['quantite_totale'] = $validated['quantite_totale'] ?? rand(1000000, 10000000);
+        $validated['quantite_restante'] = $validated['quantite_totale'];
+        $validated['decouvert'] = true;
+
+        $gisement = Gisement::create($validated);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Gisement créé avec succès',
+                'gisement' => $gisement->load('ressource')
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Gisement créé avec succès');
     }
 }

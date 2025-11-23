@@ -82,6 +82,22 @@ class Personnage extends Model
     }
 
     /**
+     * Mines possédées (propriétaire actuel)
+     */
+    public function mines(): HasMany
+    {
+        return $this->hasMany(Mine::class, 'proprietaire_id');
+    }
+
+    /**
+     * Mines installées (installateur initial)
+     */
+    public function minesInstalles(): HasMany
+    {
+        return $this->hasMany(Mine::class, 'installateur_id');
+    }
+
+    /**
      * Obtient la réputation avec une faction spécifique
      */
     public function getReputation(Faction $faction): Reputation
