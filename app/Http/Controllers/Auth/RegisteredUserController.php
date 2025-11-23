@@ -22,14 +22,15 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:comptes'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:comptes,adresse_mail'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $user = Compte::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->string('password')),
+            'nom_login' => $request->name,
+            'adresse_mail' => $request->email,
+            'mot_de_passe' => Hash::make($request->string('password')),
+            'est_verifie' => false,
         ]);
 
         event(new Registered($user));
