@@ -13,8 +13,8 @@ Route::post('/register', [RegisteredUserController::class, 'store'])
     ->name('register');
 
 Route::get('/login', function () {
-    return redirect()->route('home');
-})->middleware('guest')->name('login.form');
+        return redirect()->route('home');
+    })->middleware('guest')->name('login.form');
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])
     ->middleware('guest')
