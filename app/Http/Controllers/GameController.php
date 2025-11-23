@@ -33,9 +33,24 @@ class GameController extends Controller
         $compte = $request->user();
         $personnages = $compte->personnages;
 
+        // Récupérer les stations de départ disponibles (système Sol)
+        $systemeSol = SystemeStellaire::where('secteur_x', 0)
+            ->where('secteur_y', 0)
+            ->where('secteur_z', 0)
+            ->first();
+
+        $stationsDepart = [];
+        if ($systemeSol) {
+            $stationsDepart = \App\Models\Station::where('systeme_stellaire_id', $systemeSol->id)
+                ->where('accessible', true)
+                ->orderBy('nom')
+                ->get();
+        }
+
         return view('game.selection-personnage', [
             'personnages' => $personnages,
             'compte' => $compte,
+            'stationsDepart' => $stationsDepart,
         ]);
     }
 
@@ -44,15 +59,28 @@ class GameController extends Controller
         $validated = $request->validate([
             'nom' => 'required|string|max:50',
             'prenom' => 'nullable|string|max:50',
+            'station_depart_id' => 'nullable|exists:stations,id',
         ]);
 
         $compte = $request->user();
+
+        // Récupérer la station de départ (par défaut Lunastar Station si non spécifiée)
+        $stationDepart = null;
+        if (isset($validated['station_depart_id'])) {
+            $stationDepart = \App\Models\Station::find($validated['station_depart_id']);
+        }
+
+        if (!$stationDepart) {
+            // Chercher Lunastar Station par défaut
+            $stationDepart = \App\Models\Station::where('nom', 'Lunastar Station')->first();
+        }
 
         // Créer le personnage
         $personnage = Personnage::create([
             'compte_id' => $compte->id,
             'nom' => $validated['nom'],
             'prenom' => $validated['prenom'] ?? null,
+            'dans_station_id' => $stationDepart ? $stationDepart->id : null,
             // Valeurs par défaut depuis config
             'agilite' => config('game.personnage.traits_defaut', 2),
             'force' => config('game.personnage.traits_defaut', 2),
@@ -73,6 +101,11 @@ class GameController extends Controller
 
         // Créer automatiquement les découvertes du Système Solaire (PoI connus)
         $this->creerDecouvertesSolaires($personnage);
+
+        // Créer le vaisseau gratuit dans le hangar de la station
+        if ($stationDepart) {
+            $this->creerVaisseauGratuit($personnage, $stationDepart);
+        }
 
         // Si c'est le premier personnage, le définir comme principal
         if (!$compte->perso_principal) {
@@ -107,6 +140,39 @@ class GameController extends Controller
                 'visite' => false, // Pas encore visité physiquement
             ]);
         }
+    }
+
+    /**
+     * Créer le vaisseau gratuit de départ dans le hangar de la station
+     */
+    protected function creerVaisseauGratuit(Personnage $personnage, \App\Models\Station $station): void
+    {
+        // Créer l'objet spatial pour le vaisseau
+        $objetSpatial = \App\Models\ObjetSpatial::create([
+            'type' => 'vaisseau',
+            'nom' => "Shuttle de {$personnage->nom}",
+            'secteur_x' => $station->systemeStellaire->secteur_x,
+            'secteur_y' => $station->systemeStellaire->secteur_y,
+            'secteur_z' => $station->systemeStellaire->secteur_z,
+            'position_x' => $station->systemeStellaire->position_x,
+            'position_y' => $station->systemeStellaire->position_y,
+            'position_z' => $station->systemeStellaire->position_z,
+        ]);
+
+        // Créer le vaisseau gratuit (shuttle basique)
+        $vaisseau = \App\Models\Vaisseau::create([
+            'objet_spatial_id' => $objetSpatial->id,
+            'nom' => "Shuttle de {$personnage->nom}",
+            'modele' => 'Shuttle Standard',
+            'proprietaire_id' => $personnage->id,
+            'amarree_station_id' => $station->id,
+            'capacite_soute' => 10,
+            'vitesse_max' => 1.0,
+        ]);
+
+        // Définir ce vaisseau comme actif pour le personnage
+        $personnage->vaisseau_actif_id = $vaisseau->id;
+        $personnage->save();
     }
 
     public function activerPersonnage(Request $request, Personnage $personnage)

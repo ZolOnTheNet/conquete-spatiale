@@ -140,7 +140,12 @@
                 <div class="p-4">
                     <div class="text-xs text-gray-500">Niveau {{ $personnage->niveau }}</div>
                     <div class="text-sm text-gray-300">{{ $personnage->prenom ?? '' }} {{ $personnage->nom }}</div>
-                    <div class="text-xs text-gray-500 mt-1">XP: {{ $personnage->experience }}</div>
+                    <div class="flex items-center justify-between mt-1">
+                        <a href="{{ route('personnage.selection') }}" class="text-xs text-cyan-500 hover:text-cyan-400 underline" title="Changer de personnage">
+                            👤 Personnages
+                        </a>
+                        <div class="text-xs text-gray-500">XP: {{ $personnage->experience }}</div>
+                    </div>
                 </div>
             </div>
         </aside>
