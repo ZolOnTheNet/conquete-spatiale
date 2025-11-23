@@ -2814,6 +2814,19 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
             }
         }
 
+        // Si requête AJAX, retourner seulement le contenu de la carte
+        if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return view('game.partials.carte-content', compact(
+                'grille',
+                'plan',
+                'centerX',
+                'centerY',
+                'centerZ',
+                'positionActuelle',
+                'personnage'
+            ));
+        }
+
         return view('game.carte', compact(
             'grille',
             'plan',
