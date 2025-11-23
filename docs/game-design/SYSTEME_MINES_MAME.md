@@ -320,5 +320,45 @@ Une mine peut être **connectée à une base** :
 
 ---
 
+---
+
+## 🎯 Accès et Interface Contextuelle
+
+### Accès depuis le vaisseau
+
+Les mines sont accessibles depuis différents contextes selon la localisation du personnage :
+
+**Dans un vaisseau** :
+- ✅ Voir les mines via **COM (Communications)** - Bases de données à distance
+- ✅ Scanner les mines comme PoI
+- ❌ Pas d'accès direct au marché (mais données des marchés via COM)
+- ❌ Pas d'accès direct aux descriptions d'armes/combat
+
+**Dans une station/ville** :
+- ✅ Accès complet au marché
+- ✅ Accès aux informations détaillées
+- ✅ Possibilité d'achat/vente
+
+**Menu Vaisseau** :
+- **Timonerie** : Position, Carte, Scanner
+- **Ingénierie** : État du vaisseau, réparations
+- **Soute** : Inventaire, cargaison
+- **Armement** : Armes embarquées
+- **COM** : Communications
+  - Bases de données stations/villes à proximité
+  - Prix d'achat/vente des ressources
+  - Demande des stations et villes
+  - Messages sur sous-réseaux (achetables)
+
+### Position du personnage
+
+Le système affiche toujours :
+- **Type de localisation** : Vaisseau, Station, Navette, Planète, etc.
+- **Position spatiale** : Coordonnées (secteur + position)
+- **Objet spatial** : Nom du vaisseau/station
+- **État** : En déplacement, amarré, en orbite, etc.
+
+---
+
 **Dernière mise à jour** : 2025-11-23
 **Statut** : En développement
