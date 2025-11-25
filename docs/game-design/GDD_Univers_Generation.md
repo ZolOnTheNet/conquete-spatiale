@@ -1,4 +1,4 @@
-# 🎯ŒŒ UNIVERS ET GÉNÉRATION PROCÉDURALE
+# 🎯 UNIVERS ET GÉNÉRATION PROCÉDURALE
 ## Jeu de Conquête Galactique
 
 ---
@@ -8,7 +8,7 @@ Données issues du wiki - Algorithmes à implémenter et tester.
 
 ---
 
-## 🎯Ž¯ Moteur Générique Multi-Univers
+## 🎯 Moteur Générique Multi-Univers
 
 ### Objectif
 
@@ -30,7 +30,7 @@ Créer un **moteur assez complexe** pour supporter différents univers de scienc
 
 ---
 
-## 🎯“ Principes Généraux
+## 🎯 Principes Généraux
 
 ### Représentation de l'Univers
 
@@ -79,7 +79,7 @@ Créer un **moteur assez complexe** pour supporter différents univers de scienc
 
 ---
 
-## 🎯ŒŸ Classification des Étoiles
+## 🎯 Classification des Étoiles
 
 ### Types Spectraux
 
@@ -110,7 +110,7 @@ Nombre  1   1   3   4   6   3   2
 
 ---
 
-## â›ï¸ Gisements (Astéroïdes)
+## Gisements (Astéroïdes)
 
 ### Principe
 
@@ -138,7 +138,7 @@ Roll 1D100 :
 
 ---
 
-## 🎯”§ GÉNÉRATEUR SIMPLE D'UNIVERS
+## 🎯 GÉNÉRATEUR SIMPLE D'UNIVERS
 
 ### Principe
 
@@ -280,7 +280,7 @@ Peut être faite dans parcours principal si on ne numérotise pas espaces vides.
 
 ---
 
-## 🎯›¤ï¸ GÉNÉRATEUR À CHEMINS D'UNIVERS
+## 🎯 GÉNÉRATEUR À CHEMINS D'UNIVERS
 
 ### Principe
 
@@ -314,9 +314,9 @@ Entre objets notables â†’ il existe un **chemin**.
 
 ---
 
-## 🎯Œ Références d'Univers
+## 🎯 Références d'Univers
 
-### ZAIB (Monde KÂ²)
+### ZAIB (Monde KA²)
 
 **Contexte :**
 - "Bulle des vents" = petit univers
@@ -410,7 +410,7 @@ Entre objets notables â†’ il existe un **chemin**.
 
 ---
 
-## 🎯Ž² Variantes de Génération
+## 🎯 Variantes de Génération
 
 ### Génération Hybride
 
@@ -443,7 +443,7 @@ Entre objets notables â†’ il existe un **chemin**.
 
 ---
 
-## 🎯—ºï¸ Secteurs et Coordonnées
+## 🎯 Secteurs et Coordonnées
 
 ### Système de Coordonnées
 
@@ -487,7 +487,7 @@ secteurs (
 
 ---
 
-## 🎯’¡ Idées Futures
+## Idées Futures
 
 **Évolutions possibles :**
 - Univers dynamique (étoiles vieillissent)
