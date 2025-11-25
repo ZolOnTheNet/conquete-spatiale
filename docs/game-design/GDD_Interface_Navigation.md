@@ -6,13 +6,14 @@
 ## 📋 Table des Matières
 
 1. [Vue d'Ensemble](#vue-densemble)
-2. [Structure du Menu Principal](#structure-du-menu-principal)
-3. [Menu Personnage](#menu-personnage)
-4. [Menu Navire/Station](#menu-navirestation)
-5. [Menu Jeu](#menu-jeu)
-6. [Menu Admin](#menu-admin)
-7. [Comparaison avec Lunastar](#comparaison-avec-lunastar)
-8. [Notes d'Implémentation](#notes-dimplémentation)
+2. [En-tête de Jeu (Header)](#en-tête-de-jeu-header)
+3. [Structure du Menu Principal](#structure-du-menu-principal)
+4. [Menu Personnage](#menu-personnage)
+5. [Menu Navire/Station](#menu-navirestation)
+6. [Menu Jeu](#menu-jeu)
+7. [Menu Admin](#menu-admin)
+8. [Comparaison avec Lunastar](#comparaison-avec-lunastar)
+9. [Notes d'Implémentation](#notes-dimplémentation)
 
 ---
 
@@ -31,6 +32,610 @@ Le système de navigation s'inspire de **Lunastar** avec une structure de menu �
 - **Contextuel** : Le menu "Navire" devient "Station" selon le contexte
 - **Cohérent** : Même structure que Lunastar mais avec notre terminologie
 - **Extensible** : Ajout facile du menu Admin
+
+---
+
+## 📊 En-tête de Jeu (Header)
+
+L'en-tête du jeu affiche les informations essentielles en permanence, inspiré de **Lunastar**. Il occupe **moins de 3 lignes de hauteur** pour rester compact et informatif.
+
+### Structure Visuelle
+
+L'en-tête est organisé en **3 COLONNES** sur maximum 3 lignes de hauteur :
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│ [COLONNE 1: JOUEUR]     [COLONNE 2: POSITION/SYSTÈME]     [COLONNE 3: VAISSEAU]             │
+├──────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                              │
+│ NomDuJoueur             x: 4, y: 2, z: 9                   USS Exploreur NCC-7609-C        │
+│ 💰 Crédits: 22 749 332   Vulcanus                          ⚡ 819/890 [+80]                 │
+│ ⚡ PA: 24                                                   🛡️ [1020/1020] 100%              │
+│                         ☀️ Solaire: 80                     🔰 [75/75] 100%                  │
+│                         ☄️ Astéroïdes: 70                  🔧 Pièces: 136 650               │
+│                         🌍 Planètes: 14                                                     │
+│                         📡 Réseau: Système Solaire         🎯 Cible: Vulcania              │
+│                                                                                              │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Organisation des Informations
+
+L'en-tête est divisé en **3 COLONNES** :
+
+#### 📊 COLONNE 1 : Informations Joueur (Gauche)
+
+**Sur 3 lignes verticales :**
+1. **Nom du joueur**
+2. 💰 **Vos Crédits** : 22 749 332
+3. ⚡ **Vos Points d'actions** : 24
+
+#### 📍 COLONNE 2 : Position & Système Stellaire (Centre)
+
+**Bloc supérieur - Position :**
+1. **Coordonnées** : x: 4, y: 2, z: 9
+2. **Nom du système** : Vulcanus
+
+**Bloc inférieur - Caractéristiques système :**
+3. ☀️ **Puissance solaire** : 80
+4. ☄️ **Danger des astéroïdes** : 70
+5. 🌍 **Nombre de planètes** : 14
+6. 📡 **Réseau porteur** : Système Solaire
+
+#### 🚀 COLONNE 3 : Vaisseau (Droite)
+
+**Ligne 1 :**
+- **Nom du vaisseau** : USS Exploreur NCC-7609-C
+
+**Lignes suivantes - Icônes et valeurs :**
+- ⚡ **Énergie** : 819/890 [+80]
+- 🛡️ **Structure** : [1020/1020] 100%
+- 🔰 **Bouclier** : [75/75] 100%
+- 🔧 **Pièces détachées** : 136 650
+
+**Dernière ligne :**
+- 🎯 **Cible actuelle** : Vulcania
+
+---
+
+### Maquette Détaillée Lunastar (Reproduction Exacte)
+
+Voici la reproduction exacte de l'en-tête Lunastar en **disposition 3 colonnes** :
+
+```
+╔═══════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                       ║
+║  COLONNE 1 (Gauche)          COLONNE 2 (Centre)              COLONNE 3 (Droite)     ║
+║  ─────────────────           ──────────────────              ─────────────────       ║
+║                                                                                       ║
+║  NomDuJoueur                 x: 4 , y: 2 , z: 9              USS Exploreur          ║
+║  Vos Crédits: 22 749 332     Vulcanus                        NCC 7609-C             ║
+║  Vos Points d'actions: 24                                                           ║
+║                              ☀️ Puissance solaire: 80        ⚡ Energie: 819/890 [+80] ║
+║                              ☄️ Danger astéroïdes: 70        🛡️ Structure: [1020/1020] 100% ║
+║                              🌍 Nombre de planètes: 14       🔰 Bouclier: [75/75] 100% ║
+║                              📡 Réseau: Système Solaire     🔧 Pièces: 136 650       ║
+║                                                              🎯 Cible: Vulcania      ║
+║                                                                                       ║
+╚═══════════════════════════════════════════════════════════════════════════════════════╝
+```
+
+**Caractéristiques importantes :**
+- **3 colonnes distinctes** côte à côte
+- **Hauteur compacte** : moins de 3 lignes effectives
+- **Alignement vertical** : chaque colonne s'étend vers le bas
+- **Espacement** : colonnes bien espacées pour lisibilité
+
+### Notre Adaptation Optimisée
+
+```
+╔════════════════════════════════════════════════════════════════════════════════════════╗
+║ 👤 JOUEUR              📍 SYSTÈME                    🚀 VAISSEAU                       ║
+╠════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                        ║
+║ Jean Dupont            Vulcanus (4, 2, 9)           USS Exploreur NCC-7609-C         ║
+║ 💰 22 749 332 CR       ☀️ Solaire: 80                ⚡ 819/890 [+80]                  ║
+║ ⚡ PA: 24               ☄️ Astéroïdes: 70             🛡️ [1020/1020] 100%              ║
+║                        🌍 Planètes: 14               🔰 [75/75] 100%                   ║
+║                        📡 Système Solaire           🔧 136 650 pièces                 ║
+║                                                      🎯 → Vulcania                     ║
+║                                                                                        ║
+╚════════════════════════════════════════════════════════════════════════════════════════╝
+```
+
+---
+
+### Spécifications Techniques
+
+#### Données à Afficher
+
+**Joueur :**
+- `personnage.nom` ou `personnage.pseudo`
+- `personnage.credits` (formaté avec espaces : 22 749 332)
+- `personnage.points_action_actuels` / `personnage.points_action_max`
+
+**Position :**
+- `vaisseau.position_x`, `vaisseau.position_y`, `vaisseau.position_z`
+- `systeme_actuel.nom`
+
+**Système Stellaire :**
+- `systeme.puissance_solaire` (0-100)
+- `systeme.danger_asteroides` (0-100)
+- `systeme.nombre_planetes`
+- `reseau_satellite.nom` ou "Aucun réseau"
+
+**Vaisseau :**
+- `vaisseau.nom`
+- `vaisseau.energie_actuelle` / `vaisseau.energie_max`
+- `vaisseau.regeneration_energie` (par tour/heure)
+- `vaisseau.structure_actuelle` / `vaisseau.structure_max`
+- `vaisseau.bouclier_actuel` / `vaisseau.bouclier_max`
+- `vaisseau.pieces_detachees`
+- `vaisseau.cible_actuelle.nom` (si existe)
+
+#### Mise à Jour Temps Réel
+
+Certaines valeurs doivent être mises à jour dynamiquement :
+
+**En temps réel (via WebSocket/AJAX) :**
+- ⚡ Énergie du vaisseau (si régénération active)
+- 🛡️ Structure (si en réparation)
+- 🔰 Bouclier (si en recharge)
+- 🎯 Cible actuelle (si changement)
+
+**Après action :**
+- 💰 Crédits (après transaction)
+- ⚡ Points d'Action (après utilisation)
+- 📍 Position (après déplacement)
+- 🔧 Pièces détachées (après réparation)
+
+#### Code HTML/Blade Exemple
+
+```blade
+{{-- resources/views/components/game-header.blade.php --}}
+<header class="game-header">
+    {{-- Disposition en 3 COLONNES --}}
+    <div class="header-columns">
+
+        {{-- COLONNE 1 : JOUEUR --}}
+        <div class="header-column header-player">
+            <div class="column-title">👤 JOUEUR</div>
+            <div class="player-name">{{ $personnage->nom }}</div>
+            <div class="player-credits">
+                💰 {{ number_format($personnage->credits, 0, ',', ' ') }} CR
+            </div>
+            <div class="player-actions">
+                ⚡ PA: {{ $personnage->points_action_actuels }}/{{ $personnage->points_action_max }}
+            </div>
+        </div>
+
+        {{-- COLONNE 2 : SYSTÈME --}}
+        <div class="header-column header-system">
+            <div class="column-title">📍 SYSTÈME</div>
+
+            {{-- Bloc Position --}}
+            <div class="system-position">
+                <div class="system-coords">
+                    {{ $systeme->nom }} ({{ $vaisseau->position_x }}, {{ $vaisseau->position_y }}, {{ $vaisseau->position_z }})
+                </div>
+            </div>
+
+            {{-- Bloc Caractéristiques --}}
+            <div class="system-stats">
+                <div class="system-solar">
+                    ☀️ Solaire: {{ $systeme->puissance_solaire }}
+                </div>
+                <div class="system-asteroids">
+                    ☄️ Astéroïdes: {{ $systeme->danger_asteroides }}
+                </div>
+                <div class="system-planets">
+                    🌍 Planètes: {{ $systeme->nombre_planetes }}
+                </div>
+                <div class="system-network">
+                    📡 {{ $reseauSatellite?->nom ?? 'Aucun réseau' }}
+                </div>
+            </div>
+        </div>
+
+        {{-- COLONNE 3 : VAISSEAU --}}
+        <div class="header-column header-ship">
+            <div class="column-title">🚀 VAISSEAU</div>
+
+            <div class="ship-name">{{ $vaisseau->nom }}</div>
+
+            <div class="ship-stats">
+                <div class="ship-energy">
+                    ⚡ {{ $vaisseau->energie_actuelle }}/{{ $vaisseau->energie_max }}
+                    @if($vaisseau->regeneration_energie > 0)
+                        [+{{ $vaisseau->regeneration_energie }}]
+                    @endif
+                </div>
+                <div class="ship-structure">
+                    🛡️ [{{ $vaisseau->structure_actuelle }}/{{ $vaisseau->structure_max }}]
+                    {{ round(($vaisseau->structure_actuelle / $vaisseau->structure_max) * 100) }}%
+                </div>
+                <div class="ship-shield">
+                    🔰 [{{ $vaisseau->bouclier_actuel }}/{{ $vaisseau->bouclier_max }}]
+                    {{ round(($vaisseau->bouclier_actuel / $vaisseau->bouclier_max) * 100) }}%
+                </div>
+                <div class="ship-parts">
+                    🔧 {{ number_format($vaisseau->pieces_detachees, 0, ',', ' ') }}
+                </div>
+            </div>
+
+            @if($vaisseau->cible_actuelle)
+            <div class="ship-target">
+                🎯 Cible: {{ $vaisseau->cible_actuelle->nom }}
+            </div>
+            @endif
+        </div>
+
+    </div>
+</header>
+```
+
+#### Style CSS
+
+```css
+/* En-tête principal */
+.game-header {
+    background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+    border-bottom: 2px solid #4a9eff;
+    padding: 0.75rem 1.5rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Container des 3 colonnes */
+.header-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr; /* 3 colonnes égales */
+    gap: 2rem;
+    color: #e0e0e0;
+    align-items: start; /* Alignement haut pour chaque colonne */
+}
+
+/* Style commun pour chaque colonne */
+.header-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+/* Titres de colonnes (optionnels) */
+.column-title {
+    font-size: 0.75rem;
+    color: #4a9eff;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.25rem;
+    opacity: 0.8;
+}
+
+/* ═══════════════════════════════════════════════════
+   COLONNE 1 : JOUEUR
+   ═══════════════════════════════════════════════════ */
+
+.header-player {
+    /* Colonne gauche */
+}
+
+.player-name {
+    color: #4a9eff;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.player-credits {
+    color: #ffd700;
+    font-size: 0.9rem;
+}
+
+.player-actions {
+    color: #00ff88;
+    font-size: 0.9rem;
+}
+
+/* ═══════════════════════════════════════════════════
+   COLONNE 2 : SYSTÈME
+   ═══════════════════════════════════════════════════ */
+
+.header-system {
+    /* Colonne centrale */
+}
+
+.system-coords {
+    color: #ff6b9d;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.system-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.system-stats > div {
+    color: #a0a0a0;
+    font-size: 0.85rem;
+}
+
+.system-solar { color: #ffa500; }
+.system-asteroids { color: #ff6347; }
+.system-planets { color: #4682b4; }
+.system-network { color: #9370db; }
+
+/* ═══════════════════════════════════════════════════
+   COLONNE 3 : VAISSEAU
+   ═══════════════════════════════════════════════════ */
+
+.header-ship {
+    /* Colonne droite */
+}
+
+.ship-name {
+    color: #4a9eff;
+    font-weight: bold;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+
+.ship-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.ship-stats > div {
+    font-size: 0.85rem;
+}
+
+.ship-energy {
+    color: #ffeb3b;
+}
+
+.ship-structure {
+    color: #00bcd4;
+}
+
+.ship-shield {
+    color: #2196f3;
+}
+
+.ship-parts {
+    color: #9e9e9e;
+}
+
+.ship-target {
+    color: #ff5252;
+    margin-top: 0.25rem;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+/* Barres de progression optionnelles */
+.progress-bar {
+    display: inline-block;
+    width: 100px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    position: relative;
+    vertical-align: middle;
+    margin-left: 0.5rem;
+}
+
+.progress-bar-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: linear-gradient(90deg, #4a9eff 0%, #2196f3 100%);
+    transition: width 0.3s ease;
+}
+
+.progress-bar-fill.energy {
+    background: linear-gradient(90deg, #ffeb3b 0%, #ffc107 100%);
+}
+
+.progress-bar-fill.structure {
+    background: linear-gradient(90deg, #00bcd4 0%, #0097a7 100%);
+}
+
+.progress-bar-fill.shield {
+    background: linear-gradient(90deg, #2196f3 0%, #1976d2 100%);
+}
+
+/* Animation pour les valeurs qui changent */
+@keyframes value-update {
+    0% { color: #4a9eff; transform: scale(1.1); }
+    100% { color: inherit; transform: scale(1); }
+}
+
+.value-updated {
+    animation: value-update 0.5s ease;
+}
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE - MOBILE
+   ═══════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    .game-header {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    /* Colonnes empilées verticalement sur mobile */
+    .header-columns {
+        grid-template-columns: 1fr; /* 1 seule colonne */
+        gap: 1rem;
+    }
+
+    .column-title {
+        font-size: 0.7rem;
+    }
+
+    .player-name,
+    .ship-name {
+        font-size: 0.9rem;
+    }
+
+    .system-coords {
+        font-size: 0.85rem;
+    }
+
+    .ship-stats > div,
+    .system-stats > div {
+        font-size: 0.75rem;
+    }
+}
+
+/* Version tablette */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .header-columns {
+        gap: 1rem;
+    }
+
+    .game-header {
+        padding: 0.6rem 1rem;
+        font-size: 0.8rem;
+    }
+}
+```
+
+#### JavaScript pour Mise à Jour Temps Réel
+
+```javascript
+// public/js/game-header.js
+
+class GameHeader {
+    constructor() {
+        this.updateInterval = 5000; // 5 secondes
+        this.init();
+    }
+
+    init() {
+        this.startAutoUpdate();
+    }
+
+    startAutoUpdate() {
+        setInterval(() => {
+            this.updateShipStatus();
+        }, this.updateInterval);
+    }
+
+    async updateShipStatus() {
+        try {
+            const response = await fetch('/api/vaisseau/status');
+            const data = await response.json();
+
+            this.updateEnergy(data.energie_actuelle, data.energie_max, data.regeneration);
+            this.updateStructure(data.structure_actuelle, data.structure_max);
+            this.updateShield(data.bouclier_actuel, data.bouclier_max);
+            this.updateTarget(data.cible_actuelle);
+        } catch (error) {
+            console.error('Erreur mise à jour en-tête:', error);
+        }
+    }
+
+    updateEnergy(current, max, regen) {
+        const element = document.querySelector('.ship-energy');
+        const oldValue = element.textContent;
+        const newValue = `⚡ ${current}/${max}${regen > 0 ? ' [+' + regen + ']' : ''}`;
+
+        if (oldValue !== newValue) {
+            element.textContent = newValue;
+            element.classList.add('value-updated');
+            setTimeout(() => element.classList.remove('value-updated'), 500);
+        }
+    }
+
+    updateStructure(current, max) {
+        const element = document.querySelector('.ship-structure');
+        const percentage = Math.round((current / max) * 100);
+        element.textContent = `🛡️ ${current}/${max} (${percentage}%)`;
+    }
+
+    updateShield(current, max) {
+        const element = document.querySelector('.ship-shield');
+        const percentage = Math.round((current / max) * 100);
+        element.textContent = `🔰 ${current}/${max} (${percentage}%)`;
+    }
+
+    updateTarget(target) {
+        const container = document.querySelector('.ship-target');
+        if (target) {
+            if (!container) {
+                const headerShip = document.querySelector('.header-ship');
+                const targetDiv = document.createElement('div');
+                targetDiv.className = 'ship-target';
+                targetDiv.textContent = `🎯 Cible: ${target.nom}`;
+                headerShip.appendChild(targetDiv);
+            } else {
+                container.textContent = `🎯 Cible: ${target.nom}`;
+            }
+        } else {
+            if (container) {
+                container.remove();
+            }
+        }
+    }
+}
+
+// Initialiser au chargement
+document.addEventListener('DOMContentLoaded', () => {
+    new GameHeader();
+});
+```
+
+---
+
+### Variantes d'Affichage
+
+#### Version Compacte (Mobile)
+
+```
+┌─────────────────────────────────────┐
+│ Jean Dupont  💰 22.7M  ⚡ 24        │
+│ 📍 Vulcanus (4,2,9)                 │
+├─────────────────────────────────────┤
+│ 🚀 USS Exploreur                    │
+│ ⚡ 819/890  🛡️ 100%  🔰 100%        │
+└─────────────────────────────────────┘
+```
+
+#### Version Étendue (Grand écran)
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Commandant Jean Dupont                                                                                    │
+│ 💰 Crédits: 22 749 332 CR  │  ⚡ Points d'Action: 24/24  │  📍 Position: Vulcanus (x:4, y:2, z:9)        │
+├──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Système: Vulcanus                                                                                         │
+│ ☀️ Puissance solaire: 80/100  │  ☄️ Danger astéroïdes: 70/100  │  🌍 Planètes: 14  │  📡 Système Solaire │
+├──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ 🚀 Vaisseau: USS Exploreur NCC-7609-C                                                                    │
+│ ⚡ Énergie: 819/890 [+80/h] ████████████████░░░░ 92%                                                      │
+│ 🛡️ Structure: 1020/1020 ████████████████████ 100%                                                        │
+│ 🔰 Bouclier: 75/75 ████████████████████ 100%                                                             │
+│ 🔧 Pièces détachées: 136 650 unités                                                                      │
+│ 🎯 Cible verrouillée: Vulcania (Station Orbitale)                                                        │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Notes d'Implémentation
+
+1. **Persistance** : L'en-tête doit être présent sur TOUTES les pages du jeu
+2. **Performance** : Utiliser le cache pour les données système (puissance solaire, planètes)
+3. **Responsive** : Adapter l'affichage selon la taille d'écran
+4. **Accessibilité** : Ajouter des attributs ARIA pour les lecteurs d'écran
+5. **Animation** : Animer subtilement les changements de valeurs
 
 ---
 
