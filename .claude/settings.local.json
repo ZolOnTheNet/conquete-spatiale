@@ -7,7 +7,10 @@
       "Bash(pip install:*)",
       "Bash(python fix-encoding.py:*)",
       "Bash(python fix-double-encoding.py:*)",
-      "Bash(python -c:*)"
+      "Bash(python -c:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(php artisan:*)"
     ],
     "deny": [],
     "ask": []

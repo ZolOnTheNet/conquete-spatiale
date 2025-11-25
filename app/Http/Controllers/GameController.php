@@ -369,6 +369,13 @@ COMBAT:
   /adm info vaisseau <id>     - Info détaillée vaisseau
   /adm list persos            - Liste tous les personnages
   /adm list vaisseaux         - Liste tous les vaisseaux
+  /adm list comptes [search]  - Liste/recherche des comptes
+  /adm print OBJECTS          - Liste des objets interrogeables
+  /adm print PJ               - Debug personnage actuel
+  /adm print SHIP             - Debug vaisseau actuel
+  /adm print <Model> <id>     - Debug objet par modèle (ex: Personnage 1)
+  /adm su <compte_id>         - Se substituer à un compte (garde admin)
+  /adm su back                - Revenir au compte admin original
 ";
         }
 
@@ -403,6 +410,8 @@ COMBAT:
             'give' => $this->adminGive($personnage, $parts),
             'info' => $this->adminInfo($personnage, $parts),
             'list' => $this->adminList($personnage, $parts),
+            'print', 'dump' => $this->adminPrint($personnage, $parts),
+            'su', 'switch' => $this->adminSwitchUser($personnage, $parts),
             default => [
                 'success' => false,
                 'message' => "[ADMIN] Sous-commande inconnue: {$subCommand}\nTapez 'help' pour voir les commandes admin.",
@@ -734,11 +743,320 @@ COMBAT:
             }
 
             return ['success' => true, 'message' => $msg];
+        } elseif ($type === 'comptes' || $type === 'accounts') {
+            $search = $parts[2] ?? '';
+
+            $query = Compte::with(['personnagePrincipal']);
+
+            // Si recherche fournie, filtrer
+            if ($search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('adresse_mail', 'LIKE', "%{$search}%")
+                      ->orWhere('nom', 'LIKE', "%{$search}%")
+                      ->orWhere('prenom', 'LIKE', "%{$search}%");
+                });
+            }
+
+            $comptes = $query->orderBy('id')->get();
+
+            $msg = "[ADMIN] LISTE DES COMPTES";
+            if ($search) {
+                $msg .= " (recherche: '{$search}')";
+            }
+            $msg .= " (" . $comptes->count() . "):\n\n";
+
+            foreach ($comptes as $c) {
+                $persoInfo = '';
+                if ($c->personnagePrincipal) {
+                    $persoInfo = " - Perso: {$c->personnagePrincipal->nom}";
+                }
+
+                $adminBadge = $c->is_admin ? ' [ADMIN]' : '';
+
+                $msg .= sprintf(
+                    "ID %d: %s%s%s\n",
+                    $c->id,
+                    $c->adresse_mail,
+                    $adminBadge,
+                    $persoInfo
+                );
+            }
+
+            return ['success' => true, 'message' => $msg];
         }
 
         return [
             'success' => false,
-            'message' => "[ADMIN] Usage: /adm list <persos|vaisseaux>",
+            'message' => "[ADMIN] Usage: /adm list <persos|vaisseaux|comptes> [recherche]",
+        ];
+    }
+
+    /**
+     * [ADMIN] Debug/print objets Laravel (dump)
+     */
+    private function adminPrint(Personnage $personnage, array $parts): array
+    {
+        $target = strtoupper($parts[1] ?? '');
+
+        // Liste des objets disponibles
+        if ($target === 'OBJECTS' || $target === 'HELP') {
+            return [
+                'success' => true,
+                'message' => "[ADMIN] OBJETS INTERROGEABLES:\n\n" .
+                    "Alias rapides:\n" .
+                    "  PJ, PERSO           - Personnage actuel\n" .
+                    "  SHIP, VAISSEAU      - Vaisseau actuel\n" .
+                    "  COMPTE              - Compte actuel\n\n" .
+                    "Modèles Laravel (avec ID):\n" .
+                    "  Personnage <id>     - Ex: /adm print Personnage 1\n" .
+                    "  Vaisseau <id>       - Ex: /adm print Vaisseau 2\n" .
+                    "  Station <id>        - Ex: /adm print Station 1\n" .
+                    "  SystemeStellaire <id> - Ex: /adm print SystemeStellaire 1\n" .
+                    "  Planete <id>        - Ex: /adm print Planete 5\n" .
+                    "  ObjetSpatial <id>   - Ex: /adm print ObjetSpatial 3\n" .
+                    "  Ressource <id>      - Ex: /adm print Ressource 1\n" .
+                    "  Arme <id>           - Ex: /adm print Arme 1\n" .
+                    "  Bouclier <id>       - Ex: /adm print Bouclier 1\n" .
+                    "  Combat <id>         - Ex: /adm print Combat 1\n" .
+                    "  Ennemi <id>         - Ex: /adm print Ennemi 1\n" .
+                    "  Gisement <id>       - Ex: /adm print Gisement 1\n" .
+                    "  Marche <id>         - Ex: /adm print Marche 1\n" .
+                    "  Recette <id>        - Ex: /adm print Recette 1\n\n" .
+                    "Usage:\n" .
+                    "  /adm print OBJECTS          - Affiche cette aide\n" .
+                    "  /adm print PJ               - Debug personnage actuel\n" .
+                    "  /adm print SHIP             - Debug vaisseau actuel\n" .
+                    "  /adm print <Model> <id>     - Debug objet spécifique\n",
+            ];
+        }
+
+        // Alias rapides
+        $object = null;
+        $objectName = '';
+
+        if (in_array($target, ['PJ', 'PERSO', 'PERSONNAGE'])) {
+            $object = $personnage->load(['compte', 'vaisseauActif', 'vaisseauActif.objetSpatial']);
+            $objectName = "Personnage #{$personnage->id} (actuel)";
+        } elseif (in_array($target, ['SHIP', 'VAISSEAU'])) {
+            $vaisseau = $personnage->vaisseauActif;
+            if (!$vaisseau) {
+                return ['success' => false, 'message' => '[ADMIN] Aucun vaisseau actif.'];
+            }
+            $object = $vaisseau->load(['proprietaire', 'objetSpatial', 'stationAmarrage']);
+            $objectName = "Vaisseau #{$vaisseau->id} (actuel)";
+        } elseif ($target === 'COMPTE') {
+            $object = $personnage->compte->load(['personnages', 'personnagePrincipal']);
+            $objectName = "Compte #{$personnage->compte->id} (actuel)";
+        } else {
+            // Interrogation par modèle
+            $modelName = $target;
+            $id = intval($parts[2] ?? 0);
+
+            if ($id <= 0) {
+                return [
+                    'success' => false,
+                    'message' => "[ADMIN] Usage: /adm print <Model> <id>\nEx: /adm print Personnage 1\n\nTapez '/adm print OBJECTS' pour voir la liste des objets.",
+                ];
+            }
+
+            // Mapper les modèles
+            $modelMap = [
+                'PERSONNAGE' => Personnage::class,
+                'VAISSEAU' => \App\Models\Vaisseau::class,
+                'STATION' => \App\Models\Station::class,
+                'SYSTEMESTELLAIRE' => SystemeStellaire::class,
+                'PLANETE' => \App\Models\Planete::class,
+                'OBJETSPATIAL' => \App\Models\ObjetSpatial::class,
+                'RESSOURCE' => Ressource::class,
+                'ARME' => Arme::class,
+                'BOUCLIER' => Bouclier::class,
+                'COMBAT' => Combat::class,
+                'ENNEMI' => Ennemi::class,
+                'GISEMENT' => Gisement::class,
+                'MARCHE' => Marche::class,
+                'RECETTE' => Recette::class,
+            ];
+
+            if (!isset($modelMap[$modelName])) {
+                return [
+                    'success' => false,
+                    'message' => "[ADMIN] Modèle inconnu: {$modelName}\nTapez '/adm print OBJECTS' pour voir la liste.",
+                ];
+            }
+
+            $modelClass = $modelMap[$modelName];
+            $object = $modelClass::find($id);
+
+            if (!$object) {
+                return [
+                    'success' => false,
+                    'message' => "[ADMIN] {$modelName} #{$id} introuvable.",
+                ];
+            }
+
+            $objectName = "{$modelName} #{$id}";
+        }
+
+        // Formater l'objet pour affichage
+        return [
+            'success' => true,
+            'message' => $this->formatObjectDebug($object, $objectName),
+        ];
+    }
+
+    /**
+     * Formater un objet Laravel pour affichage debug
+     */
+    private function formatObjectDebug($object, string $name): string
+    {
+        $msg = "[ADMIN] DEBUG OBJET: {$name}\n";
+        $msg .= str_repeat('=', 60) . "\n\n";
+
+        // Classe
+        $msg .= "Classe: " . get_class($object) . "\n\n";
+
+        // Attributs (colonnes de base)
+        $msg .= "ATTRIBUTS:\n";
+        $attributes = $object->getAttributes();
+        foreach ($attributes as $key => $value) {
+            if (is_null($value)) {
+                $displayValue = 'null';
+            } elseif (is_bool($value)) {
+                $displayValue = $value ? 'true' : 'false';
+            } elseif (is_array($value)) {
+                $displayValue = json_encode($value);
+            } else {
+                $displayValue = (string) $value;
+            }
+
+            // Limiter la longueur d'affichage
+            if (strlen($displayValue) > 100) {
+                $displayValue = substr($displayValue, 0, 97) . '...';
+            }
+
+            $msg .= sprintf("  %-25s %s\n", $key . ':', $displayValue);
+        }
+
+        // Relations chargées
+        $relations = $object->getRelations();
+        if (!empty($relations)) {
+            $msg .= "\nRELATIONS CHARGEES:\n";
+            foreach ($relations as $relationName => $relationValue) {
+                if (is_null($relationValue)) {
+                    $msg .= sprintf("  %-25s null\n", $relationName . ':');
+                } elseif ($relationValue instanceof \Illuminate\Database\Eloquent\Collection) {
+                    $count = $relationValue->count();
+                    $msg .= sprintf("  %-25s Collection (%d items)\n", $relationName . ':', $count);
+                } elseif ($relationValue instanceof \Illuminate\Database\Eloquent\Model) {
+                    $relClass = class_basename(get_class($relationValue));
+                    $relId = $relationValue->id ?? 'N/A';
+                    $msg .= sprintf("  %-25s %s #%s\n", $relationName . ':', $relClass, $relId);
+                } else {
+                    $msg .= sprintf("  %-25s %s\n", $relationName . ':', gettype($relationValue));
+                }
+            }
+        }
+
+        // Timestamps
+        if (method_exists($object, 'getCreatedAtColumn') && $object->created_at) {
+            $msg .= "\nTIMESTAMPS:\n";
+            $msg .= "  created_at:              {$object->created_at}\n";
+            if ($object->updated_at) {
+                $msg .= "  updated_at:              {$object->updated_at}\n";
+            }
+        }
+
+        $msg .= "\n" . str_repeat('=', 60) . "\n";
+        $msg .= "Tapez '/adm print OBJECTS' pour voir les autres objets disponibles.\n";
+
+        return $msg;
+    }
+
+    /**
+     * [ADMIN] Changer de compte (substitute user)
+     */
+    private function adminSwitchUser(Personnage $personnage, array $parts): array
+    {
+        $target = strtolower($parts[1] ?? '');
+
+        // Retour au compte admin original
+        if ($target === 'back' || $target === 'retour') {
+            $originalCompteId = session('admin_original_compte_id');
+
+            if (!$originalCompteId) {
+                return [
+                    'success' => false,
+                    'message' => "[ADMIN] Aucun compte original en mémoire. Vous êtes déjà sur votre compte.",
+                ];
+            }
+
+            $originalCompte = Compte::find($originalCompteId);
+            if (!$originalCompte) {
+                return [
+                    'success' => false,
+                    'message' => "[ADMIN] Compte original #{$originalCompteId} introuvable.",
+                ];
+            }
+
+            // Restaurer le compte original
+            session(['compte_id' => $originalCompteId]);
+            session(['perso_principal' => $originalCompte->personnage_principal_id]);
+            session()->forget('admin_original_compte_id');
+
+            return [
+                'success' => true,
+                'message' => "[ADMIN] Retour au compte: {$originalCompte->adresse_mail}\n" .
+                            "Vous avez retrouvé votre compte administrateur.",
+            ];
+        }
+
+        // Substitution vers un autre compte
+        $compteId = intval($target);
+
+        if ($compteId <= 0) {
+            return [
+                'success' => false,
+                'message' => "[ADMIN] Usage: /adm su <compte_id>  ou  /adm su back\n" .
+                            "Utilisez '/adm list comptes [recherche]' pour trouver un compte.",
+            ];
+        }
+
+        $targetCompte = Compte::with('personnagePrincipal')->find($compteId);
+
+        if (!$targetCompte) {
+            return [
+                'success' => false,
+                'message' => "[ADMIN] Compte #{$compteId} introuvable.",
+            ];
+        }
+
+        // Sauvegarder le compte admin actuel si pas déjà sauvegardé
+        if (!session()->has('admin_original_compte_id')) {
+            session(['admin_original_compte_id' => $personnage->compte_id]);
+        }
+
+        // Basculer vers le compte cible
+        session(['compte_id' => $targetCompte->id]);
+
+        // Définir le personnage principal si disponible
+        if ($targetCompte->personnage_principal_id) {
+            session(['perso_principal' => $targetCompte->personnage_principal_id]);
+            $persoInfo = $targetCompte->personnagePrincipal
+                ? " - Personnage: {$targetCompte->personnagePrincipal->nom}"
+                : "";
+        } else {
+            session()->forget('perso_principal');
+            $persoInfo = " - ATTENTION: Aucun personnage principal défini!";
+        }
+
+        // Maintenir le flag admin dans la session
+        session(['is_admin' => true]);
+
+        return [
+            'success' => true,
+            'message' => "[ADMIN] Substitution vers compte #{$compteId}: {$targetCompte->adresse_mail}{$persoInfo}\n" .
+                        "Vous gardez vos privilèges admin.\n" .
+                        "Tapez '/adm su back' pour revenir à votre compte.",
         ];
     }
 
