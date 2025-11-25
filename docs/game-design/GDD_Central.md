@@ -1,267 +1,267 @@
 # GAME DESIGN DOCUMENT - INDEX CENTRAL
-## Jeu de ConquÃªte Galactique - Console Web
+## Jeu de Conquête Galactique - Console Web
 
 ---
 
-## âš ï¸ NOTES IMPORTANTES
+## ⚠️ NOTES IMPORTANTES
 
-### Disclaimer sur les Valeurs NumÃ©riques
+### Disclaimer sur les Valeurs Numériques
 
-**TOUS LES CHIFFRES, COÃ›TS, DURÃ‰ES ET VALEURS NUMÃ‰RIQUES PRÃ‰SENTS DANS CE GDD SONT INDICATIFS.**
+**TOUS LES CHIFFRES, COÛTS, DURÉES ET VALEURS NUMÉRIQUES PRÉSENTS DANS CE GDD SONT INDICATIFS.**
 
-- Les valeurs proposÃ©es sont des **suggestions** pour aider Ã  la conception
-- Aucune valeur n'est dÃ©finitive ou validÃ©e
-- **Tous les paramÃ¨tres devront Ãªtre estimÃ©s, testÃ©s et Ã©quilibrÃ©s** lors de l'implÃ©mentation
-- Les formules de calcul sont des **exemples** Ã  adapter selon les besoins rÃ©els du gameplay
+- Les valeurs proposées sont des **suggestions** pour aider à la conception
+- Aucune valeur n'est définitive ou validée
+- **Tous les paramètres devront être estimés, testés et équilibrés** lors de l'implémentation
+- Les formules de calcul sont des **exemples** à adapter selon les besoins réels du gameplay
 
-**Ces propositions ne constituent pas des choix dÃ©finitifs du porteur de projet.**
+**Ces propositions ne constituent pas des choix définitifs du porteur de projet.**
 
-Le game design final sera dÃ©terminÃ© par :
+Le game design final sera déterminé par :
 - Les tests de gameplay
-- L'Ã©quilibrage progressif
+- L'équilibrage progressif
 - Les retours des joueurs
 - Les contraintes techniques
 
 ---
 
-## ðŸ”§ CORRECTIONS IMPORTANTES
+## 🎯”§ CORRECTIONS IMPORTANTES
 
-### âš ï¸ Document de RÃ©fÃ©rence : [CORRECTIONS_IMPORTANTES.md](./CORRECTIONS_IMPORTANTES.md)
+### ⚠️ Document de Référence : [CORRECTIONS_IMPORTANTES.md](./CORRECTIONS_IMPORTANTES.md)
 
-**Modifications majeures apportÃ©es le 2025-11-01 :**
+**Modifications majeures apportées le 2025-11-01 :**
 
 1. **âœ… Principe PJ (Personnage Joueur)**
    - âŒ ANCIEN : Un joueur = Un vaisseau actif
    - âœ“ NOUVEAU : Un joueur = Un PJ qui pilote un vaisseau
-   - PossibilitÃ© de PJ secondaires pour jouer avec des amis
+   - Possibilité de PJ secondaires pour jouer avec des amis
 
 2. **âœ… Module MicroHE**
-   - Nouveau module pour petits sauts intra-systÃ¨me
-   - PortÃ©e 0.1-2 UA (Ã  Ã©tudier)
+   - Nouveau module pour petits sauts intra-système
+   - Portée 0.1-2 UA (à étudier)
    - Alternative au conventionnel lent
 
-3. **âœ… SystÃ¨me CoordonnÃ©es**
-   - Secteur = coordonnÃ©es entiÃ¨res (zone)
-   - Position = coordonnÃ©es dÃ©cimales (prÃ©cision)
+3. **âœ… Système Coordonnées**
+   - Secteur = coordonnées entières (zone)
+   - Position = coordonnées décimales (précision)
    - Exemple : Secteur (0,0,0) + Position (0.12, 0.14, 0.1)
 
-4. **âœ… TÃ¢ches de Traitement**
-   - SystÃ¨me asynchrone moteur/joueur
-   - Ã€ dÃ©tailler (implÃ©mentation)
+4. **âœ… Tâches de Traitement**
+   - Système asynchrone moteur/joueur
+   - À détailler (implémentation)
 
-5. **âœ… SystÃ¨me DÃ©couverte**
-   - Algorithme dÃ©taillÃ© (formules complÃ¨tes)
+5. **âœ… Système Découverte**
+   - Algorithme détaillé (formules complètes)
    - Plus on cherche â†’ plus on trouve
 
-**Consulter [CORRECTIONS_IMPORTANTES.md](./CORRECTIONS_IMPORTANTES.md) pour dÃ©tails complets.**
+**Consulter [CORRECTIONS_IMPORTANTES.md](./CORRECTIONS_IMPORTANTES.md) pour détails complets.**
 
 ---
 
-## ðŸ“š STRUCTURE DOCUMENTAIRE
+## 🎯“š STRUCTURE DOCUMENTAIRE
 
-Ce Game Design Document est divisÃ© en plusieurs parties thÃ©matiques pour faciliter la navigation et les mises Ã  jour.
+Ce Game Design Document est divisé en plusieurs parties thématiques pour faciliter la navigation et les mises à jour.
 
-### ðŸ“– Document Complet de RÃ©fÃ©rence
+### 🎯“– Document Complet de Référence
 
 #### [GDD_Conquete_Galactique.md](./GDD_Conquete_Galactique.md) - Document Exhaustif
-**Contient TOUTES les sections dÃ©taillÃ©es** (2250+ lignes, 60+ pages)
-- SystÃ¨me de jeu complet
+**Contient TOUTES les sections détaillées** (2250+ lignes, 60+ pages)
+- Système de jeu complet
 - Navigation et combat
-- Ã‰conomie et gÃ©nÃ©ration procÃ©durale
-- Architecture technique complÃ¨te
+- Économie et génération procédurale
+- Architecture technique complète
 
-**Utilisation :** RÃ©fÃ©rence exhaustive, recherche de contenu spÃ©cifique
+**Utilisation :** Référence exhaustive, recherche de contenu spécifique
 
 ---
 
-### Documents ThÃ©matiques
+### Documents Thématiques
 
-#### 1. ðŸŽ² [SystÃ¨me de Jeu Core](./GDD_Systeme_Jeu.md)
-**MÃ©canique centrale du jeu**
-- SystÃ¨me de dÃ©s Daggerheart (2D12)
-- Les 6 Traits et 16 CompÃ©tences
-- SystÃ¨me d'expÃ©rience "Learning by Doing"
+#### 1. 🎯Ž² [Système de Jeu Core](./GDD_Systeme_Jeu.md)
+**Mécanique centrale du jeu**
+- Système de dés Daggerheart (2D12)
+- Les 6 Traits et 16 Compétences
+- Système d'expérience "Learning by Doing"
 - Jetons d'Espoir et de Peur
 - Exemples d'application
 
-**Ã‰tat :** En dÃ©veloppement
-**DerniÃ¨re mise Ã  jour :** 2025-10-31
+**État :** En développement
+**Dernière mise à jour :** 2025-10-31
 
 ---
 
-#### 2. ðŸš€ [Navigation et DÃ©placements](./GDD_Navigation.md)
-**SystÃ¨mes de voyage et exploration**
+#### 2. 🎯š€ [Navigation et Déplacements](./GDD_Navigation.md)
+**Systèmes de voyage et exploration**
 - Hyper-espace (inter-stellaire)
-- DÃ©placement conventionnel (intra-systÃ¨me)
+- Déplacement conventionnel (intra-système)
 - Phase d'orientation post-saut
 - Satellites de communication
-- CoÃ»ts en Points d'Action (PA)
+- Coûts en Points d'Action (PA)
 
-**Ã‰tat :** En dÃ©veloppement
-**DerniÃ¨re mise Ã  jour :** 2025-10-31
+**État :** En développement
+**Dernière mise à jour :** 2025-10-31
 
 ---
 
 #### 3. âš”ï¸ [Combat et Abordages](./GDD_Combat_Detaille.md) **âœ¨ NOUVEAU**
-**SystÃ¨mes de combat dÃ©taillÃ©s**
-- Gestion des 4 cas de prÃ©sence (0, 1, 2 joueurs, PNJ)
-- SÃ©quences de combat (tirs rapides)
+**Systèmes de combat détaillés**
+- Gestion des 4 cas de présence (0, 1, 2 joueurs, PNJ)
+- Séquences de combat (tirs rapides)
 - Saut d'urgence (3 niveaux)
-- Comportements prÃ©dÃ©finis (joueur absent)
+- Comportements prédéfinis (joueur absent)
 - Console d'ordres et notifications
-- RÃ©solution automatique
+- Résolution automatique
 
-**Ã‰tat :** âœ… IntÃ©grÃ© depuis Wiki
-**DerniÃ¨re mise Ã  jour :** 2025-10-31
+**État :** âœ… Intégré depuis Wiki
+**Dernière mise à jour :** 2025-10-31
 
 ---
 
-#### 4. ðŸ›¸ [Vaisseaux et Ã‰quipements](./GDD_Vaisseaux_Complet.md) **âœ¨ MIS Ã€ JOUR**
-**SpÃ©cifications complÃ¨tes depuis wiki**
+#### 4. 🎯›¸ [Vaisseaux et Équipements](./GDD_Vaisseaux_Complet.md) **âœ¨ MIS À JOUR**
+**Spécifications complètes depuis wiki**
 - 12 Emplacements (Pilotage, Moteur, Moteur HE, Boucliers, etc.)
-- SystÃ¨me soute (3 niveaux transport personnel)
-- 2 types propulsion (Combustible vs Extraction Ã©nergÃ©tique)
+- Système soute (3 niveaux transport personnel)
+- 2 types propulsion (Combustible vs Extraction énergétique)
 - Formules calcul (Conventionnel et HE)
-- ModÃ¨les A-0, A-1, sÃ©ries M, E, F
+- Modèles A-0, A-1, séries M, E, F
 - Programmes informatiques
 
-**Ã‰tat :** âœ… IntÃ©grÃ© depuis Wiki
-**DerniÃ¨re mise Ã  jour :** 2025-11-01
+**État :** âœ… Intégré depuis Wiki
+**Dernière mise à jour :** 2025-11-01
 
 ---
 
-#### 5. ðŸ’° [Ã‰conomie et Ressources](./GDD_Economie_Complete.md) **âœ¨ MIS Ã€ JOUR**
-**SystÃ¨me Ã©conomique complet depuis wiki**
-- NÅ“uds Ã©conomiques (Hommes + Machines â†’ Production)
-- 21 matiÃ¨res premiÃ¨res miniÃ¨res
-- ChaÃ®ne transformation industrielle complÃ¨te
-- 3 niveaux mÃ©dicaments
-- SystÃ¨me personnel et productivitÃ©
-- OpportunitÃ©s Ã©conomiques
+#### 5. 🎯’° [Économie et Ressources](./GDD_Economie_Complete.md) **âœ¨ MIS À JOUR**
+**Système économique complet depuis wiki**
+- NÅ“uds économiques (Hommes + Machines â†’ Production)
+- 21 matières premières minières
+- Chaîne transformation industrielle complète
+- 3 niveaux médicaments
+- Système personnel et productivité
+- Opportunités économiques
 
-**Ã‰tat :** âœ… IntÃ©grÃ© depuis Wiki
-**DerniÃ¨re mise Ã  jour :** 2025-11-01
+**État :** âœ… Intégré depuis Wiki
+**Dernière mise à jour :** 2025-11-01
 
 ---
 
-#### 5.5. ðŸ—ï¸ [Bases Spatiales](./GDD_Bases_Spatiales.md) **âœ¨ NOUVEAU**
-**SystÃ¨me de bases spatiales depuis wiki**
-- L'Arche (module maÃ®tre, 5 modules + production Ã©nergie)
+#### 5.5. 🎯—ï¸ [Bases Spatiales](./GDD_Bases_Spatiales.md) **âœ¨ NOUVEAU**
+**Système de bases spatiales depuis wiki**
+- L'Arche (module maître, 5 modules + production énergie)
 - Extension par arches (gestionnaire, accord)
 - 13 types de modules (Antenne, Bar, Mine, Habitation, etc.)
-- SystÃ¨me gestionnaire (changement possible)
-- IdÃ©es attachÃ©es (investissement, extension infinie, humanisation)
+- Système gestionnaire (changement possible)
+- Idées attachées (investissement, extension infinie, humanisation)
 
-**Ã‰tat :** âœ… IntÃ©grÃ© depuis Wiki
-**DerniÃ¨re mise Ã  jour :** 2025-11-01
+**État :** âœ… Intégré depuis Wiki
+**Dernière mise à jour :** 2025-11-01
 
 ---
 
-#### 6. ðŸŒŒ [Univers et GÃ©nÃ©ration ProcÃ©durale](./GDD_Univers_Generation.md) **âœ¨ MIS Ã€ JOUR**
-**CrÃ©ation dynamique de l'univers depuis wiki**
-- Moteur gÃ©nÃ©rique multi-univers (Zaib, Lunastars, Solar Empire)
-- Classification Ã©toiles (O Ã  M) + Courbe de Gauss
-- GÃ©nÃ©rateur simple (NÃ—NÃ—N, courbe Gauss)
-- GÃ©nÃ©rateur Ã  chemins (routes entre systÃ¨mes)
+#### 6. 🎯ŒŒ [Univers et Génération Procédurale](./GDD_Univers_Generation.md) **âœ¨ MIS À JOUR**
+**Création dynamique de l'univers depuis wiki**
+- Moteur générique multi-univers (Zaib, Lunastars, Solar Empire)
+- Classification étoiles (O à M) + Courbe de Gauss
+- Générateur simple (NÏ—NÏ—N, courbe Gauss)
+- Générateur à chemins (routes entre systèmes)
 - Gisements et rendement
-- RÃ©fÃ©rences univers (Zaib, Lunastars, Solar Empire)
+- Références univers (Zaib, Lunastars, Solar Empire)
 
-**Ã‰tat :** âœ… IntÃ©grÃ© depuis Wiki
-**DerniÃ¨re mise Ã  jour :** 2025-11-01
-
----
-
-#### 7. ðŸ”­ [DÃ©tection et Exploration](./GDD_Detection.md)
-**SystÃ¨mes de dÃ©couverte**
-- Fond d'Ã©toiles dynamique
-- SystÃ¨me de dÃ©tection par accumulation
-- PiÃ¨ge des galaxies lointaines
-- CapacitÃ©s Ã©volutives des vaisseaux
-- MarchÃ© de l'information
-
-**Ã‰tat :** En dÃ©veloppement
-**DerniÃ¨re mise Ã  jour :** 2025-10-31
+**État :** âœ… Intégré depuis Wiki
+**Dernière mise à jour :** 2025-11-01
 
 ---
 
-#### 7.5. ðŸ”­ [SystÃ¨me de DÃ©couverte](./GDD_Systeme_Decouverte.md) **âœ¨ NOUVEAU**
-**Algorithme de dÃ©couverte des systÃ¨mes stellaires**
-- BasÃ© sur puissance solaire (min 10)
-- Formule seuil : 500 + (Distance Ã— 100)
-- Points tÃ¢che cumulatifs
-- LancÃ© : (SysExpl) D (2 Ã— PSol)
-- Plus on cherche, plus on trouve (petits/distants/cachÃ©s)
+#### 7. 🎯”­ [Détection et Exploration](./GDD_Detection.md)
+**Systèmes de découverte**
+- Fond d'étoiles dynamique
+- Système de détection par accumulation
+- Piège des galaxies lointaines
+- Capacités évolutives des vaisseaux
+- Marché de l'information
 
-**Ã‰tat :** âœ… IntÃ©grÃ© depuis Wiki
-**DerniÃ¨re mise Ã  jour :** 2025-11-01
+**État :** En développement
+**Dernière mise à jour :** 2025-10-31
 
 ---
 
-#### 8. ðŸ›ï¸ [RÃ©putation et Factions](./GDD_Reputation.md)
-**SystÃ¨me social et politique**
-- SystÃ¨me de rÃ©putation (0-25000 pts)
-- Guildes impÃ©riales et joueurs
-- Actions influenÃ§ant la rÃ©putation
+#### 7.5. 🎯”­ [Système de Découverte](./GDD_Systeme_Decouverte.md) **âœ¨ NOUVEAU**
+**Algorithme de découverte des systèmes stellaires**
+- Basé sur puissance solaire (min 10)
+- Formule seuil : 500 + (Distance Ï— 100)
+- Points tâche cumulatifs
+- Lancé : (SysExpl) D (2 Ï— PSol)
+- Plus on cherche, plus on trouve (petits/distants/cachés)
+
+**État :** âœ… Intégré depuis Wiki
+**Dernière mise à jour :** 2025-11-01
+
+---
+
+#### 8. 🎯›ï¸ [Réputation et Factions](./GDD_Reputation.md)
+**Système social et politique**
+- Système de réputation (0-25000 pts)
+- Guildes impériales et joueurs
+- Actions influençant la réputation
 - Diplomatie
 
-**Ã‰tat :** En dÃ©veloppement
-**DerniÃ¨re mise Ã  jour :** 2025-10-31
+**État :** En développement
+**Dernière mise à jour :** 2025-10-31
 
 ---
 
-#### 9. ðŸŒŒ [Univers : ConquÃªte Spatiale](./GDD_Univers_Conquete_Spatiale.md) **âœ¨ NOUVEAU**
+#### 9. 🎯ŒŒ [Univers : Conquête Spatiale](./GDD_Univers_Conquete_Spatiale.md) **âœ¨ NOUVEAU**
 **Historique et Lore**
-- DÃ©but de la conquÃªte spatiale (moteur de saut)
-- Grandes citÃ©s spatiales (Angeles, EspÃ©rance, New-SanFrancisco)
-- SystÃ¨me des guildes (nations et compagnies)
+- Début de la conquête spatiale (moteur de saut)
+- Grandes cités spatiales (Angeles, Espérance, New-SanFrancisco)
+- Système des guildes (nations et compagnies)
 - Corsaires vs Pirates
-- ArchÃ©types de joueurs (Explorateur, Marchand, Transporteur, etc.)
+- Archétypes de joueurs (Explorateur, Marchand, Transporteur, etc.)
 - Zones de l'espace
 
-**Ã‰tat :** âœ… IntÃ©grÃ© depuis Wiki
-**DerniÃ¨re mise Ã  jour :** 2025-10-31
+**État :** âœ… Intégré depuis Wiki
+**Dernière mise à jour :** 2025-10-31
 
 ---
 
-#### 10. ðŸ’» [Structure de l'Interface](./GDD_Interface.md) **âœ¨ NOUVEAU**
+#### 10. 🎯’» [Structure de l'Interface](./GDD_Interface.md) **âœ¨ NOUVEAU**
 **Interface utilisateur et UX**
-- Layout gÃ©nÃ©ral (4 zones)
+- Layout général (4 zones)
 - Chapitres et menus (Personnage, Vaisseau, Base, Jeu)
 - Console d'ordres
 - Architecture MVC
 - Design modulaire
 
-**Ã‰tat :** âœ… IntÃ©grÃ© depuis Wiki
-**DerniÃ¨re mise Ã  jour :** 2025-10-31
+**État :** âœ… Intégré depuis Wiki
+**Dernière mise à jour :** 2025-10-31
 
 ---
 
-#### 11. ðŸ’» [Architecture Technique et Classes](./GDD_Architecture_Technique.md) **âœ¨ MIS Ã€ JOUR**
-**ImplÃ©mentation technique depuis wiki**
-- Pattern MVC (ModÃ¨le-Vue-ContrÃ´leur)
+#### 11. 🎯’» [Architecture Technique et Classes](./GDD_Architecture_Technique.md) **âœ¨ MIS À JOUR**
+**Implémentation technique depuis wiki**
+- Pattern MVC (Modèle-Vue-Contrôleur)
 - Classe Compte (joueur)
 - Classe ObjetSpatial (parent)
-- Classe Vaisseau (hÃ©rite ObjetSpatial)
-- Classe Base (hÃ©rite ObjetSpatial)
+- Classe Vaisseau (hérite ObjetSpatial)
+- Classe Base (hérite ObjetSpatial)
 - Classes auxiliaires (Cargo, Module, Programme, Panne)
-- Tables base de donnÃ©es
+- Tables base de données
 
-**Ã‰tat :** âœ… IntÃ©grÃ© depuis Wiki
-**DerniÃ¨re mise Ã  jour :** 2025-11-01
+**État :** âœ… Intégré depuis Wiki
+**Dernière mise à jour :** 2025-11-01
 
 ---
 
-## ðŸ”§ ARCHITECTURE MULTI-UNIVERS
+## 🎯”§ ARCHITECTURE MULTI-UNIVERS
 
 ### Objectif
-Le moteur de jeu est conÃ§u pour supporter plusieurs univers de science-fiction sans modification majeure du code core.
+Le moteur de jeu est conçu pour supporter plusieurs univers de science-fiction sans modification majeure du code core.
 
-### Univers SupportÃ©s (prÃ©vus)
+### Univers Supportés (prévus)
 1. **Archiluminique** - Univers original du jeu
-2. **ConquÃªte Spatiale** - Proche de la rÃ©alitÃ©, vaisseaux avec hyper-espace
+2. **Conquête Spatiale** - Proche de la réalité, vaisseaux avec hyper-espace
 3. **Star Wars** - Guerre Civile Galactique
 4. **Warhammer 40K** - Imperium, Chaos, Xenos
-5. **Star Citizen** - UEE, systÃ¨mes Stanton
+5. **Star Citizen** - UEE, systèmes Stanton
 
 ### Couches d'Abstraction
 
@@ -271,113 +271,113 @@ Le moteur de jeu est conÃ§u pour supporter plusieurs univers de science-fictio
 â”‚   - Factions                         â”‚
 â”‚   - Vaisseaux                        â”‚
 â”‚   - Technologies                     â”‚
-â”‚   - Lore / Ã‰vÃ©nements                â”‚
+â”‚   - Lore / Événements                â”‚
 â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
               â†“
 â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚   RÃˆGLES UNIVERS                     â”‚
+â”‚   RÏˆGLES UNIVERS                     â”‚
 â”‚   - Vitesses FTL                     â”‚
 â”‚   - Types d'armes                    â”‚
-â”‚   - Ressources spÃ©cifiques           â”‚
+â”‚   - Ressources spécifiques           â”‚
 â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
               â†“
 â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
 â”‚   MOTEUR CORE (universel)            â”‚
 â”‚   - Navigation                       â”‚
-â”‚   - DÃ©tection                        â”‚
-â”‚   - Combat (systÃ¨me de dÃ©s)          â”‚
-â”‚   - Ã‰conomie                         â”‚
-â”‚   - RÃ©putation                       â”‚
-â”‚   - GÃ©nÃ©ration procÃ©durale           â”‚
+â”‚   - Détection                        â”‚
+â”‚   - Combat (système de dés)          â”‚
+â”‚   - Économie                         â”‚
+â”‚   - Réputation                       â”‚
+â”‚   - Génération procédurale           â”‚
 â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ---
 
-## ðŸŽ¯ FORMAT DU JEU
+## 🎯Ž¯ FORMAT DU JEU
 
-### CaractÃ©ristiques Principales
+### Caractéristiques Principales
 - **Interface** : Console web (commandes texte + visualisation optionnelle)
 - **Rythme** : Tour par tour (1 tour = 1 jour in-game)
 - **Multijoueur** : **ASYNCHRONE** - Persistant
-  - Les joueurs ne jouent **PAS en mÃªme temps**
-  - MÃ©canique PvP asymÃ©trique avec rÃ¨gles de comportement automatiques
+  - Les joueurs ne jouent **PAS en même temps**
+  - Mécanique PvP asymétrique avec règles de comportement automatiques
   - Seuils de fuite automatique
-- **Progression** : Du vaisseau starter Ã  l'empire multi-systÃ¨mes
+- **Progression** : Du vaisseau starter à l'empire multi-systèmes
 
 ### Piliers de Gameplay
-1. **Exploration** - DÃ©couvrir des systÃ¨mes stellaires inconnus
-2. **Ã‰conomie** - ChaÃ®ne de production complexe
+1. **Exploration** - Découvrir des systèmes stellaires inconnus
+2. **Économie** - Chaîne de production complexe
 3. **Combat** - Affrontements tactiques tour par tour
-4. **Diplomatie** - SystÃ¨me de rÃ©putation avec guildes
-5. **ConquÃªte** - Expansion territoriale
+4. **Diplomatie** - Système de réputation avec guildes
+5. **Conquête** - Expansion territoriale
 
 ---
 
-## ðŸ“… PHASES DE DÃ‰VELOPPEMENT
+## 🎯“… PHASES DE DÉVELOPPEMENT
 
 ### Phase 1 : MVP (Minimum Viable Product)
-1. âœ… SystÃ¨me navigation tour par tour
-2. âœ… DÃ©tection basique
-3. âœ… GÃ©nÃ©ration procÃ©durale simple (Ã©toiles GAIA)
+1. âœ… Système navigation tour par tour
+2. âœ… Détection basique
+3. âœ… Génération procédurale simple (étoiles GAIA)
 4. âœ… Combat PvE basique
-5. âœ… Ã‰conomie simplifiÃ©e
+5. âœ… Économie simplifiée
 6. âœ… Interface console fonctionnelle
 
 ### Phase 2 : Expansion
-- SystÃ¨me rÃ©putation complet
+- Système réputation complet
 - Guildes joueurs
-- GÃ©nÃ©ration planÃ¨tes avancÃ©e
-- MarchÃ© dynamique
+- Génération planètes avancée
+- Marché dynamique
 - PvP asynchrone
 
 ### Phase 3 : Endgame
 - Stations mobiles
-- Construction avancÃ©e
+- Construction avancée
 - Diplomatie complexe
-- Ã‰vÃ©nements galactiques
+- Événements galactiques
 - Multi-univers (Star Wars, etc.)
 
 ---
 
-## ðŸ”„ CHANGELOG GLOBAL
+## 🎯”„ CHANGELOG GLOBAL
 
 ### Version 0.3 (2025-10-31)
 - âœ… Restructuration documentaire modulaire
-- âœ… Ajout disclaimer sur valeurs numÃ©riques
-- âœ… SystÃ¨me d'XP "Learning by Doing"
-- âœ… CompÃ©tence "Corps Ã  corps" ajoutÃ©e
-- âœ… Section Abordages complÃ¨te
-- âœ… PvP Asynchrone dÃ©fini
+- âœ… Ajout disclaimer sur valeurs numériques
+- âœ… Système d'XP "Learning by Doing"
+- âœ… Compétence "Corps à corps" ajoutée
+- âœ… Section Abordages complète
+- âœ… PvP Asynchrone défini
 - âœ… Correction encodage UTF-8
 
 ### Version 0.2 (2025-10-30)
-- âœ… SystÃ¨me Daggerheart 2D12 intÃ©grÃ©
-- âœ… 16 CompÃ©tences dÃ©finies avec Traits
-- âœ… Gameplay asynchrone prÃ©cisÃ©
+- âœ… Système Daggerheart 2D12 intégré
+- âœ… 16 Compétences définies avec Traits
+- âœ… Gameplay asynchrone précisé
 - âœ… Nom univers "Archiluminique"
 
 ### Version 0.1 (2025-10-30)
-- âœ… Concepts core dÃ©finis
+- âœ… Concepts core définis
 - âœ… Architecture modulaire multi-univers
-- âœ… Luna Industries nommÃ©e
-- âœ… GÃ©nÃ©ration procÃ©durale complÃ¨te
+- âœ… Luna Industries nommée
+- âœ… Génération procédurale complète
 
 ---
 
-## âœ… Ã€ VALIDER / MODIFIER
+## âœ… À VALIDER / MODIFIER
 
-- [ ] Balance Ã©conomique (prix vaisseaux, ressources)
-- [ ] Valeurs XP et coÃ»ts de progression
+- [ ] Balance économique (prix vaisseaux, ressources)
+- [ ] Valeurs XP et coûts de progression
 - [ ] Noms factions/guildes Archiluminique
-- [ ] RÃ¨gles PvP dÃ©taillÃ©es
+- [ ] Règles PvP détaillées
 - [ ] Contenu aliens (Phase future)
-- [ ] Calibrage systÃ¨me de dÃ©tection
-- [ ] Tests de gameplay et Ã©quilibrage
+- [ ] Calibrage système de détection
+- [ ] Tests de gameplay et équilibrage
 
 ---
 
-## ðŸ“š RÃ‰FÃ‰RENCES
+## 🎯“š RÉFÉRENCES
 
 ### Inspirations
 - **Lunastars** : https://v2.lunastars.net
@@ -385,7 +385,7 @@ Le moteur de jeu est conÃ§u pour supporter plusieurs univers de science-fictio
 - **Star Citizen** : https://robertsspaceindustries.com
 - **Daggerheart** : https://darringtonpress.com/daggerheart
 
-### Sources de DonnÃ©es
+### Sources de Données
 - **GAIA Archive** : https://gea.esac.esa.int/archive/
 - **NASA Exoplanet Archive** : https://exoplanetarchive.ipac.caltech.edu/
 - **JPL Horizons** : https://ssd.jpl.nasa.gov/horizons/
@@ -393,7 +393,7 @@ Le moteur de jeu est conÃ§u pour supporter plusieurs univers de science-fictio
 
 ---
 
-**Document vivant - DerniÃ¨re mise Ã  jour : 2025-10-31**
+**Document vivant - Dernière mise à jour : 2025-10-31**
 
-**Contact Projet :** [Ã€ complÃ©ter]
+**Contact Projet :** [À compléter]
 **Version GDD :** 0.3-alpha

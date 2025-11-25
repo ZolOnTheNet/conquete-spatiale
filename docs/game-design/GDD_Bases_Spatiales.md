@@ -1,59 +1,59 @@
-# ðŸ—ï¸ BASES SPATIALES
-## Jeu de ConquÃªte Galactique
+# 🎯—ï¸ BASES SPATIALES
+## Jeu de Conquête Galactique
 
 ---
 
-## âš ï¸ DISCLAIMER
-DonnÃ©es issues du wiki - SystÃ¨me en dÃ©veloppement.
+## ⚠️ DISCLAIMER
+Données issues du wiki - Système en développement.
 
 ---
 
-## ðŸŽ¯ Principe GÃ©nÃ©ral
+## 🎯Ž¯ Principe Général
 
-**Objectif :** PossibilitÃ© de construire bases spatiales de plus en plus grosses
+**Objectif :** Possibilité de construire bases spatiales de plus en plus grosses
 
 **Gestion :**
-- PropriÃ©taire = **Gestionnaire initial**
-- Certains modules peuvent Ãªtre **indÃ©pendants** (ex: mines automatisÃ©es)
+- Propriétaire = **Gestionnaire initial**
+- Certains modules peuvent être **indépendants** (ex: mines automatisées)
 
 ---
 
-## ðŸŒ L'Arche (Module MaÃ®tre)
+## 🎯Œ L'Arche (Module Maître)
 
-### DÃ©finition
+### Définition
 
 **L'Arche** est le module central autour duquel s'organise une base spatiale.
 
-### CapacitÃ©s de l'Arche
+### Capacités de l'Arche
 
 **Accrochage :**
 - Peut accrocher **5 modules spatiaux**
 
 **Production :**
-- Production d'Ã©nergie (panneaux solaires intÃ©grÃ©s)
+- Production d'énergie (panneaux solaires intégrés)
 
 **Dock :**
 - 1 dock d'arrimage
 
 **Informatique :**
-- SystÃ¨me informatique capable de gÃ©rer **5 unitÃ©s** (succursales de guilde)
+- Système informatique capable de gérer **5 unités** (succursales de guilde)
 
 ---
 
-## ðŸ”— Extension par Arches
+## 🎯”— Extension par Arches
 
 ### Principe
 
-**Une autre arche peut s'accrocher** Ã  l'arche d'accueil (si point d'ancrage libre).
+**Une autre arche peut s'accrocher** à l'arche d'accueil (si point d'ancrage libre).
 
-### ProcÃ©dure d'Extension
+### Procédure d'Extension
 
-**Accord nÃ©cessaire :**
+**Accord nécessaire :**
 - **Demandeur** : L'arche qui souhaite se rattacher
-- **AccrÃ©diteur** : Gestionnaire de l'arche qui reÃ§oit l'extension
+- **Accréditeur** : Gestionnaire de l'arche qui reçoit l'extension
 
-**ConsÃ©quence :**
-- **L'arche rattachÃ©e perd son gestionnaire** au profit de l'arche d'accueil
+**Conséquence :**
+- **L'arche rattachée perd son gestionnaire** au profit de l'arche d'accueil
 - Devient un module/extension de l'arche principale
 
 **Condition :**
@@ -61,15 +61,15 @@ DonnÃ©es issues du wiki - SystÃ¨me en dÃ©veloppement.
 
 ---
 
-## ðŸ‘¤ Gestionnaire
+## 🎯‘¤ Gestionnaire
 
-### DÃ©finition
+### Définition
 
 Le **gestionnaire** est responsable de :
 - Entretien de la base
 - Bon fonctionnement
-- DÃ©veloppement
-- Gestion Ã©conomique
+- Développement
+- Gestion économique
 
 ### Changement de Gestionnaire
 
@@ -82,35 +82,35 @@ Le **gestionnaire** est responsable de :
 
 **Nouveaux gestionnaires possibles :**
 - Guilde (par son chef de guilde)
-- Ã‰tat / Peuple
+- État / Peuple
 - Autre joueur
 
-**IdÃ©es de gameplay :**
+**Idées de gameplay :**
 - Missions pour maintenir gestion
-- Challenges de dÃ©veloppement
+- Challenges de développement
 - Contrats d'entretien
 
 ---
 
-## ðŸ§© Les 13 Modules Spatiaux
+## 🎯§© Les 13 Modules Spatiaux
 
 ### 1. Module Antenne Relai
 
-**Fonction :** Ã‰tendre systÃ¨me relais communication
+**Fonction :** Étendre système relais communication
 
-**CapacitÃ© :**
-- 5 Ã— niv cases de portÃ©e
+**Capacité :**
+- 5 Ï— niv cases de portée
 
-**UtilitÃ© :**
-- Communication inter-systÃ¨mes
-- RÃ©seau d'information
+**Utilité :**
+- Communication inter-systèmes
+- Réseau d'information
 - Coordination flottes
 
 ---
 
 ### 2. Bar
 
-**Fonction :** Distraction pour population/Ã©quipages
+**Fonction :** Distraction pour population/équipages
 
 **Niveaux :**
 
@@ -120,24 +120,24 @@ Le **gestionnaire** est responsable de :
 
 **Avec module habitation :**
 - Barman humain
-- Distraction amÃ©liorÃ©e
+- Distraction améliorée
 - Interaction sociale
 
 ---
 
-### 3. Mine Spatiale AutomatisÃ©e
+### 3. Mine Spatiale Automatisée
 
-**Fonction :** Base de l'exploitation miniÃ¨re
+**Fonction :** Base de l'exploitation minière
 
-**CapacitÃ© :**
-- Exploite filon Ã  vitesse : **niv cargos par jour**
+**Capacité :**
+- Exploite filon à vitesse : **niv cargos par jour**
 
 **Bonus :**
-- PossÃ¨de 1 dock d'arrimage
-- Augmente capacitÃ© accueil vaisseaux de la base
+- Possède 1 dock d'arrimage
+- Augmente capacité accueil vaisseaux de la base
 
 **Note :**
-- Peut fonctionner de maniÃ¨re indÃ©pendante
+- Peut fonctionner de manière indépendante
 
 ---
 
@@ -145,86 +145,86 @@ Le **gestionnaire** est responsable de :
 
 **Fonction :** Logement pour personnel
 
-**NÃ©cessaire pour :**
-- Autres modules (ex: marchÃ© local)
+**Nécessaire pour :**
+- Autres modules (ex: marché local)
 - Humaniser la base
 
-**DÃ©clenche automatiquement consommations :**
+**Déclenche automatiquement consommations :**
 - Nourriture
-- Ã‰nergie
+- Énergie
 - Unitek
 - Confort
 
-**Ratio recommandÃ© :**
+**Ratio recommandé :**
 - 1 module pour 2 arches (exemple)
 
 ---
 
-### 5. Module d'Ã‰nergie
+### 5. Module d'Énergie
 
-**Fonction :** Production Ã©nergÃ©tique supplÃ©mentaire
+**Fonction :** Production énergétique supplémentaire
 
 **Types possibles :**
-- Panneaux solaires avancÃ©s
-- RÃ©acteurs fusion
-- GÃ©nÃ©rateurs divers
+- Panneaux solaires avancés
+- Réacteurs fusion
+- Générateurs divers
 
 **Puissance :** Variable selon niveau module
 
 ---
 
-### 6. SystÃ¨me Informatique
+### 6. Système Informatique
 
-**Fonction :** CapacitÃ© de calcul supplÃ©mentaire
+**Fonction :** Capacité de calcul supplémentaire
 
-**CapacitÃ© :** +10 unitÃ©s
+**Capacité :** +10 unités
 
 **Usage actuel :**
 - Succursales de guildes
-- (Autres usages Ã  dÃ©finir)
+- (Autres usages à définir)
 
 ---
 
-### 7. MarchÃ© Local
+### 7. Marché Local
 
-**Fonction :** Commerce de matiÃ¨res premiÃ¨res
+**Fonction :** Commerce de matières premières
 
-**CapacitÃ©s :**
-- Achat matiÃ¨res premiÃ¨res
-- Vente matiÃ¨res premiÃ¨res
-- Consommation de certaines matiÃ¨res (demande)
+**Capacités :**
+- Achat matières premières
+- Vente matières premières
+- Consommation de certaines matières (demande)
 
 **Missions :**
-- Guildes marchandes peuvent recevoir missions pour alimenter marchÃ©
+- Guildes marchandes peuvent recevoir missions pour alimenter marché
 
 ---
 
 ### 8. Module de Transformation
 
-**Fonction :** Production denrÃ©es plus complexes
+**Fonction :** Production denrées plus complexes
 
 **Importance :**
-- Base du systÃ¨me de fabrication
-- Transformation matiÃ¨res premiÃ¨res â†’ produits intermÃ©diaires/finaux
+- Base du système de fabrication
+- Transformation matières premières â†’ produits intermédiaires/finaux
 
 **Exemples :**
-- Minerai â†’ MÃ©tal
-- MÃ©tal â†’ Composants
+- Minerai â†’ Métal
+- Métal â†’ Composants
 - Composants â†’ Produits finis
 
 ---
 
-### 9. Module de DÃ©fense
+### 9. Module de Défense
 
 **Fonction :** Protection de la base
 
-**Ã‰quipements possibles :**
+**Équipements possibles :**
 - Tourelles
 - Boucliers
-- SystÃ¨mes anti-missiles
-- Senseurs dÃ©fensifs
+- Systèmes anti-missiles
+- Senseurs défensifs
 
-**(Ã€ dÃ©finir en dÃ©tail)**
+**(À définir en détail)**
 
 ---
 
@@ -233,8 +233,8 @@ Le **gestionnaire** est responsable de :
 **Fonction :** Stockage et maintenance vaisseaux
 
 **Impact :**
-- Prend sur coÃ»t Ã©nergÃ©tique
-- Augmente capacitÃ© accueil
+- Prend sur coût énergétique
+- Augmente capacité accueil
 - Permet stockage vaisseaux joueurs
 
 ---
@@ -244,9 +244,9 @@ Le **gestionnaire** est responsable de :
 **Fonction :** Services techniques
 
 **Services :**
-- **RÃ©paration** vaisseaux
+- **Réparation** vaisseaux
 - **Customisation** (modifications)
-- **Vente de modules** et Ã©quipements
+- **Vente de modules** et équipements
 
 ---
 
@@ -259,7 +259,7 @@ Le **gestionnaire** est responsable de :
 - Vente vaisseaux (neufs et occasion)
 - Estimation valeur
 
-**(Ã€ dÃ©finir en dÃ©tail)**
+**(À définir en détail)**
 
 ---
 
@@ -268,57 +268,57 @@ Le **gestionnaire** est responsable de :
 **Fonction :** Production alimentaire
 
 **Production :**
-- Nourriture fraÃ®che
+- Nourriture fraîche
 - Plantes
-- Cultures spÃ©cifiques
+- Cultures spécifiques
 
-**(Ã€ dÃ©finir en dÃ©tail)**
+**(À définir en détail)**
 
 ---
 
-## ðŸ’¡ IdÃ©es AttachÃ©es
+## 🎯’¡ Idées Attachées
 
 ### 1. Investissement Joueur
 
 **Principe :**
-- Joueur peut investir dans une base pour la dÃ©velopper
+- Joueur peut investir dans une base pour la développer
 - Micro-gestion simple
-- NÃ©cessite utilisation d'autres joueurs assez rapidement
+- Nécessite utilisation d'autres joueurs assez rapidement
 
 **Gameplay :**
-- Investir crÃ©dits
+- Investir crédits
 - Choisir modules
-- GÃ©rer ressources
+- Gérer ressources
 - Recruter personnel
 
 ---
 
-### 2. Extension Infinie (thÃ©orique)
+### 2. Extension Infinie (théorique)
 
 **Principe :**
-- Base extensible Ã  l'infini tant que :
-  - Ã‰nergie suffisante
+- Base extensible à l'infini tant que :
+  - Énergie suffisante
   - Unitek disponibles
   - Respect contraintes d'extension
 
 **Limites pratiques :**
-- CoÃ»t croissant
+- Coût croissant
 - Maintenance complexe
-- DÃ©fense difficile
+- Défense difficile
 
 ---
 
 ### 3. Humanisation Progressive
 
 **Principe :**
-- Petit Ã  petit, base s'humanise
+- Petit à petit, base s'humanise
 - Demande ressources pour consommation
-- **Module habitation doit toujours aider dÃ©veloppement**
+- **Module habitation doit toujours aider développement**
 
 **Progression :**
 1. Base technique pure (robots/automatisation)
 2. Ajout personnel technique
-3. DÃ©veloppement commercial
+3. Développement commercial
 4. Population civile
 5. Ville spatiale
 
@@ -332,29 +332,29 @@ Le **gestionnaire** est responsable de :
 - Banque
 - Assurances
 - Douanes
-- SÃ©curitÃ© privÃ©e
-- AcadÃ©mies / Ã‰coles
+- Sécurité privée
+- Académies / Écoles
 
 ---
 
-## ðŸ›ï¸ Types de Bases
+## 🎯›ï¸ Types de Bases
 
-### Base MiniÃ¨re
+### Base Minière
 
 **Modules principaux :**
-- Plusieurs mines automatisÃ©es
+- Plusieurs mines automatisées
 - Modules transformation
 - Hangars (vaisseaux cargo)
-- Module Ã©nergie
+- Module énergie
 
-**Population :** LimitÃ©e (technique)
+**Population :** Limitée (technique)
 
 ---
 
 ### Station Commerciale
 
 **Modules principaux :**
-- MarchÃ© local
+- Marché local
 - Modules habitation
 - Bar / Divertissement
 - Garage / Revente vaisseaux
@@ -367,27 +367,27 @@ Le **gestionnaire** est responsable de :
 ### Avant-Poste Militaire
 
 **Modules principaux :**
-- Modules dÃ©fense
+- Modules défense
 - Hangars (vaisseaux combat)
-- Modules Ã©nergie
-- SystÃ¨mes informatiques (coordination)
+- Modules énergie
+- Systèmes informatiques (coordination)
 - Minimal habitation
 
 **Population :** Militaire / Mercenaires
 
 ---
 
-### CitÃ© Spatiale
+### Cité Spatiale
 
 **Modules principaux :**
 - TOUS types de modules
 - Multiples arches
 - Population massive
-- Ã‰conomie diversifiÃ©e
+- Économie diversifiée
 
 **Exemples :**
 - Angeles
-- EspÃ©rance
+- Espérance
 - New-SanFrancisco
 
 ---
@@ -398,16 +398,16 @@ Le **gestionnaire** est responsable de :
 
 **Physiques :**
 - Points d'ancrage disponibles
-- Masse totale (stabilitÃ©)
+- Masse totale (stabilité)
 - Volume / Encombrement
 
-**Ã‰nergÃ©tiques :**
+**Énergétiques :**
 - Production â‰¥ Consommation
-- RÃ©serves suffisantes
+- Réserves suffisantes
 
 **Ressources :**
 - Unitek pour construction
-- MatÃ©riaux nÃ©cessaires
+- Matériaux nécessaires
 - Main d'Å“uvre
 
 ---
@@ -415,83 +415,83 @@ Le **gestionnaire** est responsable de :
 ### Consommations
 
 **Chaque module consomme :**
-- Ã‰nergie (variable)
+- Énergie (variable)
 - Entretien (unitek)
 - Personnel (si applicable)
-- MatiÃ¨res premiÃ¨res (selon fonction)
+- Matières premières (selon fonction)
 
-**Module habitation dÃ©clenche :**
+**Module habitation déclenche :**
 - Nourriture
-- Eau / OxygÃ¨ne
-- SystÃ¨mes vie
+- Eau / Oxygène
+- Systèmes vie
 - Confort / Luxe (selon niveau)
 
 ---
 
-## ðŸ“Š Ã‰conomie des Bases
+## 🎯“Š Économie des Bases
 
 ### Revenus Possibles
 
 **Sources :**
-- Taxes commerciales (marchÃ© local)
+- Taxes commerciales (marché local)
 - Droits d'amarrage (docks)
 - Vente production (mines, fermes)
-- Services (rÃ©parations, vente modules)
-- Locations (hangars privÃ©s)
+- Services (réparations, vente modules)
+- Locations (hangars privés)
 
-### DÃ©penses
+### Dépenses
 
 **Fixes :**
 - Entretien modules
-- Ã‰nergie
+- Énergie
 - Salaires personnel
 
 **Variables :**
-- MatiÃ¨res premiÃ¨res
-- RÃ©parations
+- Matières premières
+- Réparations
 - Upgrades
-- DÃ©fense
+- Défense
 
 ---
 
-## ðŸŽ¯ Gameplay Gestionnaire
+## 🎯Ž¯ Gameplay Gestionnaire
 
 ### Missions Possibles
 
-**DÃ©veloppement :**
+**Développement :**
 - Construire X modules
 - Atteindre X population
 - Produire X ressources/jour
 
-**Ã‰conomie :**
-- GÃ©nÃ©rer X revenus/tour
-- Ã‰tablir route commerciale
+**Économie :**
+- Générer X revenus/tour
+- Établir route commerciale
 - Attirer guilde
 
-**DÃ©fense :**
+**Défense :**
 - Repousser attaque
-- Installer dÃ©fenses
-- SÃ©curiser secteur
+- Installer défenses
+- Sécuriser secteur
 
 **Social :**
 - Satisfaire besoins population
-- RÃ©soudre conflits
+- Résoudre conflits
 - Attirer colons
 
 ---
 
-## ðŸ’­ IdÃ©es Futures
+## 🎯’­ Idées Futures
 
-**PossibilitÃ©s Ã  explorer :**
-- Bases mobiles (trÃ¨s rares)
-- Terraformation (planÃ¨tes)
-- Stations orbitales planÃ©taires
-- RÃ©seaux de bases
+**Possibilités à explorer :**
+- Bases mobiles (très rares)
+- Terraformation (planètes)
+- Stations orbitales planétaires
+- Réseaux de bases
 - Alliances de bases
 - Guerres de bases
-- SiÃ¨ges / Blocus
+- Sièges / Blocus
 
 ---
 
-**Document vivant - DerniÃ¨re mise Ã  jour : 2025-11-01**
+**Document vivant - Dernière mise à jour : 2025-11-01**
 
