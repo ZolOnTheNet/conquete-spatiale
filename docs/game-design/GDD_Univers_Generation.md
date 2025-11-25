@@ -16,7 +16,7 @@ Créer un **moteur assez complexe** pour supporter différents univers de scienc
 
 ### Univers Envisagés
 
-**1. Monde de KÂ² (Zaib)**
+**1. Monde de KA² (Zaib)**
 - Zones se déplacent
 - Système magique
 
