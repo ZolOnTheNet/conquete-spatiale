@@ -15,8 +15,7 @@
       "Bash(php:*)",
       "Bash(while [ ! -f /tmp/migration_done ])",
       "Bash(do sleep 5)",
-      "Bash(done)",
-      "Bash(identify:*)"
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []
