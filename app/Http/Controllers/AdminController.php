@@ -10,6 +10,7 @@ use App\Models\Combat;
 use App\Models\Gisement;
 use App\Models\Ressource;
 use App\Models\Mine;
+use App\Services\UniverseGeneratorService;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -571,5 +572,161 @@ class AdminController extends Controller
         }
 
         return redirect()->back()->with('success', 'Gisement créé avec succès');
+    }
+
+    /**
+     * Générer les planètes pour un système stellaire
+     */
+    public function genererPlanetes($id)
+    {
+        $systeme = SystemeStellaire::findOrFail($id);
+
+        // Vérifier si le système a déjà des planètes
+        if ($systeme->planetes()->count() > 0) {
+            return redirect()->back()->with('error', "Le système {$systeme->nom} a déjà des planètes générées.");
+        }
+
+        // Vérifier que le système est censé avoir des planètes
+        if ($systeme->nb_planetes === 0) {
+            return redirect()->back()->with('error', "Le système {$systeme->nom} n'est pas censé avoir de planètes (nb_planetes = 0).");
+        }
+
+        // Générer les planètes
+        for ($i = 1; $i <= $systeme->nb_planetes; $i++) {
+            // Types correspondant à l'enum de la migration
+            $types = ['terrestre', 'gazeuse', 'glacee', 'naine'];
+            $type = $types[array_rand($types)];
+
+            // Rayon en rayons terrestres (Terre = 1.0)
+            $rayon = match($type) {
+                'terrestre' => rand(5, 25) / 10, // 0.5 à 2.5 rayons terrestres
+                'gazeuse' => rand(40, 140) / 10, // 4 à 14 rayons terrestres
+                'glacee' => rand(3, 13) / 10, // 0.3 à 1.3 rayons terrestres
+                'naine' => rand(1, 5) / 10, // 0.1 à 0.5 rayons terrestres
+            };
+
+            $planete = Planete::create([
+                'systeme_stellaire_id' => $systeme->id,
+                'nom' => "{$systeme->nom} {$i}",
+                'distance_etoile' => $i * 0.5 + rand(0, 10) / 10,
+                'rayon' => $rayon,
+                'masse' => match($type) {
+                    'terrestre' => rand(5, 30) / 10, // 0.5 à 3 masses terrestres
+                    'gazeuse' => rand(50, 3000) / 10, // 5 à 300 masses terrestres
+                    'glacee' => rand(1, 15) / 10, // 0.1 à 1.5 masses terrestres
+                    'naine' => rand(1, 3) / 100, // 0.01 à 0.03 masses terrestres
+                },
+                'type' => $type,
+                'a_atmosphere' => in_array($type, ['terrestre', 'gazeuse']) ? rand(0, 1) === 1 : false,
+                'population' => 0,
+                'detectabilite_base' => $this->calculatePlanetDetectability($rayon),
+                'poi_connu' => false,
+            ]);
+
+            // Générer gisements pour cette planète
+            $planete->genererGisements();
+        }
+
+        return redirect()->back()->with('success', "{$systeme->nb_planetes} planètes générées avec succès pour le système {$systeme->nom}");
+    }
+
+    /**
+     * Créer un nouveau système solaire
+     */
+    public function creerSystemeSolaire(Request $request)
+    {
+        $validated = $request->validate([
+            'nom' => 'required|string|max:255',
+            'coord_x' => 'required|numeric',
+            'coord_y' => 'required|numeric',
+            'coord_z' => 'required|numeric',
+            'type_etoile' => 'required|string|in:O,B,A,F,G,K,M',
+            'nb_planetes' => 'nullable|integer|min:0|max:20',
+        ]);
+
+        // Convertir les coordonnées absolues en secteur + position
+        $absX = $validated['coord_x'];
+        $absY = $validated['coord_y'];
+        $absZ = $validated['coord_z'];
+
+        $secteurX = (int)floor($absX / 10);
+        $secteurY = (int)floor($absY / 10);
+        $secteurZ = (int)floor($absZ / 10);
+
+        $positionX = $absX - ($secteurX * 10);
+        $positionY = $absY - ($secteurY * 10);
+        $positionZ = $absZ - ($secteurZ * 10);
+
+        // Calculer puissance selon le type spectral
+        $puissances = [
+            'O' => [150, 200],
+            'B' => [100, 140],
+            'A' => [80, 100],
+            'F' => [60, 80],
+            'G' => [40, 60],
+            'K' => [30, 40],
+            'M' => [20, 30],
+        ];
+
+        [$min, $max] = $puissances[$validated['type_etoile']];
+        $puissance = rand($min, $max);
+        $detectabilite = round((200 - $puissance) / 3, 2);
+
+        // Couleur selon le type
+        $couleurs = [
+            'O' => '#9BB0FF',
+            'B' => '#AABFFF',
+            'A' => '#CAD7FF',
+            'F' => '#F8F7FF',
+            'G' => '#FFF4EA',
+            'K' => '#FFD2A1',
+            'M' => '#FFCC6F',
+        ];
+
+        // Créer le système
+        $systeme = SystemeStellaire::create([
+            'nom' => $validated['nom'],
+            'secteur_x' => $secteurX,
+            'secteur_y' => $secteurY,
+            'secteur_z' => $secteurZ,
+            'position_x' => $positionX,
+            'position_y' => $positionY,
+            'position_z' => $positionZ,
+            'type_etoile' => $validated['type_etoile'],
+            'couleur' => $couleurs[$validated['type_etoile']],
+            'puissance' => $puissance,
+            'detectabilite_base' => $detectabilite,
+            'nb_planetes' => $validated['nb_planetes'] ?? rand(0, 12),
+            'poi_connu' => false,
+            'source_gaia' => false,
+        ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Système {$systeme->nom} créé avec succès",
+                'systeme' => $systeme
+            ]);
+        }
+
+        return redirect()->route('admin.carte', [
+            'x' => $secteurX,
+            'y' => $secteurY,
+            'z' => $secteurZ,
+        ])->with('success', "Système {$systeme->nom} créé avec succès aux coordonnées ({$absX}, {$absY}, {$absZ})");
+    }
+
+    /**
+     * Calculer la détectabilité d'une planète
+     */
+    protected function calculatePlanetDetectability(float $rayon): float
+    {
+        // Plus une planète est grande, plus elle est facile à détecter
+        // Terre (rayon = 1.0) = détectabilité 50
+        // Jupiter (rayon = 11) = détectabilité 10
+        if ($rayon <= 0) return 100.0;
+
+        $detectabilite = 100 - ($rayon * 8);
+        return max(10.0, min(100.0, $detectabilite));
     }
 }

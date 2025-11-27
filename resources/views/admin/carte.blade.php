@@ -254,9 +254,84 @@
 
                 <!-- Carte Niveau 2: Vue Secteur (10 AL × 10 AL) -->
                 <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
-                    <h2 class="text-lg font-bold text-yellow-400 mb-2">Détail Secteur</h2>
-                    <div id="secteur-detail" class="text-center text-gray-500 py-8">
-                        Cliquez sur une étoile (*) dans la carte de gauche pour afficher les détails du secteur
+                    <h2 class="text-lg font-bold text-yellow-400 mb-2">Panneau de Contrôle</h2>
+
+                    <!-- Formulaire de création de système -->
+                    <div id="creation-systeme" class="bg-gray-900/50 border border-cyan-500/30 rounded-lg p-4 mb-4">
+                        <h3 class="text-cyan-400 font-bold mb-3">Créer un Système Solaire</h3>
+
+                        <form action="{{ route('admin.systeme.creer') }}" method="POST" class="space-y-3">
+                            @csrf
+
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">Nom du système</label>
+                                <input type="text" name="nom" required
+                                       class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm"
+                                       placeholder="Ex: Alpha Centauri B">
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-2">
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-1">X (AL)</label>
+                                    <input type="number" step="0.01" name="coord_x" id="create-coord-x" required
+                                           value="0"
+                                           class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-1">Y (AL)</label>
+                                    <input type="number" step="0.01" name="coord_y" id="create-coord-y" required
+                                           value="0"
+                                           class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-1">Z (AL)</label>
+                                    <input type="number" step="0.01" name="coord_z" id="create-coord-z" required
+                                           value="0"
+                                           class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-1">Type spectral</label>
+                                    <select name="type_etoile" required
+                                            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm">
+                                        <option value="O">O (Bleue, très chaude)</option>
+                                        <option value="B">B (Bleue-blanche)</option>
+                                        <option value="A">A (Blanche)</option>
+                                        <option value="F">F (Blanche-jaune)</option>
+                                        <option value="G" selected>G (Jaune, type Soleil)</option>
+                                        <option value="K">K (Orange)</option>
+                                        <option value="M">M (Rouge, froide)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-1">Nb planètes</label>
+                                    <input type="number" name="nb_planetes" min="0" max="20"
+                                           value="5"
+                                           class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm">
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-bold">
+                                    ✨ Créer Système
+                                </button>
+                                <button type="button" onclick="resetCreateForm()"
+                                        class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-sm">
+                                    Réinitialiser
+                                </button>
+                            </div>
+
+                            <div class="text-xs text-gray-500">
+                                Cliquez sur la carte de gauche pour sélectionner les coordonnées
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Détail Secteur (remplacera le formulaire quand on clique sur une étoile) -->
+                    <div id="secteur-detail" class="hidden">
+                        <!-- Le contenu sera chargé via AJAX -->
                     </div>
                 </div>
             </div>
@@ -310,14 +385,32 @@ function clickCell(x, y, z, element) {
         const secteurZ = element.dataset.secteurZ;
         loadSecteurDetail(secteurX, secteurY, secteurZ);
     } else {
-        // Sinon, juste recentrer la carte
-        window.location.href = `/admin/carte?x=${x}&y=${y}&z=${z}&plan=${plan}`;
+        // Sinon, mettre à jour les coordonnées du formulaire de création
+        document.getElementById('create-coord-x').value = x;
+        document.getElementById('create-coord-y').value = y;
+        document.getElementById('create-coord-z').value = z;
+
+        // Afficher le formulaire de création et masquer le détail secteur
+        document.getElementById('creation-systeme').classList.remove('hidden');
+        document.getElementById('secteur-detail').classList.add('hidden');
+
+        // Flash visuel pour indiquer la sélection
+        const form = document.getElementById('creation-systeme');
+        form.classList.add('ring-2', 'ring-cyan-400');
+        setTimeout(() => {
+            form.classList.remove('ring-2', 'ring-cyan-400');
+        }, 500);
     }
 }
 
 // Charger les détails d'un secteur via AJAX
 function loadSecteurDetail(x, y, z) {
     const detailDiv = document.getElementById('secteur-detail');
+    const creationDiv = document.getElementById('creation-systeme');
+
+    // Masquer le formulaire de création et afficher le détail secteur
+    creationDiv.classList.add('hidden');
+    detailDiv.classList.remove('hidden');
     detailDiv.innerHTML = '<div class="text-cyan-400 py-8">Chargement...</div>';
 
     fetch(`/admin/carte/secteur/${x}/${y}/${z}`)
@@ -355,6 +448,16 @@ function loadSecteurDetail(x, y, z) {
             console.error('Error:', error);
             detailDiv.innerHTML = '<div class="text-red-400 py-8">Erreur de chargement</div>';
         });
+}
+
+// Réinitialiser le formulaire de création
+function resetCreateForm() {
+    document.getElementById('create-coord-x').value = 0;
+    document.getElementById('create-coord-y').value = 0;
+    document.getElementById('create-coord-z').value = 0;
+    document.querySelector('input[name="nom"]').value = '';
+    document.querySelector('select[name="type_etoile"]').value = 'G';
+    document.querySelector('input[name="nb_planetes"]').value = 5;
 }
 
 // Support clavier pour navigation
