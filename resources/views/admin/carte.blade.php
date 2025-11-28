@@ -56,6 +56,14 @@
 #carte-canvas {
     cursor: crosshair;
 }
+
+/* Désactiver la sélection de texte sur les cartes */
+#carte-text-view, #carte-graphic-view {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
 </style>
 
 <div class="min-h-screen flex flex-col">
@@ -193,6 +201,7 @@
                         <!-- Étiquettes des axes et coordonnées survolées -->
                         <div class="text-xs text-gray-500 mb-1 flex items-center justify-between">
                             <div>
+                                <span class="text-cyan-400">Centrée sur:</span> X:{{ $centerX }} Y:{{ $centerY }} Z:{{ $centerZ }} |
                                 {{ $hAxisLabel }} (horizontal) / {{ $vAxisLabel }} (vertical) | {{ $fixedAxis }} = {{ $fixedValue }} AL
                             </div>
                             <div id="coord-hover-display" class="text-xs text-yellow-400">
@@ -258,7 +267,10 @@
                                             }
                                         @endphp
                                         <span class="{{ $cellClass }}"
-                                              onclick="clickCell({{ $absX }}, {{ $absY }}, {{ $absZ }}, this)"
+                                              @if($hasSystem && $absX == $sysAbsX && $absY == $sysAbsY && $absZ == $sysAbsZ)
+                                              onclick="clickCellSimple({{ $absX }}, {{ $absY }}, {{ $absZ }}, this)"
+                                              @endif
+                                              ondblclick="clickCellDouble({{ $absX }}, {{ $absY }}, {{ $absZ }}, this)"
                                               onmouseover="updateCoordDisplay({{ $absX }}, {{ $absY }}, {{ $absZ }}, '{{ $cellContent }}')"
                                               title="{{ $cellTitle }}"
                                               data-coord-x="{{ $absX }}"
@@ -299,21 +311,21 @@
                                 <div>
                                     <label class="block text-xs text-gray-400 mb-1">X (AL)</label>
                                     <input type="number" step="0.01" name="coord_x" id="create-coord-x" required
-                                           value="0"
+                                           value="{{ $centerX }}"
                                            oninput="checkExistingSystem()"
                                            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm">
                                 </div>
                                 <div>
                                     <label class="block text-xs text-gray-400 mb-1">Y (AL)</label>
                                     <input type="number" step="0.01" name="coord_y" id="create-coord-y" required
-                                           value="0"
+                                           value="{{ $centerY }}"
                                            oninput="checkExistingSystem()"
                                            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm">
                                 </div>
                                 <div>
                                     <label class="block text-xs text-gray-400 mb-1">Z (AL)</label>
                                     <input type="number" step="0.01" name="coord_z" id="create-coord-z" required
-                                           value="0"
+                                           value="{{ $centerZ }}"
                                            oninput="checkExistingSystem()"
                                            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm">
                                 </div>
@@ -458,13 +470,26 @@ function changePlan(newPlan) {
     window.location.href = `/admin/carte?x=${x}&y=${y}&z=${z}&plan=${newPlan}`;
 }
 
-// Clic sur une cellule de la carte
-function clickCell(x, y, z, element) {
+// Simple clic sur une cellule avec système (affiche uniquement les détails)
+function clickCellSimple(x, y, z, element) {
+    const isSystem = element.dataset.isSystem === 'true';
+
+    if (isSystem) {
+        // Charger le niveau 2 via AJAX sans recentrer
+        const secteurX = element.dataset.secteurX;
+        const secteurY = element.dataset.secteurY;
+        const secteurZ = element.dataset.secteurZ;
+        loadSecteurDetail(secteurX, secteurY, secteurZ);
+    }
+}
+
+// Double-clic sur une cellule (centre la carte et affiche les détails si c'est un système)
+function clickCellDouble(x, y, z, element) {
     const plan = '{{ $plan }}';
     const isSystem = element.dataset.isSystem === 'true';
 
     if (isSystem) {
-        // Si c'est un système, charger le niveau 2 via AJAX
+        // Si c'est un système, charger le niveau 2 via AJAX et recentrer
         const secteurX = element.dataset.secteurX;
         const secteurY = element.dataset.secteurY;
         const secteurZ = element.dataset.secteurZ;
@@ -489,6 +514,9 @@ function clickCell(x, y, z, element) {
             form.classList.remove('ring-2', 'ring-cyan-400');
         }, 500);
     }
+
+    // Dans tous les cas, recentrer la carte sur la cellule double-cliquée
+    window.location.href = `/admin/carte?x=${x}&y=${y}&z=${z}&plan=${plan}`;
 }
 
 // Charger les détails d'un secteur via AJAX
@@ -548,11 +576,25 @@ function resetCreateForm() {
     document.querySelector('input[name="nb_planetes"]').value = 5;
 }
 
-// Basculer entre vue texte et graphique
-let currentViewMode = 'text';
+// Récupérer le mode de vue depuis l'URL ou localStorage
+const urlParams = new URLSearchParams(window.location.search);
+let currentViewMode = urlParams.get('mode') || localStorage.getItem('carteViewMode') || 'text';
+
+// Appliquer le mode au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    if (currentViewMode === 'graphic') {
+        toggleViewMode('graphic');
+    }
+
+    // Vérifier au chargement si les coordonnées du centre correspondent à un système existant
+    checkExistingSystem();
+});
 
 function toggleViewMode(mode) {
     currentViewMode = mode;
+
+    // Sauvegarder le mode dans localStorage
+    localStorage.setItem('carteViewMode', mode);
 
     const textView = document.getElementById('carte-text-view');
     const graphicView = document.getElementById('carte-graphic-view');
