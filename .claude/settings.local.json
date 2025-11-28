@@ -16,7 +16,8 @@
       "Bash(while [ ! -f /tmp/migration_done ])",
       "Bash(do sleep 5)",
       "Bash(done)",
-      "Bash(identify:*)"
+      "Bash(identify:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

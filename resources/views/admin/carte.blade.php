@@ -658,12 +658,21 @@ function drawGraphicMap() {
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Dessiner le fond étoilé (points aléatoires fixes avec seed)
+    // Dessiner le fond étoilé (points pseudo-aléatoires avec seed basé sur les coordonnées)
     ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+
+    // Utiliser un générateur pseudo-aléatoire avec seed pour avoir toujours le même fond pour les mêmes coordonnées
+    function seededRandom(seed) {
+        const x = Math.sin(seed) * 10000;
+        return x - Math.floor(x);
+    }
+
+    const seed = centerX * 1000 + centerY * 100 + centerZ * 10;
     for (let i = 0; i < 800; i++) {
-        const x = (i * 997) % canvas.width;
-        const y = (i * 991) % canvas.height;
-        ctx.fillRect(x, y, 1, 1);
+        const x = Math.floor(seededRandom(seed + i * 2) * canvas.width);
+        const y = Math.floor(seededRandom(seed + i * 2 + 1) * canvas.height);
+        const size = seededRandom(seed + i * 3) > 0.9 ? 2 : 1; // Quelques étoiles plus grandes
+        ctx.fillRect(x, y, size, size);
     }
 
     // Dessiner la grille tous les 10 AL
