@@ -768,14 +768,35 @@ function drawGraphicMap() {
                     existingSystems[secteurX][secteurY][secteurZ]) {
 
                     const system = existingSystems[secteurX][secteurY][secteurZ];
-                    const sysAbsX = parseInt(system.secteur_x * 10 + system.position_x);
-                    const sysAbsY = parseInt(system.secteur_y * 10 + system.position_y);
-                    const sysAbsZ = parseInt(system.secteur_z * 10 + system.position_z);
+                    // Calculer la position absolue réelle du système (avec décimales)
+                    const sysAbsX = parseFloat(system.secteur_x * 10) + parseFloat(system.position_x);
+                    const sysAbsY = parseFloat(system.secteur_y * 10) + parseFloat(system.position_y);
+                    const sysAbsZ = parseFloat(system.secteur_z * 10) + parseFloat(system.position_z);
 
-                    if (absX === sysAbsX && absY === sysAbsY && absZ === sysAbsZ) {
-                        // Dessiner le système
-                        const canvasX = (h + halfSize) * cellSize;
-                        const canvasY = (halfSize - 1 - v) * cellSize;
+                    // Arrondir les positions pour la comparaison (au AL près)
+                    const sysAbsXRounded = Math.round(sysAbsX);
+                    const sysAbsYRounded = Math.round(sysAbsY);
+                    const sysAbsZRounded = Math.round(sysAbsZ);
+
+                    if (absX === sysAbsXRounded && absY === sysAbsYRounded && absZ === sysAbsZRounded) {
+                        // Dessiner le système à sa position exacte (avec sous-pixel si possible)
+                        const exactH = sysAbsX - centerX;
+                        const exactV = sysAbsY - centerY;
+
+                        let canvasX, canvasY;
+                        if (plan === 'Z') {
+                            canvasX = (exactH + halfSize) * cellSize;
+                            canvasY = (halfSize - exactV) * cellSize;
+                        } else if (plan === 'Y') {
+                            const exactVZ = sysAbsZ - centerZ;
+                            canvasX = (exactH + halfSize) * cellSize;
+                            canvasY = (halfSize - exactVZ) * cellSize;
+                        } else {
+                            const exactHY = sysAbsY - centerY;
+                            const exactVZ = sysAbsZ - centerZ;
+                            canvasX = (exactHY + halfSize) * cellSize;
+                            canvasY = (halfSize - exactVZ) * cellSize;
+                        }
 
                         // Choisir l'image selon le type de système
                         let imgName = 'bg_S.jpg';
@@ -784,12 +805,12 @@ function drawGraphicMap() {
                         }
 
                         if (canvasImageCache[imgName]) {
-                            ctx.drawImage(canvasImageCache[imgName], canvasX, canvasY, cellSize, cellSize);
+                            ctx.drawImage(canvasImageCache[imgName], canvasX - cellSize/2, canvasY - cellSize/2, cellSize, cellSize);
                         } else {
                             // Fallback: dessiner un cercle jaune
                             ctx.fillStyle = '#fbbf24';
                             ctx.beginPath();
-                            ctx.arc(canvasX + cellSize/2, canvasY + cellSize/2, cellSize/3, 0, Math.PI * 2);
+                            ctx.arc(canvasX, canvasY, cellSize/3, 0, Math.PI * 2);
                             ctx.fill();
                         }
                     }
