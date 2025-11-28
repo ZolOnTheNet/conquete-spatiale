@@ -17,10 +17,30 @@ php artisan gaia:import-real --radius=200 --limit=3000
 ```
 
 **Paramètres :**
-- `--radius=200` : Télécharge les étoiles dans un rayon de 200 années-lumière autour du Soleil
+- `--radius=200` : Télécharge les étoiles dans un rayon de 200 années-lumière autour du centre (par défaut : Soleil)
 - `--limit=3000` : Limite à 3000 étoiles maximum
 
 **Résultat :** Crée le fichier `database/data/gaia_nearby_stars.csv`
+
+### Import par zones concentriques
+
+Vous pouvez agrandir progressivement votre univers zone par zone :
+
+```bash
+# Zone 1 : Voisinage immédiat (0-50 AL)
+php artisan gaia:import-real --radius=50 --limit=1000
+php artisan migrate:fresh --seed
+
+# Zone 2 : Expansion (50-100 AL)
+php artisan gaia:import-real --merge --min-distance=50 --radius=100 --limit=2000
+php artisan migrate:fresh --seed
+
+# Zone 3 : Exploration lointaine (100-200 AL)
+php artisan gaia:import-real --merge --min-distance=100 --radius=200 --limit=3000
+php artisan migrate:fresh --seed
+```
+
+**Voir :** [GUIDE_IMPORT_PAR_ZONES.md](GUIDE_IMPORT_PAR_ZONES.md) pour plus de détails
 
 #### 2. Sauvegarder votre base de données actuelle (Optionnel)
 
@@ -59,6 +79,26 @@ php artisan gaia:import-real --min-magnitude=10 --limit=2000
 ```bash
 # Ajoute de nouvelles étoiles sans écraser les anciennes
 php artisan gaia:import-real --merge --radius=250
+```
+
+#### Importer autour d'un système spécifique
+
+```bash
+# Importer 500 étoiles dans un rayon de 50 AL autour du système ID 42
+php artisan gaia:import-real --system-id=42 --radius=50 --limit=500 --merge
+```
+
+#### Importer avec coordonnées personnalisées
+
+```bash
+# Zone autour d'Orion (RA=83.8, Dec=-5.4)
+php artisan gaia:import-real \
+  --center-ra=83.8 \
+  --center-dec=-5.4 \
+  --center-distance=1500 \
+  --radius=100 \
+  --limit=1000 \
+  --merge
 ```
 
 #### En cas d'erreur SSL
