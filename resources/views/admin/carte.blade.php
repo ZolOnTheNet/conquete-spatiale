@@ -232,12 +232,13 @@
                                                 $absZ = $centerZ + $v;
                                             }
 
-                                            // Convertir en coordonnées de secteur
-                                            $secteurX = floor($absX / 10);
-                                            $secteurY = floor($absY / 10);
-                                            $secteurZ = floor($absZ / 10);
+                                            // Les coordonnées AL entières SONT les secteurs (pas de division !)
+                                            // La grille est indexée par secteur_x/y/z qui sont les coordonnées AL
+                                            $secteurX = $absX;
+                                            $secteurY = $absY;
+                                            $secteurZ = $absZ;
 
-                                            // Chercher un système dans ce secteur
+                                            // Chercher un système à ces coordonnées AL
                                             $hasSystem = isset($grille[$secteurX][$secteurY][$secteurZ]);
 
                                             if ($hasSystem) {
@@ -755,9 +756,11 @@ function drawGraphicMap() {
                     absZ = centerZ + v;
                 }
 
-                const secteurX = Math.floor(absX / 10);
-                const secteurY = Math.floor(absY / 10);
-                const secteurZ = Math.floor(absZ / 10);
+                // Les coordonnées AL entières SONT les secteurs (pas de division !)
+                // La grille est indexée par secteur_x/y/z qui sont les coordonnées AL
+                const secteurX = absX;
+                const secteurY = absY;
+                const secteurZ = absZ;
 
                 if (existingSystems[secteurX] &&
                     existingSystems[secteurX][secteurY] &&

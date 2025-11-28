@@ -84,11 +84,20 @@ const sysAbsX = parseInt(system.secteur_x * 10 + system.position_x);
 // Résultat : 0 * 10 + 0.962 = 0 (FAUX !)
 ```
 
-### ❌ FAUX - Division par 10
+### ❌ FAUX - Division par 10 (CHERCHER dans la grille)
 ```javascript
 // ❌ ERREUR !
 const secteurX = Math.floor(absX / 10);
 // Si absX = 4, alors secteurX = 0 (FAUX !)
+// La grille est indexée par secteur_x/y/z qui SONT les AL entières
+// Vega Aurigae est dans grille[0][0][4], pas grille[0][0][0] !
+```
+
+```php
+// ❌ ERREUR !
+$secteurX = floor($absX / 10);
+$hasSystem = isset($grille[$secteurX][$secteurY][$secteurZ]);
+// Si absZ = 4, cherche dans grille[0][0][0] au lieu de grille[0][0][4] !
 ```
 
 ### ✅ CORRECT - Utilisation directe
@@ -122,6 +131,31 @@ foreach ($systemes as $systeme) {
 
     // Les positions décimales ne sont PAS utilisées ici
 }
+```
+
+### Indexation de la Grille
+
+**IMPORTANT** : La grille PHP est indexée par secteur_x/y/z qui **SONT** les coordonnées AL entières :
+
+```php
+// Construction de la grille (AdminController)
+$grille = [];
+foreach ($systemes as $systeme) {
+    $grille[$systeme->secteur_x][$systeme->secteur_y][$systeme->secteur_z] = $systeme;
+}
+
+// Vega Aurigae : secteur (0, 0, 4)
+// Elle est dans : $grille[0][0][4]
+
+// ✅ CORRECT - Chercher un système
+$absZ = 4;  // Coordonnée carte en AL
+$secteurZ = $absZ;  // PAS de division !
+$systeme = $grille[0][0][$secteurZ] ?? null;  // Trouve Vega Aurigae ✓
+
+// ❌ FAUX - Division par 10
+$absZ = 4;
+$secteurZ = floor($absZ / 10);  // = 0 !
+$systeme = $grille[0][0][$secteurZ] ?? null;  // Cherche dans [0][0][0], ne trouve pas Vega Aurigae ✗
 ```
 
 ### Sous-Carte (Niveau Secteur)
