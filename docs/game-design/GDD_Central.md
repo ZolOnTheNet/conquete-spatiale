@@ -76,7 +76,7 @@ Ce Game Design Document est divisé en plusieurs parties thématiques pour facil
 
 ### Documents Thématiques
 
-#### 1. 🎯Ž² [Système de Jeu Core](./GDD_Systeme_Jeu.md)
+#### 1. 🎯 [Système de Jeu Core](./GDD_Systeme_Jeu.md)
 **Mécanique centrale du jeu**
 - Système de dés Daggerheart (2D12)
 - Les 6 Traits et 16 Compétences
@@ -89,7 +89,7 @@ Ce Game Design Document est divisé en plusieurs parties thématiques pour facil
 
 ---
 
-#### 2. 🎯š€ [Navigation et Déplacements](./GDD_Navigation.md)
+#### 2. 🎯 [Navigation et Déplacements](./GDD_Navigation.md)
 **Systèmes de voyage et exploration**
 - Hyper-espace (inter-stellaire)
 - Déplacement conventionnel (intra-système)
@@ -102,7 +102,7 @@ Ce Game Design Document est divisé en plusieurs parties thématiques pour facil
 
 ---
 
-#### 3. âš”ï¸ [Combat et Abordages](./GDD_Combat_Detaille.md) **âœ¨ NOUVEAU**
+#### 3. [Combat et Abordages](./GDD_Combat_Detaille.md) **âœ¨ NOUVEAU**
 **Systèmes de combat détaillés**
 - Gestion des 4 cas de présence (0, 1, 2 joueurs, PNJ)
 - Séquences de combat (tirs rapides)
@@ -116,7 +116,7 @@ Ce Game Design Document est divisé en plusieurs parties thématiques pour facil
 
 ---
 
-#### 4. 🎯›¸ [Vaisseaux et Équipements](./GDD_Vaisseaux_Complet.md) **âœ¨ MIS À JOUR**
+#### 4. 🎯›¸ [Vaisseaux et Équipements](./GDD_Vaisseaux_Complet.md) MIS À JOUR**
 **Spécifications complètes depuis wiki**
 - 12 Emplacements (Pilotage, Moteur, Moteur HE, Boucliers, etc.)
 - Système soute (3 niveaux transport personnel)

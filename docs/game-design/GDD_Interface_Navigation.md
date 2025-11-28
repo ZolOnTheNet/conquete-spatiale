@@ -41,60 +41,70 @@ L'en-tête du jeu affiche les informations essentielles en permanence, inspiré 
 
 ### Structure Visuelle
 
-L'en-tête est organisé en **3 COLONNES** sur maximum 3 lignes de hauteur :
+L'en-tête est organisé en **4 COLONNES** sur maximum 3 lignes de hauteur :
 
 ```
-┌──────────────────────────────────────────────────────────────────────────────────────────────┐
-│ [COLONNE 1: JOUEUR]     [COLONNE 2: POSITION/SYSTÈME]     [COLONNE 3: VAISSEAU]             │
-├──────────────────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                              │
-│ NomDuJoueur             x: 4, y: 2, z: 9                   USS Exploreur NCC-7609-C        │
-│ 💰 Crédits: 22 749 332   Vulcanus                          ⚡ 819/890 [+80]                 │
-│ ⚡ PA: 24                                                   🛡️ [1020/1020] 100%              │
-│                         ☀️ Solaire: 80                     🔰 [75/75] 100%                  │
-│                         ☄️ Astéroïdes: 70                  🔧 Pièces: 136 650               │
-│                         🌍 Planètes: 14                                                     │
-│                         📡 Réseau: Système Solaire         🎯 Cible: Vulcania              │
-│                                                                                              │
-└──────────────────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ [COL 1: JOUEUR]  [COL 2: POSITION/SYSTÈME]  [COL 3: SECTEUR]  [COL 4: VAISSEAU]               │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                                  │
+│ NomDuJoueur      x: 4, y: 2, z: 9                🔷          USS Exploreur NCC-7609-C          │
+│ 💰 22 749 332 CR  Vulcanus                                    ⚡ 92%  🛡️ 100%  🔰 100%          │
+│ ⚡ PA: 24          ☀️ 80  ☄️ 70  🌍 14                         🔧 136 650                        │
+│                  📡 Réseau: Système Solaire                  🎯 Cible: Vulcania               │
+│                                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+**Note :** Les informations des colonnes 2 et 4 utilisent des tooltips pour afficher les détails complets au survol.
 
 ### Organisation des Informations
 
-L'en-tête est divisé en **3 COLONNES** :
+L'en-tête est divisé en **4 COLONNES** :
 
 #### 📊 COLONNE 1 : Informations Joueur (Gauche)
 
 **Sur 3 lignes verticales :**
 1. **Nom du joueur**
-2. 💰 **Vos Crédits** : 22 749 332
+2. 💰 **Vos Crédits** : 22 749 332 CR (formaté avec espaces)
 3. ⚡ **Vos Points d'actions** : 24
 
-#### 📍 COLONNE 2 : Position & Système Stellaire (Centre)
+#### 📍 COLONNE 2 : Position & Système Stellaire (Centre-gauche)
 
 **Bloc supérieur - Position :**
 1. **Coordonnées** : x: 4, y: 2, z: 9
 2. **Nom du système** : Vulcanus
 
-**Bloc inférieur - Caractéristiques système :**
-3. ☀️ **Puissance solaire** : 80
-4. ☄️ **Danger des astéroïdes** : 70
-5. 🌍 **Nombre de planètes** : 14
+**Bloc inférieur - Caractéristiques système (icônes uniquement, détails en tooltip) :**
+3. ☀️ **Puissance** : 80 (tooltip: "Puissance solaire: 80/100")
+4. ☄️ **Astéroïdes** : 70 (tooltip: "Danger astéroïdes: 70/100")
+5. 🌍 **POI** : 14 (tooltip: "Planètes et points d'intérêt: 14")
 6. 📡 **Réseau porteur** : Système Solaire
 
-#### 🚀 COLONNE 3 : Vaisseau (Droite)
+**Note :** Les 3 premières valeurs (Puissance, Astéroïdes, POI) sont affichées sur **une seule ligne** avec uniquement les icônes et valeurs chiffrées.
+
+#### 🔷 COLONNE 3 : Icône Secteur (Centre-droit)
+
+- **Icône visuelle du secteur actuel** (à détailler ultérieurement)
+- Représentation graphique distinctive du type de secteur
+
+#### 🚀 COLONNE 4 : Vaisseau (Droite)
 
 **Ligne 1 :**
 - **Nom du vaisseau** : USS Exploreur NCC-7609-C
 
-**Lignes suivantes - Icônes et valeurs :**
-- ⚡ **Énergie** : 819/890 [+80]
-- 🛡️ **Structure** : [1020/1020] 100%
-- 🔰 **Bouclier** : [75/75] 100%
-- 🔧 **Pièces détachées** : 136 650
+**Ligne 2 - États en pourcentages (icônes uniquement, détails en tooltip) :**
+- ⚡ **92%** (tooltip: "Énergie: 819/890 [+80]")
+- 🛡️ **100%** (tooltip: "Structure: 1020/1020")
+- 🔰 **100%** (tooltip: "Bouclier: 75/75")
 
-**Dernière ligne :**
+**Ligne 3 :**
+- 🔧 **136 650** (tooltip: "Unitek (pièces imprimante 3D)")
+
+**Ligne 4 :**
 - 🎯 **Cible actuelle** : Vulcania
+
+**Note :** Les états du vaisseau sont affichés uniquement en pourcentage, les valeurs complètes apparaissent dans les tooltips au survol.
 
 ---
 
@@ -126,22 +136,28 @@ Voici la reproduction exacte de l'en-tête Lunastar en **disposition 3 colonnes*
 - **Alignement vertical** : chaque colonne s'étend vers le bas
 - **Espacement** : colonnes bien espacées pour lisibilité
 
-### Notre Adaptation Optimisée
+### Notre Adaptation Optimisée (4 colonnes avec tooltips)
 
 ```
-╔════════════════════════════════════════════════════════════════════════════════════════╗
-║ 👤 JOUEUR              📍 SYSTÈME                    🚀 VAISSEAU                       ║
-╠════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                        ║
-║ Jean Dupont            Vulcanus (4, 2, 9)           USS Exploreur NCC-7609-C         ║
-║ 💰 22 749 332 CR       ☀️ Solaire: 80                ⚡ 819/890 [+80]                  ║
-║ ⚡ PA: 24               ☄️ Astéroïdes: 70             🛡️ [1020/1020] 100%              ║
-║                        🌍 Planètes: 14               🔰 [75/75] 100%                   ║
-║                        📡 Système Solaire           🔧 136 650 pièces                 ║
-║                                                      🎯 → Vulcania                     ║
-║                                                                                        ║
-╚════════════════════════════════════════════════════════════════════════════════════════╝
+╔═══════════════════════════════════════════════════════════════════════════════════════════════╗
+║ 👤 JOUEUR         📍 SYSTÈME         🔷 SECTEUR         🚀 VAISSEAU                           ║
+╠═══════════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                               ║
+║ Jean Dupont       Vulcanus (4,2,9)      [🔷]          USS Exploreur NCC-7609-C              ║
+║ 💰 22 749 332 CR  ☀️ 80 ☄️ 70 🌍 14                     ⚡ 92%  🛡️ 100%  🔰 100%               ║
+║ ⚡ PA: 24          📡 Système Solaire                  🔧 136 650                            ║
+║                                                        🎯 → Vulcania                         ║
+║                                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════════════════════╝
 ```
+
+**Améliorations par rapport à Lunastar :**
+- **4 colonnes** au lieu de 3 (ajout de la colonne icône secteur)
+- **Affichage compact** : icônes + valeurs uniquement pour système et vaisseau
+- **Tooltips** : informations détaillées au survol
+  - Colonne 2 : "☀️ 80" → tooltip: "Puissance solaire: 80/100"
+  - Colonne 4 : "⚡ 92%" → tooltip: "Énergie: 819/890 [+80]"
+- **Économie d'espace** : permet d'afficher plus d'infos dans moins de hauteur
 
 ---
 
@@ -164,14 +180,22 @@ Voici la reproduction exacte de l'en-tête Lunastar en **disposition 3 colonnes*
 - `systeme.nombre_planetes`
 - `reseau_satellite.nom` ou "Aucun réseau"
 
+**Secteur :**
+- `secteur.nom`
+- `secteur.icone` ou `secteur.type` (pour déterminer l'icône à afficher)
+
 **Vaisseau :**
 - `vaisseau.nom`
 - `vaisseau.energie_actuelle` / `vaisseau.energie_max`
 - `vaisseau.regeneration_energie` (par tour/heure)
 - `vaisseau.structure_actuelle` / `vaisseau.structure_max`
 - `vaisseau.bouclier_actuel` / `vaisseau.bouclier_max`
-- `vaisseau.pieces_detachees`
+- `vaisseau.pieces_detachees` (Unitek - pièces pour imprimante 3D)
 - `vaisseau.cible_actuelle.nom` (si existe)
+
+**Note sur l'affichage :**
+- Les valeurs système (puissance, astéroïdes, planètes) sont affichées sous forme compacte avec tooltips
+- Les stats vaisseau sont affichées en pourcentages avec tooltips pour les valeurs complètes
 
 #### Mise à Jour Temps Réel
 
@@ -194,7 +218,7 @@ Certaines valeurs doivent être mises à jour dynamiquement :
 ```blade
 {{-- resources/views/components/game-header.blade.php --}}
 <header class="game-header">
-    {{-- Disposition en 3 COLONNES --}}
+    {{-- Disposition en 4 COLONNES --}}
     <div class="header-columns">
 
         {{-- COLONNE 1 : JOUEUR --}}
@@ -205,7 +229,7 @@ Certaines valeurs doivent être mises à jour dynamiquement :
                 💰 {{ number_format($personnage->credits, 0, ',', ' ') }} CR
             </div>
             <div class="player-actions">
-                ⚡ PA: {{ $personnage->points_action_actuels }}/{{ $personnage->points_action_max }}
+                ⚡ PA: {{ $personnage->points_action_actuels }}
             </div>
         </div>
 
@@ -220,52 +244,70 @@ Certaines valeurs doivent être mises à jour dynamiquement :
                 </div>
             </div>
 
-            {{-- Bloc Caractéristiques --}}
-            <div class="system-stats">
-                <div class="system-solar">
-                    ☀️ Solaire: {{ $systeme->puissance_solaire }}
-                </div>
-                <div class="system-asteroids">
-                    ☄️ Astéroïdes: {{ $systeme->danger_asteroides }}
-                </div>
-                <div class="system-planets">
-                    🌍 Planètes: {{ $systeme->nombre_planetes }}
-                </div>
-                <div class="system-network">
-                    📡 {{ $reseauSatellite?->nom ?? 'Aucun réseau' }}
-                </div>
+            {{-- Bloc Caractéristiques COMPACT (icônes + valeurs, détails en tooltip) --}}
+            <div class="system-stats-compact">
+                <span class="stat-item" title="Puissance solaire: {{ $systeme->puissance_solaire }}/100">
+                    ☀️ {{ $systeme->puissance_solaire }}
+                </span>
+                <span class="stat-item" title="Danger astéroïdes: {{ $systeme->danger_asteroides }}/100">
+                    ☄️ {{ $systeme->danger_asteroides }}
+                </span>
+                <span class="stat-item" title="Planètes et POI: {{ $systeme->nombre_planetes }}">
+                    🌍 {{ $systeme->nombre_planetes }}
+                </span>
+            </div>
+
+            <div class="system-network">
+                📡 {{ $reseauSatellite?->nom ?? 'Aucun réseau' }}
             </div>
         </div>
 
-        {{-- COLONNE 3 : VAISSEAU --}}
+        {{-- COLONNE 3 : ICÔNE SECTEUR --}}
+        <div class="header-column header-sector">
+            <div class="column-title">🔷 SECTEUR</div>
+            <div class="sector-icon">
+                {{-- Icône du secteur (à définir selon le type) --}}
+                <span class="sector-visual" title="{{ $secteur->nom ?? 'Secteur' }}">
+                    🔷
+                </span>
+            </div>
+        </div>
+
+        {{-- COLONNE 4 : VAISSEAU --}}
         <div class="header-column header-ship">
             <div class="column-title">🚀 VAISSEAU</div>
 
             <div class="ship-name">{{ $vaisseau->nom }}</div>
 
-            <div class="ship-stats">
-                <div class="ship-energy">
-                    ⚡ {{ $vaisseau->energie_actuelle }}/{{ $vaisseau->energie_max }}
-                    @if($vaisseau->regeneration_energie > 0)
-                        [+{{ $vaisseau->regeneration_energie }}]
-                    @endif
-                </div>
-                <div class="ship-structure">
-                    🛡️ [{{ $vaisseau->structure_actuelle }}/{{ $vaisseau->structure_max }}]
-                    {{ round(($vaisseau->structure_actuelle / $vaisseau->structure_max) * 100) }}%
-                </div>
-                <div class="ship-shield">
-                    🔰 [{{ $vaisseau->bouclier_actuel }}/{{ $vaisseau->bouclier_max }}]
-                    {{ round(($vaisseau->bouclier_actuel / $vaisseau->bouclier_max) * 100) }}%
-                </div>
-                <div class="ship-parts">
-                    🔧 {{ number_format($vaisseau->pieces_detachees, 0, ',', ' ') }}
-                </div>
+            {{-- Stats COMPACT (pourcentages uniquement, détails en tooltip) --}}
+            <div class="ship-stats-compact">
+                @php
+                    $energyPercent = round(($vaisseau->energie_actuelle / $vaisseau->energie_max) * 100);
+                    $structurePercent = round(($vaisseau->structure_actuelle / $vaisseau->structure_max) * 100);
+                    $shieldPercent = round(($vaisseau->bouclier_actuel / $vaisseau->bouclier_max) * 100);
+                @endphp
+
+                <span class="stat-item"
+                      title="Énergie: {{ $vaisseau->energie_actuelle }}/{{ $vaisseau->energie_max }}@if($vaisseau->regeneration_energie > 0) [+{{ $vaisseau->regeneration_energie }}]@endif">
+                    ⚡ {{ $energyPercent }}%
+                </span>
+                <span class="stat-item"
+                      title="Structure: {{ $vaisseau->structure_actuelle }}/{{ $vaisseau->structure_max }}">
+                    🛡️ {{ $structurePercent }}%
+                </span>
+                <span class="stat-item"
+                      title="Bouclier: {{ $vaisseau->bouclier_actuel }}/{{ $vaisseau->bouclier_max }}">
+                    🔰 {{ $shieldPercent }}%
+                </span>
+            </div>
+
+            <div class="ship-parts" title="Unitek - Pièces pour imprimante 3D">
+                🔧 {{ number_format($vaisseau->pieces_detachees, 0, ',', ' ') }}
             </div>
 
             @if($vaisseau->cible_actuelle)
             <div class="ship-target">
-                🎯 Cible: {{ $vaisseau->cible_actuelle->nom }}
+                🎯 → {{ $vaisseau->cible_actuelle->nom }}
             </div>
             @endif
         </div>
@@ -287,11 +329,11 @@ Certaines valeurs doivent être mises à jour dynamiquement :
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
-/* Container des 3 colonnes */
+/* Container des 4 colonnes */
 .header-columns {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr; /* 3 colonnes égales */
-    gap: 2rem;
+    grid-template-columns: 1.2fr 1.5fr 0.8fr 1.5fr; /* 4 colonnes avec proportion adaptée */
+    gap: 1.5rem;
     color: #e0e0e0;
     align-items: start; /* Alignement haut pour chaque colonne */
 }
@@ -343,7 +385,7 @@ Certaines valeurs doivent être mises à jour dynamiquement :
    ═══════════════════════════════════════════════════ */
 
 .header-system {
-    /* Colonne centrale */
+    /* Colonne centre-gauche */
 }
 
 .system-coords {
@@ -352,24 +394,57 @@ Certaines valeurs doivent être mises à jour dynamiquement :
     margin-bottom: 0.5rem;
 }
 
-.system-stats {
+/* Stats COMPACT : affichage en ligne avec tooltips */
+.system-stats-compact {
     display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-}
-
-.system-stats > div {
-    color: #a0a0a0;
+    gap: 0.75rem;
     font-size: 0.85rem;
 }
 
-.system-solar { color: #ffa500; }
-.system-asteroids { color: #ff6347; }
-.system-planets { color: #4682b4; }
-.system-network { color: #9370db; }
+.system-stats-compact .stat-item {
+    cursor: help; /* Indique que tooltip est disponible */
+    transition: color 0.2s, transform 0.2s;
+}
+
+.system-stats-compact .stat-item:hover {
+    color: #4a9eff;
+    transform: scale(1.1);
+}
+
+.system-network {
+    color: #9370db;
+    font-size: 0.85rem;
+}
 
 /* ═══════════════════════════════════════════════════
-   COLONNE 3 : VAISSEAU
+   COLONNE 3 : SECTEUR
+   ═══════════════════════════════════════════════════ */
+
+.header-sector {
+    /* Colonne centre-droit */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sector-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sector-visual {
+    font-size: 2rem;
+    cursor: help;
+    transition: transform 0.2s;
+}
+
+.sector-visual:hover {
+    transform: scale(1.15);
+}
+
+/* ═══════════════════════════════════════════════════
+   COLONNE 4 : VAISSEAU
    ═══════════════════════════════════════════════════ */
 
 .header-ship {
@@ -383,30 +458,27 @@ Certaines valeurs doivent être mises à jour dynamiquement :
     margin-bottom: 0.25rem;
 }
 
-.ship-stats {
+/* Stats COMPACT : affichage en ligne avec tooltips */
+.ship-stats-compact {
     display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-}
-
-.ship-stats > div {
+    gap: 0.75rem;
     font-size: 0.85rem;
 }
 
-.ship-energy {
-    color: #ffeb3b;
+.ship-stats-compact .stat-item {
+    cursor: help; /* Indique que tooltip est disponible */
+    transition: color 0.2s, transform 0.2s;
 }
 
-.ship-structure {
-    color: #00bcd4;
-}
-
-.ship-shield {
-    color: #2196f3;
+.ship-stats-compact .stat-item:hover {
+    color: #4a9eff;
+    transform: scale(1.05);
 }
 
 .ship-parts {
     color: #9e9e9e;
+    font-size: 0.85rem;
+    cursor: help;
 }
 
 .ship-target {
@@ -460,6 +532,14 @@ Certaines valeurs doivent être mises à jour dynamiquement :
 }
 
 /* ═══════════════════════════════════════════════════
+   TOOLTIPS
+   ═══════════════════════════════════════════════════ */
+
+/* Note : Utilisez Bootstrap Tooltip ou une bibliothèque similaire
+   pour gérer les tooltips HTML. Les attributs "title" natifs peuvent
+   être améliorés avec data-bs-toggle="tooltip" de Bootstrap. */
+
+/* ═══════════════════════════════════════════════════
    RESPONSIVE - MOBILE
    ═══════════════════════════════════════════════════ */
 
@@ -471,7 +551,7 @@ Certaines valeurs doivent être mises à jour dynamiquement :
 
     /* Colonnes empilées verticalement sur mobile */
     .header-columns {
-        grid-template-columns: 1fr; /* 1 seule colonne */
+        grid-template-columns: 1fr; /* 1 seule colonne sur mobile */
         gap: 1rem;
     }
 
@@ -488,15 +568,23 @@ Certaines valeurs doivent être mises à jour dynamiquement :
         font-size: 0.85rem;
     }
 
-    .ship-stats > div,
-    .system-stats > div {
+    /* Compact stats restent sur une ligne même sur mobile */
+    .ship-stats-compact,
+    .system-stats-compact {
         font-size: 0.75rem;
+        gap: 0.5rem;
+    }
+
+    /* Icône secteur plus petite sur mobile */
+    .sector-visual {
+        font-size: 1.5rem;
     }
 }
 
 /* Version tablette */
 @media (min-width: 769px) and (max-width: 1024px) {
     .header-columns {
+        grid-template-columns: 1fr 1.5fr 0.8fr 1.5fr; /* Garde 4 colonnes mais ajuste */
         gap: 1rem;
     }
 
@@ -543,9 +631,15 @@ class GameHeader {
     }
 
     updateEnergy(current, max, regen) {
-        const element = document.querySelector('.ship-energy');
+        // Mise à jour en mode COMPACT (pourcentage uniquement)
+        const element = document.querySelector('.ship-stats-compact .stat-item:nth-child(1)');
+        const percentage = Math.round((current / max) * 100);
         const oldValue = element.textContent;
-        const newValue = `⚡ ${current}/${max}${regen > 0 ? ' [+' + regen + ']' : ''}`;
+        const newValue = `⚡ ${percentage}%`;
+
+        // Mise à jour du tooltip
+        const tooltipText = `Énergie: ${current}/${max}${regen > 0 ? ' [+' + regen + ']' : ''}`;
+        element.setAttribute('title', tooltipText);
 
         if (oldValue !== newValue) {
             element.textContent = newValue;
@@ -555,15 +649,23 @@ class GameHeader {
     }
 
     updateStructure(current, max) {
-        const element = document.querySelector('.ship-structure');
+        // Mise à jour en mode COMPACT (pourcentage uniquement)
+        const element = document.querySelector('.ship-stats-compact .stat-item:nth-child(2)');
         const percentage = Math.round((current / max) * 100);
-        element.textContent = `🛡️ ${current}/${max} (${percentage}%)`;
+        element.textContent = `🛡️ ${percentage}%`;
+
+        // Mise à jour du tooltip
+        element.setAttribute('title', `Structure: ${current}/${max}`);
     }
 
     updateShield(current, max) {
-        const element = document.querySelector('.ship-shield');
+        // Mise à jour en mode COMPACT (pourcentage uniquement)
+        const element = document.querySelector('.ship-stats-compact .stat-item:nth-child(3)');
         const percentage = Math.round((current / max) * 100);
-        element.textContent = `🔰 ${current}/${max} (${percentage}%)`;
+        element.textContent = `🔰 ${percentage}%`;
+
+        // Mise à jour du tooltip
+        element.setAttribute('title', `Bouclier: ${current}/${max}`);
     }
 
     updateTarget(target) {
@@ -599,33 +701,41 @@ document.addEventListener('DOMContentLoaded', () => {
 #### Version Compacte (Mobile)
 
 ```
-┌─────────────────────────────────────┐
-│ Jean Dupont  💰 22.7M  ⚡ 24        │
-│ 📍 Vulcanus (4,2,9)                 │
-├─────────────────────────────────────┤
-│ 🚀 USS Exploreur                    │
-│ ⚡ 819/890  🛡️ 100%  🔰 100%        │
-└─────────────────────────────────────┘
+┌───────────────────────────────────────┐
+│ Jean Dupont  💰 22.7M  ⚡ 24          │
+│ 📍 Vulcanus (4,2,9)                   │
+│ ☀️ 80 ☄️ 70 🌍 14  📡 Système Solaire │
+├───────────────────────────────────────┤
+│ 🔷 Secteur Central                    │
+├───────────────────────────────────────┤
+│ 🚀 USS Exploreur                      │
+│ ⚡ 92%  🛡️ 100%  🔰 100%              │
+│ 🔧 136 650  🎯 → Vulcania            │
+└───────────────────────────────────────┘
 ```
 
-#### Version Étendue (Grand écran)
+**Note mobile :** Les valeurs compactes avec tooltips sont préservées, mais les tooltips peuvent être déclenchés par un appui long sur mobile.
+
+#### Version Étendue (Grand écran) - 4 colonnes
 
 ```
-┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│ Commandant Jean Dupont                                                                                    │
-│ 💰 Crédits: 22 749 332 CR  │  ⚡ Points d'Action: 24/24  │  📍 Position: Vulcanus (x:4, y:2, z:9)        │
-├──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ Système: Vulcanus                                                                                         │
-│ ☀️ Puissance solaire: 80/100  │  ☄️ Danger astéroïdes: 70/100  │  🌍 Planètes: 14  │  📡 Système Solaire │
-├──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ 🚀 Vaisseau: USS Exploreur NCC-7609-C                                                                    │
-│ ⚡ Énergie: 819/890 [+80/h] ████████████████░░░░ 92%                                                      │
-│ 🛡️ Structure: 1020/1020 ████████████████████ 100%                                                        │
-│ 🔰 Bouclier: 75/75 ████████████████████ 100%                                                             │
-│ 🔧 Pièces détachées: 136 650 unités                                                                      │
-│ 🎯 Cible verrouillée: Vulcania (Station Orbitale)                                                        │
-└──────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ 👤 JOUEUR                📍 SYSTÈME                  🔷 SECTEUR         🚀 VAISSEAU                     │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                                         │
+│ Jean Dupont              Vulcanus (4, 2, 9)             [🔷]          USS Exploreur NCC-7609-C        │
+│ 💰 22 749 332 CR         ☀️ 80  ☄️ 70  🌍 14                           ⚡ 92%  🛡️ 100%  🔰 100%         │
+│ ⚡ PA: 24                 📡 Réseau: Système Solaire                   🔧 136 650                      │
+│                                                                        🎯 → Vulcania                   │
+│                                                                                                         │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+**Interactions :**
+- **Survol icônes système** : Affiche "Puissance solaire: 80/100", "Danger astéroïdes: 70/100", etc.
+- **Survol icône secteur** : Affiche le nom et type du secteur
+- **Survol stats vaisseau** : Affiche "Énergie: 819/890 [+80]", "Structure: 1020/1020", etc.
+- **Survol pièces** : Affiche "Unitek - Pièces pour imprimante 3D"
 
 ---
 
@@ -633,9 +743,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
 1. **Persistance** : L'en-tête doit être présent sur TOUTES les pages du jeu
 2. **Performance** : Utiliser le cache pour les données système (puissance solaire, planètes)
-3. **Responsive** : Adapter l'affichage selon la taille d'écran
+3. **Responsive** : Adapter l'affichage selon la taille d'écran (4 colonnes → 1 colonne sur mobile)
 4. **Accessibilité** : Ajouter des attributs ARIA pour les lecteurs d'écran
 5. **Animation** : Animer subtilement les changements de valeurs
+6. **Tooltips** :
+   - Utiliser Bootstrap Tooltip ou une bibliothèque similaire
+   - Initialiser avec `data-bs-toggle="tooltip"` pour améliorer les tooltips natifs
+   - Sur mobile : prévoir un appui long pour afficher les tooltips
+7. **Affichage compact** :
+   - Colonne 2 (Système) : ☀️ 80, ☄️ 70, 🌍 14 sur une seule ligne
+   - Colonne 4 (Vaisseau) : ⚡ 92%, 🛡️ 100%, 🔰 100% sur une seule ligne
+   - Détails complets uniquement dans les tooltips
+8. **Icône secteur** :
+   - Colonne 3 dédiée à l'icône visuelle du secteur
+   - Design et variantes d'icônes à définir selon types de secteurs
+   - Prévoir un système de mapping secteur → icône
 
 ---
 
