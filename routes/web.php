@@ -94,6 +94,10 @@ Route::middleware('auth')->group(function () {
         Route::delete('/mines/{id}', [AdminController::class, 'destroyMine'])->name('mines.destroy');
         Route::post('/mines/{id}/ravitailler', [AdminController::class, 'ravitaillerMine'])->name('mines.ravitailler');
         Route::post('/mines/{id}/maintenance', [AdminController::class, 'maintenanceMine'])->name('mines.maintenance');
+
+        // Routes pour la gestion des systèmes stellaires
+        Route::post('/systeme/{id}/generer-planetes', [AdminController::class, 'genererPlanetes'])->name('systeme.generer-planetes');
+        Route::post('/systeme/creer', [AdminController::class, 'creerSystemeSolaire'])->name('systeme.creer');
     });
 });
 

@@ -215,7 +215,10 @@
                                         }
                                     @endphp
                                     <span class="{{ $cellClass }}"
-                                          onclick="clickCell({{ $absX }}, {{ $absY }}, {{ $absZ }}, this)"
+                                          ondblclick="clickCell({{ $absX }}, {{ $absY }}, {{ $absZ }}, this)"
+                                          @if($hasSystem && $absX == $sysAbsX && $absY == $sysAbsY && $absZ == $sysAbsZ)
+                                          onclick="clickCellSimple({{ $absX }}, {{ $absY }}, {{ $absZ }}, this)"
+                                          @endif
                                           onmouseover="updateCoordDisplay({{ $absX }}, {{ $absY }}, {{ $absZ }}, '{{ $cellContent }}')"
                                           title="{{ $cellTitle }}"
                                           data-coord-x="{{ $absX }}"
@@ -277,21 +280,34 @@ function changePlan(newPlan) {
     window.location.href = `/carte?x=${x}&y=${y}&z=${z}&plan=${newPlan}`;
 }
 
-// Clic sur une cellule de la carte
+// Simple clic sur une cellule avec système (affiche uniquement les détails)
+function clickCellSimple(x, y, z, element) {
+    const isSystem = element.dataset.isSystem === 'true';
+
+    if (isSystem) {
+        // Charger le niveau 2 via AJAX sans recentrer
+        const secteurX = element.dataset.secteurX;
+        const secteurY = element.dataset.secteurY;
+        const secteurZ = element.dataset.secteurZ;
+        loadSecteurDetail(secteurX, secteurY, secteurZ);
+    }
+}
+
+// Double-clic sur une cellule (centre la carte et affiche les détails si c'est un système)
 function clickCell(x, y, z, element) {
     const plan = '{{ $plan }}';
     const isSystem = element.dataset.isSystem === 'true';
 
     if (isSystem) {
-        // Si c'est un système, charger le niveau 2 via AJAX
+        // Si c'est un système, charger le niveau 2 via AJAX et recentrer
         const secteurX = element.dataset.secteurX;
         const secteurY = element.dataset.secteurY;
         const secteurZ = element.dataset.secteurZ;
         loadSecteurDetail(secteurX, secteurY, secteurZ);
-    } else {
-        // Sinon, juste recentrer la carte
-        window.location.href = `/carte?x=${x}&y=${y}&z=${z}&plan=${plan}`;
     }
+
+    // Dans tous les cas, recentrer la carte sur la cellule double-cliquée
+    window.location.href = `/carte?x=${x}&y=${y}&z=${z}&plan=${plan}`;
 }
 
 // Charger les détails d'un secteur via AJAX

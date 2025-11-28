@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use App\Models\SystemeStellaire;
 use App\Models\Planete;
 use App\Models\Station;
@@ -35,6 +36,9 @@ class GaiaSeeder extends Seeder
      */
     protected function importFromCSV(string $csvPath): void
     {
+        // Créer le Système Solaire en premier
+        $this->seedSolarSystem();
+
         $radius = config('universe.gaia_radius_ly', 100);
 
         // Compter le nombre total de lignes pour la barre de progression
@@ -61,10 +65,11 @@ class GaiaSeeder extends Seeder
 
         $count = 0;
         $filtered = 0;
-        $lineNumber = 0;
+        $batch = [];
+        $batchSize = 100; // Insérer par lots de 100
+        $now = now();
 
         while (($row = fgetcsv($file)) !== false) {
-            $lineNumber++;
             $data = array_combine($header, $row);
 
             // Filtrer par distance
@@ -87,8 +92,8 @@ class GaiaSeeder extends Seeder
             // Calculer puissance et détectabilité
             [$puissance, $detectabilite] = $this->calculateStarDetectability($spectralType);
 
-            // Créer système
-            $systeme = SystemeStellaire::create([
+            // Ajouter au batch (SANS générer les planètes maintenant)
+            $batch[] = [
                 'nom' => $data['name'] ?: "GAIA-" . substr($data['source_id'], 0, 8),
                 'secteur_x' => $coords['secteur_x'],
                 'secteur_y' => $coords['secteur_y'],
@@ -108,19 +113,25 @@ class GaiaSeeder extends Seeder
                 'gaia_distance_ly' => $data['distance'],
                 'gaia_magnitude' => $data['magnitude'] ?? null,
                 'nb_planetes' => rand(0, 12),
-            ]);
-
-            // Générer planètes
-            $this->genererPlanetes($systeme);
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
 
             $count++;
 
-            // Mettre à jour le message de progression toutes les 50 étoiles
-            if ($count % 50 === 0) {
+            // Insérer le batch quand il atteint la taille limite
+            if (count($batch) >= $batchSize) {
+                DB::table('systemes_stellaires')->insert($batch);
+                $batch = [];
                 $bar->setMessage("Importé: {$count} systèmes");
             }
 
             $bar->advance();
+        }
+
+        // Insérer le dernier batch s'il reste des éléments
+        if (!empty($batch)) {
+            DB::table('systemes_stellaires')->insert($batch);
         }
 
         $bar->setMessage("Import terminé!");
@@ -129,7 +140,7 @@ class GaiaSeeder extends Seeder
 
         fclose($file);
 
-        $this->command->info("✅ {$count} systèmes GAIA importés depuis CSV");
+        $this->command->info("✅ {$count} systèmes GAIA importés depuis CSV (planètes générées à la demande)");
         if ($filtered > 0) {
             $this->command->info("ℹ️  {$filtered} étoiles filtrées (distance > {$radius} AL)");
         }

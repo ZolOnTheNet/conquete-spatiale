@@ -186,31 +186,32 @@
                                 </a>
                             </th>
                             <th class="px-4 py-3 text-left text-xs text-gray-400">Coordonnées</th>
+                            <th class="px-4 py-3 text-center text-xs text-gray-400">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-700">
                         @foreach($systemes as $systeme)
-                        <tr class="hover:bg-gray-700/50 cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">
-                            <td class="px-4 py-3 text-sm text-white">{{ $systeme->nom }}</td>
-                            <td class="px-4 py-3 text-sm text-yellow-400">{{ $systeme->type_etoile }}</td>
-                            <td class="px-4 py-3 text-sm text-orange-400">
+                        <tr class="hover:bg-gray-700/50">
+                            <td class="px-4 py-3 text-sm text-white cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">{{ $systeme->nom }}</td>
+                            <td class="px-4 py-3 text-sm text-yellow-400 cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">{{ $systeme->type_etoile }}</td>
+                            <td class="px-4 py-3 text-sm text-orange-400 cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">
                                 @if($systeme->puissance)
                                     {{ $systeme->puissance }}
                                 @else
                                     <span class="text-gray-500">-</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 text-sm text-cyan-300">
+                            <td class="px-4 py-3 text-sm text-cyan-300 cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">
                                 @if($systeme->detectabilite_base)
                                     {{ number_format($systeme->detectabilite_base, 2) }}
                                 @else
                                     <span class="text-gray-500">-</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 text-sm text-orange-300 font-bold">
+                            <td class="px-4 py-3 text-sm text-orange-300 font-bold cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">
                                 {{ number_format(sqrt($systeme->distance_squared), 2) }}
                             </td>
-                            <td class="px-4 py-3 text-sm text-red-300 font-bold">
+                            <td class="px-4 py-3 text-sm text-red-300 font-bold cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">
                                 @php
                                     $distance = sqrt($systeme->distance_squared);
                                     $facteurDistanceAL = 15;
@@ -218,18 +219,33 @@
                                 @endphp
                                 {{ number_format($dCal, 2) }}
                             </td>
-                            <td class="px-4 py-3 text-sm">
+                            <td class="px-4 py-3 text-sm cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">
                                 @if($systeme->poi_connu)
                                     <span class="text-green-400">✓</span>
                                 @else
                                     <span class="text-gray-500">-</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 text-sm text-cyan-400">{{ $systeme->planetes_count }}</td>
-                            <td class="px-4 py-3 text-sm text-gray-300">
+                            <td class="px-4 py-3 text-sm text-cyan-400 cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">{{ $systeme->planetes_count }}</td>
+                            <td class="px-4 py-3 text-sm text-gray-300 cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">
                                 {{ number_format($systeme->secteur_x * 10 + $systeme->position_x, 2) }},
                                 {{ number_format($systeme->secteur_y * 10 + $systeme->position_y, 2) }},
                                 {{ number_format($systeme->secteur_z * 10 + $systeme->position_z, 2) }}
+                            </td>
+                            <td class="px-4 py-3 text-sm">
+                                <div class="flex gap-2 justify-center">
+                                    @if($systeme->nb_planetes > 0 && $systeme->planetes_count == 0)
+                                        <form action="{{ route('admin.systeme.generer-planetes', $systeme->id) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 rounded" onclick="event.stopPropagation()">
+                                                Générer Planètes
+                                            </button>
+                                        </form>
+                                    @endif
+                                    <button disabled class="bg-gray-600 text-gray-400 text-xs px-2 py-1 rounded cursor-not-allowed" onclick="event.stopPropagation()" title="Non implémenté">
+                                        Générer PoI
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         @endforeach
