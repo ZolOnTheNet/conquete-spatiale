@@ -57,19 +57,19 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <div class="text-xs text-gray-400 mb-1">Nom</div>
+                        <div class="text-xs text-gray-200 mb-1">Nom</div>
                         <div class="text-white font-bold">{{ $systeme->nom }}</div>
                     </div>
                     <div>
-                        <div class="text-xs text-gray-400 mb-1">Type spectral</div>
+                        <div class="text-xs text-gray-200 mb-1">Type spectral</div>
                         <div class="text-yellow-400 font-bold">{{ $systeme->type_etoile }}</div>
                     </div>
                     <div>
-                        <div class="text-xs text-gray-400 mb-1">Couleur</div>
+                        <div class="text-xs text-gray-200 mb-1">Couleur</div>
                         <div class="text-white">{{ $systeme->couleur }}</div>
                     </div>
                     <div class="col-span-3">
-                        <div class="text-xs text-gray-400 mb-2">Puissance</div>
+                        <div class="text-xs text-gray-200 mb-2">Puissance</div>
                         <div class="flex gap-2 items-center">
                             <form method="POST" action="{{ route('admin.univers.update-puissance', $systeme->id) }}" class="flex gap-2 items-center flex-1">
                                 @csrf
@@ -99,7 +99,7 @@
                         </div>
                     </div>
                     <div>
-                        <div class="text-xs text-gray-400 mb-1">Détectabilité de base</div>
+                        <div class="text-xs text-gray-200 mb-1">Détectabilité de base</div>
                         <div class="text-cyan-300 font-bold">
                             @if($systeme->detectabilite_base)
                                 {{ number_format($systeme->detectabilite_base, 2) }}
@@ -109,7 +109,7 @@
                         </div>
                     </div>
                     <div>
-                        <div class="text-xs text-gray-400 mb-1">POI Connu</div>
+                        <div class="text-xs text-gray-200 mb-1">POI Connu</div>
                         <div>
                             @if($systeme->poi_connu)
                                 <span class="text-green-400">✓ Oui</span>
@@ -119,13 +119,13 @@
                         </div>
                     </div>
                     <div>
-                        <div class="text-xs text-gray-400 mb-1">Coordonnées (secteur)</div>
+                        <div class="text-xs text-gray-200 mb-1">Coordonnées (secteur)</div>
                         <div class="text-gray-300">
                             {{ $systeme->secteur_x }}, {{ $systeme->secteur_y }}, {{ $systeme->secteur_z }}
                         </div>
                     </div>
                     <div>
-                        <div class="text-xs text-gray-400 mb-1">Position intra-secteur</div>
+                        <div class="text-xs text-gray-200 mb-1">Position intra-secteur</div>
                         <div class="text-gray-300">
                             {{ number_format($systeme->position_x, 2) }},
                             {{ number_format($systeme->position_y, 2) }},
@@ -133,7 +133,7 @@
                         </div>
                     </div>
                     <div>
-                        <div class="text-xs text-gray-400 mb-1">Coordonnées absolues (AL)</div>
+                        <div class="text-xs text-gray-200 mb-1">Coordonnées absolues (AL)</div>
                         <div class="text-cyan-400 font-bold">
                             {{ number_format($systeme->secteur_x * 10 + $systeme->position_x, 2) }},
                             {{ number_format($systeme->secteur_y * 10 + $systeme->position_y, 2) }},
@@ -142,17 +142,17 @@
                     </div>
                     @if($systeme->source_gaia)
                     <div>
-                        <div class="text-xs text-gray-400 mb-1">Source GAIA</div>
+                        <div class="text-xs text-gray-200 mb-1">Source GAIA</div>
                         <div class="text-purple-400 font-mono text-xs">{{ $systeme->gaia_source_id }}</div>
                     </div>
                     <div>
-                        <div class="text-xs text-gray-400 mb-1">RA / Dec</div>
+                        <div class="text-xs text-gray-200 mb-1">RA / Dec</div>
                         <div class="text-gray-300 text-sm">
                             {{ number_format($systeme->gaia_ra, 4) }}° / {{ number_format($systeme->gaia_dec, 4) }}°
                         </div>
                     </div>
                     <div>
-                        <div class="text-xs text-gray-400 mb-1">Distance GAIA (AL)</div>
+                        <div class="text-xs text-gray-200 mb-1">Distance GAIA (AL)</div>
                         <div class="text-orange-300 font-bold">{{ number_format($systeme->gaia_distance_ly, 2) }}</div>
                     </div>
                     @endif

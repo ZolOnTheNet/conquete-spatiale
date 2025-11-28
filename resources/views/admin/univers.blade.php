@@ -51,31 +51,31 @@
                 <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
                     <!-- Coordonnées de référence -->
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Coord X (AL)</label>
+                        <label class="block text-xs text-gray-200 mb-1">Coord X (AL)</label>
                         <input type="number" step="0.01" name="coord_x" value="{{ $coordX }}"
                                class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Coord Y (AL)</label>
+                        <label class="block text-xs text-gray-200 mb-1">Coord Y (AL)</label>
                         <input type="number" step="0.01" name="coord_y" value="{{ $coordY }}"
                                class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Coord Z (AL)</label>
+                        <label class="block text-xs text-gray-200 mb-1">Coord Z (AL)</label>
                         <input type="number" step="0.01" name="coord_z" value="{{ $coordZ }}"
                                class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                     </div>
 
                     <!-- Distance maximale -->
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Distance max (0=∞)</label>
+                        <label class="block text-xs text-gray-200 mb-1">Distance max (0=∞)</label>
                         <input type="number" step="0.01" min="0" name="max_distance" value="{{ $maxDistance }}"
                                class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                     </div>
 
                     <!-- Résultats par page -->
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Par page</label>
+                        <label class="block text-xs text-gray-200 mb-1">Par page</label>
                         <select name="per_page" class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                             <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
                             <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
@@ -112,7 +112,7 @@
                 <table class="w-full">
                     <thead class="bg-gray-900/50">
                         <tr>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">
                                 <a href="{{ route('admin.univers', array_merge(request()->all(), ['sort_by' => 'nom', 'sort_direction' => $sortBy == 'nom' && $sortDirection == 'asc' ? 'desc' : 'asc'])) }}" class="flex items-center gap-1 hover:text-cyan-400">
                                     Nom
                                     @if($sortBy == 'nom')
@@ -122,7 +122,7 @@
                                     @endif
                                 </a>
                             </th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">
                                 <a href="{{ route('admin.univers', array_merge(request()->all(), ['sort_by' => 'type_etoile', 'sort_direction' => $sortBy == 'type_etoile' && $sortDirection == 'asc' ? 'desc' : 'asc'])) }}" class="flex items-center gap-1 hover:text-cyan-400">
                                     Type
                                     @if($sortBy == 'type_etoile')
@@ -132,7 +132,7 @@
                                     @endif
                                 </a>
                             </th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">
                                 <a href="{{ route('admin.univers', array_merge(request()->all(), ['sort_by' => 'puissance', 'sort_direction' => $sortBy == 'puissance' && $sortDirection == 'asc' ? 'desc' : 'asc'])) }}" class="flex items-center gap-1 hover:text-cyan-400">
                                     Puissance
                                     @if($sortBy == 'puissance')
@@ -142,7 +142,7 @@
                                     @endif
                                 </a>
                             </th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">
                                 <a href="{{ route('admin.univers', array_merge(request()->all(), ['sort_by' => 'detectabilite_base', 'sort_direction' => $sortBy == 'detectabilite_base' && $sortDirection == 'asc' ? 'desc' : 'asc'])) }}" class="flex items-center gap-1 hover:text-cyan-400">
                                     Détectabilité
                                     @if($sortBy == 'detectabilite_base')
@@ -152,7 +152,7 @@
                                     @endif
                                 </a>
                             </th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">
                                 <a href="{{ route('admin.univers', array_merge(request()->all(), ['sort_by' => 'distance_squared', 'sort_direction' => $sortBy == 'distance_squared' && $sortDirection == 'asc' ? 'desc' : 'asc'])) }}" class="flex items-center gap-1 hover:text-cyan-400">
                                     Distance (AL)
                                     @if($sortBy == 'distance_squared')
@@ -162,10 +162,10 @@
                                     @endif
                                 </a>
                             </th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">
                                 D_CAL (Seuil)
                             </th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">
                                 <a href="{{ route('admin.univers', array_merge(request()->all(), ['sort_by' => 'poi_connu', 'sort_direction' => $sortBy == 'poi_connu' && $sortDirection == 'asc' ? 'desc' : 'asc'])) }}" class="flex items-center gap-1 hover:text-cyan-400">
                                     POI
                                     @if($sortBy == 'poi_connu')
@@ -175,7 +175,7 @@
                                     @endif
                                 </a>
                             </th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">
                                 <a href="{{ route('admin.univers', array_merge(request()->all(), ['sort_by' => 'planetes_count', 'sort_direction' => $sortBy == 'planetes_count' && $sortDirection == 'asc' ? 'desc' : 'asc'])) }}" class="flex items-center gap-1 hover:text-cyan-400">
                                     Planètes
                                     @if($sortBy == 'planetes_count')
@@ -185,8 +185,8 @@
                                     @endif
                                 </a>
                             </th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">Coordonnées</th>
-                            <th class="px-4 py-3 text-center text-xs text-gray-400">Actions</th>
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">Coordonnées</th>
+                            <th class="px-4 py-3 text-center text-xs text-gray-200">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-700">

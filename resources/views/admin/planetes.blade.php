@@ -50,13 +50,13 @@
                 <table class="w-full">
                     <thead class="bg-gray-900/50">
                         <tr>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">Nom</th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">Système</th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">Type</th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">Rayon</th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">Détectabilité</th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">POI Connu</th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">Accessible</th>
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">Nom</th>
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">Système</th>
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">Type</th>
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">Rayon</th>
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">Détectabilité</th>
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">POI Connu</th>
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">Accessible</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-700">

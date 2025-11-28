@@ -302,7 +302,7 @@
                             @csrf
 
                             <div>
-                                <label class="block text-xs text-gray-400 mb-1">Nom du système</label>
+                                <label class="block text-xs text-gray-200 mb-1">Nom du système</label>
                                 <input type="text" name="nom" required
                                        class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm"
                                        placeholder="Ex: Alpha Centauri B">
@@ -310,21 +310,21 @@
 
                             <div class="grid grid-cols-3 gap-2">
                                 <div>
-                                    <label class="block text-xs text-gray-400 mb-1">X (AL)</label>
+                                    <label class="block text-xs text-gray-200 mb-1">X (AL)</label>
                                     <input type="number" step="0.01" name="coord_x" id="create-coord-x" required
                                            value="{{ $centerX }}"
                                            oninput="checkExistingSystem()"
                                            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm">
                                 </div>
                                 <div>
-                                    <label class="block text-xs text-gray-400 mb-1">Y (AL)</label>
+                                    <label class="block text-xs text-gray-200 mb-1">Y (AL)</label>
                                     <input type="number" step="0.01" name="coord_y" id="create-coord-y" required
                                            value="{{ $centerY }}"
                                            oninput="checkExistingSystem()"
                                            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm">
                                 </div>
                                 <div>
-                                    <label class="block text-xs text-gray-400 mb-1">Z (AL)</label>
+                                    <label class="block text-xs text-gray-200 mb-1">Z (AL)</label>
                                     <input type="number" step="0.01" name="coord_z" id="create-coord-z" required
                                            value="{{ $centerZ }}"
                                            oninput="checkExistingSystem()"
@@ -338,7 +338,7 @@
 
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
-                                    <label class="block text-xs text-gray-400 mb-1">Type spectral</label>
+                                    <label class="block text-xs text-gray-200 mb-1">Type spectral</label>
                                     <select name="type_etoile" required
                                             class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm">
                                         <option value="O">O (Bleue, très chaude)</option>
@@ -351,7 +351,7 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs text-gray-400 mb-1">Nb planètes</label>
+                                    <label class="block text-xs text-gray-200 mb-1">Nb planètes</label>
                                     <input type="number" name="nb_planetes" min="0" max="20"
                                            value="5"
                                            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm">

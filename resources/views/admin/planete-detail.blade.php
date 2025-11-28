@@ -74,14 +74,14 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <!-- Nom -->
                         <div>
-                            <label class="text-xs text-gray-400 mb-1 block">Nom</label>
+                            <label class="text-xs text-gray-200 mb-1 block">Nom</label>
                             <input type="text" name="nom" value="{{ $planete->nom }}" required
                                    class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                         </div>
 
                         <!-- Type -->
                         <div>
-                            <label class="text-xs text-gray-400 mb-1 block">Type</label>
+                            <label class="text-xs text-gray-200 mb-1 block">Type</label>
                             <select name="type" required
                                     class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                                 <option value="terrestre" {{ $planete->type == 'terrestre' ? 'selected' : '' }}>Terrestre</option>
@@ -96,56 +96,56 @@
 
                         <!-- Distance à l'étoile -->
                         <div>
-                            <label class="text-xs text-gray-400 mb-1 block">Distance à l'étoile (UA)</label>
+                            <label class="text-xs text-gray-200 mb-1 block">Distance à l'étoile (UA)</label>
                             <input type="number" name="distance_etoile" value="{{ $planete->distance_etoile }}" step="0.01"
                                    class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                         </div>
 
                         <!-- Rayon -->
                         <div>
-                            <label class="text-xs text-gray-400 mb-1 block">Rayon (R⊕)</label>
+                            <label class="text-xs text-gray-200 mb-1 block">Rayon (R⊕)</label>
                             <input type="number" name="rayon" value="{{ $planete->rayon }}" step="0.01"
                                    class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                         </div>
 
                         <!-- Masse -->
                         <div>
-                            <label class="text-xs text-gray-400 mb-1 block">Masse (M⊕)</label>
+                            <label class="text-xs text-gray-200 mb-1 block">Masse (M⊕)</label>
                             <input type="number" name="masse" value="{{ $planete->masse }}" step="0.01"
                                    class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                         </div>
 
                         <!-- Gravité -->
                         <div>
-                            <label class="text-xs text-gray-400 mb-1 block">Gravité (g)</label>
+                            <label class="text-xs text-gray-200 mb-1 block">Gravité (g)</label>
                             <input type="number" name="gravite" value="{{ $planete->gravite }}" step="0.01"
                                    class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                         </div>
 
                         <!-- Température moyenne -->
                         <div>
-                            <label class="text-xs text-gray-400 mb-1 block">Température moyenne (°C)</label>
+                            <label class="text-xs text-gray-200 mb-1 block">Température moyenne (°C)</label>
                             <input type="number" name="temperature_moyenne" value="{{ $planete->temperature_moyenne }}" step="1"
                                    class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                         </div>
 
                         <!-- Période orbitale -->
                         <div>
-                            <label class="text-xs text-gray-400 mb-1 block">Période orbitale (jours)</label>
+                            <label class="text-xs text-gray-200 mb-1 block">Période orbitale (jours)</label>
                             <input type="number" name="periode_orbitale" value="{{ $planete->periode_orbitale }}" step="0.01"
                                    class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                         </div>
 
                         <!-- Période de rotation -->
                         <div>
-                            <label class="text-xs text-gray-400 mb-1 block">Période de rotation (heures)</label>
+                            <label class="text-xs text-gray-200 mb-1 block">Période de rotation (heures)</label>
                             <input type="number" name="periode_rotation" value="{{ $planete->periode_rotation }}" step="0.01"
                                    class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                         </div>
 
                         <!-- Atmosphère -->
                         <div class="col-span-3">
-                            <label class="text-xs text-gray-400 mb-1 block flex items-center gap-2">
+                            <label class="text-xs text-gray-200 mb-1 block flex items-center gap-2">
                                 <input type="checkbox" name="a_atmosphere" value="1" {{ $planete->a_atmosphere ? 'checked' : '' }}
                                        class="bg-gray-900 border border-gray-600 rounded">
                                 Possède une atmosphère
@@ -154,28 +154,28 @@
 
                         <!-- Composition atmosphère -->
                         <div class="col-span-3">
-                            <label class="text-xs text-gray-400 mb-1 block">Composition atmosphère</label>
+                            <label class="text-xs text-gray-200 mb-1 block">Composition atmosphère</label>
                             <input type="text" name="composition_atmosphere" value="{{ $planete->composition_atmosphere }}"
                                    class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                         </div>
 
                         <!-- Pression atmosphérique -->
                         <div>
-                            <label class="text-xs text-gray-400 mb-1 block">Pression atmosphérique (atm)</label>
+                            <label class="text-xs text-gray-200 mb-1 block">Pression atmosphérique (atm)</label>
                             <input type="number" name="pression_atmospherique" value="{{ $planete->pression_atmospherique }}" step="0.01"
                                    class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                         </div>
 
                         <!-- Taux oxygène -->
                         <div>
-                            <label class="text-xs text-gray-400 mb-1 block">Taux oxygène (%)</label>
+                            <label class="text-xs text-gray-200 mb-1 block">Taux oxygène (%)</label>
                             <input type="number" name="taux_oxygene" value="{{ $planete->taux_oxygene }}" step="0.01"
                                    class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                         </div>
 
                         <!-- Toxicité atmosphère -->
                         <div>
-                            <label class="text-xs text-gray-400 mb-1 block">Toxicité atmosphère (%)</label>
+                            <label class="text-xs text-gray-200 mb-1 block">Toxicité atmosphère (%)</label>
                             <input type="number" name="toxicite_atmosphere" value="{{ $planete->toxicite_atmosphere }}" step="0.01"
                                    class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                         </div>
@@ -183,17 +183,17 @@
                         <!-- Drapeaux booléens -->
                         <div class="col-span-3">
                             <div class="grid grid-cols-3 gap-4">
-                                <label class="text-xs text-gray-400 flex items-center gap-2">
+                                <label class="text-xs text-gray-200 flex items-center gap-2">
                                     <input type="checkbox" name="habitable" value="1" {{ $planete->habitable ? 'checked' : '' }}
                                            class="bg-gray-900 border border-gray-600 rounded">
                                     Habitable
                                 </label>
-                                <label class="text-xs text-gray-400 flex items-center gap-2">
+                                <label class="text-xs text-gray-200 flex items-center gap-2">
                                     <input type="checkbox" name="habitee" value="1" {{ $planete->habitee ? 'checked' : '' }}
                                            class="bg-gray-900 border border-gray-600 rounded">
                                     Habitée
                                 </label>
-                                <label class="text-xs text-gray-400 flex items-center gap-2">
+                                <label class="text-xs text-gray-200 flex items-center gap-2">
                                     <input type="checkbox" name="accessible" value="1" {{ $planete->accessible ? 'checked' : '' }}
                                            class="bg-gray-900 border border-gray-600 rounded">
                                     Accessible
@@ -203,14 +203,14 @@
 
                         <!-- Population -->
                         <div>
-                            <label class="text-xs text-gray-400 mb-1 block">Population</label>
+                            <label class="text-xs text-gray-200 mb-1 block">Population</label>
                             <input type="number" name="population" value="{{ $planete->population }}" step="1"
                                    class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                         </div>
 
                         <!-- Description -->
                         <div class="col-span-3">
-                            <label class="text-xs text-gray-400 mb-1 block">Description</label>
+                            <label class="text-xs text-gray-200 mb-1 block">Description</label>
                             <textarea name="description" rows="3"
                                       class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">{{ $planete->description }}</textarea>
                         </div>
@@ -382,7 +382,7 @@
                         <div class="flex items-center justify-between">
                             <div class="flex-1">
                                 <div class="text-cyan-400 font-bold">{{ $mine->nom }}</div>
-                                <div class="text-xs text-gray-400 mt-1">
+                                <div class="text-xs text-gray-200 mt-1">
                                     <span>Gisement: <span class="text-yellow-400">{{ $mine->gisement->ressource->nom }}</span></span>
                                     <span class="mx-2">|</span>
                                     <span>Emplacement: {{ ucfirst($mine->emplacement) }}</span>
@@ -448,7 +448,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <div class="text-cyan-400 font-bold">{{ $station->nom }}</div>
-                                <div class="text-xs text-gray-400">Type: {{ $station->type }}</div>
+                                <div class="text-xs text-gray-200">Type: {{ $station->type }}</div>
                             </div>
                         </div>
                     </div>
@@ -474,18 +474,18 @@ function creerGisement() {
                 <h3 class="text-xl font-bold text-white mb-4">Créer un gisement</h3>
                 <div class="space-y-3">
                     <div>
-                        <label class="text-xs text-gray-400 block mb-1">Ressource</label>
+                        <label class="text-xs text-gray-200 block mb-1">Ressource</label>
                         <select id="gisement-ressource" class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                             ${ressources.map(r => `<option value="${r.id}">${r.nom}</option>`).join('')}
                         </select>
                     </div>
                     <div>
-                        <label class="text-xs text-gray-400 block mb-1">Richesse (%)</label>
+                        <label class="text-xs text-gray-200 block mb-1">Richesse (%)</label>
                         <input type="number" id="gisement-richesse" value="${Math.floor(Math.random() * 81) + 20}" min="1" max="100"
                                class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                     </div>
                     <div>
-                        <label class="text-xs text-gray-400 block mb-1">Quantité totale</label>
+                        <label class="text-xs text-gray-200 block mb-1">Quantité totale</label>
                         <input type="number" id="gisement-quantite" value="${Math.floor(Math.random() * 15000000) + 1000000}"
                                class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                     </div>
@@ -549,24 +549,24 @@ function creerMine(gisementId, ressourceNom) {
                 <p class="text-sm text-gray-400 mb-4">Gisement de <span class="text-yellow-400">${ressourceNom}</span></p>
                 <div class="space-y-3">
                     <div>
-                        <label class="text-xs text-gray-400 block mb-1">Nom de la mine</label>
+                        <label class="text-xs text-gray-200 block mb-1">Nom de la mine</label>
                         <input type="text" id="mine-nom" value="MAME-${ressourceNom}-${planeteNom}-${Math.floor(Math.random() * 1000)}"
                                class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                     </div>
                     <div>
-                        <label class="text-xs text-gray-400 block mb-1">Emplacement</label>
+                        <label class="text-xs text-gray-200 block mb-1">Emplacement</label>
                         <select id="mine-emplacement" class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                             <option value="surface">Surface</option>
                             <option value="orbite">Orbite</option>
                         </select>
                     </div>
                     <div>
-                        <label class="text-xs text-gray-400 block mb-1">Taux d'extraction (u/jour)</label>
+                        <label class="text-xs text-gray-200 block mb-1">Taux d'extraction (u/jour)</label>
                         <input type="number" id="mine-taux" value="100" min="1" step="0.01"
                                class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                     </div>
                     <div>
-                        <label class="text-xs text-gray-400 block mb-1">Capacité de stockage</label>
+                        <label class="text-xs text-gray-200 block mb-1">Capacité de stockage</label>
                         <input type="number" id="mine-capacite" value="10000" min="100"
                                class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                     </div>
@@ -629,17 +629,17 @@ function ravitaillerMine(mineId) {
                 <h3 class="text-xl font-bold text-white mb-4">Ravitailler la mine</h3>
                 <div class="space-y-3">
                     <div>
-                        <label class="text-xs text-gray-400 block mb-1">Énergie (unités)</label>
+                        <label class="text-xs text-gray-200 block mb-1">Énergie (unités)</label>
                         <input type="number" id="ravit-energie" value="1000" min="0"
                                class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                     </div>
                     <div>
-                        <label class="text-xs text-gray-400 block mb-1">Pièces de rechange</label>
+                        <label class="text-xs text-gray-200 block mb-1">Pièces de rechange</label>
                         <input type="number" id="ravit-pieces-rechange" value="50" min="0"
                                class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                     </div>
                     <div>
-                        <label class="text-xs text-gray-400 block mb-1">Pièces d'usure</label>
+                        <label class="text-xs text-gray-200 block mb-1">Pièces d'usure</label>
                         <input type="number" id="ravit-pieces-usure" value="100" min="0"
                                class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                     </div>

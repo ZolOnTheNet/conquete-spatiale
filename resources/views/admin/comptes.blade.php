@@ -50,12 +50,12 @@
                 <table class="w-full">
                     <thead class="bg-gray-900/50">
                         <tr>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">ID</th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">Nom</th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">Email</th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">Personnages</th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">Admin</th>
-                            <th class="px-4 py-3 text-left text-xs text-gray-400">Cree le</th>
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">ID</th>
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">Nom</th>
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">Email</th>
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">Personnages</th>
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">Admin</th>
+                            <th class="px-4 py-3 text-left text-xs text-gray-200">Cree le</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-700">
