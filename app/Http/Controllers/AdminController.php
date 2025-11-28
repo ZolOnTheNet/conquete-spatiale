@@ -271,12 +271,13 @@ class AdminController extends Controller
         $size = 100;
         $halfSize = 50;
 
-        // Charger tous les systèmes stellaires dans la zone
-        // Convertir les coordonnées secteur en coordonnées absolues
+        // Charger tous les systèmes stellaires
+        // Les coordonnées AL entières sont directement secteur_x/y/z
+        // (position_x/y/z sont des décimales entre 0 et 1 pour la position précise dans le secteur)
         $systemes = SystemeStellaire::all()->map(function($systeme) {
-            $systeme->abs_x = $systeme->secteur_x * 10 + $systeme->position_x;
-            $systeme->abs_y = $systeme->secteur_y * 10 + $systeme->position_y;
-            $systeme->abs_z = $systeme->secteur_z * 10 + $systeme->position_z;
+            $systeme->abs_x = $systeme->secteur_x;
+            $systeme->abs_y = $systeme->secteur_y;
+            $systeme->abs_z = $systeme->secteur_z;
             return $systeme;
         });
 
@@ -303,10 +304,11 @@ class AdminController extends Controller
             $personnage = $compte->personnagePrincipal;
             if ($personnage->vaisseauActif && $personnage->vaisseauActif->objetSpatial) {
                 $objet = $personnage->vaisseauActif->objetSpatial;
+                // Coordonnées AL entières = directement secteur_x/y/z
                 $positionActuelle = [
-                    'x' => round($objet->secteur_x * 10 + $objet->position_x),
-                    'y' => round($objet->secteur_y * 10 + $objet->position_y),
-                    'z' => round($objet->secteur_z * 10 + $objet->position_z),
+                    'x' => intval($objet->secteur_x),
+                    'y' => intval($objet->secteur_y),
+                    'z' => intval($objet->secteur_z),
                 ];
             }
         }

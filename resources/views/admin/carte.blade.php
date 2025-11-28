@@ -242,10 +242,10 @@
 
                                             if ($hasSystem) {
                                                 $systeme = $grille[$secteurX][$secteurY][$secteurZ];
-                                                // Coordonnées absolues du système (entières)
-                                                $sysAbsX = intval($systeme->secteur_x * 10 + $systeme->position_x);
-                                                $sysAbsY = intval($systeme->secteur_y * 10 + $systeme->position_y);
-                                                $sysAbsZ = intval($systeme->secteur_z * 10 + $systeme->position_z);
+                                                // Coordonnées AL entières = directement secteur_x/y/z (pas de calcul)
+                                                $sysAbsX = intval($systeme->secteur_x);
+                                                $sysAbsY = intval($systeme->secteur_y);
+                                                $sysAbsZ = intval($systeme->secteur_z);
 
                                                 // Afficher * sur la cellule AL entière du système
                                                 if ($absX == $sysAbsX && $absY == $sysAbsY && $absZ == $sysAbsZ) {
@@ -389,19 +389,15 @@ const existingSystems = @json($grille);
 
 // Vérifier si un système existe déjà aux coordonnées saisies
 function checkExistingSystem() {
-    const x = parseFloat(document.getElementById('create-coord-x').value);
-    const y = parseFloat(document.getElementById('create-coord-y').value);
-    const z = parseFloat(document.getElementById('create-coord-z').value);
+    const x = parseInt(document.getElementById('create-coord-x').value);
+    const y = parseInt(document.getElementById('create-coord-y').value);
+    const z = parseInt(document.getElementById('create-coord-z').value);
 
-    // Convertir en coordonnées de secteur
-    const secteurX = Math.floor(x / 10);
-    const secteurY = Math.floor(y / 10);
-    const secteurZ = Math.floor(z / 10);
-
-    // Calculer la position dans le secteur
-    const posX = x - (secteurX * 10);
-    const posY = y - (secteurY * 10);
-    const posZ = z - (secteurZ * 10);
+    // Les coordonnées saisies SONT déjà les coordonnées secteur (AL entières)
+    // Pas de calcul nécessaire !
+    const secteurX = x;
+    const secteurY = y;
+    const secteurZ = z;
 
     // Vérifier si un système existe dans ce secteur
     const warning = document.getElementById('coord-warning');
@@ -412,7 +408,7 @@ function checkExistingSystem() {
         existingSystems[secteurX][secteurY][secteurZ]) {
 
         const system = existingSystems[secteurX][secteurY][secteurZ];
-        warning.innerHTML = `⚠️ Un système existe déjà dans ce secteur : <strong>${system.nom}</strong> (X:${system.abs_x} Y:${system.abs_y} Z:${system.abs_z})`;
+        warning.innerHTML = `⚠️ Un système existe déjà à ces coordonnées : <strong>${system.nom}</strong> (X:${system.abs_x} Y:${system.abs_y} Z:${system.abs_z})`;
         warning.classList.remove('hidden');
 
         // Changer la couleur des inputs
@@ -768,35 +764,18 @@ function drawGraphicMap() {
                     existingSystems[secteurX][secteurY][secteurZ]) {
 
                     const system = existingSystems[secteurX][secteurY][secteurZ];
-                    // Calculer la position absolue réelle du système (avec décimales)
-                    const sysAbsX = parseFloat(system.secteur_x * 10) + parseFloat(system.position_x);
-                    const sysAbsY = parseFloat(system.secteur_y * 10) + parseFloat(system.position_y);
-                    const sysAbsZ = parseFloat(system.secteur_z * 10) + parseFloat(system.position_z);
 
-                    // Arrondir les positions pour la comparaison (au AL près)
-                    const sysAbsXRounded = Math.round(sysAbsX);
-                    const sysAbsYRounded = Math.round(sysAbsY);
-                    const sysAbsZRounded = Math.round(sysAbsZ);
+                    // Les coordonnées AL entières sont directement secteur_x, secteur_y, secteur_z
+                    // (pas de calcul, les positions décimales sont pour la navigation précise)
+                    const sysAbsX = parseInt(system.secteur_x);
+                    const sysAbsY = parseInt(system.secteur_y);
+                    const sysAbsZ = parseInt(system.secteur_z);
 
-                    if (absX === sysAbsXRounded && absY === sysAbsYRounded && absZ === sysAbsZRounded) {
-                        // Dessiner le système à sa position exacte (avec sous-pixel si possible)
-                        const exactH = sysAbsX - centerX;
-                        const exactV = sysAbsY - centerY;
-
-                        let canvasX, canvasY;
-                        if (plan === 'Z') {
-                            canvasX = (exactH + halfSize) * cellSize;
-                            canvasY = (halfSize - exactV) * cellSize;
-                        } else if (plan === 'Y') {
-                            const exactVZ = sysAbsZ - centerZ;
-                            canvasX = (exactH + halfSize) * cellSize;
-                            canvasY = (halfSize - exactVZ) * cellSize;
-                        } else {
-                            const exactHY = sysAbsY - centerY;
-                            const exactVZ = sysAbsZ - centerZ;
-                            canvasX = (exactHY + halfSize) * cellSize;
-                            canvasY = (halfSize - exactVZ) * cellSize;
-                        }
+                    // Comparer avec les coordonnées entières de la grille
+                    if (absX === sysAbsX && absY === sysAbsY && absZ === sysAbsZ) {
+                        // Dessiner le système au centre de sa cellule AL
+                        const canvasX = (h + halfSize) * cellSize + cellSize / 2;
+                        const canvasY = (halfSize - 1 - v) * cellSize + cellSize / 2;
 
                         // Choisir l'image selon le type de système
                         let imgName = 'bg_S.jpg';
@@ -804,13 +783,16 @@ function drawGraphicMap() {
                             imgName = 'bg_SV.jpg';
                         }
 
+                        // Taille minimum pour que tous les soleils soient visibles
+                        const minSize = Math.max(cellSize, 4); // Au moins 4 pixels
+
                         if (canvasImageCache[imgName]) {
-                            ctx.drawImage(canvasImageCache[imgName], canvasX - cellSize/2, canvasY - cellSize/2, cellSize, cellSize);
+                            ctx.drawImage(canvasImageCache[imgName], canvasX - minSize/2, canvasY - minSize/2, minSize, minSize);
                         } else {
-                            // Fallback: dessiner un cercle jaune
+                            // Fallback: dessiner un cercle jaune (minimum 2 pixels de rayon)
                             ctx.fillStyle = '#fbbf24';
                             ctx.beginPath();
-                            ctx.arc(canvasX, canvasY, cellSize/3, 0, Math.PI * 2);
+                            ctx.arc(canvasX, canvasY, Math.max(minSize/3, 2), 0, Math.PI * 2);
                             ctx.fill();
                         }
                     }
@@ -859,19 +841,20 @@ function setupCanvasEvents() {
             absZ = centerZ + gridY;
         }
 
-        // Vérifier si c'est un système
-        const secteurX = Math.floor(absX / 10);
-        const secteurY = Math.floor(absY / 10);
-        const secteurZ = Math.floor(absZ / 10);
+        // absX/Y/Z SONT déjà les coordonnées secteur (AL entières)
+        const secteurX = absX;
+        const secteurY = absY;
+        const secteurZ = absZ;
 
         let cellContent = '·';
         if (existingSystems[secteurX] &&
             existingSystems[secteurX][secteurY] &&
             existingSystems[secteurX][secteurY][secteurZ]) {
             const system = existingSystems[secteurX][secteurY][secteurZ];
-            const sysAbsX = parseInt(system.secteur_x * 10 + system.position_x);
-            const sysAbsY = parseInt(system.secteur_y * 10 + system.position_y);
-            const sysAbsZ = parseInt(system.secteur_z * 10 + system.position_z);
+            // Les coordonnées AL entières sont directement secteur_x/y/z
+            const sysAbsX = parseInt(system.secteur_x);
+            const sysAbsY = parseInt(system.secteur_y);
+            const sysAbsZ = parseInt(system.secteur_z);
             if (absX === sysAbsX && absY === sysAbsY && absZ === sysAbsZ) {
                 cellContent = '*';
             }
@@ -907,9 +890,10 @@ function setupCanvasEvents() {
             absZ = centerZ + gridY;
         }
 
-        const secteurX = Math.floor(absX / 10);
-        const secteurY = Math.floor(absY / 10);
-        const secteurZ = Math.floor(absZ / 10);
+        // absX/Y/Z SONT déjà les coordonnées secteur (AL entières)
+        const secteurX = absX;
+        const secteurY = absY;
+        const secteurZ = absZ;
 
         // Détection double-click manuel (pour éviter les conflits avec Deepl)
         const now = Date.now();
@@ -937,9 +921,10 @@ function handleCanvasSingleClick(absX, absY, absZ, secteurX, secteurY, secteurZ)
         existingSystems[secteurX][secteurY][secteurZ]) {
 
         const system = existingSystems[secteurX][secteurY][secteurZ];
-        const sysAbsX = parseInt(system.secteur_x * 10 + system.position_x);
-        const sysAbsY = parseInt(system.secteur_y * 10 + system.position_y);
-        const sysAbsZ = parseInt(system.secteur_z * 10 + system.position_z);
+        // Les coordonnées AL entières sont directement secteur_x/y/z
+        const sysAbsX = parseInt(system.secteur_x);
+        const sysAbsY = parseInt(system.secteur_y);
+        const sysAbsZ = parseInt(system.secteur_z);
 
         if (absX === sysAbsX && absY === sysAbsY && absZ === sysAbsZ) {
             // Afficher les détails du système
@@ -957,9 +942,10 @@ function handleCanvasDoubleClick(absX, absY, absZ, secteurX, secteurY, secteurZ)
         existingSystems[secteurX][secteurY][secteurZ]) {
 
         const system = existingSystems[secteurX][secteurY][secteurZ];
-        const sysAbsX = parseInt(system.secteur_x * 10 + system.position_x);
-        const sysAbsY = parseInt(system.secteur_y * 10 + system.position_y);
-        const sysAbsZ = parseInt(system.secteur_z * 10 + system.position_z);
+        // Les coordonnées AL entières sont directement secteur_x/y/z
+        const sysAbsX = parseInt(system.secteur_x);
+        const sysAbsY = parseInt(system.secteur_y);
+        const sysAbsZ = parseInt(system.secteur_z);
 
         if (absX === sysAbsX && absY === sysAbsY && absZ === sysAbsZ) {
             // Afficher les détails ET recentrer
