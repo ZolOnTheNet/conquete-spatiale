@@ -11,12 +11,17 @@ class ImportRealGaiaCommand extends Command
      * The name and signature of the console command.
      */
     protected $signature = 'gaia:import-real
-                            {--radius=100 : Rayon maximum en années-lumière depuis le Soleil}
+                            {--radius=100 : Rayon maximum en années-lumière depuis le centre}
                             {--limit=2000 : Nombre maximum d\'étoiles à importer}
                             {--min-magnitude=15 : Magnitude apparente maximale (plus bas = plus lumineux)}
                             {--csv= : Fichier de sortie (défaut: database/data/gaia_nearby_stars.csv)}
                             {--merge : Fusionner avec les étoiles existantes au lieu de remplacer}
-                            {--insecure : Désactiver la vérification SSL (utile si erreur certificat)}';
+                            {--insecure : Désactiver la vérification SSL (utile si erreur certificat)}
+                            {--center-ra= : Ascension droite du centre (en degrés, défaut: Soleil)}
+                            {--center-dec= : Déclinaison du centre (en degrés, défaut: Soleil)}
+                            {--center-distance= : Distance du centre en AL (défaut: 0 = Soleil)}
+                            {--min-distance=0 : Distance minimale depuis le centre (pour zones concentriques)}
+                            {--system-id= : Utiliser un système existant comme centre}';
 
     /**
      * The console command description.
@@ -39,9 +44,46 @@ class ImportRealGaiaCommand extends Command
         $csvPath = $this->option('csv') ?: database_path('data/gaia_nearby_stars.csv');
         $merge = $this->option('merge');
         $insecure = $this->option('insecure');
+        $minDistance = (float) $this->option('min-distance');
+        $systemId = $this->option('system-id');
+
+        // Déterminer le centre
+        $centerRA = $this->option('center-ra');
+        $centerDec = $this->option('center-dec');
+        $centerDistance = $this->option('center-distance');
+
+        // Si system-id est fourni, récupérer les coordonnées du système
+        if ($systemId) {
+            $systeme = \App\Models\SystemeStellaire::find($systemId);
+            if (!$systeme) {
+                $this->error("❌ Système avec ID {$systemId} non trouvé.");
+                return 1;
+            }
+
+            if (!$systeme->gaia_ra || !$systeme->gaia_dec) {
+                $this->error("❌ Le système {$systeme->nom} n'a pas de coordonnées GAIA.");
+                return 1;
+            }
+
+            $centerRA = $systeme->gaia_ra;
+            $centerDec = $systeme->gaia_dec;
+            $centerDistance = $systeme->gaia_distance_ly;
+            $this->info("🎯 Centre: Système {$systeme->nom} (ID: {$systemId})");
+        }
+
+        // Mode zone personnalisée ou depuis le Soleil
+        $customCenter = ($centerRA !== null && $centerDec !== null);
 
         $this->info('🌟 IMPORT GAIA DR3 - Données réelles ESA');
+        if ($customCenter) {
+            $this->info("🎯 Centre personnalisé: RA={$centerRA}°, Dec={$centerDec}°, Distance=" . ($centerDistance ?? 0) . " AL");
+        } else {
+            $this->info("🌞 Centre: Soleil (0, 0, 0)");
+        }
         $this->info("📏 Rayon: {$radius} AL");
+        if ($minDistance > 0) {
+            $this->info("📏 Distance minimale: {$minDistance} AL (zone concentrique)");
+        }
         $this->info("🔢 Limite: {$limit} étoiles");
         $this->info("💫 Magnitude max: {$minMag}");
         if ($insecure) {
@@ -62,11 +104,24 @@ class ImportRealGaiaCommand extends Command
             $this->info('📂 Chargé ' . count($existingStars) . ' étoiles existantes.');
         }
 
-        // Convertir rayon en parsecs (1 AL ≈ 0.306601 pc)
+        // Convertir rayons en parsecs (1 AL ≈ 0.306601 pc)
         $radiusParsecs = $radius * 0.306601;
+        $minDistanceParsecs = $minDistance * 0.306601;
 
         // Construire requête ADQL
-        $query = $this->buildADQLQuery($radiusParsecs, $minMag, $limit);
+        if ($customCenter) {
+            $query = $this->buildADQLQueryWithCenter(
+                $centerRA,
+                $centerDec,
+                $centerDistance ?? 0,
+                $radiusParsecs,
+                $minDistanceParsecs,
+                $minMag,
+                $limit
+            );
+        } else {
+            $query = $this->buildADQLQuery($radiusParsecs, $minMag, $limit);
+        }
 
         $this->info('🔍 Interrogation de la base GAIA DR3...');
         $this->line("Query: " . substr($query, 0, 100) . '...');
@@ -161,6 +216,64 @@ class ImportRealGaiaCommand extends Command
             AND ra IS NOT NULL
             AND dec IS NOT NULL
         ORDER BY parallax DESC";
+    }
+
+    /**
+     * Construire la requête ADQL pour GAIA avec centre personnalisé
+     */
+    protected function buildADQLQueryWithCenter(
+        float $centerRA,
+        float $centerDec,
+        float $centerDistanceAL,
+        float $radiusParsecs,
+        float $minDistanceParsecs,
+        float $minMag,
+        int $limit
+    ): string {
+        // Convertir centre en parsecs
+        $centerDistanceParsecs = $centerDistanceAL * 0.306601;
+
+        // Calculer rayon angulaire maximal en degrés
+        // Pour une zone sphérique autour du centre
+        // On utilise DISTANCE() qui calcule la séparation angulaire
+        $angularRadiusDeg = rad2deg(atan($radiusParsecs / max(1, $centerDistanceParsecs)));
+
+        // Pour éviter des requêtes trop larges, limiter à 90 degrés
+        $angularRadiusDeg = min(90, $angularRadiusDeg);
+
+        $query = "SELECT TOP {$limit}
+            source_id,
+            'GAIA DR3 ' || CAST(source_id AS VARCHAR) as designation,
+            ra,
+            dec,
+            parallax,
+            phot_g_mean_mag,
+            bp_rp,
+            teff_gspphot as teff_val,
+            DISTANCE(
+                POINT('ICRS', ra, dec),
+                POINT('ICRS', {$centerRA}, {$centerDec})
+            ) as angular_separation
+        FROM gaiadr3.gaia_source
+        WHERE 1=CONTAINS(
+                POINT('ICRS', ra, dec),
+                CIRCLE('ICRS', {$centerRA}, {$centerDec}, {$angularRadiusDeg})
+            )
+            AND parallax_over_error > 5
+            AND phot_g_mean_mag < {$minMag}
+            AND ra IS NOT NULL
+            AND dec IS NOT NULL";
+
+        // Ajouter filtre de distance minimale si spécifié (zone concentrique)
+        if ($minDistanceParsecs > 0) {
+            $minParallax = 1000 / ($centerDistanceParsecs + $radiusParsecs);
+            $maxParallax = 1000 / max(1, $centerDistanceParsecs - $minDistanceParsecs);
+            $query .= "\n            AND parallax BETWEEN {$minParallax} AND {$maxParallax}";
+        }
+
+        $query .= "\n        ORDER BY angular_separation ASC";
+
+        return $query;
     }
 
     /**

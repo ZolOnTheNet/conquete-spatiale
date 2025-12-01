@@ -8,7 +8,7 @@ Algorithme de recherche et découverte des systèmes stellaires (PoV brillants).
 
 ---
 
-## 🎯Ž¯ Principe Fondamental
+## 🎯 Principe Fondamental
 
 **Basé sur la puissance solaire** (avec un minimum de 10).
 
@@ -20,7 +20,7 @@ Algorithme de recherche et découverte des systèmes stellaires (PoV brillants).
 
 ---
 
-## 🎯” Mécanisme de Recherche
+## 🎯 Mécanisme de Recherche
 
 ### Principe
 
@@ -234,7 +234,7 @@ Seuil = 500 + (5.5 Ï— 100) = 1050
 
 **Étape 1 : Sélection secteurs**
 ```sql
-SELECT 
+SELECT
     secteur_id,
     coord_x, coord_y, coord_z,
     PSol,
@@ -262,7 +262,7 @@ points_tache[i] = PSol[i] + (6 - distance[i]) Ï— 10
 FOR EACH secteur IN liste_secteurs:
     lancé = SUM( (SysExpl) D (2 Ï— PSol) )
     points_tache[secteur] += lancé
-    
+
     IF points_tache[secteur] >= seuil[secteur]:
         â†’ SECTEUR DÉCOUVERT !
         â†’ Retirer de la liste de recherche
