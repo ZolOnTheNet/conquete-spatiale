@@ -65,25 +65,26 @@ class AdminController extends Controller
 
         // Calculer la distance au carré par rapport aux coordonnées saisies
         // Distance² = (x2-x1)² + (y2-y1)² + (z2-z1)²
-        // Note: On calcule le carré en SQL (compatible SQLite) et la racine en PHP
+        // Note: secteur_x/y/z SONT déjà les coordonnées AL entières (pas de *10 !)
+        // Coordonnées complètes = secteur + position
         $query->selectRaw('systemes_stellaires.*');
         $query->selectRaw(
             '(
-                ((secteur_x * 10 + position_x) - ?) * ((secteur_x * 10 + position_x) - ?) +
-                ((secteur_y * 10 + position_y) - ?) * ((secteur_y * 10 + position_y) - ?) +
-                ((secteur_z * 10 + position_z) - ?) * ((secteur_z * 10 + position_z) - ?)
+                ((secteur_x + position_x) - ?) * ((secteur_x + position_x) - ?) +
+                ((secteur_y + position_y) - ?) * ((secteur_y + position_y) - ?) +
+                ((secteur_z + position_z) - ?) * ((secteur_z + position_z) - ?)
             ) as distance_squared',
             [$coordX, $coordX, $coordY, $coordY, $coordZ, $coordZ]
         );
 
-        // Filtrer par distance max si spécifié (utiliser whereRaw au lieu de havingRaw pour compatibilité SQLite avec pagination)
+        // Filtrer par distance max si spécifié
         if ($maxDistance > 0) {
             $maxDistanceSquared = $maxDistance * $maxDistance;
             $query->whereRaw(
                 '(
-                    ((secteur_x * 10 + position_x) - ?) * ((secteur_x * 10 + position_x) - ?) +
-                    ((secteur_y * 10 + position_y) - ?) * ((secteur_y * 10 + position_y) - ?) +
-                    ((secteur_z * 10 + position_z) - ?) * ((secteur_z * 10 + position_z) - ?)
+                    ((secteur_x + position_x) - ?) * ((secteur_x + position_x) - ?) +
+                    ((secteur_y + position_y) - ?) * ((secteur_y + position_y) - ?) +
+                    ((secteur_z + position_z) - ?) * ((secteur_z + position_z) - ?)
                 ) <= ?',
                 [$coordX, $coordX, $coordY, $coordY, $coordZ, $coordZ, $maxDistanceSquared]
             );

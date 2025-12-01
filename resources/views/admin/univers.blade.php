@@ -227,10 +227,16 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-sm text-cyan-400 cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">{{ $systeme->planetes_count }}</td>
-                            <td class="px-4 py-3 text-sm text-gray-300 cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">
-                                {{ number_format($systeme->secteur_x * 10 + $systeme->position_x, 2) }},
-                                {{ number_format($systeme->secteur_y * 10 + $systeme->position_y, 2) }},
-                                {{ number_format($systeme->secteur_z * 10 + $systeme->position_z, 2) }}
+                            <td class="px-4 py-3 text-sm cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">
+                                <div class="text-white">
+                                    ({{ number_format($systeme->secteur_x + $systeme->position_x, 3) }},
+                                    {{ number_format($systeme->secteur_y + $systeme->position_y, 3) }},
+                                    {{ number_format($systeme->secteur_z + $systeme->position_z, 3) }})
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    S:[{{ $systeme->secteur_x }},{{ $systeme->secteur_y }},{{ $systeme->secteur_z }}]
+                                    P:[{{ number_format($systeme->position_x, 3) }},{{ number_format($systeme->position_y, 3) }},{{ number_format($systeme->position_z, 3) }}]
+                                </div>
                             </td>
                             <td class="px-4 py-3 text-sm">
                                 <div class="flex gap-2 justify-center">
