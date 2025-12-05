@@ -192,4 +192,30 @@ class VaisseauController extends Controller
 
         return view('game.vaisseau.armes', $data);
     }
+
+    /**
+     * Afficher l'équipage du vaisseau
+     */
+    public function equipage(Request $request)
+    {
+        $personnage = $request->attributes->get('personnage');
+
+        if (!$personnage || !$personnage->vaisseauActif) {
+            return response('Aucun vaisseau actif', 404);
+        }
+
+        $vaisseau = $personnage->vaisseauActif;
+
+        $data = [
+            'personnage' => $personnage,
+            'vaisseau' => $vaisseau,
+        ];
+
+        // Si requête AJAX, retourner seulement le contenu
+        if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return view('game.vaisseau.partials.equipage', $data);
+        }
+
+        return view('game.vaisseau.equipage', $data);
+    }
 }

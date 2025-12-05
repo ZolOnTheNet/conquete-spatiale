@@ -30,18 +30,10 @@
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-400">Position dans secteur:</span>
-                    <span class="text-yellow-400 font-mono">
-                        ({{ number_format($objetSpatial->position_x, 2) }}, 
-                         {{ number_format($objetSpatial->position_y, 2) }}, 
-                         {{ number_format($objetSpatial->position_z, 2) }}) AL
-                    </span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-400">Coordonnées absolues:</span>
-                    <span class="text-green-400 font-mono">
-                        ({{ number_format($objetSpatial->secteur_x * 10 + $objetSpatial->position_x, 2) }}, 
-                         {{ number_format($objetSpatial->secteur_y * 10 + $objetSpatial->position_y, 2) }}, 
-                         {{ number_format($objetSpatial->secteur_z * 10 + $objetSpatial->position_z, 2) }}) AL
+                    <span class="text-cyan-400 font-mono">
+                        ({{ $objetSpatial->position_x }},
+                         {{ $objetSpatial->position_y }},
+                         {{ $objetSpatial->position_z }}) AL
                     </span>
                 </div>
             </div>

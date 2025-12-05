@@ -118,14 +118,19 @@
 
         <!-- Two Maps Side by Side -->
         <div class="grid grid-cols-2 gap-4">
-            <!-- Carte Niveau 1: Vue Secteurs (100 AL × 100 AL) -->
+            <!-- Carte Niveau 1: Vue Secteurs -->
             <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
-                <h2 class="text-lg font-bold text-cyan-400 mb-2">Systèmes Découverts (100 AL)</h2>
+                <h2 class="text-lg font-bold text-cyan-400 mb-2">
+                    Systèmes Découverts ({{ $halfSize * 2 }} AL)
+                    @if($isAdmin ?? false)
+                        <span class="text-xs text-yellow-400">[Mode Admin]</span>
+                    @endif
+                </h2>
 
                 <div class="bg-black border border-gray-700 rounded p-2 relative">
                     @php
                         // Déterminer les axes en fonction du plan
-                        $halfSize = 50;
+                        // $halfSize est passé par le contrôleur (5 pour joueur, 50 pour admin)
 
                         // Configuration des axes selon le plan choisi
                         if ($plan === 'Z') {
@@ -152,7 +157,7 @@
                     <!-- Étiquettes des axes et coordonnées survolées -->
                     <div class="text-xs text-gray-500 mb-1 flex items-center justify-between">
                         <div>
-                            {{ $hAxisLabel }} (horizontal) / {{ $vAxisLabel }} (vertical) | {{ $fixedAxis }} = {{ $fixedValue }} AL
+                            {{ $hAxisLabel }} (horizontal) / {{ $vAxisLabel }} (vertical) | {{ $fixedAxis }} = {{ $fixedValue }}
                         </div>
                         <div id="coord-hover-display" class="text-xs text-yellow-400">
                             Survolez la carte
@@ -165,74 +170,69 @@
                             <div class="flex">
                                 @for($h = -$halfSize; $h < $halfSize; $h++)
                                     @php
-                                        // Calculer les coordonnées absolues selon le plan
+                                        // Calculer les coordonnées de secteur selon le plan
                                         if ($plan === 'Z') {
-                                            $absX = $centerX + $h;
-                                            $absY = $centerY + $v;
-                                            $absZ = $centerZ;
+                                            $secteurX = $centerX + $h;
+                                            $secteurY = $centerY + $v;
+                                            $secteurZ = $centerZ;
                                         } elseif ($plan === 'Y') {
-                                            $absX = $centerX + $h;
-                                            $absY = $centerY;
-                                            $absZ = $centerZ + $v;
+                                            $secteurX = $centerX + $h;
+                                            $secteurY = $centerY;
+                                            $secteurZ = $centerZ + $v;
                                         } else {
-                                            $absX = $centerX;
-                                            $absY = $centerY + $h;
-                                            $absZ = $centerZ + $v;
+                                            $secteurX = $centerX;
+                                            $secteurY = $centerY + $h;
+                                            $secteurZ = $centerZ + $v;
                                         }
-
-                                        // Convertir en coordonnées de secteur
-                                        $secteurX = floor($absX / 10);
-                                        $secteurY = floor($absY / 10);
-                                        $secteurZ = floor($absZ / 10);
 
                                         // Chercher un système découvert dans ce secteur
                                         $hasSystem = isset($grille[$secteurX][$secteurY][$secteurZ]);
 
                                         if ($hasSystem) {
                                             $systeme = $grille[$secteurX][$secteurY][$secteurZ];
-                                            // Coordonnées absolues du système (entières)
-                                            $sysAbsX = intval($systeme->secteur_x * 10 + $systeme->position_x);
-                                            $sysAbsY = intval($systeme->secteur_y * 10 + $systeme->position_y);
-                                            $sysAbsZ = intval($systeme->secteur_z * 10 + $systeme->position_z);
+                                            // Coordonnées du secteur du système
+                                            $sysSecteurX = $systeme->secteur_x;
+                                            $sysSecteurY = $systeme->secteur_y;
+                                            $sysSecteurZ = $systeme->secteur_z;
 
-                                            // Afficher * sur la cellule AL entière du système
-                                            if ($absX == $sysAbsX && $absY == $sysAbsY && $absZ == $sysAbsZ) {
+                                            // Afficher * sur la cellule du secteur du système
+                                            if ($secteurX == $sysSecteurX && $secteurY == $sysSecteurY && $secteurZ == $sysSecteurZ) {
                                                 $cellContent = '*';
                                                 $cellClass = 'text-yellow-400 cursor-pointer hover:bg-yellow-900/30 system-cell';
-                                                $cellTitle = "{$systeme->nom} (X:{$sysAbsX} Y:{$sysAbsY} Z:{$sysAbsZ})";
+                                                $cellTitle = "{$systeme->nom} (Secteur: {$sysSecteurX}, {$sysSecteurY}, {$sysSecteurZ})";
                                                 $cellData = "data-secteur-x='{$secteurX}' data-secteur-y='{$secteurY}' data-secteur-z='{$secteurZ}' data-system-id='{$systeme->id}' data-is-system='true'";
                                             } else {
                                                 $cellContent = '·';
                                                 $cellClass = 'text-gray-700 cursor-pointer hover:bg-gray-800';
-                                                $cellTitle = "AL: {$absX}, {$absY}, {$absZ} (Inexplorée)";
+                                                $cellTitle = "Secteur: {$secteurX}, {$secteurY}, {$secteurZ} (Inexplorée)";
                                                 $cellData = "data-is-system='false'";
                                             }
                                         } else {
                                             $cellContent = '·';
                                             $cellClass = 'text-gray-700 cursor-pointer hover:bg-gray-800';
-                                            $cellTitle = "AL: {$absX}, {$absY}, {$absZ} (Inexplorée)";
+                                            $cellTitle = "Secteur: {$secteurX}, {$secteurY}, {$secteurZ} (Inexplorée)";
                                             $cellData = "data-is-system='false'";
                                         }
                                     @endphp
                                     <span class="{{ $cellClass }}"
-                                          ondblclick="clickCell({{ $absX }}, {{ $absY }}, {{ $absZ }}, this)"
-                                          @if($hasSystem && $absX == $sysAbsX && $absY == $sysAbsY && $absZ == $sysAbsZ)
-                                          onclick="clickCellSimple({{ $absX }}, {{ $absY }}, {{ $absZ }}, this)"
+                                          ondblclick="clickCell({{ $secteurX }}, {{ $secteurY }}, {{ $secteurZ }}, this)"
+                                          @if($hasSystem && $secteurX == $sysSecteurX && $secteurY == $sysSecteurY && $secteurZ == $sysSecteurZ)
+                                          onclick="clickCellSimple({{ $secteurX }}, {{ $secteurY }}, {{ $secteurZ }}, this)"
                                           @endif
-                                          onmouseover="updateCoordDisplay({{ $absX }}, {{ $absY }}, {{ $absZ }}, '{{ $cellContent }}')"
+                                          onmouseover="updateCoordDisplay({{ $secteurX }}, {{ $secteurY }}, {{ $secteurZ }}, '{{ $cellContent }}')"
                                           title="{{ $cellTitle }}"
-                                          data-coord-x="{{ $absX }}"
-                                          data-coord-y="{{ $absY }}"
-                                          data-coord-z="{{ $absZ }}"
+                                          data-coord-x="{{ $secteurX }}"
+                                          data-coord-y="{{ $secteurY }}"
+                                          data-coord-z="{{ $secteurZ }}"
                                           {!! $cellData !!}>{{ $cellContent }}</span>
                                 @endfor
                             </div>
                         @endfor
                     </div>
 
-                    <!-- Axe X en bas -->
+                    <!-- Axe en bas -->
                     <div class="text-xs text-gray-600 mt-1 text-center">
-                        {{ $centerX - $halfSize }} ← {{ $hAxisLabel }} → {{ $centerX + $halfSize }} AL
+                        Secteur {{ $centerX - $halfSize }} ← {{ $hAxisLabel }} → {{ $centerX + $halfSize }}
                     </div>
                 </div>
             </div>
@@ -260,7 +260,7 @@ function updateCoordDisplay(x, y, z, cellContent) {
         contentDesc = '<span class="text-gray-400">○ Zone inexplorée</span>';
     }
 
-    display.innerHTML = `X: ${x} Y: ${y} Z: ${z} | ${contentDesc}`;
+    display.innerHTML = `Secteur: (${x}, ${y}, ${z}) | ${contentDesc}`;
 }
 
 // Navigation vers des coordonnées spécifiques

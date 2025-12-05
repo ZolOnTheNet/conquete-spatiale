@@ -206,10 +206,26 @@ class GameController extends Controller
         $personnage->load(['vaisseauActif.objetSpatial']);
         $vaisseau = $personnage->vaisseauActif;
 
+        // Déterminer le contexte (navire ou station)
+        $contextService = app(\App\Services\GameContextService::class);
+        $context = $contextService->getMenuContext($personnage);
+
+        // Récupérer le système stellaire actuel si applicable
+        $systeme = null;
+        if ($vaisseau && $vaisseau->objetSpatial) {
+            $systeme = \App\Models\SystemeStellaire::where('secteur_x', $vaisseau->objetSpatial->secteur_x)
+                ->where('secteur_y', $vaisseau->objetSpatial->secteur_y)
+                ->where('secteur_z', $vaisseau->objetSpatial->secteur_z)
+                ->first();
+        }
+
         return view('game.dashboard', [
             'compte' => $compte,
             'personnage' => $personnage,
             'vaisseau' => $vaisseau,
+            'systeme' => $systeme,
+            'context' => $context,
+            'isAdmin' => $compte->is_admin ?? false,
         ]);
     }
 
@@ -3573,6 +3589,12 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
         $centerY = (int) $request->get('y', 0);
         $centerZ = (int) $request->get('z', 0);
 
+        // Taille de la carte paramétrable selon le rôle
+        // Joueur: 10 AL × 10 AL (halfSize = 5)
+        // Admin: 100 AL × 100 AL (halfSize = 50)
+        $isAdmin = $request->user()->is_admin ?? false;
+        $halfSize = $isAdmin ? 50 : 5;
+
         // Récupérer tous les systèmes découverts par le personnage
         $decouvertes = $personnage->decouvertes()->with('systemeStellaire')->get();
 
@@ -3591,9 +3613,9 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
             $objet = $personnage->vaisseauActif->objetSpatial;
             if ($objet) {
                 $positionActuelle = [
-                    'x' => (int) ($objet->secteur_x * 10 + $objet->position_x),
-                    'y' => (int) ($objet->secteur_y * 10 + $objet->position_y),
-                    'z' => (int) ($objet->secteur_z * 10 + $objet->position_z),
+                    'x' => $objet->secteur_x,
+                    'y' => $objet->secteur_y,
+                    'z' => $objet->secteur_z,
                 ];
             }
         }
@@ -3607,7 +3629,9 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
                 'centerY',
                 'centerZ',
                 'positionActuelle',
-                'personnage'
+                'personnage',
+                'halfSize',
+                'isAdmin'
             ));
         }
 
@@ -3618,7 +3642,9 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
             'centerY',
             'centerZ',
             'positionActuelle',
-            'personnage'
+            'personnage',
+            'halfSize',
+            'isAdmin'
         ));
     }
 

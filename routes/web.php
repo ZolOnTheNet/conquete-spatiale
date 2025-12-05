@@ -5,6 +5,10 @@ use App\Http\Controllers\GameController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\VaisseauController;
 use App\Http\Controllers\ComController;
+use App\Http\Controllers\PersonnageController;
+use App\Http\Controllers\StationController;
+use App\Http\Controllers\JeuController;
+use App\Http\Controllers\TimonerieController;
 
 // Page d'accueil avec login
 Route::get('/', function () {
@@ -35,7 +39,42 @@ Route::middleware('auth')->group(function () {
         Route::get('/carte', [GameController::class, 'carte'])->name('carte');
         Route::get('/carte/secteur/{x}/{y}/{z}', [GameController::class, 'carteSecteur'])->name('carte.secteur');
 
-        // Routes Vaisseau (Timonerie, Ingénierie, Soute, Armement)
+        // Routes Menu Personnage
+        Route::prefix('personnage')->name('personnage.')->group(function () {
+            Route::get('/dossier', [PersonnageController::class, 'dossier'])->name('dossier');
+            Route::get('/spatiocarte', [PersonnageController::class, 'spatiocarte'])->name('spatiocarte');
+            Route::get('/gestion', [PersonnageController::class, 'gestion'])->name('gestion');
+        });
+
+        // Routes Menu Navire
+        Route::prefix('navire')->name('navire.')->group(function () {
+            Route::get('/timonerie', [TimonerieController::class, 'index'])->name('timonerie');
+            Route::post('/timonerie/calculer-saut', [TimonerieController::class, 'calculerSaut'])->name('timonerie.calculer-saut');
+            Route::post('/timonerie/effectuer-saut', [TimonerieController::class, 'effectuerSaut'])->name('timonerie.effectuer-saut');
+            Route::post('/timonerie/s-approcher', [TimonerieController::class, 'sApprocher'])->name('timonerie.s-approcher');
+            Route::post('/timonerie/s-amarrer', [TimonerieController::class, 'sAmarrer'])->name('timonerie.s-amarrer');
+
+            Route::get('/ingenierie', [VaisseauController::class, 'etat'])->name('ingenierie');
+            Route::get('/com', [ComController::class, 'databases'])->name('com');
+            Route::get('/soute', [VaisseauController::class, 'cargaison'])->name('soute');
+            Route::get('/equipage', [VaisseauController::class, 'equipage'])->name('equipage');
+        });
+
+        // Routes Menu Station
+        Route::prefix('station')->name('station.')->group(function () {
+            Route::get('/hall', [StationController::class, 'hall'])->name('hall');
+            Route::get('/hangar', [StationController::class, 'hangar'])->name('hangar');
+            Route::get('/marche', [StationController::class, 'marche'])->name('marche');
+            Route::get('/missions', [StationController::class, 'missions'])->name('missions');
+            Route::get('/cantina', [StationController::class, 'cantina'])->name('cantina');
+        });
+
+        // Routes Menu Jeu
+        Route::prefix('jeu')->name('jeu.')->group(function () {
+            Route::get('/profil', [JeuController::class, 'profil'])->name('profil');
+        });
+
+        // Routes Vaisseau (anciennes, à garder pour compatibilité)
         Route::prefix('vaisseau')->name('vaisseau.')->group(function () {
             // Timonerie
             Route::get('/position', [VaisseauController::class, 'position'])->name('position');
