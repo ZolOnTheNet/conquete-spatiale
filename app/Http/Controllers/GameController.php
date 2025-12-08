@@ -3583,17 +3583,28 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
                 ->with('error', 'Veuillez sélectionner un personnage');
         }
 
+        // Position par défaut : position du vaisseau du joueur
+        $defaultX = 0;
+        $defaultY = 0;
+        $defaultZ = 0;
+        if ($personnage->vaisseauActif && $personnage->vaisseauActif->objetSpatial) {
+            $os = $personnage->vaisseauActif->objetSpatial;
+            $defaultX = $os->secteur_x;
+            $defaultY = $os->secteur_y;
+            $defaultZ = $os->secteur_z;
+        }
+
         // Paramètres de la carte
         $plan = $request->get('plan', 'Y'); // Y, X ou Z
-        $centerX = (int) $request->get('x', 0);
-        $centerY = (int) $request->get('y', 0);
-        $centerZ = (int) $request->get('z', 0);
+        $centerX = (int) $request->get('x', $defaultX);
+        $centerY = (int) $request->get('y', $defaultY);
+        $centerZ = (int) $request->get('z', $defaultZ);
 
         // Taille de la carte paramétrable selon le rôle
-        // Joueur: 10 AL × 10 AL (halfSize = 5)
+        // Joueur: 21 AL × 21 AL (halfSize = 10)
         // Admin: 100 AL × 100 AL (halfSize = 50)
         $isAdmin = $request->user()->is_admin ?? false;
-        $halfSize = $isAdmin ? 50 : 5;
+        $halfSize = $isAdmin ? 50 : 10;
 
         // Récupérer tous les systèmes découverts par le personnage
         $decouvertes = $personnage->decouvertes()->with('systemeStellaire')->get();

@@ -39,7 +39,7 @@ class PersonnageController extends Controller
     /**
      * Afficher la spatiocarte (carte des systèmes découverts)
      */
-    public function spatiocarte(Request $request): View
+    public function spatiocarte(Request $request)
     {
         $personnage = $request->attributes->get('personnage');
 

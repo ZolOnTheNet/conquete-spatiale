@@ -46,11 +46,26 @@ class AdminController extends Controller
      */
     public function univers(Request $request)
     {
+        // Récupérer la position du joueur pour centrer par défaut
+        $compte = $request->user();
+        $personnage = $compte->personnagePrincipal;
+        $defaultX = 0;
+        $defaultY = 0;
+        $defaultZ = 0;
+
+        if ($personnage && $personnage->vaisseauActif && $personnage->vaisseauActif->objetSpatial) {
+            $os = $personnage->vaisseauActif->objetSpatial;
+            $defaultX = $os->secteur_x;
+            $defaultY = $os->secteur_y;
+            $defaultZ = $os->secteur_z;
+        }
+
         // Récupérer les paramètres de filtre
-        $coordX = $request->input('coord_x', 0);
-        $coordY = $request->input('coord_y', 0);
-        $coordZ = $request->input('coord_z', 0);
-        $maxDistance = $request->input('max_distance', 0); // 0 = illimité
+        $coordX = $request->input('coord_x', $defaultX);
+        $coordY = $request->input('coord_y', $defaultY);
+        $coordZ = $request->input('coord_z', $defaultZ);
+        // 10 AL de rayon = grille ~21x21x21 centrée sur joueur
+        $maxDistance = $request->input('max_distance', 10);
         $perPage = $request->input('per_page', 25);
         $sortBy = $request->input('sort_by', 'nom');
         $sortDirection = $request->input('sort_direction', 'asc');

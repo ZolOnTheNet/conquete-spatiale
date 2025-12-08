@@ -23,12 +23,12 @@
         {{-- COLONNE 1 : JOUEUR --}}
         <div class="header-column header-player">
             <div class="column-title">👤 JOUEUR</div>
-            <div class="player-name">{{ $personnage->nom }}</div>
-            <div class="player-credits">
-                💰 {{ number_format($personnage->credits ?? 0, 0, ',', ' ') }} CR
+            <div class="player-name">
+                {{ $personnage->prenom ?? '' }} {{ $personnage->nom }}
             </div>
-            <div class="player-actions">
-                ⚡ PA: {{ $personnage->points_action ?? 0 }}
+            <div class="player-stats">
+                <span class="player-credits">💰 {{ number_format($personnage->credits ?? 0, 0, ',', ' ') }} CR</span>
+                <span class="player-actions ml-3">⚡ PA: {{ $personnage->points_action ?? 0 }}</span>
             </div>
         </div>
 
@@ -127,10 +127,11 @@
 .game-header {
     background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
     border-bottom: 2px solid #4a9eff;
-    padding: 0.75rem 1.5rem;
+    padding: 0.5rem 1.5rem;
     font-family: 'Share Tech Mono', monospace;
     font-size: 0.85rem;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    line-height: 1.2;
 }
 
 /* Container des 4 colonnes */
@@ -146,7 +147,7 @@
 .header-column {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.1rem;
 }
 
 /* Titres de colonnes */
@@ -170,14 +171,18 @@
     font-size: 1rem;
 }
 
+.player-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+}
+
 .player-credits {
     color: #ffd700;
-    font-size: 0.9rem;
 }
 
 .player-actions {
     color: #00ff88;
-    font-size: 0.9rem;
 }
 
 /* ═══════════════════════════════════════════════════

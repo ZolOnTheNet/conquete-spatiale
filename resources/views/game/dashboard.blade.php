@@ -51,29 +51,13 @@
 
 @section('content')
 <div class="h-screen flex flex-col">
-    <!-- Top Bar -->
-    <header class="bg-gray-900/90 border-b border-cyan-500/30 px-4 py-2 flex items-center justify-between">
-        <div class="flex items-center gap-4">
-            <h1 class="text-xl font-orbitron text-cyan-400">CONQUETE SPATIALE</h1>
-        </div>
-        <div class="flex items-center gap-4">
-            <span class="text-gray-400">
-                {{ $personnage->prenom ?? '' }} {{ $personnage->nom }}
-            </span>
-            <span class="text-cyan-400 font-bold" id="pa-display">
-                PA: {{ $personnage->points_action }}/{{ $personnage->max_points_action }}
-            </span>
-            <span class="text-yellow-400" id="credits-display">
-                {{ number_format($personnage->credits) }} cr
-            </span>
-            <form method="POST" action="{{ route('logout') }}" class="inline">
-                @csrf
-                <button type="submit" class="text-gray-500 hover:text-red-400 text-sm">
-                    Deconnexion
-                </button>
-            </form>
-        </div>
-    </header>
+    <!-- Header 4 Colonnes -->
+    <x-game-header
+        :personnage="$personnage"
+        :vaisseau="$vaisseau"
+        :systeme="$systeme"
+        :secteur="null"
+    />
 
     <!-- Main 3-Column Layout -->
     <div class="flex-1 flex overflow-hidden">
@@ -84,68 +68,109 @@
             </div>
 
             <div class="flex-1 overflow-y-auto p-2">
-                @if(isset($personnageLocation) && isset($menuSections))
-                    <!-- Menu contextuel basé sur la localisation -->
-                    @foreach($menuSections as $sectionKey => $section)
-                    <div class="mb-4">
-                        <h3 class="text-xs text-gray-500 uppercase px-2 mb-1 flex items-center gap-1">
-                            <span>{{ $section['icon'] }}</span>
-                            <span>{{ $section['label'] }}</span>
-                        </h3>
-                        @foreach($section['items'] as $item)
-                        <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400"
-                                onclick="loadView('{{ $item['route'] }}', '{{ $item['label'] }}')">
-                            {{ $item['label'] }}
-                        </button>
-                        @endforeach
-                    </div>
-                    @endforeach
-                @else
-                    <!-- Menu de fallback si pas de localisation -->
-                    <div class="text-center text-gray-500 text-sm py-4">
-                        <p>Sélectionnez un personnage</p>
-                    </div>
-                @endif
+                {{-- SECTION PERSONNAGE --}}
+                <div class="mb-3">
+                    <h3 class="text-xs text-gray-500 uppercase px-2 mb-1">👤 Personnage</h3>
+                    <a href="{{ route('personnage.dossier') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
+                        Dossier
+                    </a>
+                    <a href="{{ route('personnage.gestion') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
+                        Gestion
+                    </a>
+                </div>
 
-                <!-- Console (toujours disponible) -->
-                <div class="mb-4 border-t border-cyan-500/20 pt-4">
-                    <h3 class="text-xs text-gray-500 uppercase px-2 mb-1">Système</h3>
-                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300" onclick="toggleConsole()">
-                        Console
+                {{-- SECTION VAISSEAU (contextuel : devient STATION si amarré) --}}
+                <div class="mb-3">
+                    @if($vaisseau && $vaisseau->dans_station_id)
+                        {{-- Amarré dans une station --}}
+                        <h3 class="text-xs text-gray-500 uppercase px-2 mb-1">🏭 Station</h3>
+                        <a href="{{ route('station.hall') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
+                            Hall
+                        </a>
+                        <a href="{{ route('station.hangar') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
+                            Hangar
+                        </a>
+                        <a href="{{ route('station.marche') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
+                            Marché
+                        </a>
+                        <a href="{{ route('station.missions') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
+                            Missions
+                        </a>
+                        <a href="{{ route('station.cantina') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
+                            Cantina
+                        </a>
+                    @else
+                        {{-- Dans le vaisseau --}}
+                        <h3 class="text-xs text-gray-500 uppercase px-2 mb-1">🚀 Vaisseau</h3>
+                        <a href="{{ route('navire.timonerie') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
+                            Timonerie
+                        </a>
+                        <a href="{{ route('navire.equipage') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
+                            Équipage
+                        </a>
+                        <a href="{{ route('navire.soute') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
+                            Soute
+                        </a>
+                        <a href="{{ route('vaisseau.etat') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
+                            Équipement
+                        </a>
+                    @endif
+                </div>
+
+                {{-- SECTION JEU --}}
+                <div class="mb-3">
+                    <h3 class="text-xs text-gray-500 uppercase px-2 mb-1">🎮 Jeu</h3>
+                    <a href="{{ route('personnage.spatiocarte') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
+                        Carte
+                    </a>
+                    <a href="{{ route('jeu.profil') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
+                        Profil
+                    </a>
+                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400" onclick="alert('Aide - À implémenter')">
+                        Aide
                     </button>
                 </div>
 
-                <!-- Admin (si admin) -->
-                @if($compte->is_admin)
-                <div class="mb-4 border-t border-cyan-500/20 pt-4">
-                    <h3 class="text-xs text-red-400 uppercase px-2 mb-1">Administration</h3>
+                {{-- SECTION ADMIN (si admin) --}}
+                @if($compte->is_admin ?? false)
+                <div class="mb-3 border-t border-cyan-500/20 pt-3">
+                    <h3 class="text-xs text-red-400 uppercase px-2 mb-1">⚙️ Administration</h3>
                     <a href="{{ route('admin.index') }}" class="menu-item block px-3 py-2 rounded text-sm text-red-300 hover:text-red-200">
-                        Dashboard Admin
+                        Univers
                     </a>
+                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-red-300 hover:text-red-200" onclick="alert('Stats - À implémenter')">
+                        Stats
+                    </button>
+                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-red-300 hover:text-red-200" onclick="alert('Logs - À implémenter')">
+                        Logs
+                    </button>
                 </div>
                 @endif
+
+                {{-- SECTION SYSTÈME (tout en bas) --}}
+                <div class="mb-3 border-t border-cyan-500/20 pt-3">
+                    <h3 class="text-xs text-gray-500 uppercase px-2 mb-1">💻 Système</h3>
+                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400" onclick="toggleConsole()">
+                        Console
+                    </button>
+                    <form method="POST" action="{{ route('logout') }}" class="inline w-full">
+                        @csrf
+                        <button type="submit" class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300 hover:text-red-400">
+                            Quitter
+                        </button>
+                    </form>
+                </div>
             </div>
 
-            <!-- Personnage Info + Position -->
-            <div class="border-t border-cyan-500/20">
-                @if(isset($personnageLocation))
-                <!-- Position actuelle -->
-                <div class="px-4 py-2 bg-cyan-900/10">
-                    <div class="text-xs text-gray-500 mb-1">Position</div>
-                    <div class="text-xs text-cyan-400">{{ $personnageLocation->getDescription() }}</div>
-                    <div class="text-xs text-gray-600 mt-1">{{ $personnageLocation->getCoordonneesFormatees() }}</div>
-                </div>
-                @endif
-                <!-- Info personnage -->
-                <div class="p-4">
-                    <div class="text-xs text-gray-500">Niveau {{ $personnage->niveau }}</div>
-                    <div class="text-sm text-gray-300">{{ $personnage->prenom ?? '' }} {{ $personnage->nom }}</div>
-                    <div class="flex items-center justify-between mt-1">
-                        <a href="{{ route('personnage.selection') }}" class="text-xs text-cyan-500 hover:text-cyan-400 underline" title="Changer de personnage">
-                            👤 Personnages
-                        </a>
-                        <div class="text-xs text-gray-500">XP: {{ $personnage->experience }}</div>
-                    </div>
+            <!-- Info personnage (en bas) -->
+            <div class="border-t border-cyan-500/20 p-4">
+                <div class="text-xs text-gray-500">Niveau {{ $personnage->niveau }}</div>
+                <div class="text-sm text-gray-300">{{ $personnage->prenom ?? '' }} {{ $personnage->nom }}</div>
+                <div class="flex items-center justify-between mt-1">
+                    <a href="{{ route('personnage.selection') }}" class="text-xs text-cyan-500 hover:text-cyan-400 underline" title="Changer de personnage">
+                        👤 Personnages
+                    </a>
+                    <div class="text-xs text-gray-500">XP: {{ $personnage->experience }}</div>
                 </div>
             </div>
         </aside>
