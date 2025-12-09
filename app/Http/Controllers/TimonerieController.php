@@ -42,6 +42,7 @@ class TimonerieController extends Controller
         $systemeActuel = SystemeStellaire::where('secteur_x', $objetSpatial->secteur_x)
             ->where('secteur_y', $objetSpatial->secteur_y)
             ->where('secteur_z', $objetSpatial->secteur_z)
+            ->with('planetes')
             ->first();
 
         return view('game.navire.timonerie', [

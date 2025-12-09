@@ -16,11 +16,11 @@
     <div class="flex-1 flex overflow-hidden">
 
         {{-- Menu latéral gauche --}}
-        <x-main-menu
-            context="station"
-            :personnage="$personnage"
-            :isAdmin="$isAdmin ?? false"
-        />
+        @include('game.partials.menu-lateral', [
+            'personnage' => $personnage,
+            'vaisseau' => $personnage->vaisseauActif ?? null,
+            'compte' => auth()->user()
+        ])
 
         {{-- Zone de contenu principale --}}
         <main class="flex-1 overflow-auto p-6">
@@ -58,6 +58,8 @@
             </div>
         </main>
 
+        {{-- Console Droite --}}
+        @include('game.partials.console')
     </div>
 
 </div>

@@ -192,41 +192,11 @@ class GameController extends Controller
             ->with('success', "Personnage {$personnage->nom} activé !");
     }
 
-    public function dashboard(Request $request): View
+    public function dashboard(Request $request)
     {
-        // Récupérer le compte et personnage
-        $compte = $request->user();
-        $personnage = $request->attributes->get('personnage');
-
-        if (!$personnage) {
-            // Fallback si middleware pas utilisé
-            $personnage = $compte->personnagePrincipal;
-        }
-
-        $personnage->load(['vaisseauActif.objetSpatial']);
-        $vaisseau = $personnage->vaisseauActif;
-
-        // Déterminer le contexte (navire ou station)
-        $contextService = app(\App\Services\GameContextService::class);
-        $context = $contextService->getMenuContext($personnage);
-
-        // Récupérer le système stellaire actuel si applicable
-        $systeme = null;
-        if ($vaisseau && $vaisseau->objetSpatial) {
-            $systeme = \App\Models\SystemeStellaire::where('secteur_x', $vaisseau->objetSpatial->secteur_x)
-                ->where('secteur_y', $vaisseau->objetSpatial->secteur_y)
-                ->where('secteur_z', $vaisseau->objetSpatial->secteur_z)
-                ->first();
-        }
-
-        return view('game.dashboard', [
-            'compte' => $compte,
-            'personnage' => $personnage,
-            'vaisseau' => $vaisseau,
-            'systeme' => $systeme,
-            'context' => $context,
-            'isAdmin' => $compte->is_admin ?? false,
-        ]);
+        // Point d'entrée du jeu : rediriger vers la carte (nouvelle interface)
+        // La carte est le point d'entrée principal après connexion
+        return redirect()->route('carte');
     }
 
     public function executeCommand(Request $request)
@@ -3600,11 +3570,10 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
         $centerY = (int) $request->get('y', $defaultY);
         $centerZ = (int) $request->get('z', $defaultZ);
 
-        // Taille de la carte paramétrable selon le rôle
-        // Joueur: 21 AL × 21 AL (halfSize = 10)
-        // Admin: 100 AL × 100 AL (halfSize = 50)
-        $isAdmin = $request->user()->is_admin ?? false;
-        $halfSize = $isAdmin ? 50 : 10;
+        // Taille de la carte pour les joueurs : toujours 21 AL × 21 AL (halfSize = 10)
+        // La carte admin (route admin.index) a une taille différente
+        $isAdmin = false; // Sur la route joueur, toujours en mode joueur
+        $halfSize = 10; // 21×21 AL pour les joueurs
 
         // Récupérer tous les systèmes découverts par le personnage
         $decouvertes = $personnage->decouvertes()->with('systemeStellaire')->get();

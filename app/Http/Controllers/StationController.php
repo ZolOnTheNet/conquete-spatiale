@@ -21,6 +21,7 @@ class StationController extends Controller
         // Récupérer le système stellaire si disponible
         $systeme = null;
         if ($station) {
+            $station->load('planetes'); // Charger les planètes
             $systeme = $station; // La station est pour l'instant un SystemeStellaire
         }
 

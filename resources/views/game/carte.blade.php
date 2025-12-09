@@ -2,7 +2,7 @@
 
 @section('title', 'Carte de l\'Univers')
 
-@section('content')
+@push('styles')
 <style>
 /* Tooltip personnalisé pour les systèmes stellaires */
 .system-cell {
@@ -44,24 +44,84 @@
     color: #fbbf24;
     white-space: nowrap;
 }
+
+/* Fonds étoilés pour les secteurs */
+.sector-unknown {
+    background: radial-gradient(circle at 30% 40%, rgba(100, 100, 120, 0.3), rgba(40, 40, 50, 0.5)),
+                radial-gradient(1px 1px at 20% 30%, white, transparent),
+                radial-gradient(1px 1px at 60% 70%, white, transparent),
+                radial-gradient(1px 1px at 80% 20%, rgba(255,255,255,0.5), transparent),
+                radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.5), transparent);
+    background-size: 100% 100%, 200% 200%, 300% 300%, 150% 150%, 250% 250%;
+    background-color: #3a3a45;
+}
+
+.sector-known-empty {
+    background: radial-gradient(1px 1px at 15% 25%, white, transparent),
+                radial-gradient(1px 1px at 65% 75%, white, transparent),
+                radial-gradient(1px 1px at 85% 15%, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 35% 85%, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 50% 50%, rgba(255,255,255,0.4), transparent);
+    background-size: 200% 200%, 300% 300%, 150% 150%, 250% 250%, 180% 180%;
+    background-color: #0a0a0f;
+}
+
+.sector-has-system {
+    background: radial-gradient(1px 1px at 15% 25%, white, transparent),
+                radial-gradient(1px 1px at 65% 75%, white, transparent),
+                radial-gradient(1px 1px at 85% 15%, rgba(255,255,255,0.6), transparent);
+    background-size: 200% 200%, 300% 300%, 150% 150%;
+    background-color: #000000;
+}
 </style>
+@endpush
 
-<div class="min-h-screen flex flex-col">
-    <!-- Header -->
-    <header class="bg-gray-900/90 border-b border-cyan-500/30 px-6 py-4">
-        <div class="flex items-center justify-between">
-            <h1 class="text-2xl font-orbitron text-cyan-400">CARTE DE L'UNIVERS</h1>
-            <div class="text-sm text-gray-400">
-                <span class="text-cyan-400">{{ $personnage->nom }}</span> |
-                Systèmes découverts: <span class="text-yellow-400">{{ count(array_merge(...array_values(array_map(fn($x) => array_merge(...array_values($x)), array_values($grille))))) }}</span>
+@section('content')
+<div class="h-screen flex flex-col">
+    <!-- Header 4 Colonnes -->
+    <x-game-header
+        :personnage="$personnage"
+        :vaisseau="$personnage->vaisseauActif ?? null"
+        :systeme="null"
+        :secteur="null"
+    />
+
+    <!-- Main Layout -->
+    <div class="flex-1 flex overflow-hidden">
+        <!-- Menu Gauche -->
+        @include('game.partials.menu-lateral', [
+            'personnage' => $personnage,
+            'vaisseau' => $personnage->vaisseauActif ?? null,
+            'compte' => auth()->user()
+        ])
+
+        <!-- Contenu Principal Carte -->
+        <main class="flex-1 overflow-auto p-4 bg-gray-900">
+            <!-- En-tête avec Onglets -->
+            <div class="mb-4 bg-gray-800/50 border-b border-cyan-500/30">
+                <div class="px-4 py-3 flex items-center justify-between">
+                    <h2 class="text-2xl font-orbitron text-cyan-400">SPATIOCARTE</h2>
+                    <div class="text-sm text-gray-400">
+                        Systèmes découverts: <span class="text-yellow-400">{{ count(array_merge(...array_values(array_map(fn($x) => array_merge(...array_values($x)), array_values($grille))))) }}</span>
+                    </div>
+                </div>
+
+                <!-- Onglets -->
+                <div class="flex border-t border-cyan-500/30">
+                    <a href="{{ route('carte') }}"
+                       class="px-6 py-3 text-sm font-semibold text-cyan-400 bg-cyan-900/30 border-b-2 border-cyan-400">
+                        🗺️ Carte
+                    </a>
+                    <a href="{{ route('personnage.spatiocarte', ['onglet' => 'atlas']) }}"
+                       class="px-6 py-3 text-sm font-semibold text-gray-400 hover:text-cyan-400 hover:bg-cyan-900/20 transition border-l border-cyan-500/30">
+                        📚 Atlas
+                    </a>
+                </div>
             </div>
-        </div>
-    </header>
 
-    <div class="flex-1 p-4 overflow-auto">
-        <!-- Contrôles de navigation -->
-        <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3 mb-4">
-            <div class="flex items-center gap-4 mb-2">
+            <!-- Contrôles de navigation -->
+            <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3 mb-4">
+                <div class="flex items-center gap-4 mb-2">
                 <!-- Coordonnées -->
                 <div class="flex items-center gap-2">
                     <label class="text-gray-400 text-sm">Coordonnées:</label>
@@ -109,10 +169,20 @@
             </div>
 
             <!-- Légende -->
-            <div class="flex items-center gap-4 text-xs">
-                <div class="text-white"><span class="text-yellow-400 font-bold">*</span> = Système découvert</div>
-                <div class="text-white"><span class="text-gray-600 font-bold">·</span> = Zone inexplorée</div>
-                <div class="text-cyan-300">Cliquez sur une étoile pour voir les détails du secteur →</div>
+            <div class="flex items-center gap-6 text-xs flex-wrap">
+                <div class="flex items-center gap-2">
+                    <span class="inline-block w-4 h-4 sector-has-system border border-yellow-500"></span>
+                    <span class="text-white"><span class="text-yellow-400 font-bold">*</span> = Système découvert</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-block w-4 h-4 sector-known-empty border border-gray-600"></span>
+                    <span class="text-white">Secteur exploré (vide)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-block w-4 h-4 sector-unknown border border-gray-500"></span>
+                    <span class="text-white">Secteur inexploré</span>
+                </div>
+                <div class="text-cyan-300 ml-auto">Cliquez sur une étoile (*) pour voir les détails →</div>
             </div>
         </div>
 
@@ -164,8 +234,38 @@
                         </div>
                     </div>
 
-                    <!-- Grille de la carte -->
-                    <div class="font-mono text-xs leading-none" style="letter-spacing: 0;">
+                    @php
+                        // Précalculer les secteurs connus pour optimisation
+                        $knownSectors = [];
+                        $scanRadius = 2;
+                        foreach ($grille as $gx => $gridX) {
+                            foreach ($gridX as $gy => $gridY) {
+                                foreach ($gridY as $gz => $sys) {
+                                    // Marquer tous les secteurs dans un rayon de scanRadius comme connus
+                                    for ($dx = -$scanRadius; $dx <= $scanRadius; $dx++) {
+                                        for ($dy = -$scanRadius; $dy <= $scanRadius; $dy++) {
+                                            for ($dz = -$scanRadius; $dz <= $scanRadius; $dz++) {
+                                                if (abs($dx) + abs($dy) + abs($dz) <= $scanRadius) {
+                                                    $kx = $gx + $dx;
+                                                    $ky = $gy + $dy;
+                                                    $kz = $gz + $dz;
+                                                    $knownSectors["{$kx},{$ky},{$kz}"] = true;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    @endphp
+
+                    <!-- CARTE GRAPHIQUE CANVAS -->
+                    <div class="relative bg-black border border-gray-700 rounded p-2">
+                        <canvas id="carte-canvas" width="600" height="600" class="border border-gray-700 rounded" style="cursor: crosshair;"></canvas>
+                    </div>
+
+                    <!-- ANCIENNE GRILLE TEXTE (cachée, pour référence) -->
+                    <div class="font-mono text-xs leading-none hidden" style="letter-spacing: 0;">
                         @for($v = $halfSize - 1; $v >= -$halfSize; $v--)
                             <div class="flex">
                                 @for($h = -$halfSize; $h < $halfSize; $h++)
@@ -188,6 +288,9 @@
                                         // Chercher un système découvert dans ce secteur
                                         $hasSystem = isset($grille[$secteurX][$secteurY][$secteurZ]);
 
+                                        // Vérifier si le secteur est connu (précalculé)
+                                        $isKnownSector = isset($knownSectors["{$secteurX},{$secteurY},{$secteurZ}"]);
+
                                         if ($hasSystem) {
                                             $systeme = $grille[$secteurX][$secteurY][$secteurZ];
                                             // Coordonnées du secteur du système
@@ -198,19 +301,24 @@
                                             // Afficher * sur la cellule du secteur du système
                                             if ($secteurX == $sysSecteurX && $secteurY == $sysSecteurY && $secteurZ == $sysSecteurZ) {
                                                 $cellContent = '*';
-                                                $cellClass = 'text-yellow-400 cursor-pointer hover:bg-yellow-900/30 system-cell';
+                                                $cellClass = 'text-yellow-400 cursor-pointer hover:bg-yellow-900/30 system-cell sector-has-system';
                                                 $cellTitle = "{$systeme->nom} (Secteur: {$sysSecteurX}, {$sysSecteurY}, {$sysSecteurZ})";
                                                 $cellData = "data-secteur-x='{$secteurX}' data-secteur-y='{$secteurY}' data-secteur-z='{$secteurZ}' data-system-id='{$systeme->id}' data-is-system='true'";
                                             } else {
                                                 $cellContent = '·';
-                                                $cellClass = 'text-gray-700 cursor-pointer hover:bg-gray-800';
-                                                $cellTitle = "Secteur: {$secteurX}, {$secteurY}, {$secteurZ} (Inexplorée)";
+                                                $cellClass = 'text-gray-700 cursor-pointer hover:bg-gray-800 sector-known-empty';
+                                                $cellTitle = "Secteur: {$secteurX}, {$secteurY}, {$secteurZ} (Exploré - vide)";
                                                 $cellData = "data-is-system='false'";
                                             }
                                         } else {
                                             $cellContent = '·';
-                                            $cellClass = 'text-gray-700 cursor-pointer hover:bg-gray-800';
-                                            $cellTitle = "Secteur: {$secteurX}, {$secteurY}, {$secteurZ} (Inexplorée)";
+                                            if ($isKnownSector) {
+                                                $cellClass = 'text-gray-500 cursor-pointer hover:bg-gray-700 sector-known-empty';
+                                                $cellTitle = "Secteur: {$secteurX}, {$secteurY}, {$secteurZ} (Exploré - vide)";
+                                            } else {
+                                                $cellClass = 'text-gray-600 cursor-pointer hover:bg-gray-700 sector-unknown';
+                                                $cellTitle = "Secteur: {$secteurX}, {$secteurY}, {$secteurZ} (Inexploré)";
+                                            }
                                             $cellData = "data-is-system='false'";
                                         }
                                     @endphp
@@ -243,11 +351,16 @@
                 <div id="secteur-detail" class="text-center text-gray-500 py-8">
                     Cliquez sur une étoile (*) dans la carte de gauche pour afficher les détails du secteur
                 </div>
+                </div>
             </div>
-        </div>
+        </main>
+
+        <!-- Console Droite -->
+        @include('game.partials.console')
     </div>
 </div>
 
+@push('scripts')
 <script>
 // Mettre à jour l'affichage des coordonnées survolées
 function updateCoordDisplay(x, y, z, cellContent) {
@@ -384,5 +497,152 @@ document.addEventListener('keydown', function(e) {
     e.preventDefault();
     window.location.href = `/carte?x=${newX}&y=${newY}&z=${newZ}&plan=${plan}`;
 });
+
+// ===== DESSIN CARTE GRAPHIQUE CANVAS =====
+function drawGraphicMap() {
+    const canvas = document.getElementById('carte-canvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const cellSize = 28; // pixels par cellule AL (21x21 = ~600px)
+    const halfSize = {{ $halfSize }};
+    const plan = '{{ $plan }}';
+    const centerX = {{ $centerX }};
+    const centerY = {{ $centerY }};
+    const centerZ = {{ $centerZ }};
+    const gridSize = halfSize * 2; // 21 AL
+
+    // Secteurs connus (précalculés côté PHP)
+    const knownSectors = @json($knownSectors);
+
+    // Grille des systèmes
+    const grille = @json($grille);
+
+    // Ajuster taille canvas
+    canvas.width = gridSize * cellSize;
+    canvas.height = gridSize * cellSize;
+
+    // Fond noir
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Dessiner le fond étoilé
+    function seededRandom(seed) {
+        const x = Math.sin(seed) * 10000;
+        return x - Math.floor(x);
+    }
+
+    const seed = centerX * 1000 + centerY * 100 + centerZ * 10;
+
+    // Parcourir chaque cellule pour dessiner le fond approprié
+    for (let v = halfSize - 1; v >= -halfSize; v--) {
+        for (let h = -halfSize; h < halfSize; h++) {
+            let absX, absY, absZ;
+
+            if (plan === 'Z') {
+                absX = centerX + h;
+                absY = centerY + v;
+                absZ = centerZ;
+            } else if (plan === 'Y') {
+                absX = centerX + h;
+                absY = centerY;
+                absZ = centerZ + v;
+            } else {
+                absX = centerX;
+                absY = centerY + h;
+                absZ = centerZ + v;
+            }
+
+            const key = `${absX},${absY},${absZ}`;
+            const isKnown = knownSectors.hasOwnProperty(key);
+            const hasSystem = grille[absX] && grille[absX][absY] && grille[absX][absY][absZ];
+
+            const canvasX = (h + halfSize) * cellSize;
+            const canvasY = (halfSize - 1 - v) * cellSize;
+
+            // Dessiner fond de la cellule
+            if (!isKnown) {
+                // Secteur inconnu : gris avec quelques étoiles
+                ctx.fillStyle = '#2a2a35';
+                ctx.fillRect(canvasX, canvasY, cellSize, cellSize);
+
+                // Quelques étoiles grisées
+                ctx.fillStyle = 'rgba(180, 180, 190, 0.3)';
+                for (let i = 0; i < 3; i++) {
+                    const sx = canvasX + seededRandom(seed + absX * 100 + absY * 10 + absZ + i * 7) * cellSize;
+                    const sy = canvasY + seededRandom(seed + absX * 100 + absY * 10 + absZ + i * 11) * cellSize;
+                    ctx.fillRect(sx, sy, 1, 1);
+                }
+            } else if (hasSystem) {
+                // Secteur avec système : noir avec étoiles blanches
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(canvasX, canvasY, cellSize, cellSize);
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                for (let i = 0; i < 5; i++) {
+                    const sx = canvasX + seededRandom(seed + absX * 100 + absY * 10 + absZ + i * 7) * cellSize;
+                    const sy = canvasY + seededRandom(seed + absX * 100 + absY * 10 + absZ + i * 11) * cellSize;
+                    const size = seededRandom(seed + absX + absY + absZ + i * 13) > 0.8 ? 2 : 1;
+                    ctx.fillRect(sx, sy, size, size);
+                }
+
+                // Dessiner le système (étoile jaune)
+                ctx.fillStyle = '#fbbf24';
+                ctx.font = 'bold 18px monospace';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('★', canvasX + cellSize / 2, canvasY + cellSize / 2);
+            } else {
+                // Secteur connu vide : noir avec étoiles
+                ctx.fillStyle = '#0a0a0f';
+                ctx.fillRect(canvasX, canvasY, cellSize, cellSize);
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                for (let i = 0; i < 4; i++) {
+                    const sx = canvasX + seededRandom(seed + absX * 100 + absY * 10 + absZ + i * 7) * cellSize;
+                    const sy = canvasY + seededRandom(seed + absX * 100 + absY * 10 + absZ + i * 11) * cellSize;
+                    ctx.fillRect(sx, sy, 1, 1);
+                }
+            }
+
+            // Grille tous les 5 AL
+            if ((absX % 5 === 0) || (absY % 5 === 0) || (absZ % 5 === 0)) {
+                ctx.strokeStyle = 'rgba(74, 158, 255, 0.1)';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(canvasX, canvasY, cellSize, cellSize);
+            }
+        }
+    }
+
+    // Marquer position du joueur
+    const playerPos = {{ json_encode(['x' => $positionActuelle['x'] ?? $centerX, 'y' => $positionActuelle['y'] ?? $centerY, 'z' => $positionActuelle['z'] ?? $centerZ]) }};
+    let playerH = 0, playerV = 0;
+
+    if (plan === 'Z') {
+        playerH = playerPos.x - centerX;
+        playerV = playerPos.y - centerY;
+    } else if (plan === 'Y') {
+        playerH = playerPos.x - centerX;
+        playerV = playerPos.z - centerZ;
+    } else {
+        playerH = playerPos.y - centerY;
+        playerV = playerPos.z - centerZ;
+    }
+
+    if (Math.abs(playerH) < halfSize && Math.abs(playerV) < halfSize) {
+        const px = (playerH + halfSize) * cellSize + cellSize / 2;
+        const py = (halfSize - 1 - playerV) * cellSize + cellSize / 2;
+
+        ctx.strokeStyle = '#00ff00';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(px, py, cellSize / 3, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+}
+
+// Dessiner au chargement
+window.addEventListener('load', drawGraphicMap);
 </script>
+@endpush
 @endsection

@@ -28,6 +28,7 @@ class JeuController extends Controller
             $systeme = \App\Models\SystemeStellaire::where('secteur_x', $personnage->vaisseauActif->objetSpatial->secteur_x)
                 ->where('secteur_y', $personnage->vaisseauActif->objetSpatial->secteur_y)
                 ->where('secteur_z', $personnage->vaisseauActif->objetSpatial->secteur_z)
+                ->with('planetes')
                 ->first();
         }
 

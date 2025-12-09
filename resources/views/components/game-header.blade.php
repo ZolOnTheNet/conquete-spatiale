@@ -15,6 +15,28 @@
     $bouclierPercent = $vaisseau && $vaisseau->bouclier_id
         ? round(($vaisseau->bouclier_actuel / 100) * 100)
         : 0;
+
+    // Déterminer l'icône du secteur selon contenu
+    // bg_A : astéroïdes seuls
+    // bg_S : soleil seul
+    // bg_SV : soleil + planètes
+    // bg_V : mines/planètes seules
+    // bg_O : vide (espace profond)
+    $secteurIcon = 'bg_O.jpg'; // Par défaut : vide
+    $secteurLabel = 'Espace vide';
+
+    if ($systeme) {
+        $nbPlanetes = $systeme->planetes ? $systeme->planetes->count() : 0;
+        $hasAsteroids = false; // TODO: détecter astéroïdes
+
+        if ($nbPlanetes > 0) {
+            $secteurIcon = 'bg_SV.jpg'; // Soleil + planètes
+            $secteurLabel = 'Système avec planètes';
+        } else {
+            $secteurIcon = 'bg_S.jpg'; // Soleil seul
+            $secteurLabel = 'Système sans planètes';
+        }
+    }
 @endphp
 
 <header class="game-header">
@@ -37,8 +59,7 @@
             <div class="column-title">📍 SYSTÈME</div>
 
             @if($objetSpatial)
-            {{-- Bloc Position --}}
-            <div class="system-position">
+                {{-- Position et Réseau sur la même ligne --}}
                 <div class="system-coords">
                     @if($systeme)
                         {{ $systeme->nom }}
@@ -46,39 +67,51 @@
                         Espace profond
                     @endif
                     ({{ $objetSpatial->secteur_x }}, {{ $objetSpatial->secteur_y }}, {{ $objetSpatial->secteur_z }})
+                    <span class="system-network-inline">
+                        @if($objetSpatial->secteur_x == 0 && $objetSpatial->secteur_y == 0 && $objetSpatial->secteur_z == 0)
+                            📡 Sol
+                        @else
+                            📡 Aucun réseau
+                        @endif
+                    </span>
                 </div>
-            </div>
 
-            {{-- Bloc Caractéristiques COMPACT (icônes + valeurs, détails en tooltip) --}}
-            @if($systeme)
-            <div class="system-stats-compact">
-                <span class="stat-item" title="Puissance solaire: {{ $systeme->puissance_solaire ?? 50 }}/100">
-                    ☀️ {{ $systeme->puissance_solaire ?? 50 }}
-                </span>
-                <span class="stat-item" title="Danger: Variable">
-                    ☄️ 50
-                </span>
-                <span class="stat-item" title="Planètes et POI: {{ $systeme->nb_planetes ?? 0 }}">
-                    🌍 {{ $systeme->nb_planetes ?? 0 }}
-                </span>
-            </div>
-            @endif
-
-            <div class="system-network">
-                📡 {{ 'Aucun réseau' }}
-            </div>
+                {{-- Bloc Caractéristiques COMPACT (icônes + valeurs, détails en tooltip) --}}
+                <div class="system-stats-compact">
+                    @if($systeme)
+                        <span class="stat-item" title="Puissance solaire: {{ $systeme->puissance_solaire ?? 50 }}/100">
+                            ☀️ {{ number_format($systeme->puissance_solaire ?? 50, 2) }}
+                        </span>
+                        <span class="stat-item" title="Danger: Variable">
+                            ☄️ 50
+                        </span>
+                        <span class="stat-item" title="Planètes et POI: {{ $systeme->planetes ? $systeme->planetes->count() : 0 }}">
+                            🌍 {{ $systeme->planetes ? $systeme->planetes->count() : 0 }}
+                        </span>
+                    @else
+                        <span class="stat-item" title="Puissance solaire: 0/100">
+                            ☀️ 0.00
+                        </span>
+                        <span class="stat-item" title="Danger: Variable">
+                            ☄️ 0
+                        </span>
+                        <span class="stat-item" title="Planètes et POI: 0">
+                            🌍 0
+                        </span>
+                    @endif
+                </div>
             @else
-            <div class="text-gray-500 text-xs">Aucune position</div>
+                <div class="text-gray-500 text-xs">Aucune position</div>
             @endif
         </div>
 
         {{-- COLONNE 3 : ICÔNE SECTEUR --}}
         <div class="header-column header-sector">
-            <div class="column-title">🔷 SECTEUR</div>
             <div class="sector-icon">
-                <span class="sector-visual" title="{{ $secteur ?? 'Secteur inconnu' }}">
-                    🔷
-                </span>
+                <img src="{{ asset('images/carte_icones/' . $secteurIcon) }}"
+                     alt="{{ $secteurLabel }}"
+                     title="{{ $secteurLabel }}"
+                     class="sector-visual-img">
             </div>
         </div>
 
@@ -103,17 +136,18 @@
                       title="Bouclier: {{ $vaisseau->bouclier_actuel ?? 0 }}/100">
                     🔰 {{ $bouclierPercent }}%
                 </span>
+                <span class="ship-parts" title="Unitek - Pièces pour imprimante 3D">
+                    🔧 {{ number_format(0, 0, ',', ' ') }}
+                </span>
+
             </div>
 
-            <div class="ship-parts" title="Unitek - Pièces pour imprimante 3D">
-                🔧 {{ number_format(0, 0, ',', ' ') }}
-            </div>
 
-            @if(false)
-            <div class="ship-target">
-                🎯 → Cible
-            </div>
-            @endif
+                @if(false)
+                <div class="ship-target">
+                    🎯 → Cible
+                </div>
+                @endif
             @else
             <div class="text-gray-500 text-xs">Aucun vaisseau</div>
             @endif
@@ -192,8 +226,18 @@
 .system-coords {
     color: #ff6b9d;
     font-weight: bold;
-    margin-bottom: 0.5rem;
     font-size: 0.85rem;
+}
+
+.system-network {
+    color: #9370db;
+    font-size: 0.75rem;
+}
+
+.system-network-inline {
+    color: #9370db;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
 }
 
 /* Stats COMPACT : affichage en ligne avec tooltips */
@@ -211,11 +255,6 @@
 .system-stats-compact .stat-item:hover {
     color: #4a9eff;
     transform: scale(1.1);
-}
-
-.system-network {
-    color: #9370db;
-    font-size: 0.85rem;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -242,6 +281,21 @@
 
 .sector-visual:hover {
     transform: scale(1.15);
+}
+
+.sector-visual-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 6px;
+    border: 1px solid #4a9eff;
+    cursor: help;
+    transition: transform 0.2s, border-color 0.2s;
+    object-fit: cover;
+}
+
+.sector-visual-img:hover {
+    transform: scale(1.1);
+    border-color: #6bb6ff;
 }
 
 /* ═══════════════════════════════════════════════════

@@ -19,7 +19,12 @@
       "Bash(identify:*)",
       "Bash(git push:*)",
       "Bash(python3:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(cat:*)",
+      "Bash(file:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []
