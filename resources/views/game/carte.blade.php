@@ -235,28 +235,8 @@
                     </div>
 
                     @php
-                        // Précalculer les secteurs connus pour optimisation
-                        $knownSectors = [];
-                        $scanRadius = 2;
-                        foreach ($grille as $gx => $gridX) {
-                            foreach ($gridX as $gy => $gridY) {
-                                foreach ($gridY as $gz => $sys) {
-                                    // Marquer tous les secteurs dans un rayon de scanRadius comme connus
-                                    for ($dx = -$scanRadius; $dx <= $scanRadius; $dx++) {
-                                        for ($dy = -$scanRadius; $dy <= $scanRadius; $dy++) {
-                                            for ($dz = -$scanRadius; $dz <= $scanRadius; $dz++) {
-                                                if (abs($dx) + abs($dy) + abs($dz) <= $scanRadius) {
-                                                    $kx = $gx + $dx;
-                                                    $ky = $gy + $dy;
-                                                    $kz = $gz + $dz;
-                                                    $knownSectors["{$kx},{$ky},{$kz}"] = true;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        // $knownSectors est maintenant passé par le contrôleur
+                        // Il contient uniquement les secteurs avec des systèmes découverts
                     @endphp
 
                     <!-- CARTE GRAPHIQUE CANVAS -->
@@ -513,10 +493,10 @@ function drawGraphicMap() {
     const gridSize = halfSize * 2; // 21 AL
 
     // Secteurs connus (précalculés côté PHP)
-    const knownSectors = @json($knownSectors);
+    const knownSectors = {!! json_encode($knownSectors ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!};
 
     // Grille des systèmes
-    const grille = @json($grille);
+    const grille = {!! json_encode($grille ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!};
 
     // Ajuster taille canvas
     canvas.width = gridSize * cellSize;
@@ -615,7 +595,7 @@ function drawGraphicMap() {
     }
 
     // Marquer position du joueur
-    const playerPos = {{ json_encode(['x' => $positionActuelle['x'] ?? $centerX, 'y' => $positionActuelle['y'] ?? $centerY, 'z' => $positionActuelle['z'] ?? $centerZ]) }};
+    const playerPos = {!! json_encode(['x' => $positionActuelle['x'] ?? $centerX, 'y' => $positionActuelle['y'] ?? $centerY, 'z' => $positionActuelle['z'] ?? $centerZ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!};
     let playerH = 0, playerV = 0;
 
     if (plan === 'Z') {
@@ -641,8 +621,139 @@ function drawGraphicMap() {
     }
 }
 
-// Dessiner au chargement
-window.addEventListener('load', drawGraphicMap);
+// Ajouter l'interactivité au canvas
+function setupCanvasInteractions() {
+    const canvas = document.getElementById('carte-canvas');
+    if (!canvas) return;
+
+    const cellSize = 28;
+    const halfSize = {{ $halfSize }};
+    const plan = '{{ $plan }}';
+    const centerX = {{ $centerX }};
+    const centerY = {{ $centerY }};
+    const centerZ = {{ $centerZ }};
+    const grille = {!! json_encode($grille ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!};
+
+    // Afficher les coordonnées au survol
+    canvas.addEventListener('mousemove', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        // Convertir position canvas en coordonnées grille
+        const gridX = Math.floor(mouseX / cellSize);
+        const gridY = Math.floor(mouseY / cellSize);
+
+        // Convertir en coordonnées AL
+        const h = gridX - halfSize;
+        const v = halfSize - 1 - gridY;
+
+        let absX, absY, absZ;
+        if (plan === 'Z') {
+            absX = centerX + h;
+            absY = centerY + v;
+            absZ = centerZ;
+        } else if (plan === 'Y') {
+            absX = centerX + h;
+            absY = centerY;
+            absZ = centerZ + v;
+        } else {
+            absX = centerX;
+            absY = centerY + h;
+            absZ = centerZ + v;
+        }
+
+        // Vérifier si c'est un système
+        const hasSystem = grille[absX] && grille[absX][absY] && grille[absX][absY][absZ];
+        const cellContent = hasSystem ? '*' : '·';
+
+        updateCoordDisplay(absX, absY, absZ, cellContent);
+    });
+
+    // Gérer le simple clic (afficher détails)
+    canvas.addEventListener('click', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        // Convertir position canvas en coordonnées grille
+        const gridX = Math.floor(mouseX / cellSize);
+        const gridY = Math.floor(mouseY / cellSize);
+
+        // Convertir en coordonnées AL
+        const h = gridX - halfSize;
+        const v = halfSize - 1 - gridY;
+
+        let absX, absY, absZ;
+        if (plan === 'Z') {
+            absX = centerX + h;
+            absY = centerY + v;
+            absZ = centerZ;
+        } else if (plan === 'Y') {
+            absX = centerX + h;
+            absY = centerY;
+            absZ = centerZ + v;
+        } else {
+            absX = centerX;
+            absY = centerY + h;
+            absZ = centerZ + v;
+        }
+
+        // Vérifier si c'est un système
+        const systeme = grille[absX] && grille[absX][absY] && grille[absX][absY][absZ];
+        if (systeme) {
+            // Afficher les détails sans recentrer
+            loadSecteurDetail(absX, absY, absZ);
+        }
+    });
+
+    // Gérer le double-clic (recentrer la carte)
+    canvas.addEventListener('dblclick', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        // Convertir position canvas en coordonnées grille
+        const gridX = Math.floor(mouseX / cellSize);
+        const gridY = Math.floor(mouseY / cellSize);
+
+        // Convertir en coordonnées AL
+        const h = gridX - halfSize;
+        const v = halfSize - 1 - gridY;
+
+        let absX, absY, absZ;
+        if (plan === 'Z') {
+            absX = centerX + h;
+            absY = centerY + v;
+            absZ = centerZ;
+        } else if (plan === 'Y') {
+            absX = centerX + h;
+            absY = centerY;
+            absZ = centerZ + v;
+        } else {
+            absX = centerX;
+            absY = centerY + h;
+            absZ = centerZ + v;
+        }
+
+        // Recentrer la carte sur cette position
+        window.location.href = `/carte?x=${absX}&y=${absY}&z=${absZ}&plan=${plan}`;
+    });
+
+    // Gérer la souris qui quitte le canvas
+    canvas.addEventListener('mouseleave', function() {
+        const display = document.getElementById('coord-hover-display');
+        if (display) {
+            display.innerHTML = 'Survolez la carte';
+        }
+    });
+}
+
+// Dessiner au chargement et configurer l'interactivité
+window.addEventListener('load', function() {
+    drawGraphicMap();
+    setupCanvasInteractions();
+});
 </script>
 @endpush
 @endsection

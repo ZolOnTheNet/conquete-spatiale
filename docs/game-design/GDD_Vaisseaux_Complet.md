@@ -1,23 +1,23 @@
-# 🎯›¸ VAISSEAUX - SPÉCIFICATIONS COMPLÏˆTES
-## Jeu de Conquête Galactique
+# ğŸ?¯"ºÂ¸ VAISSEAUX - SPÃ‰CIFICATIONS COMPLÃ?ËTES
+## Jeu de ConquÃªte Galactique
 
 ---
 
-## ⚠️ DISCLAIMER
-Données issues du wiki - Valeurs de référence à équilibrer lors des tests.
+## âš ï¸?Â? DISCLAIMER
+DonnÃ©es issues du wiki - Valeurs de rÃ©fÃ©rence Ã  Ã©quilibrer lors des tests.
 
 ---
 
-## 🎯Ž¯ Principe Fondamental
+## ğŸ?¯Å½Â¯ Principe Fondamental
 
 **Un joueur = Un vaisseau actif**
-- Le joueur peut posséder plusieurs vaisseaux
+- Le joueur peut possÃ©der plusieurs vaisseaux
 - Seul l'actif est utilisable en jeu
-- Les autres sont stockés (hangars, bases)
+- Les autres sont stockÃ©s (hangars, bases)
 
 ---
 
-## 🎯“‹ Caractéristiques d'un Vaisseau
+## ğŸ?¯"œ"¹ CaractÃ©ristiques d'un Vaisseau
 
 ### Attributs Principaux
 
@@ -26,159 +26,159 @@ Données issues du wiki - Valeurs de référence à équilibrer lors des tests.
 - **Volume** : Taille de l'objet
 - **Masse** : Poids du vaisseau (vide + variable)
 
-**Systèmes :**
-- **Système informatique** : Ordinateurs sous contrôle IA
-- **Type de propulsion** : Détermine fonctionnement principal
-- **Réserve d'énergie** : Selon type de propulsion
+**SystÃ¨mes :**
+- **SystÃ¨me informatique** : Ordinateurs sous contrÃ´le IA
+- **Type de propulsion** : DÃ©termine fonctionnement principal
+- **RÃ©serve d'Ã©nergie** : Selon type de propulsion
 
-**Combat/Défense :**
-- **Emplacements défenses** : Armes embarquées
-- **Résistance** : En US (Unités de Structure)
+**Combat/DÃ©fense :**
+- **Emplacements dÃ©fenses** : Armes embarquÃ©es
+- **RÃ©sistance** : En US (UnitÃ©s de Structure)
 
-**Propriété :**
-- **Propriétaire** : N'est pas obligatoirement le pilote
-- Si locataire â†’ touche **1/3 des bénéfices**
+**PropriÃ©tÃ© :**
+- **PropriÃ©taire** : N'est pas obligatoirement le pilote
+- Si locataire Ã¢" "ê touche **1/3 des bÃ©nÃ©fices**
 
 **Fonctionnel :**
 - **Emplacements fonctionnels** : Boucliers, blindage, etc.
 
 ---
 
-## 🎯”§ Les 12 Emplacements
+## ğŸ?¯"?Â§ Les 12 Emplacements
 
-Chaque vaisseau possède des emplacements pour :
+Chaque vaisseau possÃ¨de des emplacements pour :
 
 1. **Poste de pilotage**
 2. **Moteur** (conventionnel)
 3. **Moteur HE** (Hyper-Espace)
 4. **Boucliers**
-5. **Système informatique**
-6. **Réserve d'énergie**
-7. **Réserve de combustible** (si propulsion à combustible)
+5. **SystÃ¨me informatique**
+6. **RÃ©serve d'Ã©nergie**
+7. **RÃ©serve de combustible** (si propulsion Ã  combustible)
 8. **Soute** (cargo)
-9. **Armements liés** (au pilotage)
-10. **Système d'armements**
-11. **Système de survie**
+9. **Armements liÃ©s** (au pilotage)
+10. **SystÃ¨me d'armements**
+11. **SystÃ¨me de survie**
 12. **Structure et blindage**
 
 ---
 
-## 🎯“¦ Système de Soute
+## ğŸ?¯"œÂ¦ SystÃ¨me de Soute
 
 ### Principe
 
-**Unité de base : Le Cargo**
-- Marchandises mesurées en **unité de cargo**
+**UnitÃ© de base : Le Cargo**
+- Marchandises mesurÃ©es en **unitÃ© de cargo**
 - Soute contient un nombre de cargos disponibles
-- Espace relativement protégé
-- Peut être fractionné qu'en nombre de cargo
+- Espace relativement protÃ©gÃ©
+- Peut Ãªtre fractionnÃ© qu'en nombre de cargo
 - **Certains modules de vaisseaux prennent 1+ places cargo**
 
 ### Transport de Personnel (3 Niveaux)
 
 #### 1. Module Succinct
-- **Capacité** : 10 personnes par cargo
-- **Coût** : Minime
-- **Durabilité** : Utilisation 1-2 fois seulement
+- **CapacitÃ©** : 10 personnes par cargo
+- **CoÃ»t** : Minime
+- **DurabilitÃ©** : Utilisation 1-2 fois seulement
 
-#### 2. Module Régulier
-- **Capacité** : 5 personnes par cargo
-- **Durabilité** : Permanent (tant que module présent)
+#### 2. Module RÃ©gulier
+- **CapacitÃ©** : 5 personnes par cargo
+- **DurabilitÃ©** : Permanent (tant que module prÃ©sent)
 
-#### 3. Module 1ère Classe
-- **Capacité** : 3 personnes par cargo
-- **Coût** : Cher
-- **Durabilité** : Permanent (tant que module présent)
+#### 3. Module 1Ã¨re Classe
+- **CapacitÃ©** : 3 personnes par cargo
+- **CoÃ»t** : Cher
+- **DurabilitÃ©** : Permanent (tant que module prÃ©sent)
 
 ---
 
-## âš™ï¸ Système de Propulsion
+## Ã¢Å¡â„¢Ã¯Â¸Â? SystÃ¨me de Propulsion
 
-### Principe - Deux Moteurs Couplés
+### Principe - Deux Moteurs CouplÃ©s
 
 **1. Moteur de Saut "Canon de Distortion" (HE)**
 - Propulse vaisseau dans hyper-espace
 - Fonctionne comme projectile de canon
-- **Difficile de l'arrêter** (gameplay)
-- Besoin énergie très important
+- **Difficile de l'arrÃªter** (gameplay)
+- Besoin Ã©nergie trÃ¨s important
 - Peut durer plusieurs jours
 
 **2. Moteur Conventionnel**
-- Déplacement espace conventionnel
+- DÃ©placement espace conventionnel
 - Plus flexible
-- Permet : approches, arrimages, décollages
+- Permet : approches, arrimages, dÃ©collages
 - Grandes distances = forte consommation
-- Meilleurs = moteurs à combustible
+- Meilleurs = moteurs Ã  combustible
 
-**Les deux moteurs sont couplés** et utilisent une **réserve d'énergie commune**.
+**Les deux moteurs sont couplÃ©s** et utilisent une **rÃ©serve d'Ã©nergie commune**.
 
 ---
 
-## 🎯”‹ Type A : Propulsion à Combustible
+## ğŸ?¯"?"¹ Type A : Propulsion Ã  Combustible
 
 ### Principe
 
-- Transforme combustible â†’ énergie (propulsion + "électrique")
-- Produit **toujours** de l'énergie
+- Transforme combustible Ã¢" "ê Ã©nergie (propulsion + "Ã©lectrique")
+- Produit **toujours** de l'Ã©nergie
 - **Pas de rechargement** pour mode conventionnel
-- Doit accumuler énergie dans réserve pour saut HE
+- Doit accumuler Ã©nergie dans rÃ©serve pour saut HE
 
-**âœ… Avantage :** Cargo de combustible peut alimenter moteur (moins bien)
+**Ã¢Å“"¦ Avantage :** Cargo de combustible peut alimenter moteur (moins bien)
 
 ### 3 Types de Combustibles
 
 #### 1. Uranium
-- **Stabilité** : Stable dans le temps
-- **Problèmes** : Graves (radiations)
-- **Taux d'efficacité** : 0.75
+- **StabilitÃ©** : Stable dans le temps
+- **ProblÃ¨mes** : Graves (radiations)
+- **Taux d'efficacitÃ©** : 0.75
 
-#### 2. Plasma (Hydrogène)
-- **Stabilité** : Plus instable
-- **Problèmes** : Moins catastrophiques (pas de radiation)
-- **Taux d'efficacité** : 0.80
+#### 2. Plasma (HydrogÃ¨ne)
+- **StabilitÃ©** : Plus instable
+- **ProblÃ¨mes** : Moins catastrophiques (pas de radiation)
+- **Taux d'efficacitÃ©** : 0.80
 
-#### 3. Tyberium â­
-- **Origine** : Trouvé dans anneaux de Saturne
-- **Rapport énergétique** : Très bon
-- **Surnom** : "Pétrole des temps modernes"
-- **Stabilité** : Très stable et peu dangereux
-- **Taux d'efficacité** : 0.90
+#### 3. Tyberium Ã¢Â­Â?
+- **Origine** : TrouvÃ© dans anneaux de Saturne
+- **Rapport Ã©nergÃ©tique** : TrÃ¨s bon
+- **Surnom** : "PÃ©trole des temps modernes"
+- **StabilitÃ©** : TrÃ¨s stable et peu dangereux
+- **Taux d'efficacitÃ©** : 0.90
 
 ---
 
-## â˜€ï¸ Type B : Propulsion à Extraction d'Énergie
+## Ã¢Ëœâœ¬Ã¯Â¸Â? Type B : Propulsion Ã  Extraction d'Ã‰nergie
 
 ### Principe
 
-- Extrait énergie **directement des étoiles**
-- Gratuit et renouvelable â™»ï¸
-- Quantité variable selon position/étoiles
+- Extrait Ã©nergie **directement des Ã©toiles**
+- Gratuit et renouvelable Ã¢â„¢Â»Ã¯Â¸Â?
+- QuantitÃ© variable selon position/Ã©toiles
 - Dangers moindres que combustible
 
-**âŒ Inconvénient :** Nécessite **temps de rechargement** (conventionnel ET HE)
+**Ã¢Â?Å’ InconvÃ©nient :** NÃ©cessite **temps de rechargement** (conventionnel ET HE)
 
 ### 3 Types d'Extraction
 
-#### 1. À Micro-Panneaux (Standard)
-- Panneaux "solaires" déployés
+#### 1. Ã€ Micro-Panneaux (Standard)
+- Panneaux "solaires" dÃ©ployÃ©s
 - **Vaisseau ne peut PAS bouger** durant rechargement
 - Propulsion standard et classique
 
-#### 2. À Voile Solaire
-- Comme bateaux à voile des mers d'antan
-- Plusieurs mâts + voiles d'argent-stellaire
-- **Vaisseau PEUT se déplacer** durant rechargement
+#### 2. Ã€ Voile Solaire
+- Comme bateaux Ã  voile des mers d'antan
+- Plusieurs mÃ¢ts + voiles d'argent-stellaire
+- **Vaisseau PEUT se dÃ©placer** durant rechargement
 
-#### 3. À Matière Noire
-- Longue traînée noire obscurcissant le ciel
-- Très encombrant
+#### 3. Ã€ MatiÃ¨re Noire
+- Longue traÃ®nÃ©e noire obscurcissant le ciel
+- TrÃ¨s encombrant
 - Pour **gros vaisseaux**
-- Moins sensible à la masse
-- Nécessite plusieurs hommes pour maintien
+- Moins sensible Ã  la masse
+- NÃ©cessite plusieurs hommes pour maintien
 
 ---
 
-## 🎯“ Formules de Calcul Propulsion
+## ğŸ?¯"œÂ? Formules de Calcul Propulsion
 
 ### Mode Conventionnel
 
@@ -186,14 +186,14 @@ Chaque vaisseau possède des emplacements pour :
 - 1 UE pour 100 millions de km (0.1 UA)
 - 1 UE pour 0.1 PA
 - 1 UE pour 1000 tonnes de masse (1 Mt)
-- Système solaire â‰ˆ 50 UA
-- Distances stockées en centaines de millions de km (max 750)
+- SystÃ¨me solaire Ã¢"°Ë 50 UA
+- Distances stockÃ©es en centaines de millions de km (max 750)
 
 **Formules :**
 ```
-Consommation conventionnelle = Init_Conventionnel + (Masse Ï— Distance / Vitesse)
+Consommation conventionnelle = Init_Conventionnel + (Masse Ã?"” Distance / Vitesse)
 
-Nb PA = Consommation / Vitesse Ï— Coef_PAMN / 100
+Nb PA = Consommation / Vitesse Ã?"” Coef_PAMN / 100
 
 Avec :
 - Init_Conventionnel = 0
@@ -205,7 +205,7 @@ Avec :
 Propulsion vitesse : 100
 Vaisseau : 5000 t
 Distance : 100 UC (10 milliards km)
-â†’ Consommation = 5000 / 100 = 50 UE pour 1 PA
+Ã¢" "ê Consommation = 5000 / 100 = 50 UE pour 1 PA
 ```
 
 ---
@@ -214,9 +214,9 @@ Distance : 100 UC (10 milliards km)
 
 **Formules :**
 ```
-Consommation HE = Init_Hyperespace + (Coef_HE/100) Ï— (Masse/Vitesse) Ï— Distance
+Consommation HE = Init_Hyperespace + (Coef_HE/100) Ã?"” (Masse/Vitesse) Ã?"” Distance
 
-Nombre PA = 1 + Coef_PAHE Ï— Distance
+Nombre PA = 1 + Coef_PAHE Ã?"” Distance
 
 Avec :
 - Init_HE = 200
@@ -226,41 +226,41 @@ Avec :
 
 ---
 
-## 🎯“Š Paramètres des Propulsions
+## ğŸ?¯"œÅ  ParamÃ¨tres des Propulsions
 
-Chaque propulsion possède :
+Chaque propulsion possÃ¨de :
 
-**Général :**
-- **Mode** : Combustible / Énergétique
-- **Réserve** : Quantité UE stockable
+**GÃ©nÃ©ral :**
+- **Mode** : Combustible / Ã‰nergÃ©tique
+- **RÃ©serve** : QuantitÃ© UE stockable
 - **Part panne** : % du moteur dans les pannes
 
 **Vitesses :**
-- **Vitesse conventionnelle** : Vitesse référence mode normal
+- **Vitesse conventionnelle** : Vitesse rÃ©fÃ©rence mode normal
 - **Vitesse saut** : Pour bonds HE
 
 **Combustible (si applicable) :**
-- **Combustible** : Réserve de combustible
-- **Efficacité** : Transformation combustible â†’ énergie par PA
+- **Combustible** : RÃ©serve de combustible
+- **EfficacitÃ©** : Transformation combustible Ã¢" "ê Ã©nergie par PA
 - **Type combustible** : Minerai utilisable
-- **Récupération** : Points combustible dans 1 cargo
+- **RÃ©cupÃ©ration** : Points combustible dans 1 cargo
 
 **Coefficients :**
-- **Init_Conventionnel** : Coût initial mode normal (0)
-- **Init_Hyperespace** : Coût initial saut HE (200)
-- **Coef_Conventionnel** : MultiplicateurÏ—100 dépense énergie mode normal
-- **Coef_Hyperespace** : MultiplicateurÏ—100 dépense énergie mode HE
-- **Coef_PAMN** : MultiplicateurÏ—100 PA mode normal (100)
-- **Coef_PAHE** : MultiplicateurÏ—100 PA mode HE (20)
+- **Init_Conventionnel** : CoÃ»t initial mode normal (0)
+- **Init_Hyperespace** : CoÃ»t initial saut HE (200)
+- **Coef_Conventionnel** : MultiplicateurÃ?"”100 dÃ©pense Ã©nergie mode normal
+- **Coef_Hyperespace** : MultiplicateurÃ?"”100 dÃ©pense Ã©nergie mode HE
+- **Coef_PAMN** : MultiplicateurÃ?"”100 PA mode normal (100)
+- **Coef_PAHE** : MultiplicateurÃ?"”100 PA mode HE (20)
 
 ---
 
-## 🎯ŒŸ Distances de Référence (Système Solaire)
+## ğŸ?¯Å’Å¸ Distances de RÃ©fÃ©rence (SystÃ¨me Solaire)
 
-| Planète | Distance (UA) |
+| PlanÃ¨te | Distance (UA) |
 |---------|---------------|
 | Mercure | 0.38 |
-| Vénus | 0.72 |
+| VÃ©nus | 0.72 |
 | Terre | 1.00 |
 | Mars | 1.52 |
 | Jupiter | 5.21 |
@@ -272,209 +272,209 @@ Chaque propulsion possède :
 
 ---
 
-## 🎯’» Programmes Informatiques
+## ğŸ?¯"êÂ» Programmes Informatiques
 
-Le système informatique est un élément important du vaisseau.
+Le systÃ¨me informatique est un Ã©lÃ©ment important du vaisseau.
 
-### Programmes Identifiés
+### Programmes IdentifiÃ©s
 
-1. **Système de pilotage**
+1. **SystÃ¨me de pilotage**
    - Statut : **OBLIGATOIRE**
 
-2. **Système de visée multiple**
+2. **SystÃ¨me de visÃ©e multiple**
    - Statut : Optionnel
 
 3. **Calcul de trajectoire**
    - Statut : **OBLIGATOIRE**
 
-4. **Détecteurs objets spatiaux**
-   - Statut : **Fortement recommandé**
-   - Importance : **Très important pour découvrir nouvelles destinations**
+4. **DÃ©tecteurs objets spatiaux**
+   - Statut : **Fortement recommandÃ©**
+   - Importance : **TrÃ¨s important pour dÃ©couvrir nouvelles destinations**
 
 ---
 
-## 🎯š€ Modèles de Vaisseaux
+## ğŸ?¯Å¡âœ¬ ModÃ¨les de Vaisseaux
 
 ### Principe Fondamental
 
-**Idées de base :**
-- Il existe des modèles de vaisseaux
-- Toujours possibilité d'augmenter caractéristique (modules, améliorations, programmes)
-- **Vaisseau inférieur peut égaler supérieur** au prix de :
+**IdÃ©es de base :**
+- Il existe des modÃ¨les de vaisseaux
+- Toujours possibilitÃ© d'augmenter caractÃ©ristique (modules, amÃ©liorations, programmes)
+- **Vaisseau infÃ©rieur peut Ã©galer supÃ©rieur** au prix de :
   - Sacrifices de fonctionnement/performances
-  - OU quantité financière plus importante
-- **Vaisseaux faillibles** : pannes récurrentes possibles
-- **Toujours réparable** (possibilité de se faire aider)
+  - OU quantitÃ© financiÃ¨re plus importante
+- **Vaisseaux faillibles** : pannes rÃ©currentes possibles
+- **Toujours rÃ©parable** (possibilitÃ© de se faire aider)
 
 **Organisation :**
-- À chaque guilde â†’ un ou plusieurs modèles de vaisseaux
+- Ã€ chaque guilde Ã¢" "ê un ou plusieurs modÃ¨les de vaisseaux
 
 ---
 
-## 🎯“ Série A - Polyvalents
+## ğŸ?¯"œÂ? SÃ©rie A - Polyvalents
 
 ### A-0 : Micro-vaisseau Parasite
 
 **Type :** Vaisseau parasite par excellence
 
-**Caractéristiques :**
+**CaractÃ©ristiques :**
 - **Taille** : 1 (Remorquable)
 - **Cargo** : Aucun
-- **Capacité** : 2 personnes
+- **CapacitÃ©** : 2 personnes
 - **Puissance de feu** : Faible
 - **Masse** : Minimale
 
-**Rôle :**
+**RÃ´le :**
 - Aller chercher un autre vaisseau
-- Transit PoV vers PoV (même secteur)
+- Transit PoV vers PoV (mÃªme secteur)
 - Vaisseau vers vaisseau
-- **Peut s'accrocher** à tous vaisseaux (sauf autre A-0)
+- **Peut s'accrocher** Ã  tous vaisseaux (sauf autre A-0)
 
 ---
 
-### A-1 : Modèle de Base
+### A-1 : ModÃ¨le de Base
 
 **Type :** Vaisseau polyvalent starter
 
-**Caractéristiques :**
+**CaractÃ©ristiques :**
 - **Masse** : 5000 t
 - **Soutes** : 3 cargos
 - **Emplacements libres** : 5
-- **Système informatique** : 5
-- **Fiabilité** : Moyenne
+- **SystÃ¨me informatique** : 5
+- **FiabilitÃ©** : Moyenne
 - **Volume** : 10
-- **Propulsion** : À micro-panneaux (extraction énergétique)
-- **Réserve** : 600 UE
+- **Propulsion** : Ã€ micro-panneaux (extraction Ã©nergÃ©tique)
+- **RÃ©serve** : 600 UE
 - **Prix** : 30 000 cr
 
-**Rôle :**
-- Vaisseau de départ
+**RÃ´le :**
+- Vaisseau de dÃ©part
 - Polyvalence
-- Évolutif
+- Ã‰volutif
 
 ---
 
-## 🎯“¦ Série M - Marchands
+## ğŸ?¯"œÂ¦ SÃ©rie M - Marchands
 
 **Guilde :** Guilde des Marchands
 
 **Objectif :** Transport de marchandise avant tout
 
 **Sacrifices :**
-- Compétences réduites
-- Puissance réduite
-- ManÅ“uvrabilité réduite
+- CompÃ©tences rÃ©duites
+- Puissance rÃ©duite
+- ManÃ…"œuvrabilitÃ© rÃ©duite
 
 **Gains :**
-- **Cargo maximisé**
-- **Défense accrue**
+- **Cargo maximisÃ©**
+- **DÃ©fense accrue**
 
-### M-1 : Modèle de Base Marchand
+### M-1 : ModÃ¨le de Base Marchand
 
-**Caractéristiques :**
-- (À définir selon équilibrage)
-- Cargo supérieur à A-1
-- Défenses correctes
+**CaractÃ©ristiques :**
+- (Ã€ dÃ©finir selon Ã©quilibrage)
+- Cargo supÃ©rieur Ã  A-1
+- DÃ©fenses correctes
 - Moins agile
 
 ---
 
-## 🎯”­ Série E - Explorateurs
+## ğŸ?¯"?Â­ SÃ©rie E - Explorateurs
 
 **Guilde :** Guilde des Explorateurs
 
-**Objectif :** Découverte et cartographie
+**Objectif :** DÃ©couverte et cartographie
 
-**Caractéristiques attendues :**
-- Détecteurs améliorés
-- Portée accrue
+**CaractÃ©ristiques attendues :**
+- DÃ©tecteurs amÃ©liorÃ©s
+- PortÃ©e accrue
 - Autonomie longue
-- Cargo réduit
+- Cargo rÃ©duit
 
 ---
 
-## âš”ï¸ Série F - Forces d'Intervention
+## Ã¢Å¡"?Ã¯Â¸Â? SÃ©rie F - Forces d'Intervention
 
 **Guilde :** Forces d'Intervention / Militaires
 
-**Objectif :** Combat et sécurité
+**Objectif :** Combat et sÃ©curitÃ©
 
-**Caractéristiques attendues :**
+**CaractÃ©ristiques attendues :**
 - Armement lourd
-- Blindage renforcé
-- ManÅ“uvrabilité élevée
+- Blindage renforcÃ©
+- ManÃ…"œuvrabilitÃ© Ã©levÃ©e
 - Cargo minimal
 
 ---
 
-## 🎯“Š Classes de Vaisseaux (Tailles)
+## ğŸ?¯"œÅ  Classes de Vaisseaux (Tailles)
 
 ### Petits Vaisseaux
-- Multi-rôles
+- Multi-rÃ´les
 - Chasseurs
-- Transporteurs légers
-- **Équipage** : 1-2 personnes
+- Transporteurs lÃ©gers
+- **Ã‰quipage** : 1-2 personnes
 
 ### Vaisseaux Moyens
-- Normalement : équipage de **plus d'une personne**
-- Multi-rôles avancés
+- Normalement : Ã©quipage de **plus d'une personne**
+- Multi-rÃ´les avancÃ©s
 - Corvettes
 - Cargos moyens
-- **Équipage** : 2-10 personnes
+- **Ã‰quipage** : 2-10 personnes
 
 ### Gros Vaisseaux
-- Frégates
+- FrÃ©gates
 - Destroyers
 - Cargos lourds
 - Stations mobiles
-- **Équipage** : 10+ personnes
+- **Ã‰quipage** : 10+ personnes
 
 ---
 
-## 🎯› ï¸ Pannes et Maintenance
+## ğŸ?¯"º Ã¯Â¸Â? Pannes et Maintenance
 
-### Système de Pannes
+### SystÃ¨me de Pannes
 
-**Facteurs influençant pannes :**
-- **Vétusté** : Augmente probabilité pannes
+**Facteurs influenÃ§ant pannes :**
+- **VÃ©tustÃ©** : Augmente probabilitÃ© pannes
 - **Part panne** : % du moteur dans les pannes
-- **Complexité fonctionnelle** : Difficulté de réparation
-- **Score Panne** : Augmente à chaque panne selon gravité
-- **Score Entretien** : Augmente à chaque entretien (bonus)
+- **ComplexitÃ© fonctionnelle** : DifficultÃ© de rÃ©paration
+- **Score Panne** : Augmente Ã  chaque panne selon gravitÃ©
+- **Score Entretien** : Augmente Ã  chaque entretien (bonus)
 
-**Formule Réparation (exemple) :**
+**Formule RÃ©paration (exemple) :**
 ```
-Jet = Score Entretien + Réparation + 1D100 
+Jet = Score Entretien + RÃ©paration + 1D100 
 > 
-Taux Panne + Réparation manuelle vaisseau + Vétusté/(X00)
+Taux Panne + RÃ©paration manuelle vaisseau + VÃ©tustÃ©/(X00)
 ```
 
 ### Pannes Actuelles
 
-Chaque vaisseau possède un **tableau des pannes à réparer**.
+Chaque vaisseau possÃ¨de un **tableau des pannes Ã  rÃ©parer**.
 
 Types de pannes possibles :
-- Moteur endommagé
+- Moteur endommagÃ©
 - Fuite coque
-- Système informatique défaillant
+- SystÃ¨me informatique dÃ©faillant
 - Boucliers HS
-- Armes bloquées
-- Capteurs défectueux
+- Armes bloquÃ©es
+- Capteurs dÃ©fectueux
 
 ---
 
-## 🎯’¡ Idées Complémentaires
+## ğŸ?¯"êÂ¡ IdÃ©es ComplÃ©mentaires
 
-**Possibilités futures :**
+**PossibilitÃ©s futures :**
 - Personnalisation visuelle vaisseaux
-- Noms personnalisés
+- Noms personnalisÃ©s
 - Historique du vaisseau
-- Réputation du vaisseau (célèbre/recherché)
+- RÃ©putation du vaisseau (cÃ©lÃ¨bre/recherchÃ©)
 - Assurance vaisseaux
-- Marché occasion vaisseaux
-- Épaves récupérables
+- MarchÃ© occasion vaisseaux
+- Ã‰paves rÃ©cupÃ©rables
 
 ---
 
-**Document vivant - Dernière mise à jour : 2025-11-01**
+**Document vivant - DerniÃ¨re mise Ã  jour : 2025-11-01**
 

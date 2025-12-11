@@ -1,80 +1,80 @@
-# ğŸ”­ SYSTÃˆME DE DÃ‰TECTION ET SCAN
+# ? SYST?ME DE D?TECTION ET SCAN
 
 ## Vue d'ensemble
 
-Le systÃ¨me de scan spatial permet aux joueurs de dÃ©tecter les objets et points d'intÃ©rÃªt (PoI) dans l'univers.
+Le système de scan spatial permet aux joueurs de détecter les objets et points d'intérêt (PoI) dans l'univers.
 
 ---
 
-## ğŸ“� Objets prÃ©dÃ©finis au dÃ©marrage
+##  Objets prédéfinis au démarrage
 
-### SystÃ¨me Solaire - Objets automatiquement dÃ©couverts
+### Système Solaire - Objets automatiquement découverts
 
 Tous les joueurs commencent avec ces objets dans leur carte :
 
-| Objet | Type | Station associÃ©e | Accessible directement |
+| Objet | Type | Station associée | Accessible directement |
 |-------|------|------------------|----------------------|
-| **Sol** | Ã‰toile (G2V) | - | Oui |
-| **Terre** | PlanÃ¨te tellurique | Terra-Maxi-Hub | â�Œ Non (trop de circulation) |
-| **Lune** | Satellite naturel | **Lunastar-station** â­� | â�Œ Non (trop de circulation) |
-| **Mars** | PlanÃ¨te tellurique | Mars-spatiogare | â�Œ Non (trop de circulation) |
-| **Jupiter** | GÃ©ante gazeuse | Jupiter-spatiogare | Oui (via station) |
-| **Neptune** | GÃ©ante de glace | Neptune-spatiogare | Oui (via station) |
+| **Sol** | ?toile (G2V) | - | Oui |
+| **Terre** | Planète tellurique | Terra-Maxi-Hub | ? Non (trop de circulation) |
+| **Lune** | Satellite naturel | **Lunastar-station** ? | ? Non (trop de circulation) |
+| **Mars** | Planète tellurique | Mars-spatiogare | ? Non (trop de circulation) |
+| **Jupiter** | Géante gazeuse | Jupiter-spatiogare | Oui (via station) |
+| **Neptune** | Géante de glace | Neptune-spatiogare | Oui (via station) |
 
-**Point de dÃ©part :** Lunastar-station (orbite lunaire)
+**Point de départ :** Lunastar-station (orbite lunaire)
 
 ---
 
-## ğŸ›°ï¸� Stations spatiales (Spatiogares)
+## œ Stations spatiales (Spatiogares)
 
 ### Format de nommage
-- **Stations majeures** : Nom personnalisÃ© (Terra-Maxi-Hub, Lunastar-station)
-- **Stations standards** : `[Nom PlanÃ¨te]-spatiogare`
+- **Stations majeures** : Nom personnalisé (Terra-Maxi-Hub, Lunastar-station)
+- **Stations standards** : `[Nom Planète]-spatiogare`
 
-### CaractÃ©ristiques
+### Caractéristiques
 - Modifiables depuis le backend admin
-- Permettent l'accÃ¨s aux planÃ¨tes Ã  forte circulation
+- Permettent l'accès aux planètes à forte circulation
 - Servent de points de commerce et ravitaillement
 
 ---
 
-## ğŸ�¯ SystÃ¨me de dÃ©tection
+## ? Système de détection
 
-### Score de dÃ©tectabilitÃ©
+### Score de détectabilité
 
-Chaque objet spatial a un **score de dÃ©tectabilitÃ© de base** :
+Chaque objet spatial a un **score de détectabilité de base** :
 
-#### Formule pour les PoI (Ã©toiles, galaxies)
+#### Formule pour les PoI (étoiles, galaxies)
 ```
 detectabilite_base = (200 - Puissance_Etoile) / 3
 ```
 
-**Plus le score est BAS, plus l'objet est FACILE Ã  dÃ©tecter.**
+**Plus le score est BAS, plus l'objet est FACILE à détecter.**
 
 #### Exemples de calcul
 
-| Type Ã©toile | Puissance | DÃ©tectabilitÃ© | Commentaire |
+| Type étoile | Puissance | Détectabilité | Commentaire |
 |-------------|-----------|---------------|-------------|
-| **Sol (G2V)** | 50 | 50 | Exception : puissance fixÃ©e Ã  50 |
-| **O** | 150-200 | 0-17 | TrÃ¨s facile (Ã©normes Ã©toiles bleues) |
+| **Sol (G2V)** | 50 | 50 | Exception : puissance fixée à 50 |
+| **O** | 150-200 | 0-17 | Très facile (énormes étoiles bleues) |
 | **B** | 100-140 | 20-33 | Facile |
 | **A** | 80-100 | 33-40 | Assez facile |
 | **F** | 60-80 | 40-47 | Moyen |
 | **G** | 40-60 | 47-53 | Moyen (comme Sol) |
 | **K** | 30-40 | 53-57 | Difficile |
-| **M** | 20-30 | 57-60 | TrÃ¨s difficile (naines rouges) |
+| **M** | 20-30 | 57-60 | Très difficile (naines rouges) |
 
 ### Modificateurs de distance
 
-Le score final est modifiÃ© par la distance :
+Le score final est modifié par la distance :
 
 ```
 score_detection_final = detectabilite_base + modificateur_distance
 ```
 
-#### Distance en UnitÃ©s Astronomiques (UA)
+#### Distance en Unités Astronomiques (UA)
 ```
-modificateur_distance = distance_ua / 0.1
+modificateur_distance = distance_ua * 100
 ```
 
 #### Distance en secteurs
@@ -82,68 +82,68 @@ modificateur_distance = distance_ua / 0.1
 modificateur_distance = distance_secteurs * facteur_secteur
 ```
 
-**OÃ¹ :**
+**Où :**
 - `facteur_secteur` = taille d'un secteur en UA (configurable)
 
 ---
 
-## ğŸ”� Commande SCAN
+##  Commande SCAN
 
-### PortÃ©e de scan
+### Portée de scan
 
 1. **Objets locaux** : tous les objets dans le secteur actuel
-2. **PoI distants** : Ã©toiles et points d'intÃ©rÃªt des autres secteurs (dans la limite de portÃ©e du scanner)
+2. **PoI distants** : étoiles et points d'intérêt des autres secteurs (dans la limite de portée du scanner)
 
 ### PoI connus
 
-Les PoI dÃ©couverts prÃ©cÃ©demment sont **automatiquement dÃ©tectÃ©s** lors des scans suivants (mÃªme Ã  grande distance).
+Les PoI découverts précédemment sont **automatiquement détectés** lors des scans suivants (même à grande distance).
 
-### MÃ©canique de scan
+### Mécanique de scan
 
-Pour chaque objet/PoI non dÃ©couvert :
+Pour chaque objet/PoI non découvert :
 
 1. Calculer `score_detection_final`
-2. Lancer jet de dÃ©tection (dÃ©s + capacitÃ©s du vaisseau)
-3. Si `resultat_jet >= score_detection_final` â†’ **Objet dÃ©tectÃ© !**
-4. Sinon â†’ Objet reste cachÃ©
+2. Lancer jet de détection (dés + capacités du vaisseau)
+3. Si `resultat_jet >= score_detection_final` ? **Objet détecté !**
+4. Sinon ? Objet reste caché
 
 ### Scan cumulatif
 
 Le niveau de scan dans un secteur est **cumulatif** :
-- Plusieurs scans dans le mÃªme secteur augmentent les chances de dÃ©tection
-- Se rÃ©initialise si le vaisseau change de secteur
+- Plusieurs scans dans le même secteur augmentent les chances de détection
+- Se réinitialise si le vaisseau change de secteur
 
 ---
 
-## ğŸ—ºï¸� Carte galactique
+## œ Carte galactique
 
-### Objets affichÃ©s
+### Objets affichés
 
-- âœ… Objets dÃ©couverts (via scan ou prÃ©dÃ©finis)
-- âœ… PoI connus automatiquement visibles
-- â�Œ Objets non dÃ©couverts (brouillard de guerre)
+- ? Objets découverts (via scan ou prédéfinis)
+- ? PoI connus automatiquement visibles
+- ? Objets non découverts (brouillard de guerre)
 
-### Commandes associÃ©es
+### Commandes associées
 
 - `scan` - Scanner le secteur actuel
-- `carte` - Voir tous les systÃ¨mes dÃ©couverts
+- `carte` - Voir tous les systèmes découverts
 - `position` - Voir position actuelle
 
 ---
 
-## ğŸ�® ImplÃ©mentation technique
+## ? Implémentation technique
 
-### ModÃ¨les concernÃ©s
+### Modèles concernés
 
-- `SystemeStellaire` - Ã©toiles avec puissance et dÃ©tectabilitÃ©
-- `Planete` - planÃ¨tes avec score de dÃ©tection
-- `Station` - stations spatiales (Ã  crÃ©er)
-- `Decouverte` - objets dÃ©couverts par personnage
+- `SystemeStellaire` - étoiles avec puissance et détectabilité
+- `Planete` - planètes avec score de détection
+- `Station` - stations spatiales (à créer)
+- `Decouverte` - objets découverts par personnage
 
 ### Seeders
 
-- `GaiaSeeder` - SystÃ¨me Solaire complet avec stations
-- `UniverseSeeder` - GÃ©nÃ©ration procÃ©durale
+- `GaiaSeeder` - Système Solaire complet avec stations
+- `UniverseSeeder` - Génération procédurale
 
 ### Configuration
 
@@ -152,38 +152,38 @@ Fichier `config/game.php` :
 'detection' => [
     'sol_puissance' => 50,           // Exception pour Sol
     'ua_per_sector' => 10,            // Taille d'un secteur en UA
-    'scan_portee_max' => 100,         // PortÃ©e max du scanner en secteurs
+    'scan_portee_max' => 100,         // Portée max du scanner en secteurs
     'detectabilite_formule' => '(200 - puissance) / 3',
 ],
 ```
 
 ---
 
-## ğŸ”§ Backend Admin
+## ? Backend Admin
 
 ### Gestion des stations
 
 Interface admin pour :
 - Renommer les stations
-- Modifier accessibilitÃ© planÃ¨tes
-- Ajuster scores de dÃ©tection
-- CrÃ©er/supprimer stations
+- Modifier accessibilité planètes
+- Ajuster scores de détection
+- Créer/supprimer stations
 
 Route : `/admin/stations`
 
 ---
 
-## ğŸ“� Notes de dÃ©veloppement
+##  Notes de développement
 
-- [ ] CrÃ©er modÃ¨le `Station`
+- [ ] Créer modèle `Station`
 - [ ] Migration pour table `stations`
-- [ ] Modifier `GaiaSeeder` pour crÃ©er systÃ¨me solaire complet
-- [ ] ImplÃ©menter calcul de dÃ©tection dans `SystemeStellaire`
+- [ ] Modifier `GaiaSeeder` pour créer système solaire complet
+- [ ] Implémenter calcul de détection dans `SystemeStellaire`
 - [ ] Modifier commande `scan` dans `GameController`
-- [ ] Interface admin pour gÃ©rer stations
-- [ ] Tests unitaires du systÃ¨me de dÃ©tection
+- [ ] Interface admin pour gérer stations
+- [ ] Tests unitaires du système de détection
 
 ---
 
-**DerniÃ¨re mise Ã  jour :** 2025-11-20
-**Statut :** En dÃ©veloppement
+**Dernière mise à jour :** 2025-11-20
+**Statut :** En développement

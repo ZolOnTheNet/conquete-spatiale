@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Helpers\GameTimeHelper;
+use Carbon\Carbon;
 
 class Planete extends Model
 {
@@ -19,6 +21,13 @@ class Planete extends Model
         'gravite',
         'distance_etoile',
         'periode_orbitale',
+        'angle_orbital_initial',
+        'vitesse_angulaire',
+        'cache_position_x',
+        'cache_position_y',
+        'cache_position_z',
+        'cache_timestamp_jours',
+        'cache_validite_jours',
         'habitable',
         'habitee',
         'population',
@@ -32,14 +41,24 @@ class Planete extends Model
         'temperature_max',
         'description',
         'donnees_supplementaires',
+        'detectabilite_base',
+        'poi_connu',
     ];
 
     protected $casts = [
         'habitable' => 'boolean',
         'habitee' => 'boolean',
         'a_atmosphere' => 'boolean',
+        'poi_connu' => 'boolean',
         'gisements' => 'array',
         'donnees_supplementaires' => 'array',
+        'angle_orbital_initial' => 'float',
+        'vitesse_angulaire' => 'float',
+        'cache_position_x' => 'float',
+        'cache_position_y' => 'float',
+        'cache_position_z' => 'float',
+        'cache_timestamp_jours' => 'integer',
+        'cache_validite_jours' => 'integer',
     ];
 
     // Relations
@@ -71,6 +90,21 @@ class Planete extends Model
     {
         return $this->hasMany(Mine::class);
     }
+
+    /**
+     * Découvertes de cette planète par les personnages
+     * Note : Pour l'instant, on utilise les découvertes du système stellaire
+     * TODO: Créer une table decouvertes_planetes séparée si besoin
+     */
+    /**
+     * TODO: Relation pour système de découverte de planètes (à implémenter)
+     * Nécessite ajout colonne 'planete_id' dans table 'decouvertes'
+     * ou création d'une table 'decouvertes_planetes' séparée
+     */
+    // public function decouvertes(): HasMany
+    // {
+    //     return $this->hasMany(\App\Models\Decouverte::class, 'planete_id');
+    // }
 
     /**
      * Génère un type de planète selon la distance à l'étoile
@@ -352,5 +386,131 @@ class Planete extends Model
 
         // Sinon utiliser des lettres
         return $nomSysteme . ' ' . chr(64 + $numero); // A, B, C...
+    }
+
+    /**
+     * Obtenir les données orbitales pour le calcul JavaScript côté client
+     * Retourne les données optimisées pour le calcul en temps réel
+     *
+     * @param \App\Models\Personnage|null $personnage Pour obtenir la date actuelle du jeu
+     * @return array Données orbitales + cache
+     */
+    public function getDonneesOrbitales($personnage = null): array
+    {
+        // Date actuelle du jeu
+        $timestampJoursActuel = $personnage
+            ? GameTimeHelper::getTimestampJoursActuel($personnage)
+            : GameTimeHelper::dateToJours(Carbon::now());
+
+        // Vérifier si le cache est valide
+        $cacheValide = false;
+        if ($this->cache_timestamp_jours !== null) {
+            $joursDepuisCache = abs($timestampJoursActuel - $this->cache_timestamp_jours);
+            $cacheValide = $joursDepuisCache < $this->cache_validite_jours;
+        }
+
+        // Si cache invalide, recalculer
+        if (!$cacheValide) {
+            $this->recalculerPositionCache($timestampJoursActuel);
+        }
+
+        return [
+            // Paramètres orbitaux (constants)
+            'distance_etoile' => $this->distance_etoile, // UA
+            'periode_orbitale' => $this->periode_orbitale, // jours
+            'angle_orbital_initial' => $this->angle_orbital_initial, // radians
+            'vitesse_angulaire' => $this->vitesse_angulaire, // rad/jour
+
+            // Cache de position (pour éviter recalculs)
+            'cache_position_x' => $this->cache_position_x, // UA
+            'cache_position_y' => $this->cache_position_y, // UA
+            'cache_position_z' => $this->cache_position_z, // UA
+            'cache_timestamp_jours' => $this->cache_timestamp_jours,
+
+            // Métadonnées
+            'timestamp_actuel_jours' => $timestampJoursActuel,
+            'cache_validite_jours' => $this->cache_validite_jours,
+        ];
+    }
+
+    /**
+     * Recalculer la position de la planète et mettre à jour le cache
+     *
+     * @param float $timestampJours Timestamp en jours depuis 3000-01-01
+     * @return void
+     */
+    public function recalculerPositionCache(float $timestampJours): void
+    {
+        if (!$this->vitesse_angulaire || !$this->distance_etoile) {
+            return; // Pas de données orbitales
+        }
+
+        // Calculer l'angle actuel
+        $angleActuel = $this->angle_orbital_initial + ($this->vitesse_angulaire * $timestampJours);
+
+        // Position orbitale (orbite circulaire dans plan XY)
+        $x_ua = $this->distance_etoile * cos($angleActuel);
+        $y_ua = $this->distance_etoile * sin($angleActuel);
+        $z_ua = 0.0; // Plan orbital simplifié (peut ajouter inclinaison plus tard)
+
+        // Mettre à jour le cache
+        $this->update([
+            'cache_position_x' => $x_ua,
+            'cache_position_y' => $y_ua,
+            'cache_position_z' => $z_ua,
+            'cache_timestamp_jours' => (int)$timestampJours,
+        ]);
+    }
+
+    /**
+     * Calculer la position absolue de la planète dans l'espace (en AL)
+     *
+     * @param float|null $timestampJours Timestamp en jours (null = actuel)
+     * @return array ['x' => float, 'y' => float, 'z' => float] Position en AL
+     */
+    public function getPositionAbsolue(?float $timestampJours = null): array
+    {
+        $timestampJours = $timestampJours ?? GameTimeHelper::dateToJours(Carbon::now());
+
+        // Calculer position orbitale (en UA)
+        $angleActuel = $this->angle_orbital_initial + ($this->vitesse_angulaire * $timestampJours);
+        $x_ua = $this->distance_etoile * cos($angleActuel);
+        $y_ua = $this->distance_etoile * sin($angleActuel);
+        $z_ua = 0.0;
+
+        // Position de l'étoile (système stellaire)
+        $systeme = $this->systemeStellaire;
+
+        // Conversion UA → AL (1 UA ≈ 0.0000158 AL)
+        $ua_vers_al = 0.0000158;
+
+        return [
+            'x' => $systeme->position_x + ($x_ua * $ua_vers_al),
+            'y' => $systeme->position_y + ($y_ua * $ua_vers_al),
+            'z' => $systeme->position_z + ($z_ua * $ua_vers_al),
+        ];
+    }
+
+    /**
+     * Calculer la distance entre la planète et un vaisseau (en UA)
+     *
+     * @param \App\Models\Vaisseau $vaisseau
+     * @param float|null $timestampJours
+     * @return float Distance en UA
+     */
+    public function getDistanceDepuisVaisseau($vaisseau, ?float $timestampJours = null): float
+    {
+        $positionPlanete = $this->getPositionAbsolue($timestampJours);
+        $objetSpatialVaisseau = $vaisseau->objetSpatial;
+
+        // Distance en AL
+        $dx = $positionPlanete['x'] - $objetSpatialVaisseau->position_x;
+        $dy = $positionPlanete['y'] - $objetSpatialVaisseau->position_y;
+        $dz = $positionPlanete['z'] - $objetSpatialVaisseau->position_z;
+
+        $distance_al = sqrt($dx*$dx + $dy*$dy + $dz*$dz);
+
+        // Conversion AL → UA (1 AL ≈ 63241 UA)
+        return $distance_al * 63241;
     }
 }

@@ -3600,6 +3600,18 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
             }
         }
 
+        // Secteurs connus = uniquement les secteurs qui contiennent un système découvert
+        // Pas de calcul de rayon, c'est la base de données qui décide
+        $knownSectors = [];
+        foreach ($grille as $gx => $gridX) {
+            foreach ($gridX as $gy => $gridY) {
+                foreach ($gridY as $gz => $sys) {
+                    // Marquer uniquement le secteur exact du système comme connu
+                    $knownSectors["{$gx},{$gy},{$gz}"] = true;
+                }
+            }
+        }
+
         // Si requête AJAX, retourner seulement le contenu de la carte
         if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
             return view('game.partials.carte-content', compact(
@@ -3611,7 +3623,8 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
                 'positionActuelle',
                 'personnage',
                 'halfSize',
-                'isAdmin'
+                'isAdmin',
+                'knownSectors'
             ));
         }
 
@@ -3624,7 +3637,8 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
             'positionActuelle',
             'personnage',
             'halfSize',
-            'isAdmin'
+            'isAdmin',
+            'knownSectors'
         ));
     }
 

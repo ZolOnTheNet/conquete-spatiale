@@ -60,40 +60,25 @@
                             <span>Sauts Hyperspatiaux</span>
                         </h3>
 
-                        <div class="space-y-3 max-h-[600px] overflow-y-auto">
+                        <div class="space-y-2 max-h-[600px] overflow-y-auto">
                             @forelse($sautsDisponibles as $destination)
-                            <div class="bg-gray-900/50 border border-gray-700 rounded-lg p-4 hover:border-yellow-500/50 transition">
-                                <div class="flex justify-between items-start mb-2">
-                                    <div>
-                                        <h4 class="text-white font-bold text-lg">{{ $destination->nom }}</h4>
-                                        <p class="text-gray-400 text-sm">
-                                            Distance: <span class="text-yellow-400">{{ number_format($destination->distance, 2) }} AL</span>
-                                        </p>
-                                    </div>
-                                    @if($destination->accessible)
-                                        <span class="px-2 py-1 bg-green-900/30 text-green-400 text-xs rounded">✓ Accessible</span>
-                                    @else
-                                        <span class="px-2 py-1 bg-red-900/30 text-red-400 text-xs rounded">✗ Inaccessible</span>
-                                    @endif
+                            <div class="bg-gray-900/50 border border-gray-700 rounded px-3 py-2 hover:border-yellow-500/50 transition flex items-center gap-3 text-sm">
+                                <div class="flex-1 min-w-0">
+                                    <span class="text-white font-semibold">{{ $destination->nom }}</span>
                                 </div>
-
-                                <div class="text-sm text-gray-400 mb-3">
-                                    <span>Énergie: <span class="text-yellow-400">{{ $destination->energieRequise }}</span></span>
-                                    <span class="ml-4">PA: <span class="text-cyan-400">{{ $destination->paRequis }}</span></span>
+                                <div class="text-yellow-400 whitespace-nowrap">
+                                    {{ number_format($destination->distance, 1) }} AL
                                 </div>
-
-                                <div class="flex gap-2">
-                                    <button onclick="calculerSaut({{ $destination->id }})"
-                                            class="flex-1 bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-3 py-2 rounded text-sm transition"
-                                            @if(!$destination->accessible) disabled @endif>
-                                        🧮 Calcul
-                                    </button>
-                                    <button onclick="effectuerSaut({{ $destination->id }})"
-                                            class="flex-1 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-3 py-2 rounded text-sm font-bold transition"
-                                            @if(!$destination->accessible) disabled @endif>
-                                        ⚡ Saut
-                                    </button>
-                                </div>
+                                <button onclick="calculerSaut({{ $destination->id }})"
+                                        class="bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded text-xs transition whitespace-nowrap"
+                                        @if(!$destination->accessible) disabled @endif>
+                                    🧮 Calcul ({{ $destination->paRequis }} PA)
+                                </button>
+                                <button onclick="effectuerSaut({{ $destination->id }})"
+                                        class="bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded text-xs font-semibold transition whitespace-nowrap"
+                                        @if(!$destination->accessible) disabled @endif>
+                                    ⚡ Saut ({{ $destination->energieRequise }} E)
+                                </button>
                             </div>
                             @empty
                             <p class="text-gray-500 text-center py-8">Aucun saut disponible</p>
@@ -108,41 +93,32 @@
                             <span>Déplacements Conventionnels</span>
                         </h3>
 
-                        <div class="space-y-3 max-h-[600px] overflow-y-auto">
+                        <div class="space-y-2 max-h-[600px] overflow-y-auto">
                             @forelse($poisSecteur as $poi)
-                            <div class="bg-gray-900/50 border border-gray-700 rounded-lg p-4 hover:border-cyan-500/50 transition">
-                                <div class="flex justify-between items-start mb-2">
-                                    <div>
-                                        <h4 class="text-white font-bold flex items-center gap-2">
-                                            <span>{{ $poi->icone }}</span>
-                                            <span>{{ $poi->nom }}</span>
-                                        </h4>
-                                        <p class="text-gray-400 text-sm">
-                                            Distance: <span class="text-cyan-400">{{ number_format($poi->distance, 2) }} UA</span>
-                                        </p>
-                                    </div>
-                                    @if($poi->distance < 1)
-                                        <span class="px-2 py-1 bg-green-900/30 text-green-400 text-xs rounded">★ Amarrage possible</span>
+                            <div class="bg-gray-900/50 border border-gray-700 rounded px-3 py-2 hover:border-cyan-500/50 transition flex items-center gap-3 text-sm"
+                                 @if($poi->type_poi === 'planete' && isset($poi->donneesOrbitales))
+                                     data-planete-id="{{ $poi->id }}"
+                                     data-planete-orbital='@json($poi->donneesOrbitales)'
+                                 @endif>
+                                <div class="flex-1 min-w-0">
+                                    <span class="text-white font-semibold">{{ $poi->icone }} {{ $poi->nom }}</span>
+                                    @if($poi->type_poi === 'planete')
+                                        <span class="text-gray-500 text-xs ml-2" title="Distance calculée avec système orbital">🪐</span>
                                     @endif
                                 </div>
-
-                                <div class="text-sm text-gray-400 mb-3">
-                                    <span>Énergie: <span class="text-yellow-400">{{ $poi->energieRequise }}</span></span>
-                                    <span class="ml-4">PA: <span class="text-cyan-400">{{ $poi->paRequis }}</span></span>
+                                <div class="text-cyan-400 whitespace-nowrap planete-distance">
+                                    {{ number_format($poi->distance, 2) }} UA
                                 </div>
-
-                                <div class="flex gap-2">
-                                    <button onclick="sApprocher({{ $poi->id }}, 'systeme')"
-                                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm transition">
-                                        ➡️ S'approcher
-                                    </button>
-                                    @if($poi->distance < 1)
-                                    <button onclick="sAmarrer({{ $poi->id }})"
-                                            class="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm font-bold transition">
-                                        🔗 S'amarrer
-                                    </button>
-                                    @endif
-                                </div>
+                                <button onclick="sApprocher({{ $poi->id }}, '{{ $poi->type_poi }}')"
+                                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs transition whitespace-nowrap">
+                                    ➡️ Approcher ({{ $poi->paRequis }} PA)
+                                </button>
+                                @if($poi->distance < 1)
+                                <button onclick="sAmarrer({{ $poi->id }})"
+                                        class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition whitespace-nowrap">
+                                    🔗 Amarrer
+                                </button>
+                                @endif
                             </div>
                             @empty
                             <p class="text-gray-500 text-center py-8">Aucun POI détecté dans ce secteur</p>
@@ -167,8 +143,88 @@
 
 </div>
 
+{{-- Inclure le calculateur orbital JavaScript --}}
+<script src="{{ asset('js/orbital-calculator.js') }}"></script>
+
 <script>
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+// ============================================================================
+// SYSTÈME DE CALCUL ORBITAL CLIENT-SIDE
+// ============================================================================
+
+// Données pour calculs orbitaux
+@if($systemeActuel)
+const systemeData = {
+    id: {{ $systemeActuel->id }},
+    nom: "{{ $systemeActuel->nom }}",
+    position_x: {{ $systemeActuel->position_x }},
+    position_y: {{ $systemeActuel->position_y }},
+    position_z: {{ $systemeActuel->position_z }}
+};
+@else
+const systemeData = null;
+@endif
+
+const vaisseauData = {
+    position_x: {{ $objetSpatial->position_x }},
+    position_y: {{ $objetSpatial->position_y }},
+    position_z: {{ $objetSpatial->position_z }},
+};
+
+const dateJeu = new Date('{{ $dateJeuActuelle->toIso8601String() }}');
+
+// Fonction pour mettre à jour les distances des planètes en temps réel
+function mettreAJourDistancesPlanetes() {
+    if (!systemeData) return; // Espace profond
+
+    const timestampJours = OrbitalCalculator.dateToJours(dateJeu);
+
+    // Pour chaque planète dans la liste
+    document.querySelectorAll('[data-planete-id]').forEach(element => {
+        const planeteId = element.dataset.planeteId;
+        const planeteData = JSON.parse(element.dataset.planeteOrbital || '{}');
+
+        if (!planeteData.distance_etoile) return; // Pas de données orbitales
+
+        try {
+            // Calculer distance en temps réel avec OrbitalCalculator
+            const distance = OrbitalCalculator.calculerDistance(
+                planeteData,
+                systemeData,
+                vaisseauData,
+                timestampJours
+            );
+
+            // Mettre à jour l'affichage
+            const distanceElement = element.querySelector('.planete-distance');
+            if (distanceElement) {
+                distanceElement.textContent = distance.toFixed(2) + ' UA';
+
+                // Ajouter indicateur que c'est calculé côté client
+                distanceElement.title = 'Distance calculée en temps réel (client-side)';
+            }
+
+            // Debug: afficher dans la console
+            console.log(`Planète ${planeteData.id}: ${distance.toFixed(2)} UA (calculé client-side)`);
+        } catch (error) {
+            console.error(`Erreur calcul orbital planète ${planeteId}:`, error);
+        }
+    });
+}
+
+// Initialiser les calculs au chargement
+if (typeof OrbitalCalculator !== 'undefined') {
+    console.log('✓ OrbitalCalculator chargé, calculs orbitaux disponibles');
+    // Optionnel: mettre à jour les distances au chargement
+    // mettreAJourDistancesPlanetes();
+} else {
+    console.error('✗ OrbitalCalculator non disponible');
+}
+
+// ============================================================================
+// FONCTIONS DE NAVIGATION (existantes)
+// ============================================================================
 
 async function calculerSaut(destinationId) {
     try {

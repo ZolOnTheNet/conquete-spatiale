@@ -1,15 +1,15 @@
-# G√©n√©ration et Enrichissement du CSV GAIA
+# Génération et Enrichissement du CSV GAIA
 
-Ce document explique comment cr√©er et enrichir le fichier CSV d'√©toiles GAIA pour le jeu.
+Ce document explique comment créer et enrichir le fichier CSV d'étoiles GAIA pour le jeu.
 
 ## Vue d'ensemble
 
-Le syst√®me utilise un fichier CSV (`database/data/gaia_nearby_stars.csv`) contenant des √©toiles proches du Syst√®me Solaire. Quatre commandes Artisan permettent de g√©n√©rer et enrichir ce fichier :
+Le système utilise un fichier CSV (`database/data/gaia_nearby_stars.csv`) contenant des étoiles proches du Système Solaire. Quatre commandes Artisan permettent de générer et enrichir ce fichier :
 
-1. **`gaia:import-real`** - üåü **IMPORT R√âEL** : T√©l√©charge les vraies donn√©es du catalogue GAIA DR3 (ESA)
-2. **`gaia:generate`** - G√©n√®re des √©toiles proc√©durales al√©atoires
-3. **`gaia:add`** - Ajoute une √©toile sp√©cifique avec coordonn√©es cart√©siennes
-4. **`gaia:add-radius`** - G√©n√®re des √©toiles dans une zone sph√©rique d√©finie
+1. **`gaia:import-real`** - üåü **IMPORT RêEL** : Télécharge les vraies données du catalogue GAIA DR3 (ESA)
+2. **`gaia:generate`** - Génère des étoiles procédurales aléatoires
+3. **`gaia:add`** - Ajoute une étoile spécifique avec coordonnées cartésiennes
+4. **`gaia:add-radius`** - Génère des étoiles dans une zone sphérique définie
 
 ## Format du CSV
 
@@ -18,239 +18,239 @@ Le fichier CSV contient les colonnes suivantes :
 | Colonne | Description | Exemple |
 |---------|-------------|---------|
 | `source_id` | Identifiant unique | `PROC-000000000123` |
-| `name` | Nom de l'√©toile | `Proxima Centauri` |
-| `ra` | Ascension droite (degr√©s) | `219.90205833` |
-| `dec` | D√©clinaison (degr√©s) | `-60.83399269` |
-| `distance` | Distance en ann√©es-lumi√®re | `4.2465` |
+| `name` | Nom de l'étoile | `Proxima Centauri` |
+| `ra` | Ascension droite (degrés) | `219.90205833` |
+| `dec` | Déclinaison (degrés) | `-60.83399269` |
+| `distance` | Distance en années-lumière | `4.2465` |
 | `spectral_type` | Type spectral | `M5.5Ve` |
 | `magnitude` | Magnitude apparente | `11.13` |
 
-## Syst√®me de coordonn√©es
+## Système de coordonnées
 
-Le jeu utilise des **coordonn√©es cart√©siennes** avec la Terre √† l'origine (0, 0, 0) :
+Le jeu utilise des **coordonnées cartésiennes** avec la Terre  l'origine (0, 0, 0) :
 
-- **X** : Direction vers le Soleil (positif = vers l'ext√©rieur)
+- **X** : Direction vers le Soleil (positif = vers l'extérieur)
 - **Y** : Direction perpendiculaire (positif = vers la gauche)
-- **Z** : Direction vers le p√¥le nord galactique (positif = vers le haut)
+- **Z** : Direction vers le p¥le nord galactique (positif = vers le haut)
 
-**Conversion automatique** : Les commandes convertissent automatiquement les coordonn√©es cart√©siennes (x, y, z) en coordonn√©es sph√©riques (RA/Dec) pour le CSV.
+**Conversion automatique** : Les commandes convertissent automatiquement les coordonnées cartésiennes (x, y, z) en coordonnées sphériques (RA/Dec) pour le CSV.
 
 ## Commandes disponibles
 
-### 1. Importer les vraies donn√©es GAIA DR3 (ESA) üåü
+### 1. Importer les vraies données GAIA DR3 (ESA) üåü
 
 ```bash
 php artisan gaia:import-real [--radius=100] [--limit=2000] [--min-magnitude=15] [--csv=] [--merge] [--insecure]
 ```
 
-**‚≠ê RECOMMAND√â** : Cette commande interroge la **vraie base de donn√©es GAIA DR3** de l'Agence Spatiale Europ√©enne !
+**œ≠ê RECOMMANDê** : Cette commande interroge la **vraie base de données GAIA DR3** de l'Agence Spatiale Européenne !
 
 **Options :**
-- `--radius=N` : Rayon maximum en ann√©es-lumi√®re depuis le Soleil (d√©faut: 100)
-- `--limit=N` : Nombre maximum d'√©toiles √† importer (d√©faut: 2000)
-- `--min-magnitude=N` : Magnitude apparente maximale - plus bas = plus lumineux (d√©faut: 15)
-- `--csv=path` : Fichier de sortie (d√©faut: `database/data/gaia_nearby_stars.csv`)
-- `--merge` : Fusionner avec √©toiles existantes au lieu de remplacer
-- `--insecure` : D√©sactiver la v√©rification SSL (utile si erreur certificat auto-sign√©)
+- `--radius=N` : Rayon maximum en années-lumière depuis le Soleil (défaut: 100)
+- `--limit=N` : Nombre maximum d'étoiles  importer (défaut: 2000)
+- `--min-magnitude=N` : Magnitude apparente maximale - plus bas = plus lumineux (défaut: 15)
+- `--csv=path` : Fichier de sortie (défaut: `database/data/gaia_nearby_stars.csv`)
+- `--merge` : Fusionner avec étoiles existantes au lieu de remplacer
+- `--insecure` : Désactiver la vérification SSL (utile si erreur certificat auto-signé)
 
 **Exemples :**
 
 ```bash
-# Importer 2000 √©toiles r√©elles dans un rayon de 100 AL
+# Importer 2000 étoiles réelles dans un rayon de 100 AL
 php artisan gaia:import-real
 
-# Importer √©toiles tr√®s proches (50 AL) et brillantes (mag < 10)
+# Importer étoiles très proches (50 AL) et brillantes (mag < 10)
 php artisan gaia:import-real --radius=50 --min-magnitude=10 --limit=1000
 
-# Enrichir un fichier existant avec vraies donn√©es GAIA
+# Enrichir un fichier existant avec vraies données GAIA
 php artisan gaia:import-real --radius=150 --merge
 
-# Import massif : 5000 √©toiles jusqu'√† 200 AL
+# Import massif : 5000 étoiles jusqu' 200 AL
 php artisan gaia:import-real --radius=200 --limit=5000
 ```
 
-**Fonctionnalit√©s :**
-- ‚úÖ Interroge l'API TAP officielle de GAIA DR3 (https://gea.esac.esa.int)
-- ‚úÖ Donn√©es astronomiques r√©elles : positions pr√©cises, parallaxes, magnitudes
-- ‚úÖ Filtrage par qualit√© (parallax_over_error > 5)
-- ‚úÖ Estimation du type spectral depuis temp√©rature effective et indice de couleur BP-RP
-- ‚úÖ Conversion automatique parallaxe ‚Üí distance en ann√©es-lumi√®re
-- ‚úÖ D√©tection des doublons automatique
-- ‚úÖ Mode fusion (--merge) pour combiner avec √©toiles proc√©durales
+**Fonctionnalités :**
+- œúÖ Interroge l'API TAP officielle de GAIA DR3 (https://gea.esac.esa.int)
+- œúÖ Données astronomiques réelles : positions précises, parallaxes, magnitudes
+- œúÖ Filtrage par qualité (parallax_over_error > 5)
+- œúÖ Estimation du type spectral depuis température effective et indice de couleur BP-RP
+- œúÖ Conversion automatique parallaxe œÜí distance en années-lumière
+- œúÖ Détection des doublons automatique
+- œúÖ Mode fusion (--merge) pour combiner avec étoiles procédurales
 
-**Donn√©es sources :**
-- **GAIA DR3** : 3e √©dition du catalogue GAIA (juin 2022)
-- **~2 milliards d'√©toiles** recens√©es dans la Voie Lact√©e
-- **Pr√©cision astrom√©trique** : ~0.01 √† 0.5 mas (milli-arcseconde)
+**Données sources :**
+- **GAIA DR3** : 3e édition du catalogue GAIA (juin 2022)
+- **~2 milliards d'étoiles** recensées dans la Voie Lactée
+- **Précision astrométrique** : ~0.01  0.5 mas (milli-arcseconde)
 - **Source officielle** : European Space Agency (ESA)
 
 **Requis :**
 - Connexion internet active
-- Timeout : 120 secondes (pour grandes requ√™tes)
+- Timeout : 120 secondes (pour grandes requêtes)
 
 ---
 
-### 2. G√©n√©rer des √©toiles al√©atoires
+### 2. Générer des étoiles aléatoires
 
 ```bash
 php artisan gaia:generate [--count=100] [--radius=100] [--output=chemin/vers/fichier.csv]
 ```
 
 **Options :**
-- `--count=N` : Nombre d'√©toiles √† g√©n√©rer (d√©faut: 100)
-- `--radius=N` : Rayon maximum en ann√©es-lumi√®re (d√©faut: 100)
-- `--output=path` : Fichier de sortie (d√©faut: `database/data/gaia_nearby_stars.csv`)
+- `--count=N` : Nombre d'étoiles  générer (défaut: 100)
+- `--radius=N` : Rayon maximum en années-lumière (défaut: 100)
+- `--output=path` : Fichier de sortie (défaut: `database/data/gaia_nearby_stars.csv`)
 
 **Exemples :**
 
 ```bash
-# G√©n√©rer 100 √©toiles dans un rayon de 100 AL
+# Générer 100 étoiles dans un rayon de 100 AL
 php artisan gaia:generate
 
-# G√©n√©rer 500 √©toiles dans un rayon de 200 AL
+# Générer 500 étoiles dans un rayon de 200 AL
 php artisan gaia:generate --count=500 --radius=200
 
-# G√©n√©rer dans un fichier personnalis√©
+# Générer dans un fichier personnalisé
 php artisan gaia:generate --output=storage/custom_stars.csv
 ```
 
-**Fonctionnalit√©s :**
-- ‚úÖ Distribution r√©aliste des types spectraux (76% de naines rouges M)
-- ‚úÖ G√©n√©ration uniforme dans une sph√®re
-- ‚úÖ Calcul automatique de la magnitude apparente
-- ‚úÖ D√©tection des doublons (< 0.01 AL)
-- ‚úÖ Choix : Remplacer / Enrichir / Annuler si fichier existant
+**Fonctionnalités :**
+- œúÖ Distribution réaliste des types spectraux (76% de naines rouges M)
+- œúÖ Génération uniforme dans une sphère
+- œúÖ Calcul automatique de la magnitude apparente
+- œúÖ Détection des doublons (< 0.01 AL)
+- œúÖ Choix : Remplacer / Enrichir / Annuler si fichier existant
 
-### 2. Ajouter une √©toile sp√©cifique
+### 2. Ajouter une étoile spécifique
 
 ```bash
 php artisan gaia:add {name} {x} {y} {z} [--spectral-type=G2V] [--magnitude=] [--csv=]
 ```
 
 **Arguments :**
-- `name` : Nom de l'√©toile (ex: "Alpha Centauri C")
-- `x` : Coordonn√©e X en ann√©es-lumi√®re
-- `y` : Coordonn√©e Y en ann√©es-lumi√®re
-- `z` : Coordonn√©e Z en ann√©es-lumi√®re
+- `name` : Nom de l'étoile (ex: "Alpha Centauri C")
+- `x` : Coordonnée X en années-lumière
+- `y` : Coordonnée Y en années-lumière
+- `z` : Coordonnée Z en années-lumière
 
 **Options :**
-- `--spectral-type=TYPE` : Type spectral (d√©faut: G2V)
-- `--magnitude=N` : Magnitude apparente (calcul√©e automatiquement si omise)
-- `--csv=path` : Fichier CSV (d√©faut: `database/data/gaia_nearby_stars.csv`)
+- `--spectral-type=TYPE` : Type spectral (défaut: G2V)
+- `--magnitude=N` : Magnitude apparente (calculée automatiquement si omise)
+- `--csv=path` : Fichier CSV (défaut: `database/data/gaia_nearby_stars.csv`)
 
 **Exemples :**
 
 ```bash
-# Ajouter une √©toile de type G2V √† 4 AL de la Terre
+# Ajouter une étoile de type G2V  4 AL de la Terre
 php artisan gaia:add "Wolf 359" 7.78 0.0 0.0 --spectral-type=M6V
 
-# Ajouter une g√©ante rouge √† 10 AL
-php artisan gaia:add "Aldebaran Simul√©e" 0 10 0 --spectral-type=K5III
+# Ajouter une géante rouge  10 AL
+php artisan gaia:add "Aldebaran Simulée" 0 10 0 --spectral-type=K5III
 
-# Ajouter avec magnitude sp√©cifique
-php artisan gaia:add "Mon √âtoile" 5 5 5 --spectral-type=F5V --magnitude=6.5
+# Ajouter avec magnitude spécifique
+php artisan gaia:add "Mon êtoile" 5 5 5 --spectral-type=F5V --magnitude=6.5
 ```
 
-**Fonctionnalit√©s :**
-- ‚úÖ Conversion automatique cart√©sien ‚Üí sph√©rique
-- ‚úÖ Calcul automatique de la magnitude si non fournie
-- ‚úÖ D√©tection des doublons par nom
-- ‚úÖ D√©tection des doublons par proximit√© (< 0.01 AL)
-- ‚úÖ Source ID unique bas√© sur hash
+**Fonctionnalités :**
+- œúÖ Conversion automatique cartésien œÜí sphérique
+- œúÖ Calcul automatique de la magnitude si non fournie
+- œúÖ Détection des doublons par nom
+- œúÖ Détection des doublons par proximité (< 0.01 AL)
+- œúÖ Source ID unique basé sur hash
 
-### 3. G√©n√©rer des √©toiles dans une zone sph√©rique
+### 3. Générer des étoiles dans une zone sphérique
 
 ```bash
 php artisan gaia:add-radius {x} {y} {z} {radius} [--count=50] [--csv=]
 ```
 
 **Arguments :**
-- `x` : Centre X en ann√©es-lumi√®re
-- `y` : Centre Y en ann√©es-lumi√®re
-- `z` : Centre Z en ann√©es-lumi√®re
-- `radius` : Rayon de la sph√®re en ann√©es-lumi√®re
+- `x` : Centre X en années-lumière
+- `y` : Centre Y en années-lumière
+- `z` : Centre Z en années-lumière
+- `radius` : Rayon de la sphère en années-lumière
 
 **Options :**
-- `--count=N` : Nombre d'√©toiles √† g√©n√©rer (d√©faut: 50)
-- `--csv=path` : Fichier CSV (d√©faut: `database/data/gaia_nearby_stars.csv`)
+- `--count=N` : Nombre d'étoiles  générer (défaut: 50)
+- `--csv=path` : Fichier CSV (défaut: `database/data/gaia_nearby_stars.csv`)
 
 **Exemples :**
 
 ```bash
-# Peupler une zone √† 50 AL de la Terre
+# Peupler une zone  50 AL de la Terre
 php artisan gaia:add-radius 50 0 0 20 --count=100
 
-# Cr√©er un amas stellaire √† 100 AL
+# Créer un amas stellaire  100 AL
 php artisan gaia:add-radius 100 100 0 10 --count=200
 
 # Zone dense autour d'Alpha Centauri (environ 4.37 AL de la Terre)
 php artisan gaia:add-radius 4 0 0 2 --count=30
 ```
 
-**Fonctionnalit√©s :**
-- ‚úÖ G√©n√©ration dans une sph√®re d√©cal√©e
-- ‚úÖ Distribution r√©aliste des types spectraux
-- ‚úÖ D√©tection des doublons automatique
-- ‚úÖ Fusion avec √©toiles existantes
+**Fonctionnalités :**
+- œúÖ Génération dans une sphère décalée
+- œúÖ Distribution réaliste des types spectraux
+- œúÖ Détection des doublons automatique
+- œúÖ Fusion avec étoiles existantes
 
-## √âlimination des doublons
+## élimination des doublons
 
-Toutes les commandes impl√©mentent une **d√©tection automatique des doublons** :
+Toutes les commandes implémentent une **détection automatique des doublons** :
 
 ### Par nom
-Si une √©toile porte d√©j√† le m√™me nom, l'ajout est refus√©.
+Si une étoile porte déj le même nom, l'ajout est refusé.
 
-### Par proximit√© spatiale
-Si une √©toile existe √† **moins de 0.01 AL** (environ 630 UA) d'une nouvelle position :
-- L'ajout est ignor√© (en mode g√©n√©ration)
-- L'ajout est refus√© avec erreur (en mode ajout manuel)
+### Par proximité spatiale
+Si une étoile existe  **moins de 0.01 AL** (environ 630 UA) d'une nouvelle position :
+- L'ajout est ignoré (en mode génération)
+- L'ajout est refusé avec erreur (en mode ajout manuel)
 
-**Seuil :** 0.01 AL = 630 UA (environ 15√ó la distance Soleil-Neptune)
+**Seuil :** 0.01 AL = 630 UA (environ 15ó la distance Soleil-Neptune)
 
-## Workflow recommand√©
+## Workflow recommandé
 
-### Option A : Avec vraies donn√©es GAIA (‚≠ê Recommand√©)
+### Option A : Avec vraies données GAIA (œ≠ê Recommandé)
 
 ```bash
-# 1. Importer les vraies √©toiles GAIA dans un rayon de 100 AL
+# 1. Importer les vraies étoiles GAIA dans un rayon de 100 AL
 php artisan gaia:import-real --radius=100 --limit=2000
 
-# 2. Enrichir avec zones sp√©cifiques pour le gameplay
+# 2. Enrichir avec zones spécifiques pour le gameplay
 php artisan gaia:add-radius 50 50 0 20 --count=100
 
-# 3. Ajouter √©toiles personnalis√©es pour le sc√©nario
+# 3. Ajouter étoiles personnalisées pour le scénario
 php artisan gaia:add "Colonie Alpha" 75 25 10 --spectral-type=G5V --merge
 
-# 4. Importer en base de donn√©es
+# 4. Importer en base de données
 php artisan migrate:fresh --seed
 ```
 
-### Option B : G√©n√©ration proc√©durale (si pas d'internet)
+### Option B : Génération procédurale (si pas d'internet)
 
 ```bash
-# 1. G√©n√©rer 200 √©toiles dans un rayon de 100 AL
+# 1. Générer 200 étoiles dans un rayon de 100 AL
 php artisan gaia:generate --count=200 --radius=100
 
-# 2. Enrichir avec √©toiles r√©elles connues
+# 2. Enrichir avec étoiles réelles connues
 php artisan gaia:add "Alpha Centauri A" 3.09 -3.09 0 --spectral-type=G2V
 php artisan gaia:add "Sirius" -8.6 0 0 --spectral-type=A1V
 
-# 3. Peupler des zones sp√©cifiques
+# 3. Peupler des zones spécifiques
 php artisan gaia:add-radius 10 10 5 5 --count=50
 php artisan gaia:add-radius 150 0 0 30 --count=100
 
-# 4. V√©rifier et migrer
+# 4. Vérifier et migrer
 cat database/data/gaia_nearby_stars.csv | wc -l
 php artisan migrate:fresh --seed
 ```
 
-## Types spectraux support√©s
+## Types spectraux supportés
 
-Distribution r√©aliste bas√©e sur les statistiques de la Voie Lact√©e :
+Distribution réaliste basée sur les statistiques de la Voie Lactée :
 
-| Type | Description | Temp√©rature | Fr√©quence |
+| Type | Description | Température | Fréquence |
 |------|-------------|-------------|-----------|
-| O | Bleue superg√©ante | 30000-50000 K | 0.00003% |
+| O | Bleue supergéante | 30000-50000 K | 0.00003% |
 | B | Bleue | 10000-30000 K | 0.13% |
 | A | Blanche | 7500-10000 K | 0.6% |
 | F | Blanc-jaune | 6000-7500 K | 3% |
@@ -259,162 +259,162 @@ Distribution r√©aliste bas√©e sur les statistiques de la Voie Lact√©e :
 | M | Rouge (naines rouges) | 2400-3700 K | 76.45% |
 
 **Sous-classes :** 0-9 (ex: G2, M5)
-**Classes de luminosit√© :** V (naine), IV (sous-g√©ante), III (g√©ante)
+**Classes de luminosité :** V (naine), IV (sous-géante), III (géante)
 
-## Exemple complet : Cr√©er l'environnement de jeu
+## Exemple complet : Créer l'environnement de jeu
 
-### Sc√©nario 1 : Univers r√©aliste avec GAIA DR3 (‚≠ê Recommand√©)
+### Scénario 1 : Univers réaliste avec GAIA DR3 (œ≠ê Recommandé)
 
 ```bash
-# 1. Importer vraies √©toiles GAIA (base r√©aliste)
+# 1. Importer vraies étoiles GAIA (base réaliste)
 php artisan gaia:import-real --radius=150 --limit=3000
 
-# 2. Ajouter syst√®mes importants pour le sc√©nario (en mode merge)
+# 2. Ajouter systèmes importants pour le scénario (en mode merge)
 php artisan gaia:add "Nouvelle Terre" 25 10 5 --spectral-type=G5V
 php artisan gaia:add "Avant-poste Colonial" 30 15 -5 --spectral-type=K0V
 
-# 3. Enrichir zone de jeu avec plus d'√©toiles
+# 3. Enrichir zone de jeu avec plus d'étoiles
 php artisan gaia:add-radius 0 0 0 15 --count=50
 
-# 4. Cr√©er amas lointain (objectif de mission)
+# 4. Créer amas lointain (objectif de mission)
 php artisan gaia:add-radius 80 40 20 10 --count=80
 
-# 5. Importer en base de donn√©es
+# 5. Importer en base de données
 php artisan migrate:fresh --seed
 ```
 
-### Sc√©nario 2 : Univers enti√®rement proc√©dural
+### Scénario 2 : Univers entièrement procédural
 
 ```bash
-# 1. G√©n√©rer base d'√©toiles
+# 1. Générer base d'étoiles
 php artisan gaia:generate --count=300 --radius=150
 
-# 2. Ajouter syst√®mes importants pour le sc√©nario
+# 2. Ajouter systèmes importants pour le scénario
 php artisan gaia:add "Nouvelle Terre" 25 10 5 --spectral-type=G5V
 php artisan gaia:add "Avant-poste Colonial" 30 15 -5 --spectral-type=K0V
 
-# 3. Peupler zone de d√©part (autour du Syst√®me Solaire)
+# 3. Peupler zone de départ (autour du Système Solaire)
 php artisan gaia:add-radius 0 0 0 15 --count=50
 
-# 4. Cr√©er amas lointain (objectif de mission)
+# 4. Créer amas lointain (objectif de mission)
 php artisan gaia:add-radius 80 40 20 10 --count=80
 
-# 5. Importer en base de donn√©es
+# 5. Importer en base de données
 php artisan migrate:fresh --seed
 ```
 
-## D√©pannage
+## Dépannage
 
-### Le fichier existe d√©j√†
+### Le fichier existe déj
 
 La commande `gaia:generate` propose 3 options :
-- **Remplacer** : √âcrase compl√®tement le fichier
-- **Enrichir** : Ajoute les nouvelles √©toiles aux existantes
-- **Annuler** : Annule l'op√©ration
+- **Remplacer** : êcrase complètement le fichier
+- **Enrichir** : Ajoute les nouvelles étoiles aux existantes
+- **Annuler** : Annule l'opération
 
-### Doublon d√©tect√©
+### Doublon détecté
 
 ```
-‚ùå Une √©toile existe d√©j√† √† moins de 0.01 AL de cette position !
+œùå Une étoile existe déj  moins de 0.01 AL de cette position !
 ```
 
-**Solution :** D√©placer l√©g√®rement les coordonn√©es ou utiliser une position plus √©loign√©e.
+**Solution :** Déplacer légèrement les coordonnées ou utiliser une position plus éloignée.
 
-### Magnitude n√©gative
+### Magnitude négative
 
-C'est normal ! Les √©toiles tr√®s brillantes ont des magnitudes n√©gatives (ex: Sirius = -1.46).
+C'est normal ! Les étoiles très brillantes ont des magnitudes négatives (ex: Sirius = -1.46).
 
 ### Conversion RA/Dec incorrecte
 
-V√©rifiez que les coordonn√©es X, Y, Z sont bien en ann√©es-lumi√®re et correspondent au syst√®me de r√©f√©rence d√©crit ci-dessus.
+Vérifiez que les coordonnées X, Y, Z sont bien en années-lumière et correspondent au système de référence décrit ci-dessus.
 
-### Erreur SSL / Certificat auto-sign√©
+### Erreur SSL / Certificat auto-signé
 
 ```
-‚ùå Erreur lors de l'import GAIA:
+œùå Erreur lors de l'import GAIA:
 cURL error 60: SSL certificate problem: self-signed certificate in certificate chain
 ```
 
 **Cause :** Environnement avec proxy d'entreprise, certificats SSL locaux, ou configuration cURL stricte.
 
-**Solution :** Utiliser l'option `--insecure` pour d√©sactiver la v√©rification SSL :
+**Solution :** Utiliser l'option `--insecure` pour désactiver la vérification SSL :
 
 ```bash
 php artisan gaia:import-real --insecure
 ```
 
-‚ö†Ô∏è **Note de s√©curit√© :** Cette option d√©sactive la v√©rification SSL. √Ä utiliser uniquement si vous faites confiance √† votre r√©seau et √† la source (GAIA ESA est une source officielle fiable).
+⚠️📋 **Note de sécurité :** Cette option désactive la vérification SSL. Ä utiliser uniquement si vous faites confiance  votre réseau et  la source (GAIA ESA est une source officielle fiable).
 
-### Erreur lors de l'import GAIA r√©el
+### Erreur lors de l'import GAIA réel
 
 ```
-‚ùå Erreur lors de l'import GAIA: Connection timeout
+œùå Erreur lors de l'import GAIA: Connection timeout
 ```
 
 **Solutions :**
-1. V√©rifier votre connexion internet
-2. R√©duire le `--limit` (essayer 1000 au lieu de 2000)
-3. R√©duire le `--radius` (essayer 50 AL au lieu de 100)
-4. R√©essayer dans quelques minutes (le serveur GAIA peut √™tre temporairement surcharg√©)
-5. Si derri√®re un proxy/firewall, essayer `--insecure`
+1. Vérifier votre connexion internet
+2. Réduire le `--limit` (essayer 1000 au lieu de 2000)
+3. Réduire le `--radius` (essayer 50 AL au lieu de 100)
+4. Réessayer dans quelques minutes (le serveur GAIA peut être temporairement surchargé)
+5. Si derrière un proxy/firewall, essayer `--insecure`
 
-### Aucune donn√©e re√ßue de GAIA
+### Aucune donnée reßue de GAIA
 
 ```
-‚ùå Aucune donn√©e re√ßue de GAIA. V√©rifiez votre connexion internet.
+œùå Aucune donnée reßue de GAIA. Vérifiez votre connexion internet.
 ```
 
 **Causes possibles :**
 - Pas de connexion internet
-- Pare-feu bloquant les requ√™tes HTTPS vers gea.esac.esa.int
+- Pare-feu bloquant les requêtes HTTPS vers gea.esac.esa.int
 - Serveur GAIA temporairement hors ligne
 
 **Solution de contournement :**
-Utiliser la g√©n√©ration proc√©durale √† la place :
+Utiliser la génération procédurale  la place :
 ```bash
 php artisan gaia:generate --count=2000 --radius=100
 ```
 
-### Format de r√©ponse GAIA inattendu
+### Format de réponse GAIA inattendu
 
-L'API GAIA peut changer. Si vous rencontrez cette erreur, ouvrez une issue GitHub ou utilisez la g√©n√©ration proc√©durale.
+L'API GAIA peut changer. Si vous rencontrez cette erreur, ouvrez une issue GitHub ou utilisez la génération procédurale.
 
-## Int√©gration dans le jeu
+## Intégration dans le jeu
 
-Une fois le CSV cr√©√©, le `GaiaSeeder` l'importe automatiquement lors du `php artisan migrate:fresh --seed`.
+Une fois le CSV créé, le `GaiaSeeder` l'importe automatiquement lors du `php artisan migrate:fresh --seed`.
 
 **Ordre d'import :**
-1. Si CSV existe ‚Üí Import CSV GAIA
-2. Sinon ‚Üí Import √©toiles connues hardcod√©es
+1. Si CSV existe œÜí Import CSV GAIA
+2. Sinon œÜí Import étoiles connues hardcodées
 
 **Calculs automatiques :**
-- Conversion RA/Dec ‚Üí Secteur 3D du jeu
+- Conversion RA/Dec œÜí Secteur 3D du jeu
 - Calcul de la puissance stellaire selon type
-- Calcul de la d√©tectabilit√© : `D_base = (200 - Puissance) / 3`
-- G√©n√©ration proc√©durale de plan√®tes si configur√©
+- Calcul de la détectabilité : `D_base = (200 - Puissance) / 3`
+- Génération procédurale de planètes si configuré
 
 ## Notes techniques
 
-### Pr√©cision des calculs
+### Précision des calculs
 
-- Distance : 4 d√©cimales (0.0001 AL ‚âà 0.63 UA)
-- RA/Dec : 8 d√©cimales (pr√©cision millisecondes d'arc)
-- Magnitude : 2 d√©cimales
+- Distance : 4 décimales (0.0001 AL œâà 0.63 UA)
+- RA/Dec : 8 décimales (précision millisecondes d'arc)
+- Magnitude : 2 décimales
 
 ### Performance
 
-- G√©n√©ration de 1000 √©toiles : ~2-5 secondes
-- D√©tection de doublons : O(n) par √©toile
-- Pour > 10000 √©toiles, consid√©rer une indexation spatiale
+- Génération de 1000 étoiles : ~2-5 secondes
+- Détection de doublons : O(n) par étoile
+- Pour > 10000 étoiles, considérer une indexation spatiale
 
 ### Limites
 
-- Maximum th√©orique : ~1 million d'√©toiles (limite CSV)
-- Recommand√© : 100-5000 √©toiles pour un gameplay fluide
-- Rayon maximum test√© : 1000 AL
+- Maximum théorique : ~1 million d'étoiles (limite CSV)
+- Recommandé : 100-5000 étoiles pour un gameplay fluide
+- Rayon maximum testé : 1000 AL
 
-## R√©f√©rences
+## Références
 
 - Distribution des types spectraux : [GAIA DR3](https://www.cosmos.esa.int/web/gaia/dr3)
-- Syst√®me de coordonn√©es : Coordonn√©es √©quatoriales J2000
-- Conversion cart√©sien ‚Üî sph√©rique : Formules astronomiques standard
+- Système de coordonnées : Coordonnées équatoriales J2000
+- Conversion cartésien œÜî sphérique : Formules astronomiques standard

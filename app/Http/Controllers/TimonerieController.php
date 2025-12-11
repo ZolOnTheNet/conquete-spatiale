@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SystemeStellaire;
 use App\Services\NavigationService;
+use App\Helpers\GameTimeHelper;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\JsonResponse;
@@ -36,7 +37,7 @@ class TimonerieController extends Controller
         $sautsDisponibles = $this->getSautsDisponibles($personnage, $vaisseau);
 
         // Récupérer les POI du secteur pour déplacements conventionnels
-        $poisSecteur = $this->getPoISecteur($vaisseau);
+        $poisSecteur = $this->getPoISecteur($vaisseau, $personnage);
 
         // Système actuel
         $systemeActuel = SystemeStellaire::where('secteur_x', $objetSpatial->secteur_x)
@@ -45,6 +46,9 @@ class TimonerieController extends Controller
             ->with('planetes')
             ->first();
 
+        // Date actuelle du jeu pour calculs orbitaux JavaScript
+        $dateJeuActuelle = GameTimeHelper::getDateActuelleJeu($personnage);
+
         return view('game.navire.timonerie', [
             'personnage' => $personnage,
             'vaisseau' => $vaisseau,
@@ -52,6 +56,7 @@ class TimonerieController extends Controller
             'systemeActuel' => $systemeActuel,
             'sautsDisponibles' => $sautsDisponibles,
             'poisSecteur' => $poisSecteur,
+            'dateJeuActuelle' => $dateJeuActuelle,
         ]);
     }
 
@@ -376,14 +381,23 @@ class TimonerieController extends Controller
         // Récupérer les systèmes découverts
         $decouvertes = $personnage->decouvertes()->with('systemeStellaire')->get();
 
+        $objetSpatial = $vaisseau->objetSpatial;
         $sauts = [];
+
         foreach ($decouvertes as $decouverte) {
             $systeme = $decouverte->systemeStellaire;
             if (!$systeme) continue;
 
+            // Exclure le secteur actuel (pas de saut vers soi-même)
+            if ($systeme->secteur_x == $objetSpatial->secteur_x
+                && $systeme->secteur_y == $objetSpatial->secteur_y
+                && $systeme->secteur_z == $objetSpatial->secteur_z) {
+                continue;
+            }
+
             // Calculer la distance
             $distance = $this->navigationService->calculerDistance(
-                $vaisseau->objetSpatial,
+                $objetSpatial,
                 $systeme
             );
 
@@ -410,33 +424,97 @@ class TimonerieController extends Controller
     }
 
     /**
-     * Récupérer les POI du secteur actuel
+     * Récupérer les POI du secteur actuel (PLANÈTES + STATIONS)
      */
-    protected function getPoISecteur($vaisseau): array
+    protected function getPoISecteur($vaisseau, $personnage): array
     {
         $objetSpatial = $vaisseau->objetSpatial;
 
-        // Récupérer les systèmes du secteur
-        $systemes = SystemeStellaire::where('secteur_x', $objetSpatial->secteur_x)
+        // Trouver le système stellaire du secteur actuel
+        $systeme = SystemeStellaire::where('secteur_x', $objetSpatial->secteur_x)
             ->where('secteur_y', $objetSpatial->secteur_y)
             ->where('secteur_z', $objetSpatial->secteur_z)
-            ->get();
+            ->first();
+
+        if (!$systeme) {
+            // Espace profond, pas de POI
+            return [];
+        }
 
         $pois = [];
 
-        foreach ($systemes as $systeme) {
-            // Calculer la distance en UA
-            $dx = $systeme->position_x - $objetSpatial->position_x;
-            $dy = $systeme->position_y - $objetSpatial->position_y;
-            $dz = $systeme->position_z - $objetSpatial->position_z;
-            $distance = sqrt($dx * $dx + $dy * $dy + $dz * $dz);
+        // 1. Récupérer les PLANÈTES du système (POI connus)
+        // TODO: Implémenter système de découverte de planètes (actuellement seulement poi_connu)
+        $planetes = $systeme->planetes()
+            ->where('poi_connu', true)
+            ->get();
 
-            $systeme->icone = '☀️';
-            $systeme->distance = $distance;
-            $systeme->energieRequise = max(10, (int)($distance * 20));
-            $systeme->paRequis = max(1, (int)($distance / 2));
+        foreach ($planetes as $planete) {
+            // Calculer distance vaisseau <-> planète (en UA)
+            $distance = $planete->getDistanceDepuisVaisseau($vaisseau);
 
-            $pois[] = $systeme;
+            // Icône selon type de planète
+            $icone = match($planete->type) {
+                'terrestre' => '🌍',
+                'gazeuse' => '🪐',
+                'oceanique' => '🌊',
+                'glacee' => '❄️',
+                'volcanique' => '🌋',
+                'desert' => '🏜️',
+                'naine' => '🌑',
+                default => '🪨',
+            };
+
+            // Créer un objet POI avec attributs pour affichage
+            // (évite de polluer le modèle Eloquent avec des attributs temporaires)
+            $poi = (object)[
+                'id' => $planete->id,
+                'nom' => $planete->nom,
+                'type' => $planete->type,
+                'icone' => $icone,
+                'distance' => $distance,
+                'type_poi' => 'planete',
+                'energieRequise' => max(10, (int)($distance * 2)),
+                'paRequis' => max(1, (int)($distance / 10)),
+                'donneesOrbitales' => $planete->getDonneesOrbitales($personnage),
+            ];
+
+            $pois[] = $poi;
+        }
+
+        // 2. Récupérer les STATIONS du système
+        $stations = \App\Models\Station::where('systeme_stellaire_id', $systeme->id)
+            ->where('accessible', true)
+            ->get();
+
+        foreach ($stations as $station) {
+            // Distance station <-> vaisseau
+            // Les stations sont en orbite des planètes, donc proche de la planète
+            if ($station->planete_id) {
+                $planete = $station->planete;
+                $distancePlanete = $planete->getDistanceDepuisVaisseau($vaisseau);
+                $distance = $distancePlanete + ($station->orbite_rayon_ua ?? 0);
+            } else {
+                // Station autour de l'étoile
+                $dx = $systeme->position_x - $objetSpatial->position_x;
+                $dy = $systeme->position_y - $objetSpatial->position_y;
+                $dz = $systeme->position_z - $objetSpatial->position_z;
+                $distance_al = sqrt($dx * $dx + $dy * $dy + $dz * $dz);
+                $distance = $distance_al * 63241; // AL → UA
+            }
+
+            // Créer un objet POI pour affichage (même approche que les planètes)
+            $poi = (object)[
+                'id' => $station->id,
+                'nom' => $station->nom,
+                'icone' => '🛰️',
+                'distance' => $distance,
+                'type_poi' => 'station',
+                'energieRequise' => max(5, (int)($distance * 2)),
+                'paRequis' => max(1, (int)($distance / 10)),
+            ];
+
+            $pois[] = $poi;
         }
 
         // Trier par distance

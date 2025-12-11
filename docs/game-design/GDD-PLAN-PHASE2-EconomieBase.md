@@ -1,32 +1,32 @@
-# ğŸ’° PLAN PHASE 2 : Ã‰CONOMIE DE BASE
-## ConquÃªte Spatiale
+# ÄÅ¸âÂ° PLAN PHASE 2 : Ãâ°CONOMIE DE BASE
+## ConquÃÂªte Spatiale
 
 **Version :** 1.0
-**Date crÃ©ation :** 2025-11-18
-**DurÃ©e estimÃ©e :** 3-4 jours
-**PrÃ©requis :** Phase 1 MVP complÃ¨te + PrÃ©-Phase 2 Infrastructure
+**Date crÃÂ©ation :** 2025-11-18
+**DurÃÂ©e estimÃÂ©e :** 3-4 jours
+**PrÃÂ©requis :** Phase 1 MVP complÃÂ¨te + PrÃÂ©-Phase 2 Infrastructure
 
 ---
 
-## ğŸ�¯ OBJECTIFS PRINCIPAUX
+## ÄÅ¸ï¿½Â¯ OBJECTIFS PRINCIPAUX
 
-ImplÃ©menter le systÃ¨me Ã©conomique de base permettant :
+ImplÃÂ©menter le systÃÂ¨me ÃÂ©conomique de base permettant :
 
-1. **Extraction de ressources** (21 matiÃ¨res premiÃ¨res)
+1. **Extraction de ressources** (21 matiÃÂ¨res premiÃÂ¨res)
 2. **Transformation industrielle** (3 niveaux)
 3. **Commerce basique** (achat/vente)
 4. **Gestion inventaire** (vaisseaux et bases)
-5. **Production automatique** en arriÃ¨re-plan
+5. **Production automatique** en arriÃÂ¨re-plan
 
 ---
 
-## ğŸ“‹ JOUR 1 : RESSOURCES ET GISEMENTS (8h)
+## ÄÅ¸ââ¹ JOUR 1 : RESSOURCES ET GISEMENTS (8h)
 
 ### Objectif
 
-CrÃ©er le systÃ¨me de ressources miniÃ¨res et gisements.
+CrÃÂ©er le systÃÂ¨me de ressources miniÃÂ¨res et gisements.
 
-### 1.1 Base de DonnÃ©es Ressources
+### 1.1 Base de DonnÃÂ©es Ressources
 
 #### Migration : `create_ressources_table`
 
@@ -37,40 +37,40 @@ Schema::create('ressources', function (Blueprint $table) {
     $table->string('nom', 100);
     $table->string('categorie', 50); // metaux, gaz, chimie, exotique
     $table->text('description')->nullable();
-    $table->decimal('poids_unitaire', 8, 3)->default(1.0); // tonnes/unitÃ©
-    $table->decimal('prix_base', 12, 2)->default(100); // crÃ©dits/unitÃ©
-    $table->integer('rarete')->default(50); // 1-100 (1=trÃ¨s rare, 100=trÃ¨s commun)
+    $table->decimal('poids_unitaire', 8, 3)->default(1.0); // tonnes/unitÃÂ©
+    $table->decimal('prix_base', 12, 2)->default(100); // crÃÂ©dits/unitÃÂ©
+    $table->integer('rarete')->default(50); // 1-100 (1=trÃÂ¨s rare, 100=trÃÂ¨s commun)
     $table->timestamps();
 });
 ```
 
 #### Seeder : `RessourceSeeder`
 
-**21 matiÃ¨res premiÃ¨res selon GDD :**
+**21 matiÃÂ¨res premiÃÂ¨res selon GDD :**
 
-| Code | Nom | CatÃ©gorie | Poids | Prix Base | RaretÃ© |
+| Code | Nom | CatÃÂ©gorie | Poids | Prix Base | RaretÃÂ© |
 |------|-----|-----------|-------|-----------|--------|
 | GRAPHITE | Graphite | metaux | 1.0 | 50 | 70 |
 | URANIUM | Uranium | metaux | 1.5 | 500 | 10 |
-| HYDROGENE | HydrogÃ¨ne | gaz | 0.1 | 20 | 90 |
+| HYDROGENE | HydrogÃÂ¨ne | gaz | 0.1 | 20 | 90 |
 | BAUXITE | Bauxite | metaux | 1.2 | 40 | 75 |
 | PLATINE | Platine | metaux | 2.0 | 800 | 15 |
 | ALUMINIUM | Aluminium | metaux | 0.8 | 60 | 80 |
 | ZINC | Zinc | metaux | 1.1 | 55 | 70 |
 | NICKEL | Nickel | metaux | 1.3 | 70 | 65 |
-| TUNGSTENE | TungstÃ¨ne | metaux | 1.8 | 150 | 50 |
+| TUNGSTENE | TungstÃÂ¨ne | metaux | 1.8 | 150 | 50 |
 | FER | Fer | metaux | 1.0 | 30 | 95 |
 | NIOBIUM | Niobium | metaux | 1.4 | 200 | 40 |
 | ARGILES | Argiles | elementaire | 0.8 | 10 | 90 |
 | SABLES | Sables | elementaire | 0.9 | 10 | 95 |
-| OXYGENE | OxygÃ¨ne | gaz | 0.1 | 15 | 95 |
+| OXYGENE | OxygÃÂ¨ne | gaz | 0.1 | 15 | 95 |
 | GLACES | Glaces | elementaire | 0.5 | 20 | 85 |
 | BITUMES | Bitumes | elementaire | 1.0 | 40 | 60 |
-| NACRETOILE | NacrÃ©toile | exotique | 0.5 | 1500 | 5 |
-| PLAZETOILE | PlazÃ©toile | exotique | 0.4 | 2000 | 3 |
-| ARGETOILE | ArgÃ©toile | exotique | 0.3 | 2500 | 2 |
-| TYRETOILE | TyrÃ©toile | exotique | 0.6 | 1800 | 4 |
-| ELEMENTS_CHIMIQUES | Ã‰lÃ©ments Chimiques | chimie | 0.7 | 80 | 60 |
+| NACRETOILE | NacrÃÂ©toile | exotique | 0.5 | 1500 | 5 |
+| PLAZETOILE | PlazÃÂ©toile | exotique | 0.4 | 2000 | 3 |
+| ARGETOILE | ArgÃÂ©toile | exotique | 0.3 | 2500 | 2 |
+| TYRETOILE | TyrÃÂ©toile | exotique | 0.6 | 1800 | 4 |
+| ELEMENTS_CHIMIQUES | Ãâ°lÃÂ©ments Chimiques | chimie | 0.7 | 80 | 60 |
 
 ### 1.2 Gisements Miniers
 
@@ -82,16 +82,16 @@ Schema::create('gisements', function (Blueprint $table) {
     $table->foreignId('planete_id')->constrained()->onDelete('cascade');
     $table->foreignId('ressource_id')->constrained()->onDelete('cascade');
 
-    // Position sur la planÃ¨te (optionnel, pour plusieurs gisements/planÃ¨te)
+    // Position sur la planÃÂ¨te (optionnel, pour plusieurs gisements/planÃÂ¨te)
     $table->decimal('latitude', 8, 5)->nullable();
     $table->decimal('longitude', 9, 5)->nullable();
 
-    // CaractÃ©ristiques du gisement
+    // CaractÃÂ©ristiques du gisement
     $table->integer('richesse')->default(100); // 0-100 (% rendement)
-    $table->bigInteger('quantite_totale')->default(1000000); // UnitÃ©s totales
+    $table->bigInteger('quantite_totale')->default(1000000); // UnitÃÂ©s totales
     $table->bigInteger('quantite_restante')->default(1000000);
 
-    // Ã‰tat
+    // Ãâ°tat
     $table->boolean('decouvert')->default(false);
     $table->timestamp('decouvert_le')->nullable();
     $table->foreignId('decouvert_par')->nullable()->constrained('personnages');
@@ -154,15 +154,15 @@ class Gisement extends Model
         $rendement = $this->richesse;
 
         // TODO: Facteurs additionnels
-        // - Ã‰quipement extracteur
-        // - CompÃ©tences personnage
+        // - Ãâ°quipement extracteur
+        // - CompÃÂ©tences personnage
         // - Technologie
 
         return max(10, min(100, $rendement)); // Entre 10 et 100%
     }
 
     /**
-     * Extraire une quantitÃ©
+     * Extraire une quantitÃÂ©
      */
     public function extraire(int $quantite): int
     {
@@ -175,7 +175,7 @@ class Gisement extends Model
     }
 
     /**
-     * VÃ©rifier si Ã©puisÃ©
+     * VÃÂ©rifier si ÃÂ©puisÃÂ©
      */
     public function isEpuise(): bool
     {
@@ -184,18 +184,18 @@ class Gisement extends Model
 }
 ```
 
-### 1.3 GÃ©nÃ©ration Gisements
+### 1.3 GÃÂ©nÃÂ©ration Gisements
 
-#### Ajout Ã  `PlaneteSeeder` / `UniverseSeeder`
+#### Ajout ÃÂ  `PlaneteSeeder` / `UniverseSeeder`
 
 ```php
 protected function genererGisements(Planete $planete): void
 {
-    // Nombre de gisements selon type de planÃ¨te
+    // Nombre de gisements selon type de planÃÂ¨te
     $nb_gisements = match($planete->type_planete) {
         'Tellurique' => rand(3, 8),
         'Gazeuse' => rand(1, 3), // Gaz uniquement
-        'GlacÃ©e' => rand(2, 5),
+        'GlacÃÂ©e' => rand(2, 5),
         default => rand(1, 4),
     };
 
@@ -224,7 +224,7 @@ protected function getRessourcesSelonType(string $type): Collection
     return match($type) {
         'Tellurique' => $ressources->whereIn('categorie', ['metaux', 'elementaire', 'chimie']),
         'Gazeuse' => $ressources->where('categorie', 'gaz'),
-        'GlacÃ©e' => $ressources->whereIn('code', ['GLACES', 'OXYGENE', 'HYDROGENE']),
+        'GlacÃÂ©e' => $ressources->whereIn('code', ['GLACES', 'OXYGENE', 'HYDROGENE']),
         default => $ressources,
     };
 }
@@ -232,30 +232,30 @@ protected function getRessourcesSelonType(string $type): Collection
 
 ### 1.4 Commandes de Base
 
-#### `scan-planete` - Scanner planÃ¨te pour gisements
+#### `scan-planete` - Scanner planÃÂ¨te pour gisements
 
 ```php
 // Dans GameController
 private function scanPlanete(Personnage $personnage, array $parts): array
 {
-    // RÃ©cupÃ©rer planÃ¨te cible
+    // RÃÂ©cupÃÂ©rer planÃÂ¨te cible
     if (count($parts) < 2) {
         return ['success' => false, 'message' => 'Usage: scan-planete <nom_planete>'];
     }
 
     $nom_planete = $parts[1];
 
-    // Trouver planÃ¨te dans systÃ¨me actuel
+    // Trouver planÃÂ¨te dans systÃÂ¨me actuel
     $systeme = $personnage->getSystemeActuel();
 
     if (!$systeme) {
-        return ['success' => false, 'message' => 'Vous devez Ãªtre dans un systÃ¨me stellaire.'];
+        return ['success' => false, 'message' => 'Vous devez ÃÂªtre dans un systÃÂ¨me stellaire.'];
     }
 
     $planete = $systeme->planetes()->where('nom', 'like', "%{$nom_planete}%")->first();
 
     if (!$planete) {
-        return ['success' => false, 'message' => "PlanÃ¨te '{$nom_planete}' non trouvÃ©e."];
+        return ['success' => false, 'message' => "PlanÃÂ¨te '{$nom_planete}' non trouvÃÂ©e."];
     }
 
     // Scanner gisements (utilise scanner vaisseau)
@@ -265,58 +265,58 @@ private function scanPlanete(Personnage $personnage, array $parts): array
         return ['success' => false, 'message' => $resultat['message']];
     }
 
-    // Afficher rÃ©sultats
-    $message = "\n=== SCAN GÃ‰OLOGIQUE : {$planete->nom} ===\n";
+    // Afficher rÃÂ©sultats
+    $message = "\n=== SCAN GÃâ°OLOGIQUE : {$planete->nom} ===\n";
     $message .= "Type: {$planete->type_planete}\n";
     $message .= "Puissance scan: {$resultat['puissance_scan']}\n\n";
 
     if (count($resultat['gisements_detectes']) > 0) {
-        $message .= "--- GISEMENTS DÃ‰TECTÃ‰S ---\n";
+        $message .= "--- GISEMENTS DÃâ°TECTÃâ°S ---\n";
         foreach ($resultat['gisements_detectes'] as $detection) {
-            $message .= "\nâ€¢ {$detection['ressource']}\n";
+            $message .= "\nÃ¢â¬Â¢ {$detection['ressource']}\n";
             $message .= "  Richesse: {$detection['richesse']}%\n";
-            $message .= "  QuantitÃ© estimÃ©e: " . number_format($detection['quantite']) . " unitÃ©s\n";
+            $message .= "  QuantitÃÂ© estimÃÂ©e: " . number_format($detection['quantite']) . " unitÃÂ©s\n";
         }
     } else {
-        $message .= "Aucun gisement dÃ©tectÃ©.\n";
-        $message .= "ğŸ’¡ AmÃ©liorez votre scanner gÃ©ologique pour mieux dÃ©tecter.\n";
+        $message .= "Aucun gisement dÃÂ©tectÃÂ©.\n";
+        $message .= "ÄÅ¸âÂ¡ AmÃÂ©liorez votre scanner gÃÂ©ologique pour mieux dÃÂ©tecter.\n";
     }
 
     return ['success' => true, 'message' => $message];
 }
 ```
 
-#### MÃ©thode `Personnage::scannerGisements()`
+#### MÃÂ©thode `Personnage::scannerGisements()`
 
 ```php
 public function scannerGisements(Planete $planete): array
 {
     if (!$this->vaisseauActif) {
-        return ['succes' => false, 'message' => 'Vous devez Ãªtre Ã  bord d\'un vaisseau.'];
+        return ['succes' => false, 'message' => 'Vous devez ÃÂªtre ÃÂ  bord d\'un vaisseau.'];
     }
 
     $vaisseau = $this->vaisseauActif;
     $puissance_scan = $vaisseau->getPuissanceScanEffective();
 
-    // Trouver gisements non dÃ©couverts
+    // Trouver gisements non dÃÂ©couverts
     $gisements = $planete->gisements()->where('decouvert', false)->get();
 
     $detections = [];
 
     foreach ($gisements as $gisement) {
-        // Formule dÃ©tection: 2d12 + Puissance_Scan vs Seuil
+        // Formule dÃÂ©tection: 2d12 + Puissance_Scan vs Seuil
         $jet = $this->lancerDes();
         $resultat_des = $jet['total'];
         $resultat_total = $resultat_des + ($puissance_scan / 10);
 
-        // Seuil basÃ© sur raretÃ© de la ressource
+        // Seuil basÃÂ© sur raretÃÂ© de la ressource
         $rarete = $gisement->ressource->rarete;
         $seuil = 150 - $rarete; // Plus rare = plus difficile
 
         $detecte = $resultat_total >= $seuil;
 
         if ($detecte) {
-            // Marquer comme dÃ©couvert
+            // Marquer comme dÃÂ©couvert
             $gisement->update([
                 'decouvert' => true,
                 'decouvert_le' => now(),
@@ -343,11 +343,11 @@ public function scannerGisements(Planete $planete): array
 
 ---
 
-## ğŸ“‹ JOUR 2 : INVENTAIRE ET EXTRACTION (8h)
+## ÄÅ¸ââ¹ JOUR 2 : INVENTAIRE ET EXTRACTION (8h)
 
 ### Objectif
 
-SystÃ¨me d'inventaire pour vaisseaux et extraction miniÃ¨re.
+SystÃÂ¨me d'inventaire pour vaisseaux et extraction miniÃÂ¨re.
 
 ### 2.1 Inventaire
 
@@ -357,7 +357,7 @@ SystÃ¨me d'inventaire pour vaisseaux et extraction miniÃ¨re.
 Schema::create('inventaires', function (Blueprint $table) {
     $table->id();
 
-    // PropriÃ©taire (polymorphic)
+    // PropriÃÂ©taire (polymorphic)
     $table->morphs('conteneur'); // conteneur_type, conteneur_id
     // Exemples: Vaisseau, Base, Personnage
 
@@ -366,7 +366,7 @@ Schema::create('inventaires', function (Blueprint $table) {
 
     $table->timestamps();
 
-    // UnicitÃ©: 1 ligne par ressource par conteneur
+    // UnicitÃÂ©: 1 ligne par ressource par conteneur
     $table->unique(['conteneur_type', 'conteneur_id', 'ressource_id']);
 });
 ```
@@ -382,20 +382,20 @@ trait HasInventaire
     }
 
     /**
-     * Obtenir quantitÃ© d'une ressource
+     * Obtenir quantitÃÂ© d'une ressource
      */
     public function getQuantiteRessource(int|string $ressource_id): int
     {
         if (is_string($ressource_id)) {
             $ressource = Ressource::where('code', $ressource_id)->first();
-            $ressource_id = $ressource?->id ?? 0;
+            $ressource_id = $ressource?->id œ 0;
         }
 
         $inventaire = $this->inventaires()
             ->where('ressource_id', $ressource_id)
             ->first();
 
-        return $inventaire?->quantite ?? 0;
+        return $inventaire?->quantite œ 0;
     }
 
     /**
@@ -403,7 +403,7 @@ trait HasInventaire
      */
     public function ajouterRessource(int $ressource_id, int $quantite): bool
     {
-        // VÃ©rifier capacitÃ© si applicable
+        // VÃÂ©rifier capacitÃÂ© si applicable
         if (method_exists($this, 'getCapaciteRestante')) {
             $ressource = Ressource::find($ressource_id);
             $poids_total = $ressource->poids_unitaire * $quantite;
@@ -438,7 +438,7 @@ trait HasInventaire
 
         $inventaire->decrement('quantite', $quantite);
 
-        // Supprimer si quantitÃ© = 0
+        // Supprimer si quantitÃÂ© = 0
         if ($inventaire->quantite <= 0) {
             $inventaire->delete();
         }
@@ -469,7 +469,7 @@ trait HasInventaire
 }
 ```
 
-#### Ajouter Ã  `Vaisseau`, `Base`
+#### Ajouter ÃÂ  `Vaisseau`, `Base`
 
 ```php
 class Vaisseau extends Model
@@ -498,13 +498,13 @@ class Vaisseau extends Model
 }
 ```
 
-#### Migration : Ajouter `capacite_soute` Ã  `vaisseaux`
+#### Migration : Ajouter `capacite_soute` ÃÂ  `vaisseaux`
 
 ```php
 $table->decimal('capacite_soute', 10, 2)->default(100.0)->after('reserve'); // Tonnes
 ```
 
-### 2.2 Extraction MiniÃ¨re
+### 2.2 Extraction MiniÃÂ¨re
 
 #### Commande : `extraire <ressource> [quantite]`
 
@@ -518,11 +518,11 @@ private function extraire(Personnage $personnage, array $parts): array
     $code_ressource = strtoupper($parts[1]);
     $quantite_demandee = isset($parts[2]) ? (int)$parts[2] : 100;
 
-    // VÃ©rifier que le personnage est sur une planÃ¨te (ou en orbite proche)
+    // VÃÂ©rifier que le personnage est sur une planÃÂ¨te (ou en orbite proche)
     $planete = $personnage->getPlaneteActuelle();
 
     if (!$planete) {
-        return ['success' => false, 'message' => 'Vous devez Ãªtre sur une planÃ¨te ou en orbite proche.'];
+        return ['success' => false, 'message' => 'Vous devez ÃÂªtre sur une planÃÂ¨te ou en orbite proche.'];
     }
 
     // Trouver gisement exploitable
@@ -535,7 +535,7 @@ private function extraire(Personnage $personnage, array $parts): array
         ->first();
 
     if (!$gisement) {
-        return ['success' => false, 'message' => "Aucun gisement de {$code_ressource} dÃ©couvert ou disponible."];
+        return ['success' => false, 'message' => "Aucun gisement de {$code_ressource} dÃÂ©couvert ou disponible."];
     }
 
     // Consommer PA
@@ -546,7 +546,7 @@ private function extraire(Personnage $personnage, array $parts): array
 
     $personnage->consommerPA($cout_pa);
 
-    // Calculer quantitÃ© extraite (avec rendement)
+    // Calculer quantitÃÂ© extraite (avec rendement)
     $rendement = $gisement->getRendementEffectif() / 100;
     $quantite_brute = min($quantite_demandee, $gisement->quantite_restante);
     $quantite_extraite = (int)($quantite_brute * $rendement);
@@ -567,13 +567,13 @@ private function extraire(Personnage $personnage, array $parts): array
         return ['success' => false, 'message' => 'Soute pleine ! Impossible d\'ajouter la ressource.'];
     }
 
-    // Message de succÃ¨s
+    // Message de succÃÂ¨s
     $ressource = $gisement->ressource;
-    $message = "\n=== EXTRACTION MINIÃˆRE ===\n";
+    $message = "\n=== EXTRACTION MINIÃËRE ===\n";
     $message .= "Ressource: {$ressource->nom}\n";
-    $message .= "QuantitÃ© extraite: {$quantite_extraite} unitÃ©s\n";
+    $message .= "QuantitÃÂ© extraite: {$quantite_extraite} unitÃÂ©s\n";
     $message .= "Rendement: " . ($rendement * 100) . "%\n";
-    $message .= "Gisement restant: " . number_format($gisement->quantite_restante) . " unitÃ©s\n";
+    $message .= "Gisement restant: " . number_format($gisement->quantite_restante) . " unitÃÂ©s\n";
     $message .= "\nSoute: " . round($vaisseau->getPoidsCargaison(), 2) . " / {$vaisseau->capacite_soute} tonnes\n";
 
     // XP Mining (TODO: Learning by doing)
@@ -596,8 +596,8 @@ private function inventaire(Personnage $personnage, array $parts): array
     $inventaire = $vaisseau->getInventaireComplet();
 
     $message = "\n=== INVENTAIRE VAISSEAU ===\n";
-    $message .= "ModÃ¨le: {$vaisseau->modele}\n";
-    $message .= "CapacitÃ©: " . round($vaisseau->getPoidsCargaison(), 2) . " / {$vaisseau->capacite_soute} tonnes\n\n";
+    $message .= "ModÃÂ¨le: {$vaisseau->modele}\n";
+    $message .= "CapacitÃÂ©: " . round($vaisseau->getPoidsCargaison(), 2) . " / {$vaisseau->capacite_soute} tonnes\n\n";
 
     if ($inventaire->isEmpty()) {
         $message .= "Soute vide.\n";
@@ -607,16 +607,16 @@ private function inventaire(Personnage $personnage, array $parts): array
         $valeur_totale = 0;
 
         foreach ($inventaire as $item) {
-            $message .= "\nâ€¢ {$item['ressource']} ({$item['code']})\n";
-            $message .= "  QuantitÃ©: " . number_format($item['quantite']) . " unitÃ©s\n";
+            $message .= "\nÃ¢â¬Â¢ {$item['ressource']} ({$item['code']})\n";
+            $message .= "  QuantitÃÂ©: " . number_format($item['quantite']) . " unitÃÂ©s\n";
             $message .= "  Poids: " . round($item['poids_total'], 2) . " tonnes\n";
-            $message .= "  Valeur: " . number_format($item['valeur_totale']) . " crÃ©dits\n";
+            $message .= "  Valeur: " . number_format($item['valeur_totale']) . " crÃÂ©dits\n";
 
             $valeur_totale += $item['valeur_totale'];
         }
 
         $message .= "\n--- TOTAL ---\n";
-        $message .= "Valeur totale: " . number_format($valeur_totale) . " crÃ©dits\n";
+        $message .= "Valeur totale: " . number_format($valeur_totale) . " crÃÂ©dits\n";
     }
 
     return ['success' => true, 'message' => $message];
@@ -625,13 +625,13 @@ private function inventaire(Personnage $personnage, array $parts): array
 
 ---
 
-## ğŸ“‹ JOUR 3 : COMMERCE DE BASE (8h)
+## ÄÅ¸ââ¹ JOUR 3 : COMMERCE DE BASE (8h)
 
 ### Objectif
 
-SystÃ¨me de commerce : marchÃ©s, achat/vente.
+SystÃÂ¨me de commerce : marchÃÂ©s, achat/vente.
 
-### 3.1 MarchÃ©s
+### 3.1 MarchÃÂ©s
 
 #### Migration : `create_marches_table`
 
@@ -641,7 +641,7 @@ Schema::create('marches', function (Blueprint $table) {
     $table->string('nom', 100);
 
     // Localisation (polymorphic)
-    $table->morphs('localisation'); // Base, Station, PlanÃ¨te
+    $table->morphs('localisation'); // Base, Station, PlanÃÂ¨te
 
     $table->string('type_marche', 50)->default('standard');
     // Types: standard, bourse, antiquites, noir
@@ -663,7 +663,7 @@ Schema::create('offres_marche', function (Blueprint $table) {
     $table->foreignId('marche_id')->constrained()->onDelete('cascade');
     $table->foreignId('ressource_id')->constrained()->onDelete('cascade');
 
-    $table->enum('type', ['achat', 'vente']); // Le marchÃ© achÃ¨te ou vend
+    $table->enum('type', ['achat', 'vente']); // Le marchÃÂ© achÃÂ¨te ou vend
 
     $table->decimal('prix_unitaire', 12, 2);
     $table->integer('quantite_disponible')->default(0);
@@ -680,13 +680,13 @@ Schema::create('offres_marche', function (Blueprint $table) {
 });
 ```
 
-#### Seeder : CrÃ©er marchÃ© de dÃ©part
+#### Seeder : CrÃÂ©er marchÃÂ© de dÃÂ©part
 
 ```php
 // Dans DatabaseSeeder ou UniverseSeeder
 protected function creerMarchePrincipal(): void
 {
-    // CrÃ©er base Terra (point de dÃ©part)
+    // CrÃÂ©er base Terra (point de dÃÂ©part)
     $base_terra = Base::create([
         'nom' => 'Base Terra',
         'objet_spatial_id' => ObjetSpatial::create([
@@ -701,9 +701,9 @@ protected function creerMarchePrincipal(): void
         // ... autres champs
     ]);
 
-    // CrÃ©er marchÃ©
+    // CrÃÂ©er marchÃÂ©
     $marche = Marche::create([
-        'nom' => 'MarchÃ© Central Terra',
+        'nom' => 'MarchÃÂ© Central Terra',
         'localisation_type' => Base::class,
         'localisation_id' => $base_terra->id,
         'type_marche' => 'standard',
@@ -715,17 +715,17 @@ protected function creerMarchePrincipal(): void
     $ressources = Ressource::all();
 
     foreach ($ressources as $ressource) {
-        // Le marchÃ© ACHÃˆTE aux joueurs
+        // Le marchÃÂ© ACHÃËTE aux joueurs
         OffreMarche::create([
             'marche_id' => $marche->id,
             'ressource_id' => $ressource->id,
             'type' => 'achat',
-            'prix_unitaire' => $ressource->prix_base * 0.8, // AchÃ¨te 80% du prix base
+            'prix_unitaire' => $ressource->prix_base * 0.8, // AchÃÂ¨te 80% du prix base
             'quantite_disponible' => 999999,
             'quantite_max' => 999999,
         ]);
 
-        // Le marchÃ© VEND aux joueurs
+        // Le marchÃÂ© VEND aux joueurs
         OffreMarche::create([
             'marche_id' => $marche->id,
             'ressource_id' => $ressource->id,
@@ -738,9 +738,9 @@ protected function creerMarchePrincipal(): void
 }
 ```
 
-### 3.2 CrÃ©dits Personnage
+### 3.2 CrÃÂ©dits Personnage
 
-#### Migration : Ajouter `credits` Ã  `personnages`
+#### Migration : Ajouter `credits` ÃÂ  `personnages`
 
 ```php
 $table->decimal('credits', 15, 2)->default(10000)->after('experience');
@@ -748,20 +748,20 @@ $table->decimal('credits', 15, 2)->default(10000)->after('experience');
 
 ### 3.3 Commandes Commerce
 
-#### `marche` - Afficher offres du marchÃ© proche
+#### `marche` - Afficher offres du marchÃÂ© proche
 
 ```php
 private function marche(Personnage $personnage, array $parts): array
 {
-    // Trouver marchÃ© le plus proche
+    // Trouver marchÃÂ© le plus proche
     $marche = $this->getMarchePlusProche($personnage);
 
     if (!$marche) {
-        return ['success' => false, 'message' => 'Aucun marchÃ© accessible dans votre position actuelle.'];
+        return ['success' => false, 'message' => 'Aucun marchÃÂ© accessible dans votre position actuelle.'];
     }
 
-    // Filtre par ressource si spÃ©cifiÃ©
-    $code_ressource = $parts[1] ?? null;
+    // Filtre par ressource si spÃÂ©cifiÃÂ©
+    $code_ressource = $parts[1] œ null;
 
     $query = $marche->offres()->with('ressource')->where('active', true);
 
@@ -773,7 +773,7 @@ private function marche(Personnage $personnage, array $parts): array
 
     $offres = $query->get();
 
-    $message = "\n=== MARCHÃ‰ : {$marche->nom} ===\n";
+    $message = "\n=== MARCHÃâ° : {$marche->nom} ===\n";
     $message .= "Type: {$marche->type_marche}\n";
     $message .= "Taxes: Achat {$marche->taxe_achat}% | Vente {$marche->taxe_vente}%\n\n";
 
@@ -786,26 +786,26 @@ private function marche(Personnage $personnage, array $parts): array
         $ventes = $offres->where('type', 'vente');
 
         if ($ventes->isNotEmpty()) {
-            $message .= "\nğŸ›’ VENTES (vous pouvez acheter) :\n";
+            $message .= "\nÄÅ¸âºâ VENTES (vous pouvez acheter) :\n";
             foreach ($ventes as $offre) {
                 $prix_ttc = $offre->prix_unitaire * (1 + $marche->taxe_achat / 100);
-                $message .= "â€¢ {$offre->ressource->nom} ({$offre->ressource->code})\n";
-                $message .= "  Prix: " . number_format($prix_ttc, 2) . " crÃ©dits/unitÃ©\n";
-                $message .= "  Stock: " . number_format($offre->quantite_disponible) . " unitÃ©s\n";
+                $message .= "Ã¢â¬Â¢ {$offre->ressource->nom} ({$offre->ressource->code})\n";
+                $message .= "  Prix: " . number_format($prix_ttc, 2) . " crÃÂ©dits/unitÃÂ©\n";
+                $message .= "  Stock: " . number_format($offre->quantite_disponible) . " unitÃÂ©s\n";
             }
         }
 
         if ($achats->isNotEmpty()) {
-            $message .= "\nğŸ’° ACHATS (marchÃ© achÃ¨te) :\n";
+            $message .= "\nÄÅ¸âÂ° ACHATS (marchÃÂ© achÃÂ¨te) :\n";
             foreach ($achats as $offre) {
                 $prix_net = $offre->prix_unitaire * (1 - $marche->taxe_vente / 100);
-                $message .= "â€¢ {$offre->ressource->nom} ({$offre->ressource->code})\n";
-                $message .= "  Prix: " . number_format($prix_net, 2) . " crÃ©dits/unitÃ©\n";
+                $message .= "Ã¢â¬Â¢ {$offre->ressource->nom} ({$offre->ressource->code})\n";
+                $message .= "  Prix: " . number_format($prix_net, 2) . " crÃÂ©dits/unitÃÂ©\n";
             }
         }
     }
 
-    $message .= "\nğŸ’µ Vos crÃ©dits: " . number_format($personnage->credits, 2) . " Â¢\n";
+    $message .= "\nÄÅ¸âÂµ Vos crÃÂ©dits: " . number_format($personnage->credits, 2) . " ÃÂ¢\n";
     $message .= "\nCommandes: acheter <ressource> <quantite> | vendre <ressource> <quantite>\n";
 
     return ['success' => true, 'message' => $message];
@@ -813,7 +813,7 @@ private function marche(Personnage $personnage, array $parts): array
 
 private function getMarchePlusProche(Personnage $personnage): ?Marche
 {
-    // Simplification: marchÃ© accessible si dans mÃªme secteur ou secteur adjacent
+    // Simplification: marchÃÂ© accessible si dans mÃÂªme secteur ou secteur adjacent
     $position = $personnage->getPositionActuelle();
 
     return Marche::whereHasMorph('localisation', [Base::class], function ($q) use ($position) {
@@ -841,14 +841,14 @@ private function acheter(Personnage $personnage, array $parts): array
     $quantite = (int)$parts[2];
 
     if ($quantite <= 0) {
-        return ['success' => false, 'message' => 'QuantitÃ© invalide.'];
+        return ['success' => false, 'message' => 'QuantitÃÂ© invalide.'];
     }
 
-    // Trouver marchÃ©
+    // Trouver marchÃÂ©
     $marche = $this->getMarchePlusProche($personnage);
 
     if (!$marche) {
-        return ['success' => false, 'message' => 'Aucun marchÃ© accessible.'];
+        return ['success' => false, 'message' => 'Aucun marchÃÂ© accessible.'];
     }
 
     // Trouver offre de vente
@@ -864,7 +864,7 @@ private function acheter(Personnage $personnage, array $parts): array
         return ['success' => false, 'message' => "Ressource {$code_ressource} non disponible."];
     }
 
-    // VÃ©rifier stock
+    // VÃÂ©rifier stock
     if ($offre->quantite_disponible < $quantite) {
         return ['success' => false, 'message' => "Stock insuffisant (disponible: {$offre->quantite_disponible})."];
     }
@@ -873,12 +873,12 @@ private function acheter(Personnage $personnage, array $parts): array
     $prix_unitaire_ttc = $offre->prix_unitaire * (1 + $marche->taxe_achat / 100);
     $prix_total = $prix_unitaire_ttc * $quantite;
 
-    // VÃ©rifier crÃ©dits
+    // VÃÂ©rifier crÃÂ©dits
     if ($personnage->credits < $prix_total) {
-        return ['success' => false, 'message' => "CrÃ©dits insuffisants (besoin: " . number_format($prix_total, 2) . " Â¢)."];
+        return ['success' => false, 'message' => "CrÃÂ©dits insuffisants (besoin: " . number_format($prix_total, 2) . " ÃÂ¢)."];
     }
 
-    // VÃ©rifier capacitÃ© soute
+    // VÃÂ©rifier capacitÃÂ© soute
     $vaisseau = $personnage->vaisseauActif;
     if (!$vaisseau) {
         return ['success' => false, 'message' => 'Vous devez avoir un vaisseau actif.'];
@@ -888,25 +888,25 @@ private function acheter(Personnage $personnage, array $parts): array
     $poids_total = $ressource->poids_unitaire * $quantite;
 
     if ($vaisseau->getCapaciteRestante() < $poids_total) {
-        return ['success' => false, 'message' => 'Soute pleine ! LibÃ©rez de l\'espace.'];
+        return ['success' => false, 'message' => 'Soute pleine ! LibÃÂ©rez de l\'espace.'];
     }
 
     // Transaction
     DB::transaction(function () use ($personnage, $vaisseau, $offre, $quantite, $prix_total) {
-        // DÃ©duire crÃ©dits
+        // DÃÂ©duire crÃÂ©dits
         $personnage->decrement('credits', $prix_total);
 
-        // DÃ©duire stock marchÃ©
+        // DÃÂ©duire stock marchÃÂ©
         $offre->decrement('quantite_disponible', $quantite);
 
         // Ajouter au vaisseau
         $vaisseau->ajouterRessource($offre->ressource_id, $quantite);
     });
 
-    $message = "\n=== TRANSACTION RÃ‰USSIE ===\n";
-    $message .= "AchetÃ©: {$quantite} x {$ressource->nom}\n";
-    $message .= "Prix total: " . number_format($prix_total, 2) . " crÃ©dits\n";
-    $message .= "CrÃ©dits restants: " . number_format($personnage->fresh()->credits, 2) . " Â¢\n";
+    $message = "\n=== TRANSACTION RÃâ°USSIE ===\n";
+    $message .= "AchetÃÂ©: {$quantite} x {$ressource->nom}\n";
+    $message .= "Prix total: " . number_format($prix_total, 2) . " crÃÂ©dits\n";
+    $message .= "CrÃÂ©dits restants: " . number_format($personnage->fresh()->credits, 2) . " ÃÂ¢\n";
 
     return ['success' => true, 'message' => $message];
 }
@@ -925,14 +925,14 @@ private function vendre(Personnage $personnage, array $parts): array
     $quantite = (int)$parts[2];
 
     if ($quantite <= 0) {
-        return ['success' => false, 'message' => 'QuantitÃ© invalide.'];
+        return ['success' => false, 'message' => 'QuantitÃÂ© invalide.'];
     }
 
-    // Trouver marchÃ©
+    // Trouver marchÃÂ©
     $marche = $this->getMarchePlusProche($personnage);
 
     if (!$marche) {
-        return ['success' => false, 'message' => 'Aucun marchÃ© accessible.'];
+        return ['success' => false, 'message' => 'Aucun marchÃÂ© accessible.'];
     }
 
     // Trouver offre d'achat
@@ -945,12 +945,12 @@ private function vendre(Personnage $personnage, array $parts): array
         ->first();
 
     if (!$offre) {
-        return ['success' => false, 'message' => "Le marchÃ© n'achÃ¨te pas {$code_ressource}."];
+        return ['success' => false, 'message' => "Le marchÃÂ© n'achÃÂ¨te pas {$code_ressource}."];
     }
 
     $ressource = $offre->ressource;
 
-    // VÃ©rifier inventaire
+    // VÃÂ©rifier inventaire
     $vaisseau = $personnage->vaisseauActif;
     if (!$vaisseau) {
         return ['success' => false, 'message' => 'Vous devez avoir un vaisseau actif.'];
@@ -959,29 +959,29 @@ private function vendre(Personnage $personnage, array $parts): array
     $quantite_possedee = $vaisseau->getQuantiteRessource($ressource->id);
 
     if ($quantite_possedee < $quantite) {
-        return ['success' => false, 'message' => "Vous n'avez que {$quantite_possedee} unitÃ©s."];
+        return ['success' => false, 'message' => "Vous n'avez que {$quantite_possedee} unitÃÂ©s."];
     }
 
-    // Calculer prix net (aprÃ¨s taxes)
+    // Calculer prix net (aprÃÂ¨s taxes)
     $prix_unitaire_net = $offre->prix_unitaire * (1 - $marche->taxe_vente / 100);
     $prix_total = $prix_unitaire_net * $quantite;
 
     // Transaction
     DB::transaction(function () use ($personnage, $vaisseau, $offre, $ressource, $quantite, $prix_total) {
-        // Ajouter crÃ©dits
+        // Ajouter crÃÂ©dits
         $personnage->increment('credits', $prix_total);
 
-        // Augmenter stock marchÃ©
+        // Augmenter stock marchÃÂ©
         $offre->increment('quantite_disponible', $quantite);
 
         // Retirer du vaisseau
         $vaisseau->retirerRessource($ressource->id, $quantite);
     });
 
-    $message = "\n=== VENTE RÃ‰USSIE ===\n";
+    $message = "\n=== VENTE RÃâ°USSIE ===\n";
     $message .= "Vendu: {$quantite} x {$ressource->nom}\n";
-    $message .= "Prix total: " . number_format($prix_total, 2) . " crÃ©dits\n";
-    $message .= "CrÃ©dits totaux: " . number_format($personnage->fresh()->credits, 2) . " Â¢\n";
+    $message .= "Prix total: " . number_format($prix_total, 2) . " crÃÂ©dits\n";
+    $message .= "CrÃÂ©dits totaux: " . number_format($personnage->fresh()->credits, 2) . " ÃÂ¢\n";
 
     return ['success' => true, 'message' => $message];
 }
@@ -989,11 +989,11 @@ private function vendre(Personnage $personnage, array $parts): array
 
 ---
 
-## ğŸ“‹ JOUR 4 : TRANSFORMATION INDUSTRIELLE (8h)
+## ÄÅ¸ââ¹ JOUR 4 : TRANSFORMATION INDUSTRIELLE (8h)
 
 ### Objectif
 
-SystÃ¨me de transformation de ressources (3 niveaux).
+SystÃÂ¨me de transformation de ressources (3 niveaux).
 
 ### 4.1 Recettes de Transformation
 
@@ -1007,9 +1007,9 @@ Schema::create('recettes', function (Blueprint $table) {
     $table->foreignId('produit_id')->constrained('ressources'); // Ressource produite
     $table->integer('quantite_produite')->default(1);
 
-    $table->integer('niveau_transformation')->default(1); // 1=base, 2=intermÃ©diaire, 3=avancÃ©
+    $table->integer('niveau_transformation')->default(1); // 1=base, 2=intermÃÂ©diaire, 3=avancÃÂ©
     $table->integer('duree_production')->default(60); // Minutes
-    $table->decimal('cout_energetique', 10, 2)->default(10.0); // Ã‰nergie consommÃ©e
+    $table->decimal('cout_energetique', 10, 2)->default(10.0); // Ãâ°nergie consommÃÂ©e
 
     $table->text('description')->nullable();
 
@@ -1039,7 +1039,7 @@ class RecetteSeeder extends Seeder
 {
     public function run()
     {
-        // Niveau 1 : MatÃ©riaux de Base
+        // Niveau 1 : MatÃÂ©riaux de Base
         $this->creerRecette('ACIER', 'Acier', 1, 30, [
             'FER' => 1,
             'GRAPHITE' => 1,
@@ -1049,13 +1049,13 @@ class RecetteSeeder extends Seeder
             'GRAPHITE' => 10,
         ]);
 
-        // Niveau 2 : MatÃ©riaux IntermÃ©diaires
+        // Niveau 2 : MatÃÂ©riaux IntermÃÂ©diaires
         $this->creerRecette('PLASTACIER', 'Plastacier', 2, 60, [
             'ACIER' => 1,
             'PLAZETOILE' => 1,
         ]);
 
-        $this->creerRecette('ELECTRONIQUE', 'Ã‰lectronique', 2, 45, [
+        $this->creerRecette('ELECTRONIQUE', 'Ãâ°lectronique', 2, 45, [
             'SABLES' => 1,
             'PLAZETOILE' => 1,
             'PLATINE' => 1,
@@ -1066,12 +1066,12 @@ class RecetteSeeder extends Seeder
             'PLAZETOILE' => 1,
         ]);
 
-        $this->creerRecette('MECANIQUE', 'MÃ©canique', 2, 40, [
+        $this->creerRecette('MECANIQUE', 'MÃÂ©canique', 2, 40, [
             'ACIER' => 1,
             'BITUMES' => 1,
         ]);
 
-        // Niveau 3 : Composants AvancÃ©s
+        // Niveau 3 : Composants AvancÃÂ©s
         $this->creerRecette('MOTEUR', 'Moteur', 3, 120, [
             'MECANIQUE' => 2,
             'ELECTRONIQUE' => 2,
@@ -1106,7 +1106,7 @@ class RecetteSeeder extends Seeder
         int $duree,
         array $ingredients
     ): void {
-        // CrÃ©er ressource produit si n'existe pas
+        // CrÃÂ©er ressource produit si n'existe pas
         $produit = Ressource::firstOrCreate(
             ['code' => $code],
             [
@@ -1117,12 +1117,12 @@ class RecetteSeeder extends Seeder
                     3 => 'composant_avance',
                 },
                 'poids_unitaire' => 1.0,
-                'prix_base' => $this->calculerPrixRecette($ingredients) * 2, // Valeur ajoutÃ©e
+                'prix_base' => $this->calculerPrixRecette($ingredients) * 2, // Valeur ajoutÃÂ©e
                 'rarete' => 50,
             ]
         );
 
-        // CrÃ©er recette
+        // CrÃÂ©er recette
         $recette = Recette::create([
             'code' => $code,
             'nom' => $nom,
@@ -1133,7 +1133,7 @@ class RecetteSeeder extends Seeder
             'cout_energetique' => $duree * 0.5,
         ]);
 
-        // Ajouter ingrÃ©dients
+        // Ajouter ingrÃÂ©dients
         foreach ($ingredients as $code_ressource => $quantite) {
             $ressource = Ressource::where('code', $code_ressource)->first();
 
@@ -1175,8 +1175,8 @@ Schema::create('modules_production', function (Blueprint $table) {
     $table->foreignId('recette_id')->nullable()->constrained()->onDelete('set null');
     // Recette actuellement en production
 
-    $table->integer('niveau_module')->default(1); // 1-3, dÃ©termine recettes possibles
-    $table->decimal('efficacite', 5, 2)->default(100.0); // % (peut Ãªtre amÃ©liorÃ©)
+    $table->integer('niveau_module')->default(1); // 1-3, dÃÂ©termine recettes possibles
+    $table->decimal('efficacite', 5, 2)->default(100.0); // % (peut ÃÂªtre amÃÂ©liorÃÂ©)
 
     $table->boolean('actif')->default(true);
     $table->timestamp('production_debut')->nullable();
@@ -1186,7 +1186,7 @@ Schema::create('modules_production', function (Blueprint $table) {
 });
 ```
 
-**Note :** Pour l'instant, les modules de production seront crÃ©Ã©s manuellement ou via commande admin. La construction de bases complÃ¨tes viendra dans une phase ultÃ©rieure.
+**Note :** Pour l'instant, les modules de production seront crÃÂ©ÃÂ©s manuellement ou via commande admin. La construction de bases complÃÂ¨tes viendra dans une phase ultÃÂ©rieure.
 
 ### 4.3 Commande de Production
 
@@ -1209,7 +1209,7 @@ private function produire(Personnage $personnage, array $parts): array
         return ['success' => false, 'message' => "Recette '{$code_recette}' introuvable."];
     }
 
-    // VÃ©rifier que le personnage est dans une base avec module de production
+    // VÃÂ©rifier que le personnage est dans une base avec module de production
     // Simplification pour MVP : production possible depuis vaisseau si a les ressources
     $vaisseau = $personnage->vaisseauActif;
 
@@ -1217,7 +1217,7 @@ private function produire(Personnage $personnage, array $parts): array
         return ['success' => false, 'message' => 'Vous devez avoir un vaisseau actif.'];
     }
 
-    // VÃ©rifier ingrÃ©dients
+    // VÃÂ©rifier ingrÃÂ©dients
     $ingredients = $recette->ingredients;
     foreach ($ingredients as $ingredient) {
         $quantite_requise = $ingredient->quantite_requise * $quantite;
@@ -1227,15 +1227,15 @@ private function produire(Personnage $personnage, array $parts): array
             $ressource = $ingredient->ressource;
             return [
                 'success' => false,
-                'message' => "IngrÃ©dient manquant: {$ressource->nom} (besoin: {$quantite_requise}, vous avez: {$quantite_possedee})"
+                'message' => "IngrÃÂ©dient manquant: {$ressource->nom} (besoin: {$quantite_requise}, vous avez: {$quantite_possedee})"
             ];
         }
     }
 
-    // VÃ©rifier Ã©nergie
+    // VÃÂ©rifier ÃÂ©nergie
     $cout_energie = $recette->cout_energetique * $quantite;
     if ($vaisseau->energie_actuelle < $cout_energie) {
-        return ['success' => false, 'message' => "Ã‰nergie insuffisante (besoin: {$cout_energie})."];
+        return ['success' => false, 'message' => "Ãâ°nergie insuffisante (besoin: {$cout_energie})."];
     }
 
     // Consommer PA
@@ -1246,15 +1246,15 @@ private function produire(Personnage $personnage, array $parts): array
 
     $personnage->consommerPA($cout_pa);
 
-    // Production (instantanÃ©e pour MVP, async plus tard)
+    // Production (instantanÃÂ©e pour MVP, async plus tard)
     DB::transaction(function () use ($recette, $vaisseau, $quantite, $cout_energie, $ingredients) {
-        // Consommer ingrÃ©dients
+        // Consommer ingrÃÂ©dients
         foreach ($ingredients as $ingredient) {
             $quantite_a_retirer = $ingredient->quantite_requise * $quantite;
             $vaisseau->retirerRessource($ingredient->ressource_id, $quantite_a_retirer);
         }
 
-        // Consommer Ã©nergie
+        // Consommer ÃÂ©nergie
         $vaisseau->decrement('energie_actuelle', $cout_energie);
 
         // Produire
@@ -1264,11 +1264,11 @@ private function produire(Personnage $personnage, array $parts): array
 
     $produit = $recette->produit;
 
-    $message = "\n=== PRODUCTION RÃ‰USSIE ===\n";
+    $message = "\n=== PRODUCTION RÃâ°USSIE ===\n";
     $message .= "Recette: {$recette->nom}\n";
     $message .= "Produit: {$quantite} x {$produit->nom}\n";
-    $message .= "Ã‰nergie consommÃ©e: {$cout_energie}\n";
-    $message .= "\nğŸ’¡ Dans une version future, la production sera asynchrone.\n";
+    $message .= "Ãâ°nergie consommÃÂ©e: {$cout_energie}\n";
+    $message .= "\nÄÅ¸âÂ¡ Dans une version future, la production sera asynchrone.\n";
 
     return ['success' => true, 'message' => $message];
 }
@@ -1290,19 +1290,19 @@ private function recettes(Personnage $personnage, array $parts): array
 
     foreach ($par_niveau as $niveau => $recettes_niveau) {
         $nom_niveau = match($niveau) {
-            1 => 'MATÃ‰RIAUX DE BASE',
-            2 => 'MATÃ‰RIAUX INTERMÃ‰DIAIRES',
-            3 => 'COMPOSANTS AVANCÃ‰S',
+            1 => 'MATÃâ°RIAUX DE BASE',
+            2 => 'MATÃâ°RIAUX INTERMÃâ°DIAIRES',
+            3 => 'COMPOSANTS AVANCÃâ°S',
             default => "NIVEAU {$niveau}",
         };
 
         $message .= "\n--- {$nom_niveau} ---\n";
 
         foreach ($recettes_niveau as $recette) {
-            $message .= "\nâ€¢ {$recette->nom} ({$recette->code})\n";
+            $message .= "\nÃ¢â¬Â¢ {$recette->nom} ({$recette->code})\n";
             $message .= "  Produit: {$recette->quantite_produite} x {$recette->produit->nom}\n";
-            $message .= "  DurÃ©e: {$recette->duree_production} min | Ã‰nergie: {$recette->cout_energetique}\n";
-            $message .= "  IngrÃ©dients:\n";
+            $message .= "  DurÃÂ©e: {$recette->duree_production} min | Ãâ°nergie: {$recette->cout_energetique}\n";
+            $message .= "  IngrÃÂ©dients:\n";
 
             foreach ($recette->ingredients as $ingredient) {
                 $message .= "    - {$ingredient->quantite_requise} x {$ingredient->ressource->nom}\n";
@@ -1318,129 +1318,129 @@ private function recettes(Personnage $personnage, array $parts): array
 
 ---
 
-## ğŸ“Š RÃ‰CAPITULATIF PHASE 2
+## ÄÅ¸âÅ  RÃâ°CAPITULATIF PHASE 2
 
-### FonctionnalitÃ©s LivrÃ©es
+### FonctionnalitÃÂ©s LivrÃÂ©es
 
-1. âœ… **21 ressources miniÃ¨res** avec catÃ©gories et raretÃ©
-2. âœ… **Gisements sur planÃ¨tes** avec richesse et quantitÃ©
-3. âœ… **Scan gÃ©ologique** pour dÃ©couvrir gisements
-4. âœ… **Extraction miniÃ¨re** avec rendement et consommation PA
-5. âœ… **SystÃ¨me d'inventaire** polymorphique (vaisseaux, bases)
-6. âœ… **CapacitÃ© de soute** et gestion du poids
-7. âœ… **MarchÃ©s** (standard, bourse, antiquitÃ©s, noir)
-8. âœ… **Commerce** : achat/vente avec taxes
-9. âœ… **CrÃ©dits** pour personnages
-10. âœ… **Recettes de transformation** (3 niveaux)
-11. âœ… **Production industrielle** instantanÃ©e (MVP)
+1. Ã¢Åâ¦ **21 ressources miniÃÂ¨res** avec catÃÂ©gories et raretÃÂ©
+2. Ã¢Åâ¦ **Gisements sur planÃÂ¨tes** avec richesse et quantitÃÂ©
+3. Ã¢Åâ¦ **Scan gÃÂ©ologique** pour dÃÂ©couvrir gisements
+4. Ã¢Åâ¦ **Extraction miniÃÂ¨re** avec rendement et consommation PA
+5. Ã¢Åâ¦ **SystÃÂ¨me d'inventaire** polymorphique (vaisseaux, bases)
+6. Ã¢Åâ¦ **CapacitÃÂ© de soute** et gestion du poids
+7. Ã¢Åâ¦ **MarchÃÂ©s** (standard, bourse, antiquitÃÂ©s, noir)
+8. Ã¢Åâ¦ **Commerce** : achat/vente avec taxes
+9. Ã¢Åâ¦ **CrÃÂ©dits** pour personnages
+10. Ã¢Åâ¦ **Recettes de transformation** (3 niveaux)
+11. Ã¢Åâ¦ **Production industrielle** instantanÃÂ©e (MVP)
 
-### Commandes AjoutÃ©es
+### Commandes AjoutÃÂ©es
 
 | Commande | Description |
 |----------|-------------|
-| `scan-planete <nom>` | Scanner gisements d'une planÃ¨te |
+| `scan-planete <nom>` | Scanner gisements d'une planÃÂ¨te |
 | `extraire <ressource> [qte]` | Extraire ressource d'un gisement |
 | `inventaire` | Afficher inventaire vaisseau |
-| `marche [ressource]` | Afficher offres du marchÃ© proche |
-| `acheter <ressource> <qte>` | Acheter ressource au marchÃ© |
-| `vendre <ressource> <qte>` | Vendre ressource au marchÃ© |
+| `marche [ressource]` | Afficher offres du marchÃÂ© proche |
+| `acheter <ressource> <qte>` | Acheter ressource au marchÃÂ© |
+| `vendre <ressource> <qte>` | Vendre ressource au marchÃÂ© |
 | `recettes` | Lister recettes de transformation |
-| `produire <recette> [qte]` | Produire Ã  partir d'une recette |
+| `produire <recette> [qte]` | Produire ÃÂ  partir d'une recette |
 
 ### Structure Fichiers
 
 ```
 app/
-â”œâ”€â”€ Models/
-â”‚   â”œâ”€â”€ Ressource.php
-â”‚   â”œâ”€â”€ Gisement.php
-â”‚   â”œâ”€â”€ Inventaire.php
-â”‚   â”œâ”€â”€ Marche.php
-â”‚   â”œâ”€â”€ OffreMarche.php
-â”‚   â”œâ”€â”€ Recette.php
-â”‚   â”œâ”€â”€ IngredientRecette.php
-â”‚   â””â”€â”€ Traits/
-â”‚       â””â”€â”€ HasInventaire.php
+Ã¢âÅÃ¢ââ¬Ã¢ââ¬ Models/
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ Ressource.php
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ Gisement.php
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ Inventaire.php
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ Marche.php
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ OffreMarche.php
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ Recette.php
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ IngredientRecette.php
+Ã¢ââ   Ã¢ââÃ¢ââ¬Ã¢ââ¬ Traits/
+Ã¢ââ       Ã¢ââÃ¢ââ¬Ã¢ââ¬ HasInventaire.php
 database/
-â”œâ”€â”€ migrations/
-â”‚   â”œâ”€â”€ xxxx_create_ressources_table.php
-â”‚   â”œâ”€â”€ xxxx_create_gisements_table.php
-â”‚   â”œâ”€â”€ xxxx_create_inventaires_table.php
-â”‚   â”œâ”€â”€ xxxx_create_marches_table.php
-â”‚   â”œâ”€â”€ xxxx_create_offres_marche_table.php
-â”‚   â”œâ”€â”€ xxxx_create_recettes_table.php
-â”‚   â”œâ”€â”€ xxxx_create_ingredients_recette_table.php
-â”‚   â”œâ”€â”€ xxxx_add_credits_to_personnages.php
-â”‚   â””â”€â”€ xxxx_add_capacite_soute_to_vaisseaux.php
-â””â”€â”€ seeders/
-    â”œâ”€â”€ RessourceSeeder.php
-    â”œâ”€â”€ RecetteSeeder.php
-    â””â”€â”€ MarcheSeeder.php (dans UniverseSeeder)
+Ã¢âÅÃ¢ââ¬Ã¢ââ¬ migrations/
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ xxxx_create_ressources_table.php
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ xxxx_create_gisements_table.php
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ xxxx_create_inventaires_table.php
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ xxxx_create_marches_table.php
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ xxxx_create_offres_marche_table.php
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ xxxx_create_recettes_table.php
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ xxxx_create_ingredients_recette_table.php
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ xxxx_add_credits_to_personnages.php
+Ã¢ââ   Ã¢ââÃ¢ââ¬Ã¢ââ¬ xxxx_add_capacite_soute_to_vaisseaux.php
+Ã¢ââÃ¢ââ¬Ã¢ââ¬ seeders/
+    Ã¢âÅÃ¢ââ¬Ã¢ââ¬ RessourceSeeder.php
+    Ã¢âÅÃ¢ââ¬Ã¢ââ¬ RecetteSeeder.php
+    Ã¢ââÃ¢ââ¬Ã¢ââ¬ MarcheSeeder.php (dans UniverseSeeder)
 ```
 
-### Cycles Ã‰conomiques Fonctionnels
+### Cycles Ãâ°conomiques Fonctionnels
 
-**Cycle 1 : Extraction â†’ Vente**
+**Cycle 1 : Extraction Ã¢â â Vente**
 ```
-1. Scanner planÃ¨te â†’ DÃ©couvrir gisement
-2. Extraire ressource â†’ Ajouter Ã  inventaire
-3. Voyager vers marchÃ©
-4. Vendre ressource â†’ Obtenir crÃ©dits
+1. Scanner planÃÂ¨te Ã¢â â DÃÂ©couvrir gisement
+2. Extraire ressource Ã¢â â Ajouter ÃÂ  inventaire
+3. Voyager vers marchÃÂ©
+4. Vendre ressource Ã¢â â Obtenir crÃÂ©dits
 ```
 
-**Cycle 2 : Achat â†’ Transformation â†’ Vente**
+**Cycle 2 : Achat Ã¢â â Transformation Ã¢â â Vente**
 ```
-1. Acheter matiÃ¨res premiÃ¨res au marchÃ©
-2. Produire matÃ©riaux intermÃ©diaires/avancÃ©s
-3. Vendre produits finis (valeur ajoutÃ©e)
+1. Acheter matiÃÂ¨res premiÃÂ¨res au marchÃÂ©
+2. Produire matÃÂ©riaux intermÃÂ©diaires/avancÃÂ©s
+3. Vendre produits finis (valeur ajoutÃÂ©e)
 4. Profit!
 ```
 
-**Cycle 3 : Extraction â†’ Transformation â†’ Vente**
+**Cycle 3 : Extraction Ã¢â â Transformation Ã¢â â Vente**
 ```
-1. Extraire matiÃ¨res premiÃ¨res
+1. Extraire matiÃÂ¨res premiÃÂ¨res
 2. Transformer en produits finis
 3. Vendre pour maximiser profit
 ```
 
 ---
 
-## ğŸ�¯ APRÃˆS PHASE 2
+## ÄÅ¸ï¿½Â¯ APRÃËS PHASE 2
 
-### AmÃ©liorations Futures
+### AmÃÂ©liorations Futures
 
 **Court terme (Phase 2.5) :**
-- Production asynchrone (tÃ¢ches en arriÃ¨re-plan)
+- Production asynchrone (tÃÂ¢ches en arriÃÂ¨re-plan)
 - Modules de production sur bases
 - Dynamique offre/demande (prix fluctuants)
-- QualitÃ© des ressources
+- QualitÃÂ© des ressources
 
 **Moyen terme (Phase 3) :**
 - Commerce entre joueurs
-- Contrats et missions Ã©conomiques
+- Contrats et missions ÃÂ©conomiques
 - Guildes marchandes
-- MarchÃ© noir et contrebande
+- MarchÃÂ© noir et contrebande
 
 **Long terme (Phase 4+) :**
-- Ã‰conomie planÃ©taire
+- Ãâ°conomie planÃÂ©taire
 - Monnaies multiples
-- SystÃ¨me bancaire (prÃªts, intÃ©rÃªts)
-- SpÃ©culation et bourse
+- SystÃÂ¨me bancaire (prÃÂªts, intÃÂ©rÃÂªts)
+- SpÃÂ©culation et bourse
 
 ---
 
-## ğŸ“ˆ MÃ‰TRIQUES DE SUCCÃˆS
+## ÄÅ¸âË MÃâ°TRIQUES DE SUCCÃËS
 
-**Phase 2 sera considÃ©rÃ©e rÃ©ussie si :**
+**Phase 2 sera considÃÂ©rÃÂ©e rÃÂ©ussie si :**
 
-1. âœ… Un joueur peut scanner et dÃ©couvrir des gisements
-2. âœ… Un joueur peut extraire des ressources
-3. âœ… Un joueur peut acheter/vendre au marchÃ©
-4. âœ… Un joueur peut transformer des ressources
-5. âœ… Le cycle Ã©conomique complet fonctionne
-6. âœ… Les prix et taxes s'appliquent correctement
-7. âœ… L'inventaire et les crÃ©dits se gÃ¨rent correctement
+1. Ã¢Åâ¦ Un joueur peut scanner et dÃÂ©couvrir des gisements
+2. Ã¢Åâ¦ Un joueur peut extraire des ressources
+3. Ã¢Åâ¦ Un joueur peut acheter/vendre au marchÃÂ©
+4. Ã¢Åâ¦ Un joueur peut transformer des ressources
+5. Ã¢Åâ¦ Le cycle ÃÂ©conomique complet fonctionne
+6. Ã¢Åâ¦ Les prix et taxes s'appliquent correctement
+7. Ã¢Åâ¦ L'inventaire et les crÃÂ©dits se gÃÂ¨rent correctement
 
 ---
 
-**Document vivant - DerniÃ¨re mise Ã  jour : 2025-11-18**
+**Document vivant - DerniÃÂ¨re mise ÃÂ  jour : 2025-11-18**

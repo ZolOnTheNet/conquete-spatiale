@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Orbital Calculator</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #1a1a1a;
+            color: #0ff;
+            padding: 20px;
+        }
+        .result {
+            background: #2a2a2a;
+            border: 1px solid #0ff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { color: #0f0; }
+        .error { color: #f00; }
+        button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0088ff;
+        }
+    </style>
+</head>
+<body>
+    <h1>🪐 Test du Calculateur Orbital JavaScript</h1>
+
+    <div class="result">
+        <h2>Configuration du test</h2>
+        <p><strong>Date de référence:</strong> 3000-01-01 00:00:00</p>
+        <p><strong>Date actuelle du test:</strong> 3000-01-20 12:00:00 (20.5 jours)</p>
+        <p><strong>Système:</strong> Sol (0, 0, 0) AL</p>
+        <p><strong>Vaisseau:</strong> (0.001, 0.001, 0) AL</p>
+    </div>
+
+    <button onclick="testCalculs()">▶️ Lancer les calculs</button>
+    <button onclick="testAnimation()">🎬 Test animation</button>
+
+    <div id="resultats"></div>
+
+    <script src="js/orbital-calculator.js"></script>
+    <script>
+        function testCalculs() {
+            const resultats = document.getElementById('resultats');
+            resultats.innerHTML = '<h2>Résultats des calculs</h2>';
+
+            try {
+                // Configuration
+                const dateJeu = new Date('3000-01-20T12:00:00Z');
+                const timestampJours = OrbitalCalculator.dateToJours(dateJeu);
+
+                resultats.innerHTML += `<div class="result">
+                    <p class="success">✓ Timestamp calculé: ${timestampJours.toFixed(2)} jours depuis 3000-01-01</p>
+                </div>`;
+
+                // Système Sol
+                const systeme = {
+                    position_x: 0.0,
+                    position_y: 0.0,
+                    position_z: 0.0,
+                };
+
+                // Vaisseau
+                const vaisseau = {
+                    position_x: 0.001,
+                    position_y: 0.001,
+                    position_z: 0.0,
+                };
+
+                // Planètes du système Sol (exemples)
+                const planetes = [
+                    {
+                        id: 1,
+                        nom: 'Terre',
+                        distance_etoile: 1.0,
+                        angle_orbital_initial: 0.1605,
+                        vitesse_angulaire: 0.017214,
+                        periode_orbitale: 365,
+                        cache_position_x: null,
+                        cache_position_y: null,
+                        cache_timestamp_jours: null,
+                        cache_validite_jours: 10,
+                    },
+                    {
+                        id: 3,
+                        nom: 'Mars',
+                        distance_etoile: 1.52,
+                        angle_orbital_initial: 0.4298,
+                        vitesse_angulaire: 0.009186,
+                        periode_orbitale: 684,
+                        cache_position_x: null,
+                        cache_position_y: null,
+                        cache_timestamp_jours: null,
+                        cache_validite_jours: 14,
+                    },
+                ];
+
+                // Calculer positions et distances
+                planetes.forEach(planete => {
+                    // Position orbitale (en UA par rapport à l'étoile)
+                    const posOrbitale = OrbitalCalculator.calculerPositionOrbitale(planete, timestampJours);
+
+                    // Position absolue (en AL dans l'espace)
+                    const posAbsolue = OrbitalCalculator.calculerPositionAbsolue(planete, systeme, timestampJours);
+
+                    // Distance depuis vaisseau
+                    const distance = OrbitalCalculator.calculerDistance(planete, systeme, vaisseau, timestampJours);
+
+                    resultats.innerHTML += `<div class="result">
+                        <h3>${planete.nom}</h3>
+                        <p><strong>Position orbitale:</strong> (${posOrbitale.x.toFixed(4)}, ${posOrbitale.y.toFixed(4)}) UA</p>
+                        <p><strong>Angle orbital:</strong> ${(posOrbitale.angle * 180 / Math.PI).toFixed(2)}°</p>
+                        <p><strong>Position absolue:</strong> (${posAbsolue.x.toFixed(6)}, ${posAbsolue.y.toFixed(6)}) AL</p>
+                        <p class="success"><strong>Distance depuis vaisseau:</strong> ${distance.toFixed(2)} UA</p>
+                    </div>`;
+                });
+
+                resultats.innerHTML += `<div class="result">
+                    <p class="success">✓ Tous les calculs effectués avec succès côté client !</p>
+                </div>`;
+
+            } catch (error) {
+                resultats.innerHTML += `<div class="result">
+                    <p class="error">✗ Erreur: ${error.message}</p>
+                    <pre>${error.stack}</pre>
+                </div>`;
+            }
+        }
+
+        function testAnimation() {
+            const resultats = document.getElementById('resultats');
+            resultats.innerHTML = '<h2>Test Animation Temps Réel</h2>';
+
+            const planete = {
+                nom: 'Terre',
+                distance_etoile: 1.0,
+                angle_orbital_initial: 0.0,
+                vitesse_angulaire: 0.017214, // rad/jour
+                _angleActuel: 0.0,
+            };
+
+            let frameCount = 0;
+            const maxFrames = 60;
+            const deltaTempsSimule = 1000 * 60 * 60 * 24; // 1 jour simulé par frame
+
+            const interval = setInterval(() => {
+                frameCount++;
+
+                // Calculer nouvelle position
+                const nouvellePos = OrbitalCalculator.animerPlanete(planete, deltaTempsSimule);
+                planete._angleActuel = nouvellePos.angle;
+
+                resultats.innerHTML = `<div class="result">
+                    <h3>Animation: ${planete.nom} (Frame ${frameCount}/${maxFrames})</h3>
+                    <p><strong>Angle:</strong> ${(nouvellePos.angle * 180 / Math.PI).toFixed(2)}°</p>
+                    <p><strong>Position:</strong> (${nouvellePos.x.toFixed(4)}, ${nouvellePos.y.toFixed(4)}) UA</p>
+                    <p class="success">⏱️ Simulation: ${frameCount} jours écoulés</p>
+                </div>`;
+
+                if (frameCount >= maxFrames) {
+                    clearInterval(interval);
+                    resultats.innerHTML += `<div class="result">
+                        <p class="success">✓ Animation terminée (${maxFrames} frames)</p>
+                        <p>Angle final: ${(planete._angleActuel * 180 / Math.PI).toFixed(2)}°</p>
+                    </div>`;
+                }
+            }, 100); // Update every 100ms
+        }
+
+        // Test automatique au chargement
+        console.log('OrbitalCalculator disponible:', typeof OrbitalCalculator !== 'undefined');
+        if (typeof OrbitalCalculator !== 'undefined') {
+            console.log('✓ OrbitalCalculator chargé correctement');
+        } else {
+            console.error('✗ OrbitalCalculator non disponible');
+        }
+    </script>
+</body>
+</html>

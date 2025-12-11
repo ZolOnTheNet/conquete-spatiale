@@ -1,14 +1,14 @@
-# 🎯”­ SYSTÏˆME DE DÉCOUVERTE
+# œ­ SYSTœME DE D?COUVERTE
 ## Jeu de Conquête Galactique
 
 ---
 
-## ⚠️ DISCLAIMER
+## œ? DISCLAIMER
 Algorithme de recherche et découverte des systèmes stellaires (PoV brillants).
 
 ---
 
-## 🎯 Principe Fondamental
+## ? Principe Fondamental
 
 **Basé sur la puissance solaire** (avec un minimum de 10).
 
@@ -20,7 +20,7 @@ Algorithme de recherche et découverte des systèmes stellaires (PoV brillants).
 
 ---
 
-## 🎯 Mécanisme de Recherche
+## ? Mécanisme de Recherche
 
 ### Principe
 
@@ -32,16 +32,17 @@ Pour **1 PA**, le système informatique d'un vaisseau peut lancer une recherche 
 
 **Découverte :**
 - Il faut cumuler un certain nombre de **points de tâche**
-- Quand le seuil est atteint â†’ secteur est **"découvert"**
+- Quand le seuil est atteint le secteur est **"découvert"**
 
 ---
 
-## 🎯“ Formules
+## œ? Formules
 
-### 1. Seuil de Découverte
+### 1. Seuil de Découverte (faux)
 
 ```
-Seuil = 500 + (Distance Ï— 100)
+Seuil = 500 + (Distance œ 100)
+detectabilite_base = (200 - Puissance_Etoile) / 3
 ```
 
 **Où :**
@@ -51,7 +52,7 @@ Seuil = 500 + (Distance Ï— 100)
 **Exemple :**
 ```
 Distance = 4.245
-Seuil = 500 + (4.245 Ï— 100) = 924.5 â‰ˆ 925
+Seuil = 500 + (4.245 œ 100) = 924.5 ✓ 925
 ```
 
 ---
@@ -59,7 +60,7 @@ Seuil = 500 + (4.245 Ï— 100) = 924.5 â‰ˆ 925
 ### 2. Bonus/Malus Découverte (Points de Tâche Initiaux)
 
 ```
-Points de Tâche Initiaux = PSol + (6 - Distance) Ï— 10
+Points de Tâche Initiaux = PSol + (6 - Distance) œ 10
 ```
 
 **Où :**
@@ -68,15 +69,15 @@ Points de Tâche Initiaux = PSol + (6 - Distance) Ï— 10
 - **Distance** : Distance au système
 
 **Logique :**
-- Système proche et puissant â†’ Points initiaux élevés
-- Système lointain et faible â†’ Points initiaux faibles (voire négatifs)
+- Système proche et puissant ✓ Points initiaux élevés
+- Système lointain et faible ✓ Points initiaux faibles (voire négatifs)
 
 **Exemple :**
 ```
 PSol = 50
 Distance = 4.245
-Points initiaux = 50 + (6 - 4.245) Ï— 10
-                = 50 + (1.755 Ï— 10)
+Points initiaux = 50 + (6 - 4.245) œ 10
+                = 50 + (1.755 œ 10)
                 = 50 + 17.55
                 = 67.55
 ```
@@ -86,7 +87,7 @@ Points initiaux = 50 + (6 - 4.245) Ï— 10
 ### 3. Lancé du Calcul (par PA)
 
 ```
-Lancé = (SysExpl) D (2 Ï— PSol)
+Lancé = (SysExpl) D (2 œ PSol)
 ```
 
 **Où :**
@@ -95,23 +96,23 @@ Lancé = (SysExpl) D (2 Ï— PSol)
 - **PSol** : Puissance solaire (minimum 10)
 
 **Traduction :**
-- Lancer **SysExpl** dés de **(2 Ï— PSol)** faces
+- Lancer **SysExpl** dés de **(2 œ PSol)** faces
 - Additionner les résultats
 - Ajouter cette valeur aux points de tâche cumulés
 
 **Minimum :**
-- Si PSol < 5 â†’ utiliser PSol = 5 (donc 2 Ï— 5 = D10 minimum)
+- Si PSol < 5 ✓ utiliser PSol = 5 (donc 2 œ 5 = D10 minimum)
 
 **Exemple :**
 ```
 SysExpl = 1
 PSol = 50
-Lancé par PA = 1D100 (car 2 Ï— 50 = 100)
+Lancé par PA = 1D100 (car 2 œ 50 = 100)
 ```
 
 ---
 
-## 🎯“Š Exemple Complet
+## œŠ Exemple Complet
 
 ### Situation
 
@@ -126,12 +127,12 @@ Lancé par PA = 1D100 (car 2 Ï— 50 = 100)
 
 **1. Seuil de découverte :**
 ```
-Seuil = 500 + (4.245 Ï— 100) = 924.5 â‰ˆ 925
+Seuil = 500 + (4.245 œ 100) = 924.5 ✓ 925
 ```
 
 **2. Points de tâche initiaux :**
 ```
-Points initiaux = 50 + (6 - 4.245) Ï— 10 = 67.55 â‰ˆ 68
+Points initiaux = 50 + (6 - 4.245) œ 10 = 67.55 ✓ 68
 ```
 
 **3. Lancé par PA :**
@@ -143,14 +144,14 @@ Points initiaux = 50 + (6 - 4.245) Ï— 10 = 67.55 â‰ˆ 68
 ```
 Points restants à gagner = 925 - 68 = 857
 Moyenne par lancé (1D100) = 50.5
-Nombre PA estimé = 857 / 50.5 â‰ˆ 17 PA
+Nombre PA estimé = 857 / 50.5 ✓ 17 PA
 ```
 
 **Résultat :** Détection en environ **17-18 PA** pour un explorateur débutant.
 
 ---
 
-## 🎯š€ Impact Système Exploration
+## ?š? Impact Système Exploration
 
 ### Niveau SysExpl (1-10)
 
@@ -169,43 +170,43 @@ Nombre PA estimé = 857 / 50.5 â‰ˆ 17 PA
 
 ---
 
-## 🎯ŒŸ Facteurs Influençant Découverte
+## œŸ Facteurs Influençant Découverte
 
 ### 1. Puissance Solaire (PSol)
 
 **Effet :**
-- PSol élevé â†’ Plus facile à détecter
-- PSol faible â†’ Plus difficile
+- PSol élevé ✓ Plus facile à détecter
+- PSol faible ✓ Plus difficile
 
 **Exemples types :**
-- Géante bleue (Type O) : PSol 150-200 â†’ Très facile
-- Naine rouge (Type M) : PSol 20-30 â†’ Très difficile
+- Géante bleue (Type O) : PSol 150-200 ✓ Très facile
+- Naine rouge (Type M) : PSol 20-30 ✓ Très difficile
 
 ---
 
 ### 2. Distance
 
 **Effet :**
-- Distance faible â†’ Bonus points initiaux élevé
-- Distance élevée â†’ Malus (points initiaux faibles voire négatifs)
+- Distance faible ✓ Bonus points initiaux élevé
+- Distance élevée ✓ Malus (points initiaux faibles voire négatifs)
 
 **Exemple :**
 ```
 PSol = 30 (naine rouge)
 Distance = 5.5 AL (au-delà saut max 6)
 
-Points initiaux = 30 + (6 - 5.5) Ï— 10
+Points initiaux = 30 + (6 - 5.5) œ 10
                 = 30 + 5
                 = 35
 
-Seuil = 500 + (5.5 Ï— 100) = 1050
+Seuil = 500 + (5.5 œ 100) = 1050
 
-â†’ Très difficile à détecter !
+✓ Très difficile à détecter !
 ```
 
 ---
 
-### 3. Équipement
+### 3. ?quipement
 
 **Système Informatique Exploration (SysExpl) :**
 - Modules améliorés
@@ -219,7 +220,7 @@ Seuil = 500 + (5.5 Ï— 100) = 1050
 
 ---
 
-## 🎯”„ Algorithme de Recherche
+## œ? Algorithme de Recherche
 
 ### Environnement
 
@@ -232,7 +233,7 @@ Seuil = 500 + (5.5 Ï— 100) = 1050
 
 ### Calcul (Côté Serveur)
 
-**Étape 1 : Sélection secteurs**
+**?tape 1 : Sélection secteurs**
 ```sql
 SELECT
     secteur_id,
@@ -250,33 +251,33 @@ WHERE distance <= portee_max
 ORDER BY distance ASC;
 ```
 
-**Étape 2 : Calcul seuil et points initiaux**
+**?tape 2 : Calcul seuil et points initiaux**
 Pour chaque secteur :
 ```
-seuil[i] = 500 + (distance[i] Ï— 100)
-points_tache[i] = PSol[i] + (6 - distance[i]) Ï— 10
+seuil[i] = 500 + (distance[i] œ 100)
+points_tache[i] = PSol[i] + (6 - distance[i]) œ 10
 ```
 
-**Étape 3 : Pour chaque PA dépensé**
+**?tape 3 : Pour chaque PA dépensé**
 ```
 FOR EACH secteur IN liste_secteurs:
-    lancé = SUM( (SysExpl) D (2 Ï— PSol) )
+    lancé = SUM( (SysExpl) D (2 œ PSol) )
     points_tache[secteur] += lancé
 
     IF points_tache[secteur] >= seuil[secteur]:
-        â†’ SECTEUR DÉCOUVERT !
-        â†’ Retirer de la liste de recherche
-        â†’ Notifier joueur
+        ✓ SECTEUR D?COUVERT !
+        ✓ Retirer de la liste de recherche
+        ✓ Notifier joueur
 ```
 
-**Étape 4 : Résultat**
+**?tape 4 : Résultat**
 ```
 Liste des secteurs détectables par le système
 ```
 
 ---
 
-## 🎯Ž® Gameplay
+## ?Ž® Gameplay
 
 ### Interface Joueur
 
@@ -289,7 +290,7 @@ PA disponibles : 10
 SysExpl : 3
 
 Recherche en cours... (1 PA dépensé)
-🎯Ž² 3D100 : 45 + 78 + 23 = 146 points
+?Ž² 3D100 : 45 + 78 + 23 = 146 points
 
 Secteur Alpha-745 : 213/925 points
 Secteur Beta-392 : 180/1050 points
@@ -304,9 +305,9 @@ Continuer ? [Oui/Non/Arrêter]
 
 PA dépensé : 5 (5 restants)
 
-âœ“ SYSTÏˆME DÉCOUVERT !
+✓ SYSTœME D?COUVERT !
 Secteur Gamma-118 détecté !
-- Type : Étoile jaune (G)
+- Type : ?toile jaune (G)
 - PSol : 45
 - Distance : 2.5 AL
 - Coordonnées : (125, -34, 88)
@@ -317,7 +318,7 @@ Continuer recherche ? [Oui/Non]
 
 ---
 
-## 🎯ŒŒ Systèmes Cachés
+## œ? Systèmes Cachés
 
 ### Principe
 
@@ -329,17 +330,17 @@ Certains systèmes peuvent être **cachés** :
 
 **Modification formule :**
 ```
-Seuil_caché = Seuil Ï— Multiplicateur_cachette
+Seuil_caché = Seuil œ Multiplicateur_cachette
 
 Exemples :
-- Nébuleuse légère : Ï—1.5
-- Nébuleuse dense : Ï—2.0
-- Occultation : Ï—3.0
+- Nébuleuse légère : œ1.5
+- Nébuleuse dense : œ2.0
+- Occultation : œ3.0
 ```
 
 ---
 
-## 🎯’¡ Stratégies
+## œ¡ Stratégies
 
 ### Pour Explorateurs
 
@@ -365,20 +366,20 @@ Exemples :
 
 ---
 
-## 🎯“Š Tableau Récapitulatif
+## œŠ Tableau Récapitulatif
 
 ### Formules Complètes
 
-| Élément | Formule | Description |
+| ?lément | Formule | Description |
 |---------|---------|-------------|
-| **Seuil** | 500 + (Distance Ï— 100) | Points requis pour découverte |
-| **Points initiaux** | PSol + (6 - Distance) Ï— 10 | Avantage de départ |
-| **Lancé/PA** | (SysExpl) D (2 Ï— PSol) | Points gagnés par PA |
+| **Seuil** | 500 + (Distance œ 100) | Points requis pour découverte |
+| **Points initiaux** | PSol + (6 - Distance) œ 10 | Avantage de départ |
+| **Lancé/PA** | (SysExpl) D (2 œ PSol) | Points gagnés par PA |
 | **PA estimés** | (Seuil - Points initiaux) / Moyenne lancé | Estimation durée |
 
 ---
 
-## 🎯”® Évolutions Futures
+## œ® ?volutions Futures
 
 **Idées possibles :**
 - Scan passif (automatique, lent)

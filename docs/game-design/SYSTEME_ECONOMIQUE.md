@@ -1,90 +1,90 @@
-# Syst√®me √âconomique - March√©s des Stations
+# Système êconomique - Marchés des Stations
 
 ## Vue d'ensemble
 
-Le syst√®me √©conomique de Conqu√™te Spatiale est bas√© sur l'offre et la demande dynamique. Chaque station poss√®de son propre march√© avec des prix qui varient en fonction des stocks, de la production locale et de la consommation.
+Le système économique de Conquête Spatiale est basé sur l'offre et la demande dynamique. Chaque station possède son propre marché avec des prix qui varient en fonction des stocks, de la production locale et de la consommation.
 
 ## Types de Produits
 
-### Mati√®res Premi√®res (`matiere_premiere`)
-Ressources naturelles brutes extraites des ast√©ro√Ødes et plan√®tes :
-- **Minerai de Fer** (FER) : 50‚Ç° base
-- **Minerai de Cuivre** (CUIVRE) : 80‚Ç° base
-- **Silicium** (SI) : 120‚Ç° base
+### Matières Premières (`matiere_premiere`)
+Ressources naturelles brutes extraites des astéroØdes et planètes :
+- **Minerai de Fer** (FER) : 50œÇ° base
+- **Minerai de Cuivre** (CUIVRE) : 80œÇ° base
+- **Silicium** (SI) : 120œÇ° base
 
-### Mati√®res Raffin√©es (`matiere_raffinee`)
-Mati√®res premi√®res transform√©es :
-- **Acier** (ACIER) : 150‚Ç° base - Niveau tech 2
-- **Aluminium** (ALU) : 180‚Ç° base - Niveau tech 2
+### Matières Raffinées (`matiere_raffinee`)
+Matières premières transformées :
+- **Acier** (ACIER) : 150œÇ° base - Niveau tech 2
+- **Aluminium** (ALU) : 180œÇ° base - Niveau tech 2
 
 ### Carburants (`carburant`)
 Combustibles pour la propulsion :
-- **Hydrog√®ne** (H2) : 200‚Ç° base
-- **Deut√©rium** (D2) : 500‚Ç° base - Niveau tech 3
+- **Hydrogène** (H2) : 200œÇ° base
+- **Deutérium** (D2) : 500œÇ° base - Niveau tech 3
 
 ### Composants (`composant`)
-Pi√®ces √©lectroniques et m√©caniques :
-- **Circuit √âlectronique** (CIRCUIT) : 300‚Ç° base - Niveau tech 3
-- **Processeur Quantique** (QPROC) : 2000‚Ç° base - Niveau tech 5
+Pièces électroniques et mécaniques :
+- **Circuit électronique** (CIRCUIT) : 300œÇ° base - Niveau tech 3
+- **Processeur Quantique** (QPROC) : 2000œÇ° base - Niveau tech 5
 
 ### Consommables (`consommable`)
-Nourriture, eau, m√©dicaments :
-- **Eau** (H2O) : 10‚Ç° base
-- **Rations Alimentaires** (FOOD) : 15‚Ç° base
-- **M√©dicaments** (MED) : 100‚Ç° base - Niveau tech 2
+Nourriture, eau, médicaments :
+- **Eau** (H2O) : 10œÇ° base
+- **Rations Alimentaires** (FOOD) : 15œÇ° base
+- **Médicaments** (MED) : 100œÇ° base - Niveau tech 2
 
-### Manufactur√©s (`manufacture`)
-Objets fabriqu√©s complexes :
-- **Drone Minier** (DRONE) : 5000‚Ç° base - Niveau tech 4
-- **Pi√®ces D√©tach√©es** (PARTS) : 250‚Ç° base - Niveau tech 2
+### Manufacturés (`manufacture`)
+Objets fabriqués complexes :
+- **Drone Minier** (DRONE) : 5000œÇ° base - Niveau tech 4
+- **Pièces Détachées** (PARTS) : 250œÇ° base - Niveau tech 2
 
 ### Luxe (`luxe`)
 Articles de luxe et rares :
-- **Vin Terrien** (VIN) : 500‚Ç° base
+- **Vin Terrien** (VIN) : 500œÇ° base
 
-## Syst√®me de Prix Dynamiques
+## Système de Prix Dynamiques
 
 ### Formule de Base
 
-Les prix sont calcul√©s dynamiquement selon plusieurs facteurs :
+Les prix sont calculés dynamiquement selon plusieurs facteurs :
 
 ```
-Prix Final = Prix Base √ó Modificateur Type √âconomique √ó Ajustement Stock
+Prix Final = Prix Base ó Modificateur Type êconomique ó Ajustement Stock
 ```
 
-### Types √âconomiques
+### Types êconomiques
 
-Chaque produit dans chaque station a un type √©conomique d√©termin√© automatiquement :
+Chaque produit dans chaque station a un type économique déterminé automatiquement :
 
-#### 1. **PRODUCTEUR** (Production > Consommation √ó 1.5)
+#### 1. **PRODUCTEUR** (Production > Consommation ó 1.5)
 - **Modificateur Vente** : 0.7 (-30%)
 - **Modificateur Achat** : 0.4 (-60%)
-- **Logique** : La station produit beaucoup, donc vend pas cher mais ach√®te tr√®s peu cher
-- **Indicateur** : ‚¨á PROD
+- **Logique** : La station produit beaucoup, donc vend pas cher mais achète très peu cher
+- **Indicateur** : œ¨á PROD
 
-**Exemple** : Jupiter-spatiogare pour l'Hydrog√®ne (H2)
+**Exemple** : Jupiter-spatiogare pour l'Hydrogène (H2)
 - Production : 1000/jour
 - Consommation : 50/jour
-- ‚Üí Prix vente : 140‚Ç° au lieu de 200‚Ç°
-- ‚Üí Prix achat : 80‚Ç° au lieu de 200‚Ç°
+- œÜí Prix vente : 140œÇ° au lieu de 200œÇ°
+- œÜí Prix achat : 80œÇ° au lieu de 200œÇ°
 
-#### 2. **CONSOMMATEUR** (Consommation > Production √ó 1.5)
+#### 2. **CONSOMMATEUR** (Consommation > Production ó 1.5)
 - **Modificateur Vente** : 1.8 (+80%)
 - **Modificateur Achat** : 1.3 (+30%)
-- **Logique** : La station consomme beaucoup, donc vend cher et ach√®te cher
-- **Indicateur** : ‚¨Ü CONSO
+- **Logique** : La station consomme beaucoup, donc vend cher et achète cher
+- **Indicateur** : œ¨Ü CONSO
 
 **Exemple** : Terra-Maxi-Hub pour les Rations (FOOD)
 - Production : 500/jour
 - Consommation : 800/jour
-- ‚Üí Prix vente : 360‚Ç° au lieu de 200‚Ç°
-- ‚Üí Prix achat : 260‚Ç° au lieu de 200‚Ç°
+- œÜí Prix vente : 360œÇ° au lieu de 200œÇ°
+- œÜí Prix achat : 260œÇ° au lieu de 200œÇ°
 
-#### 3. **√âQUILIBRE** (Production ‚âà Consommation)
+#### 3. **êQUILIBRE** (Production œâà Consommation)
 - **Modificateur Vente** : 1.1 (+10%)
 - **Modificateur Achat** : 0.8 (-20%)
-- **Logique** : Production et consommation √©quilibr√©es, prix moyens
-- **Indicateur** : ‚Üí √âQUIL
+- **Logique** : Production et consommation équilibrées, prix moyens
+- **Indicateur** : œÜí êQUIL
 
 #### 4. **TRANSIT** (Ni production ni consommation)
 - **Modificateur Vente** : 1.2 (+20%)
@@ -99,128 +99,128 @@ Le stock influence aussi les prix :
 ```
 Ratio Stock = Stock Actuel / Stock Maximum
 
-Ajustement = 1.0 + (0.5 - Ratio Stock) √ó 0.8
+Ajustement = 1.0 + (0.5 - Ratio Stock) ó 0.8
 ```
 
 **Exemples** :
-- **Stock plein (100%)** : Ratio = 1.0 ‚Üí Ajustement = 0.6 (prix bas)
-- **Stock moyen (50%)** : Ratio = 0.5 ‚Üí Ajustement = 1.0 (prix normal)
-- **Stock vide (0%)** : Ratio = 0.0 ‚Üí Ajustement = 1.4 (prix √©lev√©)
+- **Stock plein (100%)** : Ratio = 1.0 œÜí Ajustement = 0.6 (prix bas)
+- **Stock moyen (50%)** : Ratio = 0.5 œÜí Ajustement = 1.0 (prix normal)
+- **Stock vide (0%)** : Ratio = 0.0 œÜí Ajustement = 1.4 (prix élevé)
 
 ### Exemple Complet
 
 **Terra-Maxi-Hub - Minerai de Fer**
-- Type √©conomique : CONSOMMATEUR (prod=50, conso=500)
-- Prix base : 50‚Ç°
+- Type économique : CONSOMMATEUR (prod=50, conso=500)
+- Prix base : 50œÇ°
 - Stock : 3000 / 10000 (30%)
 
 **Calcul** :
 1. Modificateur consommateur vente = 1.8
 2. Ratio stock = 0.3
-3. Ajustement stock = 1.0 + (0.5 - 0.3) √ó 0.8 = 1.16
-4. **Prix vente** = 50 √ó 1.8 √ó 1.16 = **104‚Ç°**
+3. Ajustement stock = 1.0 + (0.5 - 0.3) ó 0.8 = 1.16
+4. **Prix vente** = 50 ó 1.8 ó 1.16 = **104œÇ°**
 5. Modificateur consommateur achat = 1.3
-6. **Prix achat** = 50 √ó 1.3 √ó 1.16 = **75‚Ç°**
+6. **Prix achat** = 50 ó 1.3 ó 1.16 = **75œÇ°**
 
-## March√©s par Station
+## Marchés par Station
 
 ### Terra-Maxi-Hub (Terre)
-**Profil** : Hub commercial majeur, consommateur de ressources, producteur de biens manufactur√©s
+**Profil** : Hub commercial majeur, consommateur de ressources, producteur de biens manufacturés
 
-| Type | Production | Consommation | R√¥le |
+| Type | Production | Consommation | R¥le |
 |------|------------|--------------|------|
-| Mati√®res premi√®res | Faible | Tr√®s √©lev√©e | CONSOMMATEUR ‚¨Ü |
-| Mati√®res raffin√©es | Moyenne | Moyenne | √âQUILIBRE ‚Üí |
-| Composants | √âlev√©e | Faible | PRODUCTEUR ‚¨á |
-| Manufactur√©s | Tr√®s √©lev√©e | Faible | PRODUCTEUR ‚¨á |
-| Consommables | √âlev√©e | Tr√®s √©lev√©e | CONSOMMATEUR ‚¨Ü |
-| Carburants | Faible | √âlev√©e | CONSOMMATEUR ‚¨Ü |
-| Luxe | Faible | √âlev√©e | CONSOMMATEUR ‚¨Ü |
+| Matières premières | Faible | Très élevée | CONSOMMATEUR œ¨Ü |
+| Matières raffinées | Moyenne | Moyenne | êQUILIBRE œÜí |
+| Composants | élevée | Faible | PRODUCTEUR œ¨á |
+| Manufacturés | Très élevée | Faible | PRODUCTEUR œ¨á |
+| Consommables | élevée | Très élevée | CONSOMMATEUR œ¨Ü |
+| Carburants | Faible | élevée | CONSOMMATEUR œ¨Ü |
+| Luxe | Faible | élevée | CONSOMMATEUR œ¨Ü |
 
-**Strat√©gie pour les joueurs** :
-- ‚úÖ **Vendre** : Mati√®res premi√®res, consommables (prix √©lev√©s)
-- ‚úÖ **Acheter** : Composants, manufactur√©s (prix bas)
+**Stratégie pour les joueurs** :
+- œúÖ **Vendre** : Matières premières, consommables (prix élevés)
+- œúÖ **Acheter** : Composants, manufacturés (prix bas)
 
 ### Mars-spatiogare (Mars)
-**Profil** : Colonie mini√®re, gros producteur de minerais
+**Profil** : Colonie minière, gros producteur de minerais
 
-| Type | Production | Consommation | R√¥le |
+| Type | Production | Consommation | R¥le |
 |------|------------|--------------|------|
-| Mati√®res premi√®res | Tr√®s √©lev√©e | Faible | PRODUCTEUR ‚¨á |
-| Mati√®res raffin√©es | √âlev√©e | Faible | PRODUCTEUR ‚¨á |
-| Consommables | Faible | Moyenne | CONSOMMATEUR ‚¨Ü |
-| Carburants | Faible | Moyenne | √âQUILIBRE ‚Üí |
+| Matières premières | Très élevée | Faible | PRODUCTEUR œ¨á |
+| Matières raffinées | élevée | Faible | PRODUCTEUR œ¨á |
+| Consommables | Faible | Moyenne | CONSOMMATEUR œ¨Ü |
+| Carburants | Faible | Moyenne | êQUILIBRE œÜí |
 
-**Strat√©gie** :
-- ‚úÖ **Acheter** : Minerais (prix tr√®s bas)
-- ‚úÖ **Vendre** : Consommables, carburants
+**Stratégie** :
+- œúÖ **Acheter** : Minerais (prix très bas)
+- œúÖ **Vendre** : Consommables, carburants
 
 ### Jupiter-spatiogare (Jupiter)
 **Profil** : Station d'extraction de gaz, producteur majeur de carburants
 
-| Type | Production | Consommation | R√¥le |
+| Type | Production | Consommation | R¥le |
 |------|------------|--------------|------|
-| Carburants | Tr√®s √©lev√©e | Faible | PRODUCTEUR ‚¨á |
-| Mati√®res premi√®res | Moyenne | Faible | PRODUCTEUR ‚¨á |
-| Consommables | Faible | Moyenne | CONSOMMATEUR ‚¨Ü |
+| Carburants | Très élevée | Faible | PRODUCTEUR œ¨á |
+| Matières premières | Moyenne | Faible | PRODUCTEUR œ¨á |
+| Consommables | Faible | Moyenne | CONSOMMATEUR œ¨Ü |
 
-**Strat√©gie** :
-- ‚úÖ **Acheter** : Hydrog√®ne, Deut√©rium (prix tr√®s bas)
-- ‚úÖ **Vendre** : Nourriture, eau
+**Stratégie** :
+- œúÖ **Acheter** : Hydrogène, Deutérium (prix très bas)
+- œúÖ **Vendre** : Nourriture, eau
 
 ### Neptune-spatiogare (Neptune)
 **Profil** : Station industrielle, raffinage et manufacture
 
-| Type | Production | Consommation | R√¥le |
+| Type | Production | Consommation | R¥le |
 |------|------------|--------------|------|
-| Mati√®res raffin√©es | Tr√®s √©lev√©e | Faible | PRODUCTEUR ‚¨á |
-| Carburants | √âlev√©e | Faible | PRODUCTEUR ‚¨á |
-| Manufactur√©s | Moyenne | Faible | PRODUCTEUR ‚¨á |
+| Matières raffinées | Très élevée | Faible | PRODUCTEUR œ¨á |
+| Carburants | élevée | Faible | PRODUCTEUR œ¨á |
+| Manufacturés | Moyenne | Faible | PRODUCTEUR œ¨á |
 
-**Strat√©gie** :
-- ‚úÖ **Acheter** : Acier, aluminium, drones (prix bas)
-- ‚úÖ **Vendre** : Mati√®res premi√®res brutes
+**Stratégie** :
+- œúÖ **Acheter** : Acier, aluminium, drones (prix bas)
+- œúÖ **Vendre** : Matières premières brutes
 
 ### Lunastar-station (Lune)
-**Profil** : Station de d√©part, √©quilibr√©e pour d√©butants
+**Profil** : Station de départ, équilibrée pour débutants
 
-| Type | Production | Consommation | R√¥le |
+| Type | Production | Consommation | R¥le |
 |------|------------|--------------|------|
-| Tous produits | Moyenne | Moyenne | √âQUILIBRE ‚Üí |
+| Tous produits | Moyenne | Moyenne | êQUILIBRE œÜí |
 
-**Strat√©gie** :
+**Stratégie** :
 - Bons prix pour apprendre le commerce
-- Pas d'extr√™mes de prix
+- Pas d'extrêmes de prix
 
 ## Routes Commerciales Rentables
 
-### Route 1 : Mars ‚Üí Terre
-1. **Acheter √† Mars** : Minerai de Fer (35‚Ç° producteur)
-2. **Vendre √† Terre** : Minerai de Fer (104‚Ç° consommateur)
-3. **Profit** : +69‚Ç° par unit√© (+197%)
+### Route 1 : Mars œÜí Terre
+1. **Acheter  Mars** : Minerai de Fer (35œÇ° producteur)
+2. **Vendre  Terre** : Minerai de Fer (104œÇ° consommateur)
+3. **Profit** : +69œÇ° par unité (+197%)
 
-### Route 2 : Jupiter ‚Üí Terre
-1. **Acheter √† Jupiter** : Hydrog√®ne (140‚Ç° producteur)
-2. **Vendre √† Terre** : Hydrog√®ne (432‚Ç° consommateur)
-3. **Profit** : +292‚Ç° par unit√© (+209%)
+### Route 2 : Jupiter œÜí Terre
+1. **Acheter  Jupiter** : Hydrogène (140œÇ° producteur)
+2. **Vendre  Terre** : Hydrogène (432œÇ° consommateur)
+3. **Profit** : +292œÇ° par unité (+209%)
 
-### Route 3 : Terre ‚Üí Mars
-1. **Acheter √† Terre** : Rations Alimentaires (21‚Ç° producteur manufactur√©)
-2. **Vendre √† Mars** : Rations Alimentaires (39‚Ç° consommateur)
-3. **Profit** : +18‚Ç° par unit√© (+86%)
+### Route 3 : Terre œÜí Mars
+1. **Acheter  Terre** : Rations Alimentaires (21œÇ° producteur manufacturé)
+2. **Vendre  Mars** : Rations Alimentaires (39œÇ° consommateur)
+3. **Profit** : +18œÇ° par unité (+86%)
 
 ### Route Triangulaire Optimale
-1. **Mars ‚Üí Terre** : Minerais (+197%)
-2. **Terre ‚Üí Neptune** : Circuits √©lectroniques (+120%)
-3. **Neptune ‚Üí Mars** : Pi√®ces d√©tach√©es (+80%)
+1. **Mars œÜí Terre** : Minerais (+197%)
+2. **Terre œÜí Neptune** : Circuits électroniques (+120%)
+3. **Neptune œÜí Mars** : Pièces détachées (+80%)
 
 ## Simulation Temporelle
 
-Le march√© √©volue dans le temps :
+Le marché évolue dans le temps :
 
 ### Production/Consommation Quotidienne
 
-Chaque jour simul√© :
+Chaque jour simulé :
 ```php
 Stock Actuel += Production par jour
 Stock Actuel -= Consommation par jour
@@ -228,110 +228,110 @@ Stock Actuel -= Consommation par jour
 
 **Limites** :
 - Stock ne peut pas descendre sous 0
-- Stock ne peut pas d√©passer Stock Maximum
+- Stock ne peut pas dépasser Stock Maximum
 
 ### Recalcul Automatique des Prix
 
-Apr√®s chaque changement de stock (production/consommation ou transaction joueur), les prix sont automatiquement recalcul√©s.
+Après chaque changement de stock (production/consommation ou transaction joueur), les prix sont automatiquement recalculés.
 
 **Impact des transactions joueurs** :
-- Joueur **ach√®te** 1000 unit√©s ‚Üí Stock station baisse ‚Üí Prix monte
-- Joueur **vend** 1000 unit√©s ‚Üí Stock station monte ‚Üí Prix baisse
+- Joueur **achète** 1000 unités œÜí Stock station baisse œÜí Prix monte
+- Joueur **vend** 1000 unités œÜí Stock station monte œÜí Prix baisse
 
 ## Commandes
 
 ### `marche`
-Affiche le march√© de la station actuelle
+Affiche le marché de la station actuelle
 
-**Pr√©requis** :
-- √ätre dans une station (`transborder`)
+**Prérequis** :
+- ätre dans une station (`transborder`)
 - Station doit avoir `commerciale = true`
 
 **Affichage** :
 ```
-=== MARCH√â DE Terra-Maxi-Hub ===
+=== MARCHê DE Terra-Maxi-Hub ===
 
-Code       | Produit              | Type        | Achat    | Vente    | Stock    | √âco
+Code       | Produit              | Type        | Achat    | Vente    | Stock    | êco
 -----------|----------------------|-------------|----------|----------|----------|-------------
-FER        | Minerai de Fer       | matiere_... | 75‚Ç°      | 104‚Ç°     | 3,000    | CONSO ‚¨Ü
-H2         | Hydrog√®ne            | carburant   | 260‚Ç°     | 432‚Ç°     | 1,200    | CONSO ‚¨Ü
-CIRCUIT    | Circuit √âlectronique | composant   | 180‚Ç°     | 252‚Ç°     | 8,500    | PROD ‚¨á
+FER        | Minerai de Fer       | matiere_... | 75œÇ°      | 104œÇ°     | 3,000    | CONSO œ¨Ü
+H2         | Hydrogène            | carburant   | 260œÇ°     | 432œÇ°     | 1,200    | CONSO œ¨Ü
+CIRCUIT    | Circuit électronique | composant   | 180œÇ°     | 252œÇ°     | 8,500    | PROD œ¨á
 
-üí∞ Achat = Station ach√®te AU joueur | Vente = Station vend AU joueur
-‚¨á PROD = Prix bas | ‚¨Ü CONSO = Prix √©lev√© | ‚Üí √âQUIL = Prix moyen
+üí∞ Achat = Station achète AU joueur | Vente = Station vend AU joueur
+œ¨á PROD = Prix bas | œ¨Ü CONSO = Prix élevé | œÜí êQUIL = Prix moyen
 ```
 
-### `acheter <code> <quantit√©>`
-Acheter un produit √† la station (station VEND au joueur)
+### `acheter <code> <quantité>`
+Acheter un produit  la station (station VEND au joueur)
 
 **Exemple** :
 ```
 > acheter FER 500
 
-=== ACHAT EFFECTU√â ===
+=== ACHAT EFFECTUê ===
 Station: Terra-Maxi-Hub
 Produit: Minerai de Fer (FER)
-Quantit√©: 500 unit√©s
-Prix unitaire: 104.00‚Ç°
-Prix total: 52,000.00‚Ç°
+Quantité: 500 unités
+Prix unitaire: 104.00œÇ°
+Prix total: 52,000.00œÇ°
 Nouveau stock station: 2,500
-Type √©conomique: consommateur
+Type économique: consommateur
 
-üí° Le prix a √©t√© ajust√© selon l'offre et la demande.
+üí° Le prix a été ajusté selon l'offre et la demande.
 ```
 
-**V√©rifications** :
+**Vérifications** :
 - Stock station suffisant
-- Cr√©dits joueur suffisants (TODO)
-- Capacit√© cargo vaisseau (TODO)
+- Crédits joueur suffisants (TODO)
+- Capacité cargo vaisseau (TODO)
 
-### `vendre <code> <quantit√©>`
-Vendre un produit √† la station (station ACH√àTE au joueur)
+### `vendre <code> <quantité>`
+Vendre un produit  la station (station ACHTE au joueur)
 
 **Exemple** :
 ```
 > vendre FER 500
 
-=== VENTE EFFECTU√âE ===
+=== VENTE EFFECTUêE ===
 Station: Terra-Maxi-Hub
 Produit: Minerai de Fer (FER)
-Quantit√©: 500 unit√©s
-Prix unitaire: 75.00‚Ç°
-Prix total: 37,500.00‚Ç°
+Quantité: 500 unités
+Prix unitaire: 75.00œÇ°
+Prix total: 37,500.00œÇ°
 Nouveau stock station: 3,500
-Type √©conomique: consommateur
+Type économique: consommateur
 
-üí° Le prix a √©t√© ajust√© selon l'offre et la demande.
+üí° Le prix a été ajusté selon l'offre et la demande.
 ```
 
-**V√©rifications** :
+**Vérifications** :
 - Inventaire joueur suffisant (TODO)
-- Capacit√© stockage station suffisante
+- Capacité stockage station suffisante
 
 ## Piraterie et Transport (Futur)
 
 ### Transport de Marchandises NPC
 
-Le syst√®me simule des transports NPC entre stations pour √©quilibrer les march√©s :
+Le système simule des transports NPC entre stations pour équilibrer les marchés :
 
 - **Convois commerciaux** : Transportent marchandises entre stations
-- **Fr√©quence** : Bas√©e sur les d√©s√©quilibres offre/demande
-- **Routes** : Automatiquement calcul√©es pour maximiser profits
+- **Fréquence** : Basée sur les déséquilibres offre/demande
+- **Routes** : Automatiquement calculées pour maximiser profits
 
-### Opportunit√©s de Piraterie
+### Opportunités de Piraterie
 
 - **Intercepter convois** : Voler marchandises en transit
-- **Risques** : R√©putation, forces de s√©curit√©
-- **R√©compenses** : Marchandises revendables au march√© noir
+- **Risques** : Réputation, forces de sécurité
+- **Récompenses** : Marchandises revendables au marché noir
 
-### March√© Noir
+### Marché Noir
 
-- **Produits ill√©gaux** : `illegal = true`
-- **Prix major√©s** : +50% √† +200%
-- **Disponibilit√© limit√©e** : Certaines stations seulement
-- **Risques** : Contr√¥les douaniers, confiscation
+- **Produits illégaux** : `illegal = true`
+- **Prix majorés** : +50%  +200%
+- **Disponibilité limitée** : Certaines stations seulement
+- **Risques** : Contr¥les douaniers, confiscation
 
-## Base de Donn√©es
+## Base de Données
 
 ### Table `produits`
 ```sql
@@ -350,14 +350,14 @@ derniere_mise_a_jour_prix,
 disponible_achat, disponible_vente
 ```
 
-## Formules Cl√©s
+## Formules Clés
 
-### D√©termination Type √âconomique
+### Détermination Type êconomique
 ```php
-if (production == 0 && consommation == 0) ‚Üí TRANSIT
-else if (production > consommation √ó 1.5) ‚Üí PRODUCTEUR
-else if (consommation > production √ó 1.5) ‚Üí CONSOMMATEUR
-else ‚Üí √âQUILIBRE
+if (production == 0 && consommation == 0) œÜí TRANSIT
+else if (production > consommation ó 1.5) œÜí PRODUCTEUR
+else if (consommation > production ó 1.5) œÜí CONSOMMATEUR
+else œÜí êQUILIBRE
 ```
 
 ### Calcul Prix Vente
@@ -370,9 +370,9 @@ modif = match(type_economique) {
 };
 
 ratio_stock = stock_actuel / stock_max;
-ajust_stock = 1.0 + (0.5 - ratio_stock) √ó 0.8;
+ajust_stock = 1.0 + (0.5 - ratio_stock) ó 0.8;
 
-prix_vente = prix_base √ó modif √ó ajust_stock;
+prix_vente = prix_base ó modif ó ajust_stock;
 ```
 
 ### Calcul Prix Achat
@@ -384,34 +384,34 @@ modif = match(type_economique) {
     TRANSIT => 0.7,
 };
 
-prix_achat = prix_base √ó modif √ó ajust_stock;
+prix_achat = prix_base ó modif ó ajust_stock;
 
 // S'assurer que station fait une marge
 if (prix_achat >= prix_vente) {
-    prix_achat = prix_vente √ó 0.7;
+    prix_achat = prix_vente ó 0.7;
 }
 ```
 
-## √âquilibrage
+## êquilibrage
 
-### Prix Base Recommand√©s
+### Prix Base Recommandés
 
-- **Mati√®res premi√®res** : 50-150‚Ç°
-- **Mati√®res raffin√©es** : 150-300‚Ç°
-- **Carburants** : 200-500‚Ç°
-- **Composants** : 300-2000‚Ç°
-- **Consommables** : 10-100‚Ç°
-- **Manufactur√©s** : 250-5000‚Ç°
-- **Luxe** : 500-2000‚Ç°
+- **Matières premières** : 50-150œÇ°
+- **Matières raffinées** : 150-300œÇ°
+- **Carburants** : 200-500œÇ°
+- **Composants** : 300-2000œÇ°
+- **Consommables** : 10-100œÇ°
+- **Manufacturés** : 250-5000œÇ°
+- **Luxe** : 500-2000œÇ°
 
 ### Production/Consommation
 
 - **Faible** : 50-100/jour
 - **Moyenne** : 100-300/jour
-- **√âlev√©e** : 300-600/jour
-- **Tr√®s √©lev√©e** : 600-1000/jour
+- **élevée** : 300-600/jour
+- **Très élevée** : 600-1000/jour
 
-### Stocks Recommand√©s
+### Stocks Recommandés
 
 - **Stock minimum** : 10% du stock max
 - **Stock maximum** : 5000-20000 selon importance
@@ -419,13 +419,13 @@ if (prix_achat >= prix_vente) {
 
 ## TODO Technique
 
-- [ ] Impl√©menter syst√®me de cr√©dits pour personnages
-- [ ] Impl√©menter cargo/inventaire pour vaisseaux
+- [ ] Implémenter système de crédits pour personnages
+- [ ] Implémenter cargo/inventaire pour vaisseaux
 - [ ] Simulation temporelle automatique (cron/jobs)
 - [ ] Transport NPC entre stations
-- [ ] March√© noir et produits ill√©gaux
-- [ ] Interface graphique des march√©s
-- [ ] Graphiques d'√©volution des prix
+- [ ] Marché noir et produits illégaux
+- [ ] Interface graphique des marchés
+- [ ] Graphiques d'évolution des prix
 - [ ] Alertes de prix (notifications)
 - [ ] Contrats de transport
-- [ ] Syst√®me de r√©putation marchand
+- [ ] Système de réputation marchand

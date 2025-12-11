@@ -1,56 +1,56 @@
 # üîß CORRECTIONS IMPORTANTES
-## Mises √† Jour Syst√®me - 2025-11-01
+## Mises  Jour Système - 2025-11-01
 
 ---
 
-## ‚ö†Ô∏è CORRECTIONS MAJEURES
+## ⚠️📋 CORRECTIONS MAJEURES
 
-Ces corrections modifient certains principes fondamentaux d√©finis pr√©c√©demment.
+Ces corrections modifient certains principes fondamentaux définis précédemment.
 
 ---
 
 ## üë§ PRINCIPE PERSONNAGE JOUEUR (PJ)
 
-### ‚ùå ANCIEN PRINCIPE (INCORRECT)
+### œùå ANCIEN PRINCIPE (INCORRECT)
 
 > "Un joueur = Un vaisseau actif"
 
-### ‚úÖ NOUVEAU PRINCIPE (CORRECT)
+### œúÖ NOUVEAU PRINCIPE (CORRECT)
 
 **Un joueur = Un PJ dans l'univers**
 
-**R√®gles :**
+**Règles :**
 - Le joueur incarne un **Personnage Joueur (PJ)**
-- Ce PJ ne peut conduire qu'**un vaisseau actif** √† la fois
-- Le joueur peut **"poss√©der" d'autres PJ secondaires**
-- Permet de vivre des aventures avec des amis (PJ diff√©rents)
-- Mais quand il joue ‚Üí **un seul PJ actif**
+- Ce PJ ne peut conduire qu'**un vaisseau actif**  la fois
+- Le joueur peut **"posséder" d'autres PJ secondaires**
+- Permet de vivre des aventures avec des amis (PJ différents)
+- Mais quand il joue œÜí **un seul PJ actif**
 
 ### Implications
 
 **Structure :**
 ```
 JOUEUR (Compte)
-    ‚îú‚îÄ PJ Principal (actif par d√©faut)
-    ‚îÇ   ‚îî‚îÄ Vaisseau actif
-    ‚îú‚îÄ PJ Secondaire 1
-    ‚îÇ   ‚îî‚îÄ Vaisseau(x) poss√©d√©(s)
-    ‚îú‚îÄ PJ Secondaire 2
-    ‚îÇ   ‚îî‚îÄ Vaisseau(x) poss√©d√©(s)
-    ‚îî‚îÄ ...
+    œîúœîÄ PJ Principal (actif par défaut)
+    œîÇ   œîîœîÄ Vaisseau actif
+    œîúœîÄ PJ Secondaire 1
+    œîÇ   œîîœîÄ Vaisseau(x) possédé(s)
+    œîúœîÄ PJ Secondaire 2
+    œîÇ   œîîœîÄ Vaisseau(x) possédé(s)
+    œîîœîÄ ...
 ```
 
 **Gameplay :**
-- Changement de PJ actif possible (proc√©dure √† d√©finir)
+- Changement de PJ actif possible (procédure  définir)
 - Chaque PJ a sa propre progression
 - Chaque PJ a ses propres vaisseaux
-- Possibilit√© de jouer diff√©rents arch√©types
+- Possibilité de jouer différents archétypes
   - PJ1 : Explorateur
   - PJ2 : Marchand
   - PJ3 : Militaire
 
 **Social :**
-- Permet de rejoindre amis avec PJ adapt√©
+- Permet de rejoindre amis avec PJ adapté
 - Exemple : Ami organise raid militaire
   - Joueur peut basculer sur son PJ combattant
   - Au lieu de son PJ explorateur habituel
@@ -64,31 +64,31 @@ JOUEUR (Compte)
 **Nouveau module de propulsion :** Module MicroHE
 
 **Fonction :**
-- Permet des **petits sauts intra-syst√®me**
-- Port√©e adapt√©e √† la taille des syst√®mes solaires
-- Alternative au d√©placement conventionnel lent
+- Permet des **petits sauts intra-système**
+- Portée adaptée  la taille des systèmes solaires
+- Alternative au déplacement conventionnel lent
 
-### Caract√©ristiques (√Ä √âtudier)
+### Caractéristiques (Ä êtudier)
 
-**Port√©e estim√©e :**
-- 0.1 √† 2 UA par saut
+**Portée estimée :**
+- 0.1  2 UA par saut
 - Selon puissance module
 
 **Avantages :**
 - Plus rapide que conventionnel
-- Moins co√ªteux que HE complet
-- Id√©al pour navigation intra-syst√®me
+- Moins coªteux que HE complet
+- Idéal pour navigation intra-système
 
-**Inconv√©nients :**
-- Port√©e limit√©e
-- Moins pr√©cis que conventionnel
+**Inconvénients :**
+- Portée limitée
+- Moins précis que conventionnel
 - Temps de recharge entre sauts
 
-**Co√ªt √©nerg√©tique :**
+**Coªt énergétique :**
 ```
-Consommation MicroHE = InitMicroHE + (Distance_UA √ó CoefMicroHE)
+Consommation MicroHE = InitMicroHE + (Distance_UA ó CoefMicroHE)
 
-√Ä d√©finir :
+Ä définir :
 - InitMicroHE : ~50 UE (estimation)
 - CoefMicroHE : ~10-20
 - Temps recharge : 1-2 PA entre sauts
@@ -96,43 +96,43 @@ Consommation MicroHE = InitMicroHE + (Distance_UA √ó CoefMicroHE)
 
 **Usage typique :**
 ```
-Vaisseau arrive dans syst√®me via HE
-‚îî‚îÄ Position : P√©riph√©rie (30 UA)
-‚îî‚îÄ Destination : Plan√®te habitable (1 UA)
+Vaisseau arrive dans système via HE
+œîîœîÄ Position : Périphérie (30 UA)
+œîîœîÄ Destination : Planète habitable (1 UA)
 
 Option 1 : Conventionnel
-- Distance : 29 UA = 2900 √ó 100 millions km
+- Distance : 29 UA = 2900 ó 100 millions km
 - Temps : 10-15 PA
-- Co√ªt : Variable selon vaisseau
+- Coªt : Variable selon vaisseau
 
 Option 2 : MicroHE (avec module)
-- S√©rie de 15 sauts de ~2 UA
+- Série de 15 sauts de ~2 UA
 - Temps : 3-5 PA (avec recharges)
-- Co√ªt : ~750-1000 UE total
+- Coªt : ~750-1000 UE total
 ```
 
-**√Ä √©tudier en d√©tail ult√©rieurement.**
+**Ä étudier en détail ultérieurement.**
 
 ---
 
-## üìê SYST√àME DE COORDONN√âES
+## üìê SYSTÈME DE COORDONNÉES
 
-### ‚ùå ANCIEN SYST√àME (SIMPLIFI√â)
+### œùå ANCIEN SYSTÈME (SIMPLIFIê)
 
-Coordonn√©es (x, y, z) r√©elles simples.
+Coordonnées (x, y, z) réelles simples.
 
-### ‚úÖ NOUVEAU SYST√àME (PR√âCIS)
+### œúÖ NOUVEAU SYSTÈME (PRêCIS)
 
-**Coordonn√©es enti√®res + d√©cimales**
+**Coordonnées entières + décimales**
 
 ### Principe
 
-**Secteur = Coordonn√©es enti√®res**
+**Secteur = Coordonnées entières**
 ```
 Secteur (150, -23, 88)
 ```
 
-**Position r√©elle = Coordonn√©es avec d√©cimales**
+**Position réelle = Coordonnées avec décimales**
 ```
 Position (150.12, -23.14, 88.1)
 ```
@@ -140,46 +140,46 @@ Position (150.12, -23.14, 88.1)
 ### Structure
 
 **Secteur (entier) :**
-- Repr√©sente une "zone" de l'espace
-- Taille d'un secteur : 1 √ó 1 √ó 1 (unit√© √† d√©finir : AL ou parsec)
-- Utilis√© pour g√©n√©ration proc√©durale
-- Utilis√© pour recherche/indexation
+- Représente une "zone" de l'espace
+- Taille d'un secteur : 1 ó 1 ó 1 (unité  définir : AL ou parsec)
+- Utilisé pour génération procédurale
+- Utilisé pour recherche/indexation
 
-**Position r√©elle (d√©cimale) :**
-- Position pr√©cise √† l'int√©rieur du secteur
-- Partie d√©cimale = sous-coordonn√©es (0.0 √† 0.999...)
-- Utilis√© pour positionnement exact objets
-- Utilis√© pour calculs distances pr√©cis
+**Position réelle (décimale) :**
+- Position précise  l'intérieur du secteur
+- Partie décimale = sous-coordonnées (0.0  0.999...)
+- Utilisé pour positionnement exact objets
+- Utilisé pour calculs distances précis
 
 ### Exemples
 
 **PoV (Point of Value) :**
 ```
 PoV "Alpha Station"
-‚îú‚îÄ Secteur : (0, 0, 0)
-‚îî‚îÄ Position r√©elle : (0.12, 0.14, 0.1)
+œîúœîÄ Secteur : (0, 0, 0)
+œîîœîÄ Position réelle : (0.12, 0.14, 0.1)
 
-Interpr√©tation :
+Interprétation :
 - Dans le secteur central (0,0,0)
-- √Ä 12% dans l'axe X
-- √Ä 14% dans l'axe Y
-- √Ä 10% dans l'axe Z
+- Ä 12% dans l'axe X
+- Ä 14% dans l'axe Y
+- Ä 10% dans l'axe Z
 ```
 
 **Vaisseau :**
 ```
 Vaisseau "Explorer-01"
-‚îú‚îÄ Secteur : (150, -23, 88)
-‚îî‚îÄ Position r√©elle : (150.456, -23.789, 88.234)
+œîúœîÄ Secteur : (150, -23, 88)
+œîîœîÄ Position réelle : (150.456, -23.789, 88.234)
 
-Interpr√©tation :
+Interprétation :
 - Dans le secteur (150, -23, 88)
-- √Ä 45.6% dans l'axe X du secteur
-- √Ä 78.9% dans l'axe Y du secteur
-- √Ä 23.4% dans l'axe Z du secteur
+- Ä 45.6% dans l'axe X du secteur
+- Ä 78.9% dans l'axe Y du secteur
+- Ä 23.4% dans l'axe Z du secteur
 ```
 
-### Impl√©mentation Base de Donn√©es
+### Implémentation Base de Données
 
 ```sql
 CREATE TABLE objets_spatiaux (
@@ -190,7 +190,7 @@ CREATE TABLE objets_spatiaux (
     secteur_y INT NOT NULL,
     secteur_z INT NOT NULL,
     
-    -- Position r√©elle (d√©cimale)
+    -- Position réelle (décimale)
     position_x DECIMAL(10,3) NOT NULL,
     position_y DECIMAL(10,3) NOT NULL,
     position_z DECIMAL(10,3) NOT NULL,
@@ -205,17 +205,17 @@ CREATE TABLE objets_spatiaux (
 **Performance :**
 - Recherche rapide par secteur (entiers)
 - Indexation efficace
-- G√©n√©ration proc√©durale simplifi√©e
+- Génération procédurale simplifiée
 
-**Pr√©cision :**
+**Précision :**
 - Position exacte dans secteur
-- Calculs distances pr√©cis
-- Collisions d√©tectables
+- Calculs distances précis
+- Collisions détectables
 
 **Gameplay :**
 - Secteur = "zone" jouable
-- G√©n√©ration √† la demande par secteur
-- Transition secteur = √©v√©nement
+- Génération  la demande par secteur
+- Transition secteur = événement
 
 ### Calculs
 
@@ -228,7 +228,7 @@ def distance(obj1, obj2):
     return sqrt(dx*dx + dy*dy + dz*dz)
 ```
 
-**M√™me secteur ? :**
+**Même secteur ? :**
 ```python
 def meme_secteur(obj1, obj2):
     return (
@@ -238,10 +238,10 @@ def meme_secteur(obj1, obj2):
     )
 ```
 
-**Changement de secteur (lors d√©placement) :**
+**Changement de secteur (lors déplacement) :**
 ```python
 def normaliser_position(obj):
-    # Si position >= 1.0 ‚Üí changer de secteur
+    # Si position >= 1.0 œÜí changer de secteur
     while obj.position_x >= 1.0:
         obj.secteur_x += 1
         obj.position_x -= 1.0
@@ -255,94 +255,94 @@ def normaliser_position(obj):
 
 ---
 
-## ‚öôÔ∏è T√ÇCHES DE TRAITEMENT
+## œôÔ∏è TÇCHES DE TRAITEMENT
 
 ### Principe
 
-**Syst√®me de t√¢ches asynchrones** que le moteur ex√©cutera ou fera ex√©cuter par les joueurs.
+**Système de t¢ches asynchrones** que le moteur exécutera ou fera exécuter par les joueurs.
 
-**En fonction de certains crit√®res** (√† d√©finir).
+**En fonction de certains critères** ( définir).
 
 ### Concept
 
-**T√¢ches :**
+**T¢ches :**
 - Actions qui prennent du temps
-- Peuvent s'ex√©cuter en arri√®re-plan
-- Peuvent √™tre d√©l√©gu√©es
+- Peuvent s'exécuter en arrière-plan
+- Peuvent être déléguées
 
-**Exemples de t√¢ches :**
+**Exemples de t¢ches :**
 - Production usine
-- R√©paration vaisseau
+- Réparation vaisseau
 - Recherche technologique
 - Construction module base
 - Exploration automatique (drones)
 - Commerce automatique (IA)
 
-### Types de T√¢ches
+### Types de T¢ches
 
-**1. T√¢ches Automatiques (Moteur)**
+**1. T¢ches Automatiques (Moteur)**
 ```
-G√©r√©es enti√®rement par le serveur :
-- Tick √©conomique (production/consommation)
-- D√©placements IA
-- √âv√©nements temporels
-- G√©n√©ration proc√©durale
+Gérées entièrement par le serveur :
+- Tick économique (production/consommation)
+- Déplacements IA
+- êvénements temporels
+- Génération procédurale
 ```
 
-**2. T√¢ches Semi-Automatiques**
+**2. T¢ches Semi-Automatiques**
 ```
-Lanc√©es par joueur, ex√©cut√©es par serveur :
-- Production module lanc√©e
-- R√©paration en cours
+Lancées par joueur, exécutées par serveur :
+- Production module lancée
+- Réparation en cours
 - Voyage automatique vers destination
 - Scan continu zone
 ```
 
-**3. T√¢ches Joueur**
+**3. T¢ches Joueur**
 ```
-N√©cessitent actions joueur :
-- D√©cisions commerciales
+Nécessitent actions joueur :
+- Décisions commerciales
 - Combats
-- N√©gociations
+- Négociations
 - Exploration active
 ```
 
-### Crit√®res de D√©l√©gation
+### Critères de Délégation
 
-**Complexit√© :**
-- Simple ‚Üí Automatique
-- Complexe ‚Üí Semi-automatique ou Joueur
+**Complexité :**
+- Simple œÜí Automatique
+- Complexe œÜí Semi-automatique ou Joueur
 
 **Risque :**
-- S√ªr ‚Üí Automatique
-- Risqu√© ‚Üí Joueur
+- Sªr œÜí Automatique
+- Risqué œÜí Joueur
 
 **Importance :**
-- Routine ‚Üí Automatique
-- Strat√©gique ‚Üí Joueur
+- Routine œÜí Automatique
+- Stratégique œÜí Joueur
 
-### Syst√®me de Queue
+### Système de Queue
 
-**Chaque PJ a une queue de t√¢ches :**
+**Chaque PJ a une queue de t¢ches :**
 ```
-Queue T√¢ches PJ-01
-‚îú‚îÄ T√¢che 1 : R√©paration boucliers (3 PA restants)
-‚îú‚îÄ T√¢che 2 : Production Uniteks (10 PA restants)
-‚îî‚îÄ T√¢che 3 : Voyage vers Alpha-745 (25 PA restants)
+Queue T¢ches PJ-01
+œîúœîÄ T¢che 1 : Réparation boucliers (3 PA restants)
+œîúœîÄ T¢che 2 : Production Uniteks (10 PA restants)
+œîîœîÄ T¢che 3 : Voyage vers Alpha-745 (25 PA restants)
 ```
 
-**Ex√©cution :**
-- √Ä chaque tour (ou tick temps r√©el)
-- Moteur d√©compte PA de chaque t√¢che
-- Quand PA = 0 ‚Üí T√¢che compl√®te
+**Exécution :**
+- Ä chaque tour (ou tick temps réel)
+- Moteur décompte PA de chaque t¢che
+- Quand PA = 0 œÜí T¢che complète
 
 ### Interface Joueur
 
 ```
 > tasks list
 
-T√ÇCHES EN COURS :
-1. [====>....] R√©paration boucliers - 3/8 PA
+TÇCHES EN COURS :
+1. [====>....] Réparation boucliers - 3/8 PA
 2. [==>......] Production 50 Uniteks - 10/45 PA
 3. [>........] Voyage Alpha-745 - 25/30 PA
 
@@ -351,63 +351,63 @@ Annuler production Uniteks ? [Oui/Non]
 Progression perdue : 10 PA
 ```
 
-### √Ä D√©tailler Ult√©rieurement
+### Ä Détailler Ultérieurement
 
-**Aspects √† d√©velopper :**
-- Priorit√©s des t√¢ches
+**Aspects  développer :**
+- Priorités des t¢ches
 - Interruptions
-- D√©pendances entre t√¢ches
-- √âchecs de t√¢ches
+- Dépendances entre t¢ches
+- êchecs de t¢ches
 - Optimisations joueur
-- D√©l√©gation √† d'autres joueurs/IA
+- Délégation  d'autres joueurs/IA
 
 ---
 
-## üìã DOCUMENTS √Ä METTRE √Ä JOUR
+## üìã DOCUMENTS Ä METTRE Ä JOUR
 
-### Liste des Documents Affect√©s
+### Liste des Documents Affectés
 
 **1. GDD_Vaisseaux_Complet.md**
-- ‚úì Correction : PJ pilote vaisseau (pas joueur = vaisseau)
-- ‚úì Ajout : Module MicroHE
-- ‚úì Ajout : Syst√®me coordonn√©es
+- œúì Correction : PJ pilote vaisseau (pas joueur = vaisseau)
+- œúì Ajout : Module MicroHE
+- œúì Ajout : Système coordonnées
 
 **2. GDD_Architecture_Technique.md**
-- ‚úì Correction : Classe Compte ‚Üí PJ Principal + Secondaires
-- ‚úì Ajout : Classe T√¢che
-- ‚úì Ajout : Tables coordonn√©es (secteur + position)
+- œúì Correction : Classe Compte œÜí PJ Principal + Secondaires
+- œúì Ajout : Classe T¢che
+- œúì Ajout : Tables coordonnées (secteur + position)
 
 **3. GDD_Systeme_Decouverte.md**
-- ‚úì Nouveau document cr√©√©
-- ‚úì Algorithme d√©couverte syst√®mes
+- œúì Nouveau document créé
+- œúì Algorithme découverte systèmes
 
 **4. Tous les documents mentionnant "joueur = vaisseau"**
-- √Ä corriger vers "PJ pilote vaisseau"
+- Ä corriger vers "PJ pilote vaisseau"
 
 ---
 
-## üéØ PROCHAINES ACTIONS
+## 📋 PROCHAINES ACTIONS
 
-### Imm√©diat
+### Immédiat
 
-- [x] Cr√©er GDD_Systeme_Decouverte.md
+- [x] Créer GDD_Systeme_Decouverte.md
 - [x] Documenter corrections importantes
-- [ ] Mettre √† jour documents existants
+- [ ] Mettre  jour documents existants
 
 ### Court Terme
 
-- [ ] √âtudier en d√©tail module MicroHE
-- [ ] Sp√©cifier syst√®me t√¢ches complet
-- [ ] Impl√©menter syst√®me coordonn√©es en SQL
-- [ ] Tester algorithme d√©couverte
+- [ ] êtudier en détail module MicroHE
+- [ ] Spécifier système t¢ches complet
+- [ ] Implémenter système coordonnées en SQL
+- [ ] Tester algorithme découverte
 
 ### Moyen Terme
 
-- [ ] √âquilibrer valeurs MicroHE
-- [ ] Cr√©er interface gestion t√¢ches
+- [ ] êquilibrer valeurs MicroHE
+- [ ] Créer interface gestion t¢ches
 - [ ] Optimiser recherche par secteur
-- [ ] Tests performance coordonn√©es
+- [ ] Tests performance coordonnées
 
 ---
 
-**Document vivant - Derni√®re mise √† jour : 2025-11-01**
+**Document vivant - Dernière mise  jour : 2025-11-01**

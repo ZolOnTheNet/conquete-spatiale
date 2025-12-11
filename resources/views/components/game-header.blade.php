@@ -120,7 +120,7 @@
             <div class="column-title">🚀 VAISSEAU</div>
 
             @if($vaisseau)
-            <div class="ship-name">{{ $vaisseau->nom ?? 'Sans nom' }}</div>
+            <div class="ship-name">{{ $objetSpatial->nom ?? 'Sans nom' }}</div>
 
             {{-- Stats COMPACT (pourcentages uniquement, détails en tooltip) --}}
             <div class="ship-stats-compact">

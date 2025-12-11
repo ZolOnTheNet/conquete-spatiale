@@ -1,14 +1,14 @@
-# 🎯 UNIVERS ET GÉNÉRATION PROCÉDURALE
+# 📋 UNIVERS ET GêNêRATION PROCêDURALE
 ## Jeu de Conquête Galactique
 
 ---
 
-## ⚠️ DISCLAIMER
-Données issues du wiki - Algorithmes à implémenter et tester.
+## ⚠️📋¬è DISCLAIMER
+Données issues du wiki - Algorithmes  implémenter et tester.
 
 ---
 
-## 🎯 Moteur Générique Multi-Univers
+## 📋 Moteur Générique Multi-Univers
 
 ### Objectif
 
@@ -16,21 +16,21 @@ Créer un **moteur assez complexe** pour supporter différents univers de scienc
 
 ### Univers Envisagés
 
-**1. Monde de KA² (Zaib)**
+**1. Monde de KA¬≤ (Zaib)**
 - Zones se déplacent
 - Système magique
 
 **2. Style Lunastars**
 - Case par case
-- Déplacement suivant un axe à la fois
+- Déplacement suivant un axe  la fois
 
 **3. Style Solar Empire**
-- Passage d'un lieu à un autre
+- Passage d'un lieu  un autre
 - Vecteurs d'hyperespace (routes)
 
 ---
 
-## 🎯 Principes Généraux
+## 📋¬ê Principes Généraux
 
 ### Représentation de l'Univers
 
@@ -64,13 +64,13 @@ Créer un **moteur assez complexe** pour supporter différents univers de scienc
 ### Générateur
 
 **Génération :**
-- **Au fur et à mesure**
+- **Au fur et  mesure**
 - Exception : coordonnées décidées par MJ
 
 **MJ peut :**
 - Définir **grandes zones modèles**
 - Déterminent variations d'une zone
-- Cubes de 10, 20, 30 zones de côté
+- Cubes de 10, 20, 30 zones de c¥té
 - Univers peut devenir très grand rapidement
 
 **Déclenchement génération :**
@@ -79,7 +79,7 @@ Créer un **moteur assez complexe** pour supporter différents univers de scienc
 
 ---
 
-## 🎯 Classification des Étoiles
+## 📋 Classification des êtoiles
 
 ### Types Spectraux
 
@@ -110,7 +110,7 @@ Nombre  1   1   3   4   6   3   2
 
 ---
 
-## Gisements (Astéroïdes)
+## Gisements (AstéroØdes)
 
 ### Principe
 
@@ -121,30 +121,30 @@ Nombre  1   1   3   4   6   3   2
 ### Rendement
 
 **Facteurs :**
-- Augmente progressivement vers **extérieur de l'univers** (10 à 50%)
+- Augmente progressivement vers **extérieur de l'univers** (10  50%)
 - Plus facile de produire dès **présence humaine** (bases)
 
 **Exploitation par MAME :**
 - Ne produit **pas systématiquement** un cargo
-- Tirage aléatoire vis-à-vis du rendement
+- Tirage aléatoire vis--vis du rendement
 
 **Exemple :**
 ```
 Rendement gisement : 30%
 Roll 1D100 :
-- â‰¤ 30 : Production de 1 cargo
+- ¢œÄ∞¬§ 30 : Production de 1 cargo
 - > 30 : Pas de production ce tour
 ```
 
 ---
 
-## 🎯 GÉNÉRATEUR SIMPLE D'UNIVERS
+## 📋 GêNêRATEUR SIMPLE D'UNIVERS
 
 ### Principe
 
-Produire une zone de **N Ï— N Ï— N** avec un modèle en paramètre.
+Produire une zone de **N èœÄî N èœÄî N** avec un modèle en paramètre.
 
-Pour 10 â†’ 1000 cubes : suivre **courbe de Gauss** autour d'un soleil de puissance donnée.
+Pour 10 ¢œÄœÄô 1000 cubes : suivre **courbe de Gauss** autour d'un soleil de puissance donnée.
 
 ---
 
@@ -152,13 +152,13 @@ Pour 10 â†’ 1000 cubes : suivre **courbe de Gauss** autour d'un soleil de p
 
 **Densités :**
 - **Densité de soleils** : % donnant idée du nombre de soleils
-- **Densité d'astéroïdes**
+- **Densité d'astéroØdes**
 - **Densité de mines**
 - **Densité d'étoiles minières**
 
 **Puissances moyennes :**
-- **Puissance moyenne des soleils** : échelle 20 à 140 (défaut 50)
-- **Puissance moyenne des astéroïdes** : échelle 50 à 150 (défaut 70)
+- **Puissance moyenne des soleils** : échelle 20  140 (défaut 50)
+- **Puissance moyenne des astéroØdes** : échelle 50  150 (défaut 70)
 
 **Position :**
 - **Position X, Y, Z la plus petite** du cube
@@ -177,9 +177,9 @@ Pour 10 â†’ 1000 cubes : suivre **courbe de Gauss** autour d'un soleil de p
 - Option A : Utiliser tableau pré-calculé selon types
 - Option B : Calculer tableau
   - Puissance moyenne = centre
-  - Écart-type = 30 (exemple)
+  - êcart-type = 30 (exemple)
 
-**Résultat :** Tableau (puissance de soleil Ï— nombre)
+**Résultat :** Tableau (puissance de soleil èœÄî nombre)
 
 **Structure tableau :**
 ```
@@ -190,13 +190,13 @@ Puissance | Nombre
     20    |   1
     30    |   2
     40    |   5
-    50    |   8  â† pic (centre)
+    50    |   8  ¢œÄ¬ê pic (centre)
     60    |   5
     70    |   2
     80    |   1
 ```
 
-**Somme du tableau** = nombre total de soleils à distribuer
+**Somme du tableau** = nombre total de soleils  distribuer
 
 ---
 
@@ -206,7 +206,7 @@ Puissance | Nombre
 Pas = Nombre de secteurs / Nombre de soleils
 ```
 
-**Pas Aléatoire** (évite coïncidences) :
+**Pas Aléatoire** (évite coØncidences) :
 ```
 Pas aléatoire = Pas/2 + 1D(Pas)
 ```
@@ -217,27 +217,27 @@ Pas aléatoire = Pas/2 + 1D(Pas)
 
 **Principe :** Méthode des "petits chevaux" (le dernier avance)
 
-**Étapes :**
+**êtapes :**
 1. Tous commencent en **position 0**
 2. Prendre premier type d'élément en position minimum
-3. Ajouter **Pas/2 + 1D(Pas)** à sa position
+3. Ajouter **Pas/2 + 1D(Pas)**  sa position
 4. Pour cette position : transformer secteur en secteur de type élément
-5. Mettre à zéro champ de tri si négatif
+5. Mettre  zéro champ de tri si négatif
 6. **Réduire de 1** le nombre d'éléments du type choisi
 
 **Choix du type (soleil) :**
 - **Option A (aléatoire)** : 1D(nombre de types)
-- **Option B (méthodique)** : Plus grande â†’ plus petite puissance
+- **Option B (méthodique)** : Plus grande ¢œÄœÄô plus petite puissance
 
 ---
 
-#### 4. Même Principe pour Astéroïdes
+#### 4. Même Principe pour AstéroØdes
 
 **Créer tableau :**
 - Danger min = 50
-- Représente nombre Ï— danger
-- Connaître nombre total d'astéroïdes
-- Définir pas â†’ "pas aléatoire"
+- Représente nombre èœÄî danger
+- ConnaÆtre nombre total d'astéroØdes
+- Définir pas ¢œÄœÄô "pas aléatoire"
 - Parcourir et distribuer
 
 ---
@@ -245,10 +245,10 @@ Pas aléatoire = Pas/2 + 1D(Pas)
 ### Initialisation
 
 **Premier parcours avec création :**
-- Si secteur n'existe pas : **générer N Ï— N Ï— N secteurs**
+- Si secteur n'existe pas : **générer N èœÄî N èœÄî N secteurs**
 - Utiliser un champ (ex: puissance solaire)
-- Nombre aléatoire **négatif** : -1 à -Nâ´
-  - Formule : **-1D(Nâ´)**
+- Nombre aléatoire **négatif** : -1  -N¢¬Å¬¥
+  - Formule : **-1D(N¢¬Å¬¥)**
 
 **But :** Ordre de tirage aléatoire pour parcours
 
@@ -280,17 +280,17 @@ Peut être faite dans parcours principal si on ne numérotise pas espaces vides.
 
 ---
 
-## 🎯 GÉNÉRATEUR À CHEMINS D'UNIVERS
+## 📋 GêNêRATEUR Ä CHEMINS D'UNIVERS
 
 ### Principe
 
 **Coordonnées secteur** pas d'une grande importance.
 
-Entre objets notables â†’ il existe un **chemin**.
+Entre objets notables ¢œÄœÄô il existe un **chemin**.
 
 **Caractéristiques :**
 - Chaque objet a un chemin
-- Chemin empruntable **des deux côtés** (bidirectionnel)
+- Chemin empruntable **des deux c¥tés** (bidirectionnel)
 
 ### Méthode
 
@@ -305,7 +305,7 @@ Entre objets notables â†’ il existe un **chemin**.
 
 **Avantages :**
 - Navigation simplifiée
-- Contrôle routes stratégiques
+- Contr¥le routes stratégiques
 - Goulots d'étranglement tactiques
 
 **Inconvénients :**
@@ -314,13 +314,13 @@ Entre objets notables â†’ il existe un **chemin**.
 
 ---
 
-## 🎯 Références d'Univers
+## 📋¬ç Références d'Univers
 
-### ZAIB (Monde KA²)
+### ZAIB (Monde KA¬≤)
 
 **Contexte :**
 - "Bulle des vents" = petit univers
-- **Portiques** : permettent passage bulle à bulle
+- **Portiques** : permettent passage bulle  bulle
 
 **Moyens de transport :**
 - Navires
@@ -361,13 +361,13 @@ Entre objets notables â†’ il existe un **chemin**.
 #### Points Forts
 
 - Missions
-- Aide énergie/uniteks vaisseau à vaisseau
+- Aide énergie/uniteks vaisseau  vaisseau
 - Système gestion d'énergie
 - Système maladie
 - Réputation, XP, compétences améliorables
 
 **Interaction PvE :**
-- Astéroïde événementiel (tirage aléatoire)
+- AstéroØde événementiel (tirage aléatoire)
 - Tempêtes et vents
 - Création mine
 - Création station élémentaire (bar)
@@ -381,14 +381,14 @@ Entre objets notables â†’ il existe un **chemin**.
    - Uniquement dons uniteks/énergie
 
 2. **Système missions favorise entropie**
-   - Lien Terre â†” base Vulcania
+   - Lien Terre ¢œÄœÄù base Vulcania
    - Toutes ressources autour Vulcania
    - Autres exploitations non compétitives
 
-**Leçons pour notre jeu :**
-- âœ… Favoriser interaction joueurs
-- âœ… Économie décentralisée
-- âœ… Plusieurs hubs importants
+**Leßons pour notre jeu :**
+- ¢≈ìœÄ¶ Favoriser interaction joueurs
+- ¢≈ìœÄ¶ êconomie décentralisée
+- ¢≈ìœÄ¶ Plusieurs hubs importants
 
 ---
 
@@ -398,25 +398,25 @@ Entre objets notables â†’ il existe un **chemin**.
 
 **Principe :**
 - 3 races
-- Conquête progressive univers à découvrir
+- Conquête progressive univers  découvrir
 - Espaces de jeu = systèmes solaires
 - **Reliés par vecteur d'hyperespace**
 - Vecteur = route entre deux points
 
 **Application :**
-- Générateur à chemins
+- Générateur  chemins
 - Routes stratégiques
-- Contrôle territorial
+- Contr¥le territorial
 
 ---
 
-## 🎯 Variantes de Génération
+## 📋 Variantes de Génération
 
 ### Génération Hybride
 
 **Combiner les deux générateurs :**
 1. Générateur simple pour créer zones
-2. Générateur à chemins pour créer routes principales
+2. Générateur  chemins pour créer routes principales
 3. Navigation libre OU par chemins selon contexte
 
 **Avantages :**
@@ -430,7 +430,7 @@ Entre objets notables â†’ il existe un **chemin**.
 
 **Types possibles :**
 - Nébuleuses (visibilité réduite)
-- Champs astéroïdes denses
+- Champs astéroØdes denses
 - Anomalies gravitationnelles
 - Trous noirs
 - Zones de tempête
@@ -443,7 +443,7 @@ Entre objets notables â†’ il existe un **chemin**.
 
 ---
 
-## 🎯 Secteurs et Coordonnées
+## 📋 Secteurs et Coordonnées
 
 ### Système de Coordonnées
 
@@ -470,14 +470,14 @@ Entre objets notables â†’ il existe un **chemin**.
 **Base de données :**
 - Stocker uniquement zones **générées/visitées**
 - Zones vides supprimées (optimisation)
-- Génération à la demande
+- Génération  la demande
 
 **Tables :**
 ```sql
 secteurs (
     id,
     coord_x, coord_y, coord_z,
-    type (vide/soleil/astéroïde/etc),
+    type (vide/soleil/astéroØde/etc),
     puissance,
     danger,
     découvert_par,
@@ -489,14 +489,14 @@ secteurs (
 
 ## Idées Futures
 
-**Évolutions possibles :**
+**êvolutions possibles :**
 - Univers dynamique (étoiles vieillissent)
-- Événements cosmiques (supernovae)
+- êvénements cosmiques (supernovae)
 - Migration civilisations
-- Expansion/contraction zones contrôlées
+- Expansion/contraction zones contr¥lées
 - Phénomènes temporels
 - Dimensions parallèles
 
 ---
 
-**Document vivant - Dernière mise à jour : 2025-11-01**
+**Document vivant - Dernière mise  jour : 2025-11-01**

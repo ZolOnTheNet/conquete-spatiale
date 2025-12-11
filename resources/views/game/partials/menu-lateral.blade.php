@@ -45,14 +45,17 @@
                 <a href="{{ route('navire.timonerie') }}" class="block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400 hover:bg-cyan-900/20 transition">
                     Timonerie
                 </a>
-                <a href="{{ route('navire.equipage') }}" class="block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400 hover:bg-cyan-900/20 transition">
-                    Équipage
+                <a href="{{ route('navire.ingenierie') }}" class="block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400 hover:bg-cyan-900/20 transition">
+                    Ingénierie
+                </a>
+                <a href="{{ route('navire.com') }}" class="block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400 hover:bg-cyan-900/20 transition">
+                    COM
                 </a>
                 <a href="{{ route('navire.soute') }}" class="block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400 hover:bg-cyan-900/20 transition">
                     Soute
                 </a>
-                <a href="{{ route('vaisseau.etat') }}" class="block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400 hover:bg-cyan-900/20 transition">
-                    Équipement
+                <a href="{{ route('navire.equipage') }}" class="block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400 hover:bg-cyan-900/20 transition">
+                    Équipage
                 </a>
             @endif
         </div>
@@ -63,6 +66,12 @@
             <a href="{{ route('jeu.profil') }}" class="block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400 hover:bg-cyan-900/20 transition">
                 Profil
             </a>
+            <form method="POST" action="{{ route('logout') }}" class="inline w-full">
+                @csrf
+                <button type="submit" class="w-full text-left px-3 py-2 rounded text-sm text-gray-300 hover:text-red-400 hover:bg-red-900/20 transition">
+                    Quitter
+                </button>
+            </form>
         </div>
 
         {{-- SECTION ADMIN (si admin) --}}
@@ -74,17 +83,6 @@
             </a>
         </div>
         @endif
-
-        {{-- SECTION SYSTÈME (tout en bas) --}}
-        <div class="mb-3 border-t border-cyan-500/20 pt-3">
-            <h3 class="text-xs text-gray-500 uppercase px-2 mb-1">💻 Système</h3>
-            <form method="POST" action="{{ route('logout') }}" class="inline w-full">
-                @csrf
-                <button type="submit" class="w-full text-left px-3 py-2 rounded text-sm text-gray-300 hover:text-red-400 hover:bg-red-900/20 transition">
-                    Quitter
-                </button>
-            </form>
-        </div>
     </div>
 
     <!-- Info personnage (en bas) -->

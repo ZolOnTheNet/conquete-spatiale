@@ -1,30 +1,30 @@
-# ðŸ› ï¸� PLAN PRÃ‰-PHASE 2 : INFRASTRUCTURE AVANCÃ‰E
-## ConquÃªte Spatiale
+# Ã°Å¸âºÂ Ã¯Â¸ï¿½ PLAN PRÃâ°-PHASE 2 : INFRASTRUCTURE AVANCÃâ°E
+## ConquÃÂªte Spatiale
 
 **Version :** 1.0
-**Date crÃ©ation :** 2025-11-18
-**Objectif :** Infrastructures nÃ©cessaires avant Phase 2 Ã‰conomie
+**Date crÃÂ©ation :** 2025-11-18
+**Objectif :** Infrastructures nÃÂ©cessaires avant Phase 2 Ãâ°conomie
 
 ---
 
-## ðŸŽ¯ OBJECTIFS PRINCIPAUX
+## Ã°Å¸Å½Â¯ OBJECTIFS PRINCIPAUX
 
-Avant de dÃ©marrer la Phase 2 (Ã‰conomie), implÃ©menter :
+Avant de dÃÂ©marrer la Phase 2 (Ãâ°conomie), implÃÂ©menter :
 
-1. **SystÃ¨me de gestion BDD** avec reset/seed paramÃ©trable
-2. **IntÃ©gration GAIA** pour Ã©toiles rÃ©elles (donnÃ©es ESA)
+1. **SystÃÂ¨me de gestion BDD** avec reset/seed paramÃÂ©trable
+2. **IntÃÂ©gration GAIA** pour ÃÂ©toiles rÃÂ©elles (donnÃÂ©es ESA)
 3. **Backend administratif** avec carte stellaire interactive
-4. **SystÃ¨me sauvegarde/restauration** avec versioning
+4. **SystÃÂ¨me sauvegarde/restauration** avec versioning
 
 ---
 
-## ðŸ“‹ PHASE PRÃ‰-2.1 : SYSTÃˆME DE GESTION BDD
+## Ã°Å¸ââ¹ PHASE PRÃâ°-2.1 : SYSTÃËME DE GESTION BDD
 
 ### Objectif
 
-Permettre de rÃ©initialiser et peupler la base de donnÃ©es de maniÃ¨re flexible avec diffÃ©rentes sources de donnÃ©es.
+Permettre de rÃÂ©initialiser et peupler la base de donnÃÂ©es de maniÃÂ¨re flexible avec diffÃÂ©rentes sources de donnÃÂ©es.
 
-### FonctionnalitÃ©s
+### FonctionnalitÃÂ©s
 
 #### 1. Commande Artisan `db:reset-game`
 
@@ -34,11 +34,11 @@ php artisan db:reset-game [--mode=] [--with-gaia] [--systems=N]
 ```
 
 **Options :**
-- `--mode=basic` : Reset complet avec donnÃ©es de test basiques (default)
-- `--mode=gaia` : Reset avec donnÃ©es GAIA (Ã©toiles rÃ©elles)
-- `--mode=hybrid` : DonnÃ©es GAIA + systÃ¨mes procÃ©duraux
-- `--with-gaia` : Ajouter donnÃ©es GAIA en plus des donnÃ©es actuelles
-- `--systems=N` : Nombre de systÃ¨mes procÃ©duraux Ã  gÃ©nÃ©rer (default: 20)
+- `--mode=basic` : Reset complet avec donnÃÂ©es de test basiques (default)
+- `--mode=gaia` : Reset avec donnÃÂ©es GAIA (ÃÂ©toiles rÃÂ©elles)
+- `--mode=hybrid` : DonnÃÂ©es GAIA + systÃÂ¨mes procÃÂ©duraux
+- `--with-gaia` : Ajouter donnÃÂ©es GAIA en plus des donnÃÂ©es actuelles
+- `--systems=N` : Nombre de systÃÂ¨mes procÃÂ©duraux ÃÂ  gÃÂ©nÃÂ©rer (default: 20)
 - `--force` : Forcer sans confirmation
 
 **Fonctionnement :**
@@ -46,27 +46,27 @@ php artisan db:reset-game [--mode=] [--with-gaia] [--systems=N]
 2. `php artisan migrate:fresh`
 3. Seed selon mode choisi :
    - **basic** : `DatabaseSeeder` actuel
-   - **gaia** : `GaiaSeeder` (nouvelles Ã©toiles rÃ©elles)
+   - **gaia** : `GaiaSeeder` (nouvelles ÃÂ©toiles rÃÂ©elles)
    - **hybrid** : `GaiaSeeder` + `UniverseSeeder`
 
-#### 2. Seeders RÃ©organisÃ©s
+#### 2. Seeders RÃÂ©organisÃÂ©s
 
 **Structure :**
 ```
 database/seeders/
-â”œâ”€â”€ DatabaseSeeder.php           (orchestrateur principal)
-â”œâ”€â”€ CompteSeeder.php             (comptes de test)
-â”œâ”€â”€ PersonnageSeeder.php         (personnages de test)
-â”œâ”€â”€ UniverseSeeder.php           (gÃ©nÃ©ration procÃ©durale)
-â”œâ”€â”€ GaiaSeeder.php               (donnÃ©es GAIA) [NEW]
-â””â”€â”€ DevSeeder.php                (donnÃ©es dÃ©veloppement)
+Ã¢âÅÃ¢ââ¬Ã¢ââ¬ DatabaseSeeder.php           (orchestrateur principal)
+Ã¢âÅÃ¢ââ¬Ã¢ââ¬ CompteSeeder.php             (comptes de test)
+Ã¢âÅÃ¢ââ¬Ã¢ââ¬ PersonnageSeeder.php         (personnages de test)
+Ã¢âÅÃ¢ââ¬Ã¢ââ¬ UniverseSeeder.php           (gÃÂ©nÃÂ©ration procÃÂ©durale)
+Ã¢âÅÃ¢ââ¬Ã¢ââ¬ GaiaSeeder.php               (donnÃÂ©es GAIA) [NEW]
+Ã¢ââÃ¢ââ¬Ã¢ââ¬ DevSeeder.php                (donnÃÂ©es dÃÂ©veloppement)
 ```
 
 **DatabaseSeeder.php :**
 ```php
 public function run()
 {
-    $mode = $this->command->option('mode') ?? 'basic';
+    $mode = $this->command->option('mode') œ 'basic';
 
     // Always seed accounts and characters
     $this->call([
@@ -101,32 +101,32 @@ Schema::create('universe_configs', function (Blueprint $table) {
 });
 ```
 
-**ClÃ©s de configuration :**
+**ClÃÂ©s de configuration :**
 - `generation_mode` : 'procedural' | 'gaia' | 'hybrid'
 - `gaia_enabled` : true/false
-- `gaia_radius_ly` : Rayon d'Ã©toiles GAIA chargÃ©es (dÃ©faut: 100 AL)
-- `procedural_density` : DensitÃ© gÃ©nÃ©ration procÃ©durale (dÃ©faut: 0.05)
-- `known_space_radius` : Rayon espace connu (dÃ©faut: 50 AL)
+- `gaia_radius_ly` : Rayon d'ÃÂ©toiles GAIA chargÃÂ©es (dÃÂ©faut: 100 AL)
+- `procedural_density` : DensitÃÂ© gÃÂ©nÃÂ©ration procÃÂ©durale (dÃÂ©faut: 0.05)
+- `known_space_radius` : Rayon espace connu (dÃÂ©faut: 50 AL)
 
 ---
 
-## ðŸ“‹ PHASE PRÃ‰-2.2 : INTÃ‰GRATION GAIA
+## Ã°Å¸ââ¹ PHASE PRÃâ°-2.2 : INTÃâ°GRATION GAIA
 
 ### Contexte GAIA
 
-**GAIA** (ESA) = Catalogue astronomique rÃ©el avec :
-- Position 3D des Ã©toiles
+**GAIA** (ESA) = Catalogue astronomique rÃÂ©el avec :
+- Position 3D des ÃÂ©toiles
 - Type spectral (O, B, A, F, G, K, M)
-- Magnitude, luminositÃ©
-- Distance en annÃ©es-lumiÃ¨re
+- Magnitude, luminositÃÂ©
+- Distance en annÃÂ©es-lumiÃÂ¨re
 - Noms/identifiants
 
-**Sources de donnÃ©es :**
-- Fichier CSV exportÃ© de GAIA DR3
-- API GAIA (optionnel, pour mise Ã  jour)
-- Sous-ensemble filtrÃ© (Ã©toiles < 100 AL)
+**Sources de donnÃÂ©es :**
+- Fichier CSV exportÃÂ© de GAIA DR3
+- API GAIA (optionnel, pour mise ÃÂ  jour)
+- Sous-ensemble filtrÃÂ© (ÃÂ©toiles < 100 AL)
 
-### FonctionnalitÃ©s
+### FonctionnalitÃÂ©s
 
 #### 1. Importateur GAIA
 
@@ -137,14 +137,14 @@ php artisan gaia:import [fichier.csv] [--radius=100] [--force]
 
 **Fonctionnement :**
 1. Lire fichier CSV GAIA
-2. Filtrer Ã©toiles dans rayon spÃ©cifiÃ©
-3. Convertir coordonnÃ©es galactiques â†’ coordonnÃ©es jeu
-4. CrÃ©er `SystemeStellaire` pour chaque Ã©toile
+2. Filtrer ÃÂ©toiles dans rayon spÃÂ©cifiÃÂ©
+3. Convertir coordonnÃÂ©es galactiques Ã¢â â coordonnÃÂ©es jeu
+4. CrÃÂ©er `SystemeStellaire` pour chaque ÃÂ©toile
 5. Marquer comme `source_gaia = true`
 
-#### 2. Structure de DonnÃ©es
+#### 2. Structure de DonnÃÂ©es
 
-**Ajout Ã  `systemes_stellaires` :**
+**Ajout ÃÂ  `systemes_stellaires` :**
 
 ```php
 $table->boolean('source_gaia')->default(false);
@@ -155,9 +155,9 @@ $table->decimal('gaia_distance_ly', 10, 2)->nullable();
 $table->decimal('gaia_magnitude', 8, 4)->nullable();
 ```
 
-#### 3. Conversion CoordonnÃ©es
+#### 3. Conversion CoordonnÃÂ©es
 
-**De coordonnÃ©es galactiques (RA, DEC, Distance) vers (secteur_x, secteur_y, secteur_z) :**
+**De coordonnÃÂ©es galactiques (RA, DEC, Distance) vers (secteur_x, secteur_y, secteur_z) :**
 
 ```php
 class GaiaCoordinateConverter
@@ -189,14 +189,14 @@ class GaiaCoordinateConverter
 }
 ```
 
-#### 4. Nom des Ã‰toiles
+#### 4. Nom des Ãâ°toiles
 
 **Sources :**
 - Nom GAIA officiel si disponible
 - Nom catalogue (HD, HIP, etc.)
 - Sinon : `GAIA-{source_id_court}`
 
-**Ã‰toiles cÃ©lÃ¨bres Ã  nommer :**
+**Ãâ°toiles cÃÂ©lÃÂ¨bres ÃÂ  nommer :**
 - Sol (notre Soleil) : (0, 0, 0)
 - Alpha Centauri : ~4.37 AL
 - Sirius : ~8.6 AL
@@ -215,7 +215,7 @@ class GaiaSeeder extends Seeder
         $csvPath = database_path('data/gaia_nearby_stars.csv');
 
         if (!file_exists($csvPath)) {
-            $this->command->warn('Fichier GAIA non trouvÃ©. GÃ©nÃ©ration procÃ©durale...');
+            $this->command->warn('Fichier GAIA non trouvÃÂ©. GÃÂ©nÃÂ©ration procÃÂ©durale...');
             return;
         }
 
@@ -254,7 +254,7 @@ class GaiaSeeder extends Seeder
                 'gaia_ra' => $data['ra'],
                 'gaia_dec' => $data['dec'],
                 'gaia_distance_ly' => $data['distance'],
-                'gaia_magnitude' => $data['magnitude'] ?? null,
+                'gaia_magnitude' => $data['magnitude'] œ null,
                 // Generate planets
                 'nb_planetes' => rand(0, 12),
             ]);
@@ -264,17 +264,17 @@ class GaiaSeeder extends Seeder
 
         fclose($file);
 
-        $this->command->info("âœ… {$count} systÃ¨mes GAIA importÃ©s");
+        $this->command->info("Ã¢Åâ¦ {$count} systÃÂ¨mes GAIA importÃÂ©s");
     }
 }
 ```
 
-#### 6. Fichier de DonnÃ©es GAIA
+#### 6. Fichier de DonnÃÂ©es GAIA
 
 **Localisation :**
 ```
 database/data/
-â””â”€â”€ gaia_nearby_stars.csv
+Ã¢ââÃ¢ââ¬Ã¢ââ¬ gaia_nearby_stars.csv
 ```
 
 **Format CSV :**
@@ -285,20 +285,20 @@ source_id,ra,dec,distance,spectral_type,magnitude,name
 ```
 
 **Comment obtenir :**
-1. TÃ©lÃ©charger depuis GAIA Archive (https://gea.esac.esa.int/archive/)
-2. Filtrer Ã©toiles < 100 AL
-3. Exporter colonnes nÃ©cessaires
-4. OU utiliser sous-ensemble prÃ©-filtrÃ© fourni
+1. TÃÂ©lÃÂ©charger depuis GAIA Archive (https://gea.esac.esa.int/archive/)
+2. Filtrer ÃÂ©toiles < 100 AL
+3. Exporter colonnes nÃÂ©cessaires
+4. OU utiliser sous-ensemble prÃÂ©-filtrÃÂ© fourni
 
 ---
 
-## ðŸ“‹ PHASE PRÃ‰-2.3 : BACKEND ADMINISTRATIF
+## Ã°Å¸ââ¹ PHASE PRÃâ°-2.3 : BACKEND ADMINISTRATIF
 
 ### Objectif
 
-Interface d'administration pour visualiser et gÃ©rer l'univers.
+Interface d'administration pour visualiser et gÃÂ©rer l'univers.
 
-### FonctionnalitÃ©s
+### FonctionnalitÃÂ©s
 
 #### 1. Routes Backend
 
@@ -345,7 +345,7 @@ class IsAdmin
         $compte = $request->user();
 
         if (!$compte || !$compte->is_admin) {
-            abort(403, 'AccÃ¨s refusÃ©. Vous devez Ãªtre administrateur.');
+            abort(403, 'AccÃÂ¨s refusÃÂ©. Vous devez ÃÂªtre administrateur.');
         }
 
         return $next($request);
@@ -353,23 +353,23 @@ class IsAdmin
 }
 ```
 
-**Ajout Ã  `comptes` :**
+**Ajout ÃÂ  `comptes` :**
 ```php
 $table->boolean('is_admin')->default(false);
 ```
 
 #### 3. Carte Stellaire Interactive
 
-**BibliothÃ¨que :** Three.js pour rendu 3D WebGL
+**BibliothÃÂ¨que :** Three.js pour rendu 3D WebGL
 
 **Vue : `resources/views/backend/carte.blade.php` :**
 - Canvas Three.js
-- Affichage systÃ¨mes stellaires (points 3D)
+- Affichage systÃÂ¨mes stellaires (points 3D)
 - Couleur selon type spectral
-- Affichage position joueurs (icÃ´nes vaisseaux)
+- Affichage position joueurs (icÃÂ´nes vaisseaux)
 - Zoom, rotation, pan
-- Clic sur systÃ¨me â†’ dÃ©tails
-- Filtres (type Ã©toile, source GAIA, dÃ©couvert/non dÃ©couvert)
+- Clic sur systÃÂ¨me Ã¢â â dÃÂ©tails
+- Filtres (type ÃÂ©toile, source GAIA, dÃÂ©couvert/non dÃÂ©couvert)
 
 **API Endpoint :**
 ```php
@@ -499,7 +499,7 @@ class Carte3D {
         const material = new THREE.MeshBasicMaterial({ color: couleur });
         const sphere = new THREE.Mesh(geometry, material);
 
-        sphere.position.set(systeme.x, systeme.z, systeme.y); // Y et Z inversÃ©s pour Three.js
+        sphere.position.set(systeme.x, systeme.z, systeme.y); // Y et Z inversÃÂ©s pour Three.js
         sphere.userData = systeme;
 
         this.scene.add(sphere);
@@ -544,13 +544,13 @@ carte.loadData();
 
 ---
 
-## ðŸ“‹ PHASE PRÃ‰-2.4 : SAUVEGARDE/RESTAURATION
+## Ã°Å¸ââ¹ PHASE PRÃâ°-2.4 : SAUVEGARDE/RESTAURATION
 
 ### Objectif
 
-Permettre sauvegarde complÃ¨te des donnÃ©es avec versioning et restauration.
+Permettre sauvegarde complÃÂ¨te des donnÃÂ©es avec versioning et restauration.
 
-### FonctionnalitÃ©s
+### FonctionnalitÃÂ©s
 
 #### 1. Commandes Artisan
 
@@ -565,11 +565,11 @@ php artisan backup:import [fichier] [--force] [--merge]
 ```
 
 **Options :**
-- `--tables=all|comptes,personnages,...` : Tables Ã  sauvegarder
+- `--tables=all|comptes,personnages,...` : Tables ÃÂ  sauvegarder
 - `--format=json|sql` : Format de sortie
-- `--output=path` : Chemin de sortie (dÃ©faut: storage/backups/)
+- `--output=path` : Chemin de sortie (dÃÂ©faut: storage/backups/)
 - `--force` : Forcer import sans confirmation
-- `--merge` : Fusionner avec donnÃ©es existantes (sinon reset)
+- `--merge` : Fusionner avec donnÃÂ©es existantes (sinon reset)
 
 #### 2. Format de Sauvegarde
 
@@ -607,8 +607,8 @@ php artisan backup:import [fichier] [--force] [--merge]
 ```
 
 **Avantages :**
-- Contient structure ET donnÃ©es
-- Versioning pour compatibilitÃ©
+- Contient structure ET donnÃÂ©es
+- Versioning pour compatibilitÃÂ©
 - Portable entre environnements
 - Lisible/modifiable manuellement
 
@@ -633,8 +633,8 @@ class BackupService
 
     public function export(array $options = []): string
     {
-        $tables = $options['tables'] ?? $this->tables;
-        $format = $options['format'] ?? 'json';
+        $tables = $options['tables'] œ $this->tables;
+        $format = $options['format'] œ 'json';
 
         $backup = [
             'meta' => $this->getMeta(),
@@ -656,15 +656,15 @@ class BackupService
 
     public function import(string $path, array $options = []): void
     {
-        $merge = $options['merge'] ?? false;
+        $merge = $options['merge'] œ false;
 
         if (!file_exists($path)) {
-            throw new \RuntimeException("Fichier non trouvÃ©: {$path}");
+            throw new \RuntimeException("Fichier non trouvÃÂ©: {$path}");
         }
 
         $backup = json_decode(file_get_contents($path), true);
 
-        // VÃ©rifier version
+        // VÃÂ©rifier version
         $this->validateVersion($backup['meta']);
 
         // Reset si pas merge
@@ -676,7 +676,7 @@ class BackupService
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
         }
 
-        // Importer donnÃ©es
+        // Importer donnÃÂ©es
         DB::transaction(function () use ($backup) {
             foreach ($backup['data'] as $table => $rows) {
                 foreach ($rows as $row) {
@@ -735,13 +735,13 @@ class BackupService
 
 **Vue : `resources/views/backend/sauvegarde.blade.php` :**
 
-**FonctionnalitÃ©s :**
+**FonctionnalitÃÂ©s :**
 - Liste des sauvegardes existantes
-- Bouton "CrÃ©er sauvegarde"
+- Bouton "CrÃÂ©er sauvegarde"
 - Upload fichier de sauvegarde
 - Bouton "Restaurer" pour chaque sauvegarde
-- Affichage mÃ©tadonnÃ©es (date, version, tables)
-- TÃ©lÃ©chargement sauvegarde
+- Affichage mÃÂ©tadonnÃÂ©es (date, version, tables)
+- TÃÂ©lÃÂ©chargement sauvegarde
 
 **Formulaire Export :**
 ```html
@@ -760,7 +760,7 @@ class BackupService
         </select>
     </label>
 
-    <button type="submit">CrÃ©er Sauvegarde</button>
+    <button type="submit">CrÃÂ©er Sauvegarde</button>
 </form>
 ```
 
@@ -772,7 +772,7 @@ class BackupService
 
     <label>
         <input type="checkbox" name="merge">
-        Fusionner avec donnÃ©es existantes (sinon remplace tout)
+        Fusionner avec donnÃÂ©es existantes (sinon remplace tout)
     </label>
 
     <button type="submit">Restaurer</button>
@@ -781,75 +781,75 @@ class BackupService
 
 ---
 
-## ðŸ“Š RÃ‰CAPITULATIF
+## Ã°Å¸âÅ  RÃâ°CAPITULATIF
 
-### Ce qui sera livrÃ©
+### Ce qui sera livrÃÂ©
 
-1. âœ… **Commande `db:reset-game`** avec modes (basic, gaia, hybrid)
-2. âœ… **Seeders rÃ©organisÃ©s** (GaiaSeeder, UniverseSeeder, etc.)
-3. âœ… **IntÃ©gration GAIA** (import Ã©toiles rÃ©elles, conversion coordonnÃ©es)
-4. âœ… **Backend administratif** avec carte 3D interactive (Three.js)
-5. âœ… **SystÃ¨me sauvegarde/restauration** avec versioning JSON/SQL
+1. Ã¢Åâ¦ **Commande `db:reset-game`** avec modes (basic, gaia, hybrid)
+2. Ã¢Åâ¦ **Seeders rÃÂ©organisÃÂ©s** (GaiaSeeder, UniverseSeeder, etc.)
+3. Ã¢Åâ¦ **IntÃÂ©gration GAIA** (import ÃÂ©toiles rÃÂ©elles, conversion coordonnÃÂ©es)
+4. Ã¢Åâ¦ **Backend administratif** avec carte 3D interactive (Three.js)
+5. Ã¢Åâ¦ **SystÃÂ¨me sauvegarde/restauration** avec versioning JSON/SQL
 
 ### Structure Fichiers
 
 ```
 app/
-â”œâ”€â”€ Console/Commands/
-â”‚   â”œâ”€â”€ DbResetGame.php
-â”‚   â”œâ”€â”€ GaiaImport.php
-â”‚   â”œâ”€â”€ BackupExport.php
-â”‚   â””â”€â”€ BackupImport.php
-â”œâ”€â”€ Http/
-â”‚   â”œâ”€â”€ Controllers/
-â”‚   â”‚   â””â”€â”€ BackendController.php
-â”‚   â””â”€â”€ Middleware/
-â”‚       â””â”€â”€ IsAdmin.php
-â”œâ”€â”€ Services/
-â”‚   â”œâ”€â”€ BackupService.php
-â”‚   â””â”€â”€ GaiaCoordinateConverter.php
+Ã¢âÅÃ¢ââ¬Ã¢ââ¬ Console/Commands/
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ DbResetGame.php
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ GaiaImport.php
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ BackupExport.php
+Ã¢ââ   Ã¢ââÃ¢ââ¬Ã¢ââ¬ BackupImport.php
+Ã¢âÅÃ¢ââ¬Ã¢ââ¬ Http/
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ Controllers/
+Ã¢ââ   Ã¢ââ   Ã¢ââÃ¢ââ¬Ã¢ââ¬ BackendController.php
+Ã¢ââ   Ã¢ââÃ¢ââ¬Ã¢ââ¬ Middleware/
+Ã¢ââ       Ã¢ââÃ¢ââ¬Ã¢ââ¬ IsAdmin.php
+Ã¢âÅÃ¢ââ¬Ã¢ââ¬ Services/
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ BackupService.php
+Ã¢ââ   Ã¢ââÃ¢ââ¬Ã¢ââ¬ GaiaCoordinateConverter.php
 database/
-â”œâ”€â”€ data/
-â”‚   â””â”€â”€ gaia_nearby_stars.csv
-â”œâ”€â”€ migrations/
-â”‚   â”œâ”€â”€ xxxx_add_gaia_fields_to_systemes_stellaires.php
-â”‚   â”œâ”€â”€ xxxx_add_is_admin_to_comptes.php
-â”‚   â””â”€â”€ xxxx_create_universe_configs_table.php
-â””â”€â”€ seeders/
-    â”œâ”€â”€ DatabaseSeeder.php (refactor)
-    â”œâ”€â”€ GaiaSeeder.php (new)
-    â””â”€â”€ UniverseSeeder.php (refactor)
+Ã¢âÅÃ¢ââ¬Ã¢ââ¬ data/
+Ã¢ââ   Ã¢ââÃ¢ââ¬Ã¢ââ¬ gaia_nearby_stars.csv
+Ã¢âÅÃ¢ââ¬Ã¢ââ¬ migrations/
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ xxxx_add_gaia_fields_to_systemes_stellaires.php
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ xxxx_add_is_admin_to_comptes.php
+Ã¢ââ   Ã¢ââÃ¢ââ¬Ã¢ââ¬ xxxx_create_universe_configs_table.php
+Ã¢ââÃ¢ââ¬Ã¢ââ¬ seeders/
+    Ã¢âÅÃ¢ââ¬Ã¢ââ¬ DatabaseSeeder.php (refactor)
+    Ã¢âÅÃ¢ââ¬Ã¢ââ¬ GaiaSeeder.php (new)
+    Ã¢ââÃ¢ââ¬Ã¢ââ¬ UniverseSeeder.php (refactor)
 resources/
-â”œâ”€â”€ views/backend/
-â”‚   â”œâ”€â”€ dashboard.blade.php
-â”‚   â”œâ”€â”€ carte.blade.php
-â”‚   â””â”€â”€ sauvegarde.blade.php
-â””â”€â”€ js/backend/
-    â””â”€â”€ carte3d.js
+Ã¢âÅÃ¢ââ¬Ã¢ââ¬ views/backend/
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ dashboard.blade.php
+Ã¢ââ   Ã¢âÅÃ¢ââ¬Ã¢ââ¬ carte.blade.php
+Ã¢ââ   Ã¢ââÃ¢ââ¬Ã¢ââ¬ sauvegarde.blade.php
+Ã¢ââÃ¢ââ¬Ã¢ââ¬ js/backend/
+    Ã¢ââÃ¢ââ¬Ã¢ââ¬ carte3d.js
 routes/
-â””â”€â”€ backend.php (new)
+Ã¢ââÃ¢ââ¬Ã¢ââ¬ backend.php (new)
 storage/
-â””â”€â”€ backups/ (directory)
+Ã¢ââÃ¢ââ¬Ã¢ââ¬ backups/ (directory)
 ```
 
-### Ordre d'ImplÃ©mentation
+### Ordre d'ImplÃÂ©mentation
 
-1. **Jour 1 (4h)** : SystÃ¨me BDD + Seeders
-2. **Jour 2 (6h)** : IntÃ©gration GAIA
+1. **Jour 1 (4h)** : SystÃÂ¨me BDD + Seeders
+2. **Jour 2 (6h)** : IntÃÂ©gration GAIA
 3. **Jour 3 (8h)** : Backend + Carte 3D
 4. **Jour 4 (4h)** : Sauvegarde/Restauration
 
-**Total estimÃ© : 22h (~3 jours)**
+**Total estimÃÂ© : 22h (~3 jours)**
 
 ---
 
-## ðŸŽ¯ APRÃˆS PRÃ‰-PHASE 2
+## Ã°Å¸Å½Â¯ APRÃËS PRÃâ°-PHASE 2
 
 Une fois ces infrastructures en place :
 
 1. **Synchroniser branche avec dev**
-2. **DÃ©marrer Phase 2 : Ã‰conomie de Base**
+2. **DÃÂ©marrer Phase 2 : Ãâ°conomie de Base**
 
 ---
 
-**Document vivant - DerniÃ¨re mise Ã  jour : 2025-11-18**
+**Document vivant - DerniÃÂ¨re mise ÃÂ  jour : 2025-11-18**

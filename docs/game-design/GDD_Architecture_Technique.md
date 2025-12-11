@@ -1,24 +1,24 @@
 # üíª ARCHITECTURE TECHNIQUE ET CLASSES
-## Jeu de Conqu√™te Galactique
+## Jeu de Conquête Galactique
 
 ---
 
-## ‚ö†Ô∏è DISCLAIMER
-Approche Orient√©e Objet - Peut n√©cessiter modifications lors de l'impl√©mentation.
+## ⚠️📋 DISCLAIMER
+Approche Orientée Objet - Peut nécessiter modifications lors de l'implémentation.
 
 ---
 
-## üéØ Pattern de D√©veloppement
+## 📋 Pattern de Développement
 
-### MVC (Mod√®le-Vue-Contr√¥leur)
+### MVC (Modèle-Vue-Contr¥leur)
 
 ```
 UTILISATEUR
-    ‚Üì (actions)
-CONTR√îLEUR (index.php)
-    ‚îú‚Üí MOD√àLE (donn√©es, logique m√©tier)
-    ‚îî‚Üí VUE (affichage, interface)
-    ‚Üì
+    œÜì (actions)
+CONTRîLEUR (index.php)
+    œîúœÜí MODLE (données, logique métier)
+    œîîœÜí VUE (affichage, interface)
+    œÜì
 RENDU HTML
 ```
 
@@ -28,37 +28,37 @@ RENDU HTML
 
 ```
 /
-‚îú‚îÄ index.php (point d'entr√©e, contr√¥leur principal)
-‚îÇ
-‚îú‚îÄ /controllers/
-‚îÇ   ‚îú‚îÄ PersonnageController.php
-‚îÇ   ‚îú‚îÄ VaisseauController.php
-‚îÇ   ‚îú‚îÄ BaseController.php
-‚îÇ   ‚îî‚îÄ ...
-‚îÇ
-‚îú‚îÄ /models/
-‚îÇ   ‚îú‚îÄ Compte.php
-‚îÇ   ‚îú‚îÄ Personnage.php
-‚îÇ   ‚îú‚îÄ ObjetSpatial.php
-‚îÇ   ‚îú‚îÄ Vaisseau.php
-‚îÇ   ‚îú‚îÄ Base.php
-‚îÇ   ‚îî‚îÄ ...
-‚îÇ
-‚îú‚îÄ /views/
-‚îÇ   ‚îú‚îÄ layout.php (template principal)
-‚îÇ   ‚îú‚îÄ personnage/
-‚îÇ   ‚îú‚îÄ vaisseau/
-‚îÇ   ‚îú‚îÄ base/
-‚îÇ   ‚îî‚îÄ ...
-‚îÇ
-‚îú‚îÄ /assets/
-‚îÇ   ‚îú‚îÄ css/
-‚îÇ   ‚îú‚îÄ js/
-‚îÇ   ‚îî‚îÄ img/
-‚îÇ
-‚îî‚îÄ /config/
-    ‚îú‚îÄ database.php
-    ‚îî‚îÄ config.php
+œîúœîÄ index.php (point d'entrée, contr¥leur principal)
+œîÇ
+œîúœîÄ /controllers/
+œîÇ   œîúœîÄ PersonnageController.php
+œîÇ   œîúœîÄ VaisseauController.php
+œîÇ   œîúœîÄ BaseController.php
+œîÇ   œîîœîÄ ...
+œîÇ
+œîúœîÄ /models/
+œîÇ   œîúœîÄ Compte.php
+œîÇ   œîúœîÄ Personnage.php
+œîÇ   œîúœîÄ ObjetSpatial.php
+œîÇ   œîúœîÄ Vaisseau.php
+œîÇ   œîúœîÄ Base.php
+œîÇ   œîîœîÄ ...
+œîÇ
+œîúœîÄ /views/
+œîÇ   œîúœîÄ layout.php (template principal)
+œîÇ   œîúœîÄ personnage/
+œîÇ   œîúœîÄ vaisseau/
+œîÇ   œîúœîÄ base/
+œîÇ   œîîœîÄ ...
+œîÇ
+œîúœîÄ /assets/
+œîÇ   œîúœîÄ css/
+œîÇ   œîúœîÄ js/
+œîÇ   œîîœîÄ img/
+œîÇ
+œîîœîÄ /config/
+    œîúœîÄ database.php
+    œîîœîÄ config.php
 ```
 
 ---
@@ -67,37 +67,37 @@ RENDU HTML
 
 ### Description
 
-**Repr√©sente :** Un joueur  
-**Correspond √† :** Table `CS_comptes` en base de donn√©es
+**Représente :** Un joueur  
+**Correspond  :** Table `CS_comptes` en base de données
 
 ---
 
-### Attributs (Priv√©s)
+### Attributs (Privés)
 
 ```php
 class Compte {
     // Identification
-    private int $idCompte;           // 0 si pas encore d√©fini
-    private string $NomLogin;        // Cha√Æne connexion, BD compatible
-    private string $MotDePasse;      // Crypt√© dans la BD
+    private int $idCompte;           // 0 si pas encore défini
+    private string $NomLogin;        // ChaÆne connexion, BD compatible
+    private string $MotDePasse;      // Crypté dans la BD
     private string $AdresseMail;     // Adresse email
     
     // Personnages
     private int $PersoPrincipal;     // ID personnage principal
     private array $PersoSecondaires; // IDs personnages secondaires
-                                     // (actuellement non g√©r√©s)
+                                     // (actuellement non gérés)
     
-    // √âtat
-    private bool $EstVerifie;        // TRUE si compte v√©rifi√©
+    // êtat
+    private bool $EstVerifie;        // TRUE si compte vérifié
     
     // Logs
-    private array $dateLog;          // Diff√©rentes dates de gestion
+    private array $dateLog;          // Différentes dates de gestion
 }
 ```
 
 ---
 
-### M√©thodes (Publiques)
+### Méthodes (Publiques)
 
 ```php
 class Compte {
@@ -124,18 +124,18 @@ class Compte {
 
 ---
 
-### Proc√©dure de Cr√©ation
+### Procédure de Création
 
-**Sur page de cr√©ation :**
+**Sur page de création :**
 1. Demande nom et login
 2. Adresse mail
-3. Mot de passe (crypt√© avant stockage)
-4. Informations associ√©es √† classe Personnages
+3. Mot de passe (crypté avant stockage)
+4. Informations associées  classe Personnages
 
 **Validation :**
-- Email de v√©rification envoy√©
+- Email de vérification envoyé
 - Lien d'activation
-- `EstVerifie` passe √† TRUE apr√®s validation
+- `EstVerifie` passe  TRUE après validation
 
 ---
 
@@ -145,11 +145,11 @@ class Compte {
 
 **Classe parente** pour tous objets dans l'espace.
 
-**H√©rite :** Vaisseau, Base, Ast√©ro√Øde, etc.
+**Hérite :** Vaisseau, Base, AstéroØde, etc.
 
 ---
 
-### Attributs (Priv√©s)
+### Attributs (Privés)
 
 ```php
 class ObjetSpatial {
@@ -159,33 +159,33 @@ class ObjetSpatial {
     private int $ClasseOS;          // Type d'objet (enum)
     
     // Position
-    private int $positionX;         // Coordonn√©e X (entier relatif)
-    private int $positionY;         // Coordonn√©e Y
-    private int $positionZ;         // Coordonn√©e Z
+    private int $positionX;         // Coordonnée X (entier relatif)
+    private int $positionY;         // Coordonnée Y
+    private int $positionZ;         // Coordonnée Z
     private float $distanceOS;      // Distance du centre secteur
     
-    // Hi√©rarchie
+    // Hiérarchie
     private int $contenuDans;       // 0 = libre, sinon ID conteneur
     private int $secteurOS;         // Secteur de localisation
     
-    // Propri√©t√©
-    private int $propri√©taire;      // ID joueur (n√©gatif = guilde)
+    // Propriété
+    private int $propriétaire;      // ID joueur (négatif = guilde)
     private ?ObjetSpatial $remorquerPar; // Vaisseau remorqueur
     
     // Physique
     private float $Volume;          // Taille
     private float $masse;           // Masse
-    private int $resistance;        // En US (Unit√©s Structure)
+    private int $resistance;        // En US (Unités Structure)
     private int $coefdommages;      // En %
     
     // Logs
-    private array $dateLogs;        // Diff√©rentes dates
+    private array $dateLogs;        // Différentes dates
 }
 ```
 
 ---
 
-### M√©thodes (√Ä d√©finir)
+### Méthodes (Ä définir)
 
 ```php
 class ObjetSpatial {
@@ -197,12 +197,12 @@ class ObjetSpatial {
     public function setPosition(int $x, int $y, int $z): void;
     public function deplacer(int $dx, int $dy, int $dz): void;
     
-    // √âtat
+    // êtat
     public function getResistance(): int;
     public function subirDommages(int $dommages): void;
     public function reparer(int $montant): void;
     
-    // Hi√©rarchie
+    // Hiérarchie
     public function estContenu(): bool;
     public function estRemorque(): bool;
 }
@@ -210,24 +210,24 @@ class ObjetSpatial {
 
 ---
 
-## üöÄ Classe Vaisseau (H√©rite ObjetSpatial)
+## üöÄ Classe Vaisseau (Hérite ObjetSpatial)
 
 ### Description
 
 **Classe la plus importante au niveau jeu.**
 
-**H√©rite de :** ObjetSpatial
+**Hérite de :** ObjetSpatial
 
 ---
 
-### Attributs Suppl√©mentaires (Priv√©s)
+### Attributs Supplémentaires (Privés)
 
 ```php
 class Vaisseau extends ObjetSpatial {
     // === PROPULSION ===
-    private int $TypePropulsion;           // Type g√©n√©ral
-    private string $Mode;                  // 'combustible' | '√©nerg√©tique'
-    private float $R√©serve;               // Quantit√© UE stockable
+    private int $TypePropulsion;           // Type général
+    private string $Mode;                  // 'combustible' | 'énergétique'
+    private float $Réserve;               // Quantité UE stockable
     
     // Vitesses
     private float $VitesseConventionnelle; // Mode normal
@@ -237,18 +237,18 @@ class Vaisseau extends ObjetSpatial {
     private int $PartPanne;               // % moteur dans pannes
     
     // Combustible (si applicable)
-    private float $Combustible;           // R√©serve combustible
-    private float $Efficacit√©;            // Transform. combust‚Üí√©nergie/PA
+    private float $Combustible;           // Réserve combustible
+    private float $Efficacité;            // Transform. combustœÜíénergie/PA
     private string $TypeCombustible;      // Type minerai
-    private float $R√©cup√©ration;          // Points combust. dans 1 cargo
+    private float $Récupération;          // Points combust. dans 1 cargo
     
     // Coefficients
-    private float $InitConventionnel;     // Co√ªt initial mode normal (0)
-    private float $InitHyperespace;       // Co√ªt initial HE (200)
-    private float $CoefConventionnel;     // Mult.√ó100 d√©pense √©nergie normal
-    private float $CoefHyperespace;       // Mult.√ó100 d√©pense √©nergie HE
-    private float $CoefPAMN;              // Mult.√ó100 PA mode normal (100)
-    private float $CoefPAHE;              // Mult.√ó100 PA mode HE (20)
+    private float $InitConventionnel;     // Coªt initial mode normal (0)
+    private float $InitHyperespace;       // Coªt initial HE (200)
+    private float $CoefConventionnel;     // Mult.ó100 dépense énergie normal
+    private float $CoefHyperespace;       // Mult.ó100 dépense énergie HE
+    private float $CoefPAMN;              // Mult.ó100 PA mode normal (100)
+    private float $CoefPAHE;              // Mult.ó100 PA mode HE (20)
     
     // === SOUTE ===
     private int $MaxSoutes;               // Nombre cargos max
@@ -258,17 +258,17 @@ class Vaisseau extends ObjetSpatial {
     
     // === ARMEMENT ===
     private array $EmplacementArmes;      // Emplacements armes
-    private int $nbArmes;                 // Nombre armes mont√©es
+    private int $nbArmes;                 // Nombre armes montées
     
     // === MAINTENANCE ===
-    private int $V√©tust√©;                 // Augmente pannes
-    private int $Complexit√©Fct;           // Difficult√© r√©paration
-    private int $ScorePanne;              // Augmente √† chaque panne
-    private int $ScoreEntretien;          // Augmente √† chaque entretien
-    private array $PannesActuelles;       // Pannes √† r√©parer
+    private int $Vétusté;                 // Augmente pannes
+    private int $ComplexitéFct;           // Difficulté réparation
+    private int $ScorePanne;              // Augmente  chaque panne
+    private int $ScoreEntretien;          // Augmente  chaque entretien
+    private array $PannesActuelles;       // Pannes  réparer
     
     // === INFORMATIQUE ===
-    private int $SystemInformatique;      // Niveau syst√®me
+    private int $SystemInformatique;      // Niveau système
     private array $Programmes;            // Programmes et niveaux
     
     // === LOGS ===
@@ -278,7 +278,7 @@ class Vaisseau extends ObjetSpatial {
 
 ---
 
-### M√©thodes Sp√©cifiques
+### Méthodes Spécifiques
 
 ```php
 class Vaisseau extends ObjetSpatial {
@@ -296,18 +296,18 @@ class Vaisseau extends ObjetSpatial {
         string $mode
     ): int;
     
-    public function rechargerEnergie(float $quantit√©): void;
-    public function consommerEnergie(float $quantit√©): bool;
+    public function rechargerEnergie(float $quantité): void;
+    public function consommerEnergie(float $quantité): bool;
     
     // === SOUTE ===
     public function ajouterCargo(Objet $cargo): bool;
     public function retirerCargo(int $index): ?Objet;
-    public function getCapacit√©Disponible(): int;
+    public function getCapacitéDisponible(): int;
     public function larguerToutCargo(): void; // Saut urgence
     
     // === ARMEMENT ===
     public function monterArme(Arme $arme, int $emplacement): bool;
-    public function d√©monterArme(int $emplacement): ?Arme;
+    public function démonterArme(int $emplacement): ?Arme;
     public function tirerArme(int $emplacement, Cible $cible): bool;
     
     // === MAINTENANCE ===
@@ -318,88 +318,88 @@ class Vaisseau extends ObjetSpatial {
     
     // === INFORMATIQUE ===
     public function installerProgramme(Programme $prog): bool;
-    public function d√©sinstallerProgramme(int $id): bool;
+    public function désinstallerProgramme(int $id): bool;
     public function getProgrammes(): array;
     
     // === COMBAT ===
-    public function calculerSeuil√âvasion(): int;
-    public function subirAttaque(int $d√©g√¢ts): void;
+    public function calculerSeuilêvasion(): int;
+    public function subirAttaque(int $dég¢ts): void;
     public function getHP(): int;
 }
 ```
 
 ---
 
-## üèóÔ∏è Classe Base (H√©rite ObjetSpatial)
+## üèóÔ∏è Classe Base (Hérite ObjetSpatial)
 
 ### Description
 
-**Repr√©sente :** Base spatiale / Station
+**Représente :** Base spatiale / Station
 
-**H√©rite de :** ObjetSpatial
+**Hérite de :** ObjetSpatial
 
 ---
 
-### Attributs (Priv√©s)
+### Attributs (Privés)
 
 ```php
 class Base extends ObjetSpatial {
     // Gestion
     private int $IdGestionnaire;        // Joueur gestionnaire
-    private bool $EstArche;             // TRUE si arche ma√Ætre
+    private bool $EstArche;             // TRUE si arche maÆtre
     
     // Structure
     private int $PointsAncrageMax;      // Max modules/arches
     private int $PointsAncrageLibres;   // Disponibles
-    private array $ModulesAttach√©s;     // Liste modules
-    private array $ArchesRattach√©es;    // Liste arches
+    private array $ModulesAttachés;     // Liste modules
+    private array $ArchesRattachées;    // Liste arches
     
     // Ressources
-    private float $Production√ânergie;   // UE/tour
-    private float $Consommation√ânergie; // UE/tour
-    private int $Capacit√©Stockage;      // Cargos stockables
+    private float $Productionênergie;   // UE/tour
+    private float $Consommationênergie; // UE/tour
+    private int $CapacitéStockage;      // Cargos stockables
     
     // Population
     private int $Population;            // Nombre habitants
     private float $Moral;               // 0-100%
     
-    // √âconomie
+    // êconomie
     private array $ProductionsActives;  // Usines/mines actives
-    private array $March√©Local;         // Stocks marchandises
+    private array $MarchéLocal;         // Stocks marchandises
     
-    // D√©fense
-    private array $D√©fenses;            // Modules d√©fense
-    private int $NiveauD√©fense;        // Score total
+    // Défense
+    private array $Défenses;            // Modules défense
+    private int $NiveauDéfense;        // Score total
 }
 ```
 
 ---
 
-### M√©thodes
+### Méthodes
 
 ```php
 class Base extends ObjetSpatial {
     // Structure
     public function attacherModule(Module $module): bool;
-    public function d√©tacherModule(int $id): bool;
+    public function détacherModule(int $id): bool;
     public function rattacherArche(Base $arche): bool;
     
-    // √ânergie
-    public function calculerBilan√ânerg√©tique(): float;
-    public function ajouterProduction(float $quantit√©): void;
+    // ênergie
+    public function calculerBilanênergétique(): float;
+    public function ajouterProduction(float $quantité): void;
     
     // Population
     public function ajouterHabitants(int $nombre): void;
     public function calculerMoral(): float;
     
-    // √âconomie
+    // êconomie
     public function produire(string $ressource): int;
-    public function vendre(string $ressource, int $quantit√©): float;
-    public function acheter(string $ressource, int $quantit√©): float;
+    public function vendre(string $ressource, int $quantité): float;
+    public function acheter(string $ressource, int $quantité): float;
     
     // Gestion
     public function changerGestionnaire(int $idJoueur): void;
-    public function effectuerEntretien(): float; // Retourne co√ªt
+    public function effectuerEntretien(): float; // Retourne coªt
 }
 ```
 
@@ -413,8 +413,8 @@ class Base extends ObjetSpatial {
 class Cargo {
     private int $id;
     private string $type;          // 'marchandise' | 'module' | 'personnel'
-    private string $contenu;       // Type pr√©cis
-    private int $quantit√©;         // Si marchandise
+    private string $contenu;       // Type précis
+    private int $quantité;         // Si marchandise
     private float $masse;          // Masse unitaire
     
     public function getMasse(): float;
@@ -431,11 +431,11 @@ class Module {
     private int $id;
     private string $type;          // 'antenne' | 'bar' | 'mine' | etc.
     private int $niveau;           // Niveau du module
-    private float $consommation√ânergie;
+    private float $consommationênergie;
     private array $production;     // Ce que produit le module
     
     public function fonctionner(): void;
-    public function consommer(): array; // Ressources n√©cessaires
+    public function consommer(): array; // Ressources nécessaires
     public function produire(): array;  // Ressources produites
 }
 ```
@@ -447,10 +447,10 @@ class Module {
 ```php
 class Programme {
     private int $id;
-    private string $nom;           // 'pilotage' | 'vis√©e' | etc.
+    private string $nom;           // 'pilotage' | 'visée' | etc.
     private int $niveau;           // 1-10
     private bool $obligatoire;     // TRUE si requis
-    private float $bonus;          // Bonus apport√©
+    private float $bonus;          // Bonus apporté
     
     public function appliquerBonus(Vaisseau $v): void;
 }
@@ -463,19 +463,19 @@ class Programme {
 ```php
 class Panne {
     private int $id;
-    private string $syst√®meAffect√©; // 'moteur' | 'bouclier' | etc.
-    private int $gravit√©;           // 1-10
-    private int $difficult√©;        // Difficult√© r√©paration
-    private array $effets;          // Malus appliqu√©s
+    private string $systèmeAffecté; // 'moteur' | 'bouclier' | etc.
+    private int $gravité;           // 1-10
+    private int $difficulté;        // Difficulté réparation
+    private array $effets;          // Malus appliqués
     
     public function appliquerEffets(Vaisseau $v): void;
-    public function co√ªtR√©paration(): float;
+    public function coªtRéparation(): float;
 }
 ```
 
 ---
 
-## üóÑÔ∏è Tables Base de Donn√©es
+## üóÑÔ∏è Tables Base de Données
 
 ### Table comptes
 
@@ -539,16 +539,16 @@ CREATE TABLE vaisseaux (
     
     -- Propulsion
     TypePropulsion INT NOT NULL,
-    Mode ENUM('combustible', '√©nerg√©tique') NOT NULL,
-    R√©serve FLOAT NOT NULL,
+    Mode ENUM('combustible', 'énergétique') NOT NULL,
+    Réserve FLOAT NOT NULL,
     VitesseConventionnelle FLOAT NOT NULL,
     VitesseSaut FLOAT NOT NULL,
     PartPanne INT DEFAULT 10,
     
     Combustible FLOAT DEFAULT 0,
-    Efficacit√© FLOAT DEFAULT 1.0,
+    Efficacité FLOAT DEFAULT 1.0,
     TypeCombustible VARCHAR(50),
-    R√©cup√©ration FLOAT DEFAULT 0,
+    Récupération FLOAT DEFAULT 0,
     
     InitConventionnel FLOAT DEFAULT 0,
     InitHyperespace FLOAT DEFAULT 200,
@@ -566,8 +566,8 @@ CREATE TABLE vaisseaux (
     nbArmes INT DEFAULT 0,
     
     -- Maintenance
-    V√©tust√© INT DEFAULT 0,
-    Complexit√©Fct INT DEFAULT 5,
+    Vétusté INT DEFAULT 0,
+    ComplexitéFct INT DEFAULT 5,
     ScorePanne INT DEFAULT 0,
     ScoreEntretien INT DEFAULT 0,
     
@@ -592,14 +592,14 @@ CREATE TABLE bases (
     PointsAncrageMax INT NOT NULL,
     PointsAncrageLibres INT NOT NULL,
     
-    Production√ânergie FLOAT DEFAULT 0,
-    Consommation√ânergie FLOAT DEFAULT 0,
-    Capacit√©Stockage INT DEFAULT 0,
+    Productionênergie FLOAT DEFAULT 0,
+    Consommationênergie FLOAT DEFAULT 0,
+    CapacitéStockage INT DEFAULT 0,
     
     Population INT DEFAULT 0,
     Moral FLOAT DEFAULT 50.0,
     
-    NiveauD√©fense INT DEFAULT 0,
+    NiveauDéfense INT DEFAULT 0,
     
     FOREIGN KEY (IdBase) REFERENCES objets_spatiaux(IdOS),
     FOREIGN KEY (IdGestionnaire) REFERENCES CS_comptes(idCompte)
@@ -610,31 +610,31 @@ CREATE TABLE bases (
 
 ## üîÑ Workflow Exemple
 
-### Cr√©ation Vaisseau
+### Création Vaisseau
 
 ```
-1. Joueur ach√®te vaisseau
-2. Cr√©ation entr√©e objets_spatiaux
-3. Cr√©ation entr√©e vaisseaux
+1. Joueur achète vaisseau
+2. Création entrée objets_spatiaux
+3. Création entrée vaisseaux
 4. Hydratation objet Vaisseau (PHP)
 5. Association au joueur
-6. Calcul caract√©ristiques initiales
+6. Calcul caractéristiques initiales
 7. Sauvegarde BDD
 ```
 
 ---
 
-### D√©placement Vaisseau
+### Déplacement Vaisseau
 
 ```
 1. Joueur saisit destination
 2. Calcul distance
-3. Calcul consommation (m√©thode Vaisseau)
-4. V√©rification r√©serve
-5. Si OK : d√©placement + consommation
-6. Mise √† jour position BDD
-7. G√©n√©ration secteur si nouveau
-8. D√©tection objets secteur
+3. Calcul consommation (méthode Vaisseau)
+4. Vérification réserve
+5. Si OK : déplacement + consommation
+6. Mise  jour position BDD
+7. Génération secteur si nouveau
+8. Détection objets secteur
 ```
 
 ---
@@ -642,20 +642,20 @@ CREATE TABLE bases (
 ## üí° Bonnes Pratiques
 
 **POO :**
-- Classes bien s√©par√©es (responsabilit√© unique)
-- H√©ritage pour objets similaires
-- Encapsulation (attributs priv√©s)
+- Classes bien séparées (responsabilité unique)
+- Héritage pour objets similaires
+- Encapsulation (attributs privés)
 
-**Base de Donn√©es :**
-- Index sur colonnes recherch√©es (position, secteur)
-- Cl√©s √©trang√®res pour int√©grit√©
-- Transactions pour op√©rations critiques
+**Base de Données :**
+- Index sur colonnes recherchées (position, secteur)
+- Clés étrangères pour intégrité
+- Transactions pour opérations critiques
 
 **Performance :**
-- Cache pour objets fr√©quemment acc√©d√©s
-- Requ√™tes optimis√©es
+- Cache pour objets fréquemment accédés
+- Requêtes optimisées
 - Lazy loading si possible
 
 ---
 
-**Document vivant - Derni√®re mise √† jour : 2025-11-01**
+**Document vivant - Dernière mise  jour : 2025-11-01**

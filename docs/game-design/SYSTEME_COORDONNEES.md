@@ -1,15 +1,15 @@
-# 📍 SYSTÈME DE COORDONNÉES
+# 🔧 SYSTÈME DE COORDONNÉES
 ## Jeu de Conquête Galactique
 
 ---
 
-## ⚠️ RÈGLE CRITIQUE
+## ⚠️📋 RÈGLE CRITIQUE
 
 **LES COORDONNÉES NE SONT PAS MULTIPLIÉES PAR 10 !**
 
 ---
 
-## 🎯 Structure des Coordonnées
+## 📋 Structure des Coordonnées
 
 ### Dans la Base de Données
 
@@ -21,7 +21,7 @@ secteur_x INT NOT NULL,
 secteur_y INT NOT NULL,
 secteur_z INT NOT NULL,
 
--- Position DÉCIMALE dans le secteur (0.0 à 1.0)
+-- Position DÉCIMALE dans le secteur (0.0  1.0)
 position_x DECIMAL(10,3) NOT NULL,
 position_y DECIMAL(10,3) NOT NULL,
 position_z DECIMAL(10,3) NOT NULL
@@ -30,19 +30,19 @@ position_z DECIMAL(10,3) NOT NULL
 ### Signification
 
 **`secteur_x/y/z`** : Coordonnées AL entières
-- Exemple : `secteur_x = 5` → Le système est à 5 AL sur l'axe X
-- **C'EST LA COORDONNÉE AFFICHÉE SUR LA CARTE**
+- Exemple : `secteur_x = 5` œÜí Le système est  5 AL sur l'axe X
+- **C'EST LA COORDONNêE AFFICHêE SUR LA CARTE**
 - **PAS de calcul, PAS de multiplication**
 
 **`position_x/y/z`** : Position précise DANS le secteur
 - Valeurs entre `0.0` et `1.0`
-- Exemple : `position_x = 0.5` → Le système est au milieu du secteur
+- Exemple : `position_x = 0.5` œÜí Le système est au milieu du secteur
 - **Utilisé uniquement pour navigation précise et sous-cartes**
 - **PAS affiché sur la carte principale**
 
 ---
 
-## 📊 Exemples
+## üìä Exemples
 
 ### Sol (Système Solaire)
 ```
@@ -69,24 +69,24 @@ Position précise : 4.53 AL sur l'axe Z
 
 ---
 
-## ❌ ERREURS À NE PAS FAIRE
+## œùå ERREURS Ä NE PAS FAIRE
 
-### ❌ FAUX - Multiplication par 10
+### œùå FAUX - Multiplication par 10
 ```php
-// ❌ ERREUR !
+// œùå ERREUR !
 $abs_x = $systeme->secteur_x * 10 + $systeme->position_x;
 // Résultat : 0 * 10 + 0.962 = 0.962 (FAUX !)
 ```
 
 ```javascript
-// ❌ ERREUR !
+// œùå ERREUR !
 const sysAbsX = parseInt(system.secteur_x * 10 + system.position_x);
 // Résultat : 0 * 10 + 0.962 = 0 (FAUX !)
 ```
 
-### ❌ FAUX - Division par 10 (CHERCHER dans la grille)
+### œùå FAUX - Division par 10 (CHERCHER dans la grille)
 ```javascript
-// ❌ ERREUR !
+// œùå ERREUR !
 const secteurX = Math.floor(absX / 10);
 // Si absX = 4, alors secteurX = 0 (FAUX !)
 // La grille est indexée par secteur_x/y/z qui SONT les AL entières
@@ -94,22 +94,22 @@ const secteurX = Math.floor(absX / 10);
 ```
 
 ```php
-// ❌ ERREUR !
+// œùå ERREUR !
 $secteurX = floor($absX / 10);
 $hasSystem = isset($grille[$secteurX][$secteurY][$secteurZ]);
 // Si absZ = 4, cherche dans grille[0][0][0] au lieu de grille[0][0][4] !
 ```
 
-### ✅ CORRECT - Utilisation directe
+### œúÖ CORRECT - Utilisation directe
 ```php
-// ✅ CORRECT
+// œúÖ CORRECT
 $abs_x = $systeme->secteur_x;
 $abs_y = $systeme->secteur_y;
 $abs_z = $systeme->secteur_z;
 ```
 
 ```javascript
-// ✅ CORRECT
+// œúÖ CORRECT
 const sysAbsX = parseInt(system.secteur_x);
 const sysAbsY = parseInt(system.secteur_y);
 const sysAbsZ = parseInt(system.secteur_z);
@@ -117,9 +117,9 @@ const sysAbsZ = parseInt(system.secteur_z);
 
 ---
 
-## 🗺️ Affichage sur la Carte
+## üó∫Ô∏è Affichage sur la Carte
 
-### Carte Principale (100 AL × 100 AL)
+### Carte Principale (100 AL ó 100 AL)
 
 ```php
 // Pour afficher sur la carte
@@ -147,15 +147,15 @@ foreach ($systemes as $systeme) {
 // Vega Aurigae : secteur (0, 0, 4)
 // Elle est dans : $grille[0][0][4]
 
-// ✅ CORRECT - Chercher un système
+// œúÖ CORRECT - Chercher un système
 $absZ = 4;  // Coordonnée carte en AL
 $secteurZ = $absZ;  // PAS de division !
-$systeme = $grille[0][0][$secteurZ] ?? null;  // Trouve Vega Aurigae ✓
+$systeme = $grille[0][0][$secteurZ] œ null;  // Trouve Vega Aurigae œúì
 
-// ❌ FAUX - Division par 10
+// œùå FAUX - Division par 10
 $absZ = 4;
 $secteurZ = floor($absZ / 10);  // = 0 !
-$systeme = $grille[0][0][$secteurZ] ?? null;  // Cherche dans [0][0][0], ne trouve pas Vega Aurigae ✗
+$systeme = $grille[0][0][$secteurZ] œ null;  // Cherche dans [0][0][0], ne trouve pas Vega Aurigae œúó
 ```
 
 ### Sous-Carte (Niveau Secteur)
@@ -174,7 +174,7 @@ while ($systeme->position_x >= 1.0) {
 
 ---
 
-## 🔄 Conversion et Navigation
+## üîÑ Conversion et Navigation
 
 ### Déplacement d'un Vaisseau
 
@@ -223,7 +223,7 @@ function meme_secteur($obj1, $obj2) {
 
 ---
 
-## 📝 Checklist de Validation
+## üìù Checklist de Validation
 
 Avant de commiter du code manipulant des coordonnées :
 
@@ -236,7 +236,7 @@ Avant de commiter du code manipulant des coordonnées :
 
 ---
 
-## 🐛 Debug
+## üêõ Debug
 
 ### Vérifier les Coordonnées d'un Système
 
@@ -254,9 +254,9 @@ echo "Carte AL: ({$vega->secteur_x}, {$vega->secteur_y}, {$vega->secteur_z})\n";
 Utilisez **Vega Aurigae** pour tester :
 - Secteur : (0, 0, 4)
 - Position : (0.962, 0.779, 0.530)
-- **Doit apparaître en (0, 0, 4) sur la carte**
+- **Doit apparaÆtre en (0, 0, 4) sur la carte**
 - **PAS en (0, 0, 40) !**
 
 ---
 
-**Document vivant - Dernière mise à jour : 2025-11-28**
+**Document vivant - Dernière mise  jour : 2025-11-28**

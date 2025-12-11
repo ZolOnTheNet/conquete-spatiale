@@ -24,9 +24,7 @@
       "Bash(file:*)",
       "Bash(ls:*)",
       "Bash(find:*)",
-      "Bash(grep:*)",
-      "Bash(chmod:*)",
-      "Bash(mysql:*)"
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []
