@@ -49,6 +49,22 @@ Chaque objet spatial a un **score de détectabilité de base** :
 detectabilite_base = (200 - Puissance_Etoile) / 3
 ```
 
+#### Formule pour les PoI (planète)
+```
+detectabilite_base = (30 - Taille objet planete) / 2 arrondi à l'inférieur
+```
+#### Formule pour les PoI (autres)
+
+En fonction du type et de l'activité, du nombre de vaisseau et des braillards (càd ce qui permet de le detecter plus facilement, comme des satellites de COM, des patrouille de vaisseau, etc...)
+
+base secrete : 150 - 145
+base Imperial/planétaire max : 10
+cette valeur est connue du propriétaire de la station/mines, il peut tenter de réduire sa signature
+```
+detectabilite_base = 150 - modules - 10 x mines - taille pop/1000
+```
+
+
 **Plus le score est BAS, plus l'objet est FACILE à détecter.**
 
 #### Exemples de calcul
@@ -74,7 +90,7 @@ score_detection_final = detectabilite_base + modificateur_distance
 
 #### Distance en Unités Astronomiques (UA)
 ```
-modificateur_distance = distance_ua * 100
+modificateur_distance = distance_ua * 10
 ```
 
 #### Distance en secteurs
