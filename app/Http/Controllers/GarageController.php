@@ -24,9 +24,9 @@ class GarageController extends Controller
     /**
      * Afficher l'interface du garage
      */
-    public function index()
+    public function index(Request $request)
     {
-        $personnage = Auth::user()->personnageActif;
+        $personnage = $request->attributes->get('personnage');
         $vaisseau = $personnage->vaisseauActif ?? null;
 
         // Simple : si amarré, récupérer la station
@@ -44,9 +44,9 @@ class GarageController extends Controller
     /**
      * Réparer la coque du vaisseau
      */
-    public function reparerCoque()
+    public function reparerCoque(Request $request)
     {
-        $personnage = Auth::user()->personnageActif;
+        $personnage = $request->attributes->get('personnage');
         $vaisseau = $personnage->vaisseauActif;
 
         if (!$vaisseau || !$vaisseau->arrime_a_station_id) {
@@ -88,7 +88,7 @@ class GarageController extends Controller
      */
     public function reparerPanne(Request $request)
     {
-        $personnage = Auth::user()->personnageActif;
+        $personnage = $request->attributes->get('personnage');
         $vaisseau = $personnage->vaisseauActif;
 
         $request->validate([
@@ -132,9 +132,9 @@ class GarageController extends Controller
     /**
      * Réparer tout le vaisseau (complet)
      */
-    public function reparerTout()
+    public function reparerTout(Request $request)
     {
-        $personnage = Auth::user()->personnageActif;
+        $personnage = $request->attributes->get('personnage');
         $vaisseau = $personnage->vaisseauActif;
 
         $diagnostics = $this->calculerDiagnostics($vaisseau);

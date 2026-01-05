@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use App\Helpers\CoordinatesHelper;
+use App\Traits\Detectable;
 
 class ObjetSpatial extends Model
 {
+    use Detectable;
     protected $table = 'objets_spatiaux';
 
     protected $fillable = [

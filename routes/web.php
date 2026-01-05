@@ -3,6 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminStationController;
+use App\Http\Controllers\Admin\AdminMineController;
+use App\Http\Controllers\Admin\AdminResourceController;
 use App\Http\Controllers\VaisseauController;
 use App\Http\Controllers\ComController;
 use App\Http\Controllers\PersonnageController;
@@ -189,6 +193,23 @@ Route::middleware('auth')->group(function () {
         // Routes pour la gestion des systèmes stellaires
         Route::post('/systeme/{id}/generer-planetes', [AdminController::class, 'genererPlanetes'])->name('systeme.generer-planetes');
         Route::post('/systeme/creer', [AdminController::class, 'creerSystemeSolaire'])->name('systeme.creer');
+
+        // Nouveaux contrôleurs Admin (refactoring)
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+        // Stations admin CRUD
+        Route::resource('stations', AdminStationController::class)->except(['show']);
+
+        // Mines admin CRUD + actions
+        Route::resource('mines-admin', AdminMineController::class)->except(['show'])->parameters(['mines-admin' => 'mine']);
+        Route::post('/mines-admin/{mine}/ravitailler', [AdminMineController::class, 'ravitailler'])->name('mines-admin.ravitailler');
+        Route::post('/mines-admin/{mine}/maintenance', [AdminMineController::class, 'maintenance'])->name('mines-admin.maintenance');
+
+        // Ressources et gisements
+        Route::resource('ressources', AdminResourceController::class)->except(['show', 'destroy']);
+        Route::get('/gisements', [AdminResourceController::class, 'gisements'])->name('gisements.index');
+        Route::get('/gisements/create', [AdminResourceController::class, 'createGisement'])->name('gisements.create');
+        Route::post('/gisements', [AdminResourceController::class, 'storeGisement'])->name('gisements.store');
     });
 });
 

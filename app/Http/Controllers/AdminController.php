@@ -34,11 +34,46 @@ class AdminController extends Controller
     /**
      * Gestion des comptes
      */
-    public function comptes()
+    public function comptes(Request $request)
     {
-        $comptes = Compte::with('personnages')->orderBy('created_at', 'desc')->paginate(20);
+        $query = Compte::with('personnages');
 
-        return view('admin.comptes', compact('comptes'));
+        // Recherche par nom
+        if ($request->filled('nom')) {
+            $query->where('nom_login', 'LIKE', '%' . $request->nom . '%');
+        }
+
+        // Recherche par email
+        if ($request->filled('email')) {
+            $query->where('adresse_mail', 'LIKE', '%' . $request->email . '%');
+        }
+
+        // Pagination
+        $perPage = $request->input('per_page', 20);
+        if ($perPage === 'all') {
+            $comptes = $query->orderBy('created_at', 'desc')->get();
+            // Créer une pagination manuelle pour "all"
+            $comptes = new \Illuminate\Pagination\LengthAwarePaginator(
+                $comptes,
+                $comptes->count(),
+                $comptes->count(),
+                1,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+        } else {
+            if (!in_array($perPage, [20, 50, 100, 200])) {
+                $perPage = 20;
+            }
+            $comptes = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
+        }
+
+        $filters = [
+            'nom' => $request->nom,
+            'email' => $request->email,
+            'per_page' => $perPage,
+        ];
+
+        return view('admin.comptes', compact('comptes', 'filters'));
     }
 
     /**
@@ -292,7 +327,7 @@ class AdminController extends Controller
         } else {
             // Pagination normale
             $perPage = $request->input('per_page', 25);
-            $planetes = $query->orderBy('nom')->paginate($perPage);
+            $planetes = $query->orderBy('nom')->paginate($perPage)->withQueryString();
         }
 
         // Conserver les valeurs de filtres pour les passer à la vue
@@ -462,25 +497,57 @@ class AdminController extends Controller
         // Récupérer tous les systèmes pour le sélecteur
         $systemes = SystemeStellaire::orderBy('nom')->get();
 
-        // Si un système est sélectionné, charger ses planètes et gisements
-        $planetes = collect();
-        $systeme_actuel = null;
-
-        if ($request->has('system_id') && $request->system_id) {
-            $systeme_actuel = SystemeStellaire::find($request->system_id);
-
-            if ($systeme_actuel) {
-                $planetes = Planete::where('systeme_stellaire_id', $systeme_actuel->id)
-                    ->with(['gisements.ressource'])
-                    ->orderBy('nom')
-                    ->get();
-            }
-        }
-
         // Récupérer toutes les ressources pour les sélecteurs
         $ressources = Ressource::orderBy('nom')->get();
 
-        return view('admin.production', compact('systemes', 'planetes', 'systeme_actuel', 'ressources'));
+        // Construire la requête des gisements
+        $query = Gisement::with(['planete.systemeStellaire', 'ressource']);
+
+        // Filtre par système (recherche textuelle)
+        if ($request->filled('systeme')) {
+            $query->whereHas('planete.systemeStellaire', function($q) use ($request) {
+                $q->where('nom', 'LIKE', '%' . $request->systeme . '%');
+            });
+        }
+
+        // Filtre par planète (recherche textuelle)
+        if ($request->filled('planete')) {
+            $query->whereHas('planete', function($q) use ($request) {
+                $q->where('nom', 'LIKE', '%' . $request->planete . '%');
+            });
+        }
+
+        // Filtre par ressource
+        if ($request->filled('ressource_id')) {
+            $query->where('ressource_id', $request->ressource_id);
+        }
+
+        // Pagination
+        $perPage = $request->input('per_page', 20);
+        if ($perPage === 'all') {
+            $gisements = $query->orderBy('created_at', 'desc')->get();
+            $gisements = new \Illuminate\Pagination\LengthAwarePaginator(
+                $gisements,
+                $gisements->count(),
+                $gisements->count(),
+                1,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+        } else {
+            if (!in_array($perPage, [20, 50, 100, 200])) {
+                $perPage = 20;
+            }
+            $gisements = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
+        }
+
+        $filters = [
+            'systeme' => $request->systeme,
+            'planete' => $request->planete,
+            'ressource_id' => $request->ressource_id,
+            'per_page' => $perPage,
+        ];
+
+        return view('admin.production', compact('systemes', 'ressources', 'gisements', 'filters'));
     }
 
     /**
@@ -520,7 +587,8 @@ class AdminController extends Controller
     {
         $mines = Mine::with(['planete.systemeStellaire', 'gisement.ressource', 'proprietaire', 'installateur'])
             ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
         return view('admin.mines', compact('mines'));
     }

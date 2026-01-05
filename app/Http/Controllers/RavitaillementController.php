@@ -23,9 +23,9 @@ class RavitaillementController extends Controller
     /**
      * Afficher l'interface de ravitaillement
      */
-    public function index()
+    public function index(Request $request)
     {
-        $personnage = Auth::user()->personnageActif;
+        $personnage = $request->attributes->get('personnage');
 
         if (!$personnage) {
             return redirect()->route('personnage.selection')
@@ -57,9 +57,9 @@ class RavitaillementController extends Controller
     /**
      * Ravitailler complètement le vaisseau
      */
-    public function ravitaillerComplet()
+    public function ravitaillerComplet(Request $request)
     {
-        $personnage = Auth::user()->personnageActif;
+        $personnage = $request->attributes->get('personnage');
 
         if (!$personnage || !$personnage->dans_station_id) {
             return redirect()->route('game.navire.timonerie')
@@ -100,9 +100,9 @@ class RavitaillementController extends Controller
     /**
      * Ravitailler uniquement le carburant
      */
-    public function ravitaillerCarburant()
+    public function ravitaillerCarburant(Request $request)
     {
-        $personnage = Auth::user()->personnageActif;
+        $personnage = $request->attributes->get('personnage');
 
         if (!$personnage || !$personnage->dans_station_id) {
             return redirect()->route('game.navire.timonerie')

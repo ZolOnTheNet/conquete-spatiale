@@ -1,50 +1,11 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Admin - Détails Système')
 
-@section('content')
-<div class="min-h-screen flex flex-col">
-    <!-- Header -->
-    <header class="bg-gray-900/90 border-b border-red-500/30 px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-4">
-            <h1 class="text-2xl font-orbitron text-red-400">SYSTÈME: {{ $systeme->nom }}</h1>
-        </div>
-        <a href="{{ route('admin.univers') }}" class="text-cyan-400 hover:text-cyan-300 text-sm">
-            ← Retour à l'univers
-        </a>
-    </header>
+@section('admin-title', 'SYSTÈME: {{ $systeme->nom }}')
 
-    <div class="flex-1 flex">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-gray-900/80 border-r border-red-500/20 p-4">
-            <nav class="space-y-2">
-                <a href="{{ route('admin.index') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Dashboard
-                </a>
-                <a href="{{ route('admin.comptes') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Comptes
-                </a>
-                <a href="{{ route('admin.univers') }}" class="block px-4 py-2 rounded bg-red-500/20 text-red-300">
-                    Univers
-                </a>
-                <a href="{{ route('admin.planetes') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Planètes
-                </a>
-                <a href="{{ route('admin.production') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Productions
-                </a>
-                <a href="{{ route('admin.carte') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Carte
-                </a>
-                <a href="{{ route('admin.backup') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Backup
-                </a>
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="flex-1 p-6">
-            <!-- Messages de succès -->
+@section('admin-content')
+<!-- Messages de succès -->
             @if(session('success'))
             <div class="bg-green-900/50 border border-green-500 text-green-300 px-4 py-3 rounded mb-6">
                 {{ session('success') }}
@@ -345,82 +306,4 @@
                     </div>
                 @endif
             </div>
-        </main>
-    </div>
-</div>
-
-<!-- JavaScript pour édition gisements -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Boutons recalculer
-    document.querySelectorAll('.recalc-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const gisementId = this.dataset.gisementId;
-            const field = this.dataset.field;
-            const row = this.closest('tr');
-
-            if (field === 'richesse') {
-                // Richesse aléatoire 20-100
-                const newValue = Math.floor(Math.random() * 81) + 20;
-                row.querySelector(`[data-field="${field}"][data-gisement-id="${gisementId}"]`).value = newValue;
-            } else if (field === 'quantite_totale') {
-                // Quantité aléatoire basée sur rareté
-                const newValue = Math.floor(Math.random() * 15000000) + 1000000;
-                row.querySelector(`[data-field="${field}"][data-gisement-id="${gisementId}"]`).value = newValue;
-            } else if (field === 'quantite_restante') {
-                // Copier la quantité totale
-                const totalQty = row.querySelector(`[data-field="quantite_totale"][data-gisement-id="${gisementId}"]`).value;
-                row.querySelector(`[data-field="${field}"][data-gisement-id="${gisementId}"]`).value = totalQty;
-            }
-        });
-    });
-
-    // Boutons sauvegarder
-    document.querySelectorAll('.save-gisement-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const gisementId = this.dataset.gisementId;
-            const row = this.closest('tr');
-
-            // Collecter les données
-            const data = {
-                ressource_id: row.querySelector(`[data-field="ressource_id"][data-gisement-id="${gisementId}"]`).value,
-                richesse: row.querySelector(`[data-field="richesse"][data-gisement-id="${gisementId}"]`).value,
-                quantite_totale: row.querySelector(`[data-field="quantite_totale"][data-gisement-id="${gisementId}"]`).value,
-                quantite_restante: row.querySelector(`[data-field="quantite_restante"][data-gisement-id="${gisementId}"]`).value,
-                _token: '{{ csrf_token() }}'
-            };
-
-            // Sauvegarder via AJAX
-            fetch(`/admin/production/gisement/${gisementId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    // Feedback visuel
-                    this.textContent = '✓';
-                    this.classList.remove('bg-green-600/80', 'hover:bg-green-600');
-                    this.classList.add('bg-gray-600');
-                    setTimeout(() => {
-                        this.textContent = '💾';
-                        this.classList.remove('bg-gray-600');
-                        this.classList.add('bg-green-600/80', 'hover:bg-green-600');
-                    }, 2000);
-                } else {
-                    alert('Erreur: ' + (result.message || 'Erreur inconnue'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Erreur de connexion');
-            });
-        });
-    });
-});
-</script>
 @endsection

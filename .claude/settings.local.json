@@ -31,7 +31,9 @@
       "Bash(sqlite3:*)",
       "Bash(iconv:*)",
       "Bash(python scripts/fix-all.py:*)",
-      "Bash(sort:*)"
+      "Bash(sort:*)",
+      "Bash(dir:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

@@ -92,9 +92,9 @@ class StationController extends Controller
      *
      * Le personnage doit être dans une station (dans_station_id renseigné)
      */
-    public function menu()
+    public function menu(Request $request)
     {
-        $personnage = Auth::user()->personnageActif;
+        $personnage = $request->attributes->get('personnage');
 
         if (!$personnage) {
             return redirect()->route('personnage.selection')
@@ -135,9 +135,9 @@ class StationController extends Controller
      * - Le vaisseau doit être arrimé à une station (arrime_a_station_id renseigné)
      * - La station doit être accessible (réputation, etc.)
      */
-    public function transborder()
+    public function transborder(Request $request)
     {
-        $personnage = Auth::user()->personnageActif;
+        $personnage = $request->attributes->get('personnage');
 
         if (!$personnage) {
             return redirect()->route('personnage.selection')
@@ -197,9 +197,9 @@ class StationController extends Controller
      * - Le personnage doit être dans une station (dans_station_id renseigné)
      * - Le vaisseau du personnage doit toujours être arrimé
      */
-    public function embarquer()
+    public function embarquer(Request $request)
     {
-        $personnage = Auth::user()->personnageActif;
+        $personnage = $request->attributes->get('personnage');
 
         if (!$personnage) {
             return redirect()->route('personnage.selection')
@@ -241,9 +241,9 @@ class StationController extends Controller
      *
      * Utile pour la carte ou la timonerie
      */
-    public function show(Station $station)
+    public function show(Request $request, Station $station)
     {
-        $personnage = Auth::user()->personnageActif;
+        $personnage = $request->attributes->get('personnage');
 
         if (!$personnage) {
             return redirect()->route('personnage.selection')

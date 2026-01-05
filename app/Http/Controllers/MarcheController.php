@@ -26,9 +26,9 @@ class MarcheController extends Controller
     /**
      * Afficher le marché de la station
      */
-    public function index()
+    public function index(Request $request)
     {
-        $personnage = Auth::user()->personnageActif;
+        $personnage = $request->attributes->get('personnage');
 
         if (!$personnage) {
             return redirect()->route('personnage.selection')
@@ -65,7 +65,7 @@ class MarcheController extends Controller
      */
     public function acheter(Request $request)
     {
-        $personnage = Auth::user()->personnageActif;
+        $personnage = $request->attributes->get('personnage');
 
         if (!$personnage || !$personnage->dans_station_id) {
             return redirect()->route('game.navire.timonerie')
@@ -144,7 +144,7 @@ class MarcheController extends Controller
      */
     public function vendre(Request $request)
     {
-        $personnage = Auth::user()->personnageActif;
+        $personnage = $request->attributes->get('personnage');
 
         if (!$personnage || !$personnage->dans_station_id) {
             return redirect()->route('game.navire.timonerie')

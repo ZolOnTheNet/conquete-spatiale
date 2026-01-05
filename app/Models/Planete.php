@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Helpers\GameTimeHelper;
 use App\Helpers\CoordinatesHelper;
+use App\Traits\Detectable;
 use Carbon\Carbon;
 
 class Planete extends Model
 {
+    use Detectable;
     protected $table = 'planetes';
 
     protected $fillable = [

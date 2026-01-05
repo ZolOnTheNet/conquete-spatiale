@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use App\Traits\Detectable;
 
 /**
  * Modèle ZoneSpatiale
@@ -38,6 +39,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  */
 class ZoneSpatiale extends Model
 {
+    use Detectable;
+
     protected $table = 'zones_spatiales';
 
     protected $fillable = [

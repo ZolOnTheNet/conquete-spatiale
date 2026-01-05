@@ -1,8 +1,10 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Admin - Carte de l\'Univers')
 
-@section('content')
+@section('admin-title', 'CARTE DE L\'UNIVERS')
+
+@section('admin-content')
 <style>
 /* Tooltip personnalisé pour les systèmes stellaires */
 .system-cell {
@@ -66,42 +68,7 @@
 }
 </style>
 
-<div class="min-h-screen flex flex-col">
-    <!-- Header -->
-    <header class="bg-gray-900/90 border-b border-red-500/30 px-6 py-4">
-        <h1 class="text-2xl font-orbitron text-red-400">CARTE DE L'UNIVERS</h1>
-    </header>
 
-    <div class="flex-1 flex">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-gray-900/80 border-r border-red-500/20 p-4">
-            <nav class="space-y-2">
-                <a href="{{ route('admin.index') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Dashboard
-                </a>
-                <a href="{{ route('admin.comptes') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Comptes
-                </a>
-                <a href="{{ route('admin.univers') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Univers
-                </a>
-                <a href="{{ route('admin.planetes') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Planètes
-                </a>
-                <a href="{{ route('admin.production') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Productions
-                </a>
-                <a href="{{ route('admin.carte') }}" class="block px-4 py-2 rounded bg-red-500/20 text-red-300">
-                    Carte
-                </a>
-                <a href="{{ route('admin.backup') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Backup
-                </a>
-            </nav>
-        </aside>
-
-        <!-- Main Content - Two Maps Side by Side -->
-        <main class="flex-1 p-4 overflow-auto">
             <!-- Contrôles de navigation -->
             <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3 mb-4">
                 <div class="flex items-center gap-4 mb-2">
@@ -380,9 +347,6 @@
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
-</div>
 
 <script>
 // Grille des systèmes existants (passée depuis PHP)

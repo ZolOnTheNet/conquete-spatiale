@@ -1,50 +1,11 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Admin - Univers')
 
-@section('content')
-<div class="min-h-screen flex flex-col">
-    <!-- Header -->
-    <header class="bg-gray-900/90 border-b border-red-500/30 px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-4">
-            <h1 class="text-2xl font-orbitron text-red-400">ADMINISTRATION</h1>
-        </div>
-        <a href="{{ route('dashboard') }}" class="text-cyan-400 hover:text-cyan-300 text-sm">
-            Retour au jeu
-        </a>
-    </header>
+@section('admin-title', 'ADMINISTRATION')
 
-    <div class="flex-1 flex">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-gray-900/80 border-r border-red-500/20 p-4">
-            <nav class="space-y-2">
-                <a href="{{ route('admin.index') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Dashboard
-                </a>
-                <a href="{{ route('admin.comptes') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Comptes
-                </a>
-                <a href="{{ route('admin.univers') }}" class="block px-4 py-2 rounded bg-red-500/20 text-red-300">
-                    Univers
-                </a>
-                <a href="{{ route('admin.planetes') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Planètes
-                </a>
-                <a href="{{ route('admin.production') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Productions
-                </a>
-                <a href="{{ route('admin.carte') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Carte
-                </a>
-                <a href="{{ route('admin.backup') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Backup
-                </a>
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="flex-1 p-6">
-            <h2 class="text-xl font-bold text-white mb-6">Exploration de l'Univers</h2>
+@section('admin-content')
+<h2 class="text-xl font-bold text-white mb-6">Exploration de l'Univers</h2>
 
             <!-- Formulaire de filtrage -->
             <form method="GET" action="{{ route('admin.univers') }}" class="bg-gray-800/50 border border-gray-700 rounded-lg p-4 mb-6">
@@ -268,7 +229,4 @@
             <div class="mt-4">
                 {{ $systemes->links() }}
             </div>
-        </main>
-    </div>
-</div>
 @endsection

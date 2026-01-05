@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Traits\Detectable;
 
 class Mine extends Model
 {
+    use Detectable;
     protected $fillable = [
         'objet_spatial_id',
         'nom',
@@ -108,6 +111,16 @@ class Mine extends Model
     public function base(): BelongsTo
     {
         return $this->belongsTo(Base::class);
+    }
+
+    /**
+     * Stations associées à cette mine (à proximité)
+     */
+    public function stations(): BelongsToMany
+    {
+        return $this->belongsToMany(Station::class, 'mine_station')
+            ->withPivot('distance_km')
+            ->withTimestamps();
     }
 
     /**

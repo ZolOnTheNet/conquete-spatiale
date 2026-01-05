@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\Detectable;
 
 class Station extends Model
 {
-    use HasFactory;
+    use HasFactory, Detectable;
 
     protected $fillable = [
         'objet_spatial_id',
@@ -22,6 +23,7 @@ class Station extends Model
         'orbite_angle',
         'description',
         'capacite_amarrage',
+        'population',
         'commerciale',
         'industrielle',
         'militaire',
@@ -31,12 +33,12 @@ class Station extends Model
         'faction_id',
         'reputation_requise',
         'accessible',
+        'gere_admin',
         'raison_inaccessible',
         'detectabilite_base',
         'poi_connu',
         'nb_modules',
         'nb_mines_associees',
-        'population',
     ];
 
     protected $casts = [
@@ -47,6 +49,7 @@ class Station extends Model
         'ravitaillement' => 'boolean',
         'medical' => 'boolean',
         'accessible' => 'boolean',
+        'gere_admin' => 'boolean',
         'poi_connu' => 'boolean',
         'orbite_rayon_ua' => 'decimal:6',
         'orbite_angle' => 'decimal:4',
@@ -81,6 +84,16 @@ class Station extends Model
     public function faction(): BelongsTo
     {
         return $this->belongsTo(Faction::class);
+    }
+
+    /**
+     * Mines associées à cette station (à proximité ou sur la même planète)
+     */
+    public function mines(): BelongsToMany
+    {
+        return $this->belongsToMany(Mine::class, 'mine_station')
+            ->withPivot('distance_km')
+            ->withTimestamps();
     }
 
     /**

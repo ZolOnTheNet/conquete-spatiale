@@ -118,6 +118,49 @@ class CoordinatesHelper
     }
 
     /**
+     * Calcule la distance entre deux tableaux de position
+     *
+     * @param array $pos1 Position 1 avec x/y/z ou position_x/y/z
+     * @param array $pos2 Position 2 avec x/y/z ou position_x/y/z
+     * @return float Distance en cUA
+     */
+    public static function distanceEntrePositions(array $pos1, array $pos2): float
+    {
+        return self::distance3D(
+            $pos1['x'] ?? $pos1['position_x'] ?? 0,
+            $pos1['y'] ?? $pos1['position_y'] ?? 0,
+            $pos1['z'] ?? $pos1['position_z'] ?? 0,
+            $pos2['x'] ?? $pos2['position_x'] ?? 0,
+            $pos2['y'] ?? $pos2['position_y'] ?? 0,
+            $pos2['z'] ?? $pos2['position_z'] ?? 0
+        );
+    }
+
+    /**
+     * Calcule la distance totale incluant les secteurs
+     *
+     * @param array $pos1 Position 1 avec secteur_x/y/z et position_x/y/z
+     * @param array $pos2 Position 2 avec secteur_x/y/z et position_x/y/z
+     * @return float Distance totale en cUA
+     */
+    public static function distanceTotale(array $pos1, array $pos2): float
+    {
+        $x1 = ($pos1['secteur_x'] ?? 0) * self::CUA_PER_AL + ($pos1['position_x'] ?? 0);
+        $y1 = ($pos1['secteur_y'] ?? 0) * self::CUA_PER_AL + ($pos1['position_y'] ?? 0);
+        $z1 = ($pos1['secteur_z'] ?? 0) * self::CUA_PER_AL + ($pos1['position_z'] ?? 0);
+
+        $x2 = ($pos2['secteur_x'] ?? 0) * self::CUA_PER_AL + ($pos2['position_x'] ?? 0);
+        $y2 = ($pos2['secteur_y'] ?? 0) * self::CUA_PER_AL + ($pos2['position_y'] ?? 0);
+        $z2 = ($pos2['secteur_z'] ?? 0) * self::CUA_PER_AL + ($pos2['position_z'] ?? 0);
+
+        return sqrt(
+            pow($x2 - $x1, 2) +
+            pow($y2 - $y1, 2) +
+            pow($z2 - $z1, 2)
+        );
+    }
+
+    /**
      * Convertir une position de tableau associatif
      *
      * @param array $position ['x' => float, 'y' => float, 'z' => float] en AL
