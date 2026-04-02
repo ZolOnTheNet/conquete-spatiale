@@ -3,6 +3,11 @@
     <div class="bg-gray-800/50 border-b border-cyan-500/30 px-4 py-3">
         <h2 class="text-sm font-bold text-cyan-400">CONSOLE</h2>
     </div>
+    <style>
+        .command-text {
+            color: #FF8C00;
+        }
+    </style>
 
     <!-- Console Output -->
     <div class="flex-1 p-4 font-mono text-sm overflow-y-auto bg-black" id="console-output">
@@ -107,6 +112,9 @@ function sendCommand(event) {
                 }
             });
         }
+        
+        // Mettre à jour les informations si disponibles
+        updateGameInfo(data);
     })
     .catch(error => {
         appendToConsole('[ERREUR] ' + error.message, 'text-red-400');
@@ -135,9 +143,52 @@ function appendToConsole(text, colorClass = 'text-gray-300') {
 
     const div = document.createElement('div');
     div.className = colorClass;
-    div.textContent = text;
+    
+    // Vérifier si le texte contient des balises HTML
+    if (text.includes('<span') && text.includes('style=')) {
+        div.innerHTML = text;
+    } else {
+        div.textContent = text;
+    }
+    
     consoleOutput.appendChild(div);
     consoleOutput.scrollTop = consoleOutput.scrollHeight;
+}
+
+// Mettre à jour les informations du vaisseau et du personnage
+function updateGameInfo(data) {
+    // Mettre à jour l'énergie du vaisseau
+    if (data.energie_actuelle !== undefined) {
+        const energieElement = document.querySelector('.ship-stats-compact .stat-item:nth-child(1)');
+        if (energieElement) {
+            const energieMax = parseFloat(energieElement.getAttribute('data-max')) || 1000;
+            energieElement.textContent = '⚡ ' + Math.round(data.energie_actuelle / energieMax * 100) + '%';
+        }
+    }
+    
+    // Mettre à jour les PA du personnage
+    if (data.pa_restants !== undefined) {
+        const paElement = document.querySelector('.player-actions');
+        if (paElement) {
+            paElement.textContent = '⚡ PA: ' + data.pa_restants;
+        }
+    }
+    
+    // Mettre à jour les crédits du personnage
+    if (data.credits !== undefined) {
+        const creditsElement = document.querySelector('.player-credits');
+        if (creditsElement) {
+            creditsElement.textContent = '💰 ' + data.credits + ' CR';
+        }
+    }
+    
+    // Mettre à jour la position du vaisseau
+    if (data.position) {
+        const positionElement = document.querySelector('.system-coords');
+        if (positionElement) {
+            positionElement.innerHTML = data.position;
+        }
+    }
 }
 </script>
 @endpush

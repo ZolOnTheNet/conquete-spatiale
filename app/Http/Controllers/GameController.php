@@ -292,6 +292,7 @@ class GameController extends Controller
             'hopital', 'hospital' => $this->accederHopital($personnage),
             'industrie', 'industry' => $this->accederIndustrie($personnage),
             'ravitailler', 'refuel' => $this->ravitaillerVaisseau($personnage, $parts),
+            'recharger', 'reload' => $this->rechargerVaisseau($personnage, $parts),
             '' => ['success' => true, 'message' => ''],
             default => [
                 'success' => false,
@@ -305,63 +306,87 @@ class GameController extends Controller
         $isAdmin = $personnage->compte->is_admin ?? false;
 
         $help = "
-COMMANDES DISPONIBLES:
-  help, aide                  - Afficher cette aide
-  status, statut              - Afficher le statut du personnage
-  position, pos               - Afficher la position actuelle
-  vaisseau, ship              - Afficher les infos du vaisseau
-  lancer [competence]         - Lancer les dés (système Daggerheart 2d12)
-  deplacer [sx] [sy] [sz]     - Déplacer (conventionnel) vers secteur
-  saut [sx] [sy] [sz]         - Saut hyperespace vers secteur
-  scan                        - Scanner zone (scan progressif, 1 PA)
-  carte, map                  - Afficher carte des systèmes découverts
+<span style='color: #FF8C00;'>COMMANDES DISPONIBLES:</span>
+  <span style='color: #FF8C00;'>help, aide</span>                  - Afficher cette aide
+  <span style='color: #FF8C00;'>status, statut</span>              - Afficher le statut du personnage
+  <span style='color: #FF8C00;'>position, pos</span>               - Afficher la position actuelle
+  <span style='color: #FF8C00;'>vaisseau, ship</span>              - Afficher les infos du vaisseau
+  <span style='color: #FF8C00;'>lancer [competence]</span>         - Lancer les dés (système Daggerheart 2d12)
+  <span style='color: #FF8C00;'>deplacer [sx] [sy] [sz]</span>     - Déplacer (conventionnel) vers secteur
+  <span style='color: #FF8C00;'>saut [sx] [sy] [sz]</span>         - Saut hyperespace vers secteur
+  <span style='color: #FF8C00;'>scan</span>                        - Scanner zone (scan progressif, 1 PA)
+  <span style='color: #FF8C00;'>carte, map</span>                  - Afficher carte des systèmes découverts
 
-ECONOMIE & RESSOURCES:
-  scan-planete, scanp [nom]   - Scanner gisements d'une planete
-  extraire, mine [gisement_id] [quantite] - Extraire ressources
-  inventaire, inv             - Afficher inventaire du vaisseau
+<span style='color: #FF8C00;'>ECONOMIE & RESSOURCES:</span>
+  <span style='color: #FF8C00;'>scan-planete, scanp [nom]</span>   - Scanner gisements d'une planete
+  <span style='color: #FF8C00;'>extraire, mine [gisement_id] [quantite]</span> - Extraire ressources
+  <span style='color: #FF8C00;'>inventaire, inv</span>             - Afficher inventaire du vaisseau
 
-MARCHES:
-  marche, market              - Voir le marche local
-  prix, prices [ressource]    - Voir les prix (ou tous)
-  acheter, buy [code] [qte]   - Acheter des ressources
-  vendre, sell [code] [qte]   - Vendre des ressources
+<span style='color: #FF8C00;'>MARCHES:</span>
+  <span style='color: #FF8C00;'>marche, market</span>              - Voir le marche local
+  <span style='color: #FF8C00;'>prix, prices [ressource]</span>    - Voir les prix (ou tous)
+  <span style='color: #FF8C00;'>acheter, buy [code] [qte]</span>   - Acheter des ressources
+  <span style='color: #FF8C00;'>vendre, sell [code] [qte]</span>   - Vendre des ressources
 
-FABRICATION:
-  recettes, recipes [cat]     - Voir les recettes (ou par categorie)
-  fabriquer, craft [code] [n] - Fabriquer une recette (x n fois)
+<span style='color: #FF8C00;'>FABRICATION:</span>
+  <span style='color: #FF8C00;'>recettes, recipes [cat]</span>     - Voir les recettes (ou par categorie)
+  <span style='color: #FF8C00;'>fabriquer, craft [code] [n]</span> - Fabriquer une recette (x n fois)
 
-COMBAT:
-  armes, weapons              - Voir les armes disponibles
-  boucliers, shields          - Voir les boucliers disponibles
-  equiper, equip [type] [code] [slot] - Equiper arme/bouclier
-  etat-combat, combat         - Voir etat combat du vaisseau
-  reparer, repair [quantite]  - Reparer la coque
+<span style='color: #FF8C00;'>COMBAT:</span>
+  <span style='color: #FF8C00;'>armes, weapons</span>              - Voir les armes disponibles
+  <span style='color: #FF8C00;'>boucliers, shields</span>          - Voir les boucliers disponibles
+  <span style='color: #FF8C00;'>equiper, equip [type] [code] [slot]</span> - Equiper arme/bouclier
+  <span style='color: #FF8C00;'>etat-combat, combat</span>         - Voir etat combat du vaisseau
+  <span style='color: #FF8C00;'>reparer, repair [quantite]</span>  - Reparer la coque
+  <span style='color: #FF8C00;'>scanner-ennemis, scane</span>      - Scanner les ennemis proches
+  <span style='color: #FF8C00;'>ennemis, enemies</span>            - Voir les ennemis détectés
+  <span style='color: #FF8C00;'>attaquer, attack [id]</span>       - Attaquer un ennemi
+  <span style='color: #FF8C00;'>fuir, flee</span>                  - Tenter de fuir le combat
+
+<span style='color: #FF8C00;'>MISSIONS:</span>
+  <span style='color: #FF8C00;'>missions, quests</span>            - Voir les missions disponibles
+  <span style='color: #FF8C00;'>mission-accepter, accept [id]</span> - Accepter une mission
+  <span style='color: #FF8C00;'>mission-rendre, complete [id]</span> - Rendre une mission
+  <span style='color: #FF8C00;'>mission-abandonner, abandon [id]</span> - Abandonner une mission
+  <span style='color: #FF8C00;'>factions</span>                    - Voir les factions et réputations
+  <span style='color: #FF8C00;'>reputation, rep</span>             - Voir votre réputation
+
+<span style='color: #FF8C00;'>STATIONS:</span>
+  <span style='color: #FF8C00;'>arrimer, dock [station_id]</span>  - Arrimer à une station
+  <span style='color: #FF8C00;'>desarrimer, undock</span>          - Désarrimer de la station
+  <span style='color: #FF8C00;'>transborder, board-station</span> - Transborder vers la station
+  <span style='color: #FF8C00;'>embarquer, board-ship</span>      - Embarquer dans le vaisseau
+  <span style='color: #FF8C00;'>garage</span>                     - Accéder au garage
+  <span style='color: #FF8C00;'>comptoirs, hub</span>             - Accéder aux comptoirs
+  <span style='color: #FF8C00;'>hopital, hospital</span>          - Accéder à l'hôpital
+  <span style='color: #FF8C00;'>industrie, industry</span>        - Accéder à l'industrie
+  <span style='color: #FF8C00;'>ravitailler, refuel [quantite]</span> - Ravitailler le vaisseau
+  <span style='color: #FF8C00;'>recharger, reload [#PA|full]</span> - Recharger l'énergie du vaisseau (#PA ou 'full')
 ";
 
         // Ajouter les commandes admin si l'utilisateur est admin
         if ($isAdmin) {
             $help .= "
-[ADMIN] COMMANDES D'ADMINISTRATION:
-  /adm scan                   - Scanner avec infos détection avancées
-  /adm mv perso <id> vaisseau <id>     - Placer personnage dans vaisseau
-  /adm mv perso <id> station <id>      - Placer personnage dans station
-  /adm mv vaisseau <id> station <id>   - Amarrer vaisseau à station
-  /adm mv vaisseau <id> <x> <y> <z>    - Téléporter vaisseau (secteur)
-  /adm tp <sx> <sy> <sz>      - Téléporter personnage actuel (saut sans énergie)
-  /adm give pa <quantite>     - Donner des PA au personnage
-  /adm give credits <quantite> - Donner des crédits
-  /adm info perso <id>        - Info détaillée personnage
-  /adm info vaisseau <id>     - Info détaillée vaisseau
-  /adm list persos            - Liste tous les personnages
-  /adm list vaisseaux         - Liste tous les vaisseaux
-  /adm list comptes [search]  - Liste/recherche des comptes
-  /adm print OBJECTS          - Liste des objets interrogeables
-  /adm print PJ               - Debug personnage actuel
-  /adm print SHIP             - Debug vaisseau actuel
-  /adm print <Model> <id>     - Debug objet par modèle (ex: Personnage 1)
-  /adm su <compte_id>         - Se substituer à un compte (garde admin)
-  /adm su back                - Revenir au compte admin original
+<span style='color: #FF6B6B;'>[ADMIN] COMMANDES D'ADMINISTRATION:</span>
+  <span style='color: #FF6B6B;'>/adm scan</span> - Scanner avec infos détection avancées
+  <span style='color: #FF6B6B;'>/adm mv perso <id> vaisseau <id></span> - Placer personnage dans vaisseau
+  <span style='color: #FF6B6B;'>/adm mv perso <id> station <id></span> - Placer personnage dans station
+  <span style='color: #FF6B6B;'>/adm mv vaisseau <id> station <id></span> - Amarrer vaisseau à station
+  <span style='color: #FF6B6B;'>/adm mv vaisseau <id> <x> <y> <z></span> - Téléporter vaisseau (secteur)
+  <span style='color: #FF6B6B;'>/adm tp <sx> <sy> <sz></span> - Téléporter personnage actuel (saut sans énergie)
+  <span style='color: #FF6B6B;'>/adm give pa <quantite></span> - Donner des PA au personnage
+  <span style='color: #FF6B6B;'>/adm give credits <quantite></span> - Donner des crédits
+  <span style='color: #FF6B6B;'>/adm info perso <id></span> - Info détaillée personnage
+  <span style='color: #FF6B6B;'>/adm info vaisseau <id></span> - Info détaillée vaisseau
+  <span style='color: #FF6B6B;'>/adm list persos</span> - Liste tous les personnages
+  <span style='color: #FF6B6B;'>/adm list vaisseaux</span> - Liste tous les vaisseaux
+  <span style='color: #FF6B6B;'>/adm list comptes [search]</span> - Liste/recherche des comptes
+  <span style='color: #FF6B6B;'>/adm print OBJECTS</span> - Liste des objets interrogeables
+  <span style='color: #FF6B6B;'>/adm print PJ</span> - Debug personnage actuel
+  <span style='color: #FF6B6B;'>/adm print SHIP</span> - Debug vaisseau actuel
+  <span style='color: #FF6B6B;'>/adm print <Model> <id></span> - Debug objet par modèle (ex: Personnage 1)
+  <span style='color: #FF6B6B;'>/adm su <compte_id></span> - Se substituer à un compte (garde admin)
+  <span style='color: #FF6B6B;'>/adm su back</span> - Revenir au compte admin original
 ";
         }
 
@@ -1150,8 +1175,77 @@ Total: {$result['total']}
         } elseif ($result['fear'] > $result['hope']) {
             $message .= "\n⚠️ +1 jeton Fear";
         }
+        return ['succes' =>true, "message" => $message];
+    }
 
-        return ['success' => true, 'message' => $message];
+    private function rechargerVaisseau(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => '[ERREUR] Aucun vaisseau actif.'];
+        }
+
+        // Forcer le rechargement des données du vaisseau
+        $vaisseau->refresh();
+
+        // Initialiser l'énergie actuelle si elle est null
+        if ($vaisseau->energie_actuelle === null) {
+            $vaisseau->energie_actuelle = 0;
+        }
+
+        // Récupérer le système stellaire en utilisant les coordonnées du secteur
+        $systeme = null;
+        if ($vaisseau->objetSpatial) {
+            $systeme = \App\Models\SystemeStellaire::where('secteur_x', $vaisseau->objetSpatial->secteur_x)
+                ->where('secteur_y', $vaisseau->objetSpatial->secteur_y)
+                ->where('secteur_z', $vaisseau->objetSpatial->secteur_z)
+                ->first();
+        }
+        $puissanceSolaire = $systeme ? $systeme->puissance_solaire : config('game.energie.puissance_solaire_defaut', 1);
+
+        // Mettre à jour le secteur_id du vaisseau si nécessaire
+        if ($systeme && (!$vaisseau->objetSpatial->secteur_id || $vaisseau->objetSpatial->secteur_id != $systeme->id)) {
+            $vaisseau->objetSpatial->secteur_id = $systeme->id;
+        }
+
+        // Utiliser une valeur fixe pour l'énergie maximale (par exemple, la réserve du vaisseau)
+        $energieMax = $vaisseau->reserve; // Utiliser la réserve comme énergie maximale
+
+        // Déterminer le nombre de PA à dépenser
+        $paADepenser = 1; // Valeur par défaut
+        if (isset($parts[1])) {
+            if (strtolower($parts[1]) === 'full') {
+                // Calculer le nombre maximal de PA à dépenser pour faire le plein
+                $energieManquante = $energieMax - $vaisseau->energie_actuelle;
+                $paADepenser = min($personnage->points_action, max(1, ceil($energieManquante / $puissanceSolaire)));
+            } else {
+                $paADepenser = max(1, min((int)$parts[1], $personnage->points_action));
+            }
+        }
+
+        // Vérifier que le personnage a assez de PA
+        if ($personnage->points_action < $paADepenser) {
+            return ['success' => false, 'message' => "[ERREUR] PA insuffisants. Vous avez {$personnage->points_action} PA."];
+        }
+
+        // Calculer l'énergie à ajouter
+        $energieAjoutee = $paADepenser * $puissanceSolaire;
+        $vaisseau->energie_actuelle = min($vaisseau->energie_actuelle + $energieAjoutee, $energieMax);
+
+        // Déduire les PA
+        $personnage->points_action -= $paADepenser;
+
+        // Sauvegarder les modifications
+        $vaisseau->objetSpatial->save();
+        $vaisseau->save();
+        $personnage->save();
+
+        return [
+            'success' => true,
+            'message' => "Vaisseau rechargé: +{$energieAjoutee} énergie ({$paADepenser} PA dépensés). Puissance solaire: {$puissanceSolaire}.",
+            'energie_actuelle' => $vaisseau->energie_actuelle,
+            'pa_restants' => $personnage->points_action,
+        ];
     }
 
     private function moveShip(Personnage $personnage, array $parts): array
@@ -3533,13 +3627,13 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
         $message .= "- Eau potable: Rechargée\n";
         $message .= "- Oxygène: Réservoirs pleins\n";
         $message .= "- Rations: Stock complet\n\n";
-        $message .= "Coût total: {$coutTotal} crédits\n";
         $message .= "Votre vaisseau est prêt pour un long voyage !\n";
 
         return ['success' => true, 'message' => $message];
+
     }
 
-    // ========== CARTE DE L'UNIVERS ==========
+    // ========== CARTE DE L'UNIVERS ====================
 
     /**
      * Afficher la carte de l'univers (systèmes découverts uniquement)

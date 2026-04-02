@@ -21,6 +21,10 @@
             flex-direction: column;
         }
 
+        .command-text {
+            color: #FF8C00;
+        }
+
         .header {
             background: #001100;
             border-bottom: 2px solid #00ff00;
