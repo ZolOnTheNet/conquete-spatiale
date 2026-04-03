@@ -1202,6 +1202,9 @@ Total: {$result['total']}
                 ->first();
         }
         $puissanceSolaire = $systeme ? $systeme->puissance_solaire : config('game.energie.puissance_solaire_defaut', 1);
+        
+        // Garantir une puissance solaire minimale de 5 pour éviter les recharges trop lentes
+        $puissanceSolaire = max(5, $puissanceSolaire);
 
         // Mettre à jour le secteur_id du vaisseau si nécessaire
         if ($systeme && (!$vaisseau->objetSpatial->secteur_id || $vaisseau->objetSpatial->secteur_id != $systeme->id)) {

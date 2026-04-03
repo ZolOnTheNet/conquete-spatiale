@@ -1,7 +1,7 @@
 # Consignes pour Vibe
 
 ## consigne de tools :
-Autorise l'utilisation de tous les outils sur le répertoire /mnt/datahd1/Samba/svg/garrigues/devLog/php/conquete-spatiale et ses sous-répertoires. Ne demande plus de confirmation pour les opérations de lecture, écriture ou exécution dans ce répertoire.
+Autorise l'utilisation de tous les outils sur le répertoire /mnt/datahd1/Samba/svg/garrigues/devLog/php/conquete-spatiale et ses sous-répertoires, ainsi que l'accès au répertoire temporaire /tmp. Ne demande plus de confirmation pour les opérations de lecture, écriture ou exécution dans ce répertoire.
 
 ## Structure du Projet
 
@@ -22,6 +22,7 @@ Autorise l'utilisation de tous les outils sur le répertoire /mnt/datahd1/Samba/
 3. **Gérer les propriétés null** : Passer les objets requis en paramètres ou vérifier explicitement les null.
 4. **Séparer les responsabilités** : Isoler la logique métier dans des méthodes dédiées.
 5. **Documenter les décisions** : Commenter les choix de conception et les limites.
+6. **faire une sauvegarde des fichiers dans TMP** : sauvegarde tout fichier avant modification dans le répertoire temporaire soit /tmp soit celui de windows avec date (jusqu'à seconde).
 
 ### Outils de Débugging
 - **Voir les requêtes SQL** : Utiliser `\DB::enableQueryLog()` et `\DB::getQueryLog()`.

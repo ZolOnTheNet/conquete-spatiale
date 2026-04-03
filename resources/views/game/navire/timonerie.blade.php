@@ -3,6 +3,209 @@
 @section('title', 'Timonerie')
 
 @section('content')
+
+<script>
+
+// ============================================================================
+// FONCTIONS DE NAVIGATION
+// ============================================================================
+
+async function calculerSaut(destinationId) {
+    try {
+        const response = await fetch('{{ route("navire.timonerie.calculer-saut") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ destination_id: destinationId })
+        });
+        const data = await response.json();
+        if (data.error) {
+            sendCommand(`calculer-saut ${destinationId}`);
+            appendToConsole('[ERREUR] ' + data.error, 'text-red-400');
+        } else {
+            sendCommand(`calculer-saut ${destinationId}`);
+            // Convert distance from AL to Gm/G km for display
+            const distanceGm = data.distance * 149.6;
+            const formattedDistance = distanceGm >= 1000
+                ? (distanceGm / 1000).toFixed(2) + ' G km'
+                : distanceGm.toFixed(2) + ' Gm';
+
+            appendToConsole('🔍 Calcul de saut vers ' + data.destination, 'text-cyan-400');
+            appendToConsole('Distance: ' + data.distance + ' AL (' + formattedDistance + ')', 'text-gray-300');
+            appendToConsole('Énergie requise: ' + data.energieRequise + ' (disponible: ' + data.energieDisponible + ')', 'text-gray-300');
+            appendToConsole('PA requis: ' + data.paRequis + ' (disponibles: ' + data.paDisponibles + ')', 'text-gray-300');
+
+            if (data.accessible) {
+                appendToConsole('✓ Saut possible', 'text-green-400');
+            } else {
+                appendToConsole('✗ Ressources insuffisantes', 'text-red-400');
+            }
+            appendToConsole('---', 'text-gray-500');
+        }
+    } catch (error) {
+        sendCommand(`calculer-saut ${destinationId}`);
+        appendToConsole('[ERREUR] Erreur de calcul: ' + error.message, 'text-red-400');
+    }
+}
+
+async function effectuerSaut(destinationId) {
+    try {
+        const response = await fetch('{{ route("navire.timonerie.effectuer-saut") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ destination_id: destinationId })
+        });
+        const data = await response.json();
+        if (data.error) {
+            // Afficher l'erreur dans la console
+            sendCommand(`saut ${destinationId}`); // Pour avoir l'écho de la commande
+            appendToConsole('[ERREUR] ' + data.error, 'text-red-400');
+        } else if (data.success) {
+            const precisionPercent = Math.round(data.arrivee.precision * 100);
+            // Afficher le résultat dans la console
+            sendCommand(`saut ${destinationId}`); // Pour avoir l'écho de la commande
+            appendToConsole('✓ ' + data.message, 'text-green-400');
+            appendToConsole('Jet de navigation: ' + data.jetNavigation, 'text-gray-300');
+            appendToConsole("Position d'arrivée:", 'text-gray-300');
+            appendToConsole('  Secteur: (' + data.arrivee.secteur_x + ', ' + data.arrivee.secteur_y + ', ' + data.arrivee.secteur_z + ')', 'text-gray-300');
+            appendToConsole('  Position: (' + data.arrivee.position_x + ', ' + data.arrivee.position_y + ', ' + data.arrivee.position_z + ') AL', 'text-gray-300');
+            appendToConsole('  Précision: ' + precisionPercent + '% d\'écart (max ' + data.arrivee.ecart_max_ua + ' UA)', 'text-gray-300');
+            appendToConsole('Ressources restantes:', 'text-gray-300');
+            appendToConsole('  Énergie: ' + data.energieRestante, 'text-gray-300');
+            appendToConsole('  PA: ' + data.paRestants, 'text-gray-300');
+            appendToConsole('---', 'text-gray-500');
+
+            // Mettre à jour les informations du jeu
+            updateGameInfo({
+                energie_actuelle: data.energieRestante,
+                pa_restants: data.paRestants,
+                position: '(' + data.arrivee.position_x + ', ' + data.arrivee.position_y + ', ' + data.arrivee.position_z + ') AL'
+            });
+
+            // Recharger la page après un court délai pour mettre à jour la position
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        }
+    } catch (error) {
+        sendCommand(`saut ${destinationId}`);
+        appendToConsole('[ERREUR] Erreur lors du saut: ' + error.message, 'text-red-400');
+    }
+}
+
+async function sApprocher(poiId, poiType) {
+    try {
+        const response = await fetch('{{ route("navire.timonerie.s-approcher") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ poi_id: poiId, poi_type: poiType })
+        });
+        const data = await response.json();
+
+        if (data.error) {
+            // Afficher l'erreur dans la console
+            sendCommand(`s-approcher ${poiId}`);
+            appendToConsole('[ERREUR] ' + data.error, 'text-red-400');
+        } else if (data.success) {
+            // Afficher le résultat dans la console
+            sendCommand(`s-approcher ${poiId}`);
+            appendToConsole('✓ ' + data.message, 'text-green-400');
+
+            if (data.pourcentageTrajet) {
+                appendToConsole('⚠️ Déplacement partiel: ' + data.pourcentageTrajet + '% du trajet', 'text-yellow-400');
+            }
+
+            // Convert distances from UA to Gm/G km
+            const distanceParcourueGm = data.distanceParcourue * 149.6;
+            const distanceParcourueDisplay = distanceParcourueGm >= 1000
+                ? (distanceParcourueGm / 1000).toFixed(2) + ' G km'
+                : distanceParcourueGm.toFixed(2) + ' Gm';
+
+            const distanceRestanteGm = data.distanceRestante * 149.6;
+            const distanceRestanteDisplay = distanceRestanteGm >= 1000
+                ? (distanceRestanteGm / 1000).toFixed(2) + ' G km'
+                : distanceRestanteGm.toFixed(2) + ' Gm';
+
+            appendToConsole('Distance parcourue: ' + data.distanceParcourue + ' UA (' + distanceParcourueDisplay + ')', 'text-gray-300');
+            appendToConsole('Distance restante: ' + data.distanceRestante + ' UA (' + distanceRestanteDisplay + ')', 'text-gray-300');
+            appendToConsole('Nouvelle position: (' + data.nouvellePosition.x + ', ' + data.nouvellePosition.y + ', ' + data.nouvellePosition.z + ') AL', 'text-gray-300');
+            appendToConsole('Ressources consommées:', 'text-gray-300');
+            appendToConsole('  Énergie: -' + data.energieConsommee + ' (restante: ' + data.energieRestante + ')', 'text-gray-300');
+            appendToConsole('  PA: -' + data.paConsommes + ' (restants: ' + data.paRestants + ')', 'text-gray-300');
+            appendToConsole('---', 'text-gray-500');
+
+            // Mettre à jour les informations du jeu
+            updateGameInfo({
+                energie_actuelle: data.energieRestante,
+                pa_restants: data.paRestants,
+                position: '(' + data.nouvellePosition.x + ', ' + data.nouvellePosition.y + ', ' + data.nouvellePosition.z + ') AL'
+            });
+
+            // Recharger la page après un court délai pour mettre à jour la position
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            sendCommand(`s-approcher ${poiId}`);
+            appendToConsole(data.message || 'Déplacement effectué', 'text-gray-300');
+        }
+    } catch (error) {
+        sendCommand(`s-approcher ${poiId}`);
+        appendToConsole('[ERREUR] Erreur: ' + error.message, 'text-red-400');
+    }
+}
+
+async function sAmarrer(stationId) {
+    try {
+        const response = await fetch('{{ route("navire.timonerie.s-amarrer") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ station_id: stationId })
+        });
+        const data = await response.json();
+
+        if (data.error) {
+            // Afficher l'erreur dans la console
+            sendCommand(`s-amarrer ${stationId}`);
+            appendToConsole('[ERREUR] ' + data.error + (data.message ? '\n' + data.message : ''), 'text-red-400');
+        } else if (data.success) {
+            // Convert distance from UA to Gm/G km
+            const distanceGm = data.distance * 149.6;
+            const distanceDisplay = distanceGm >= 1000
+                ? (distanceGm / 1000).toFixed(2) + ' G km'
+                : distanceGm.toFixed(2) + ' Gm';
+
+            // Afficher le résultat dans la console
+            sendCommand(`s-amarrer ${stationId}`);
+            appendToConsole('✓ ' + data.message, 'text-green-400');
+            appendToConsole('Station: ' + data.station.nom, 'text-gray-300');
+            appendToConsole('Distance: ' + data.distance + ' UA (' + distanceDisplay + ')', 'text-gray-300');
+            appendToConsole('Ressources restantes:', 'text-gray-300');
+            appendToConsole('  Énergie: ' + data.energieRestante, 'text-gray-300');
+            appendToConsole('  PA: ' + data.paRestants, 'text-gray-300');
+            appendToConsole('---', 'text-gray-500');
+            appendToConsole('📢 Vous avez maintenant accès au menu Station !', 'text-cyan-400');
+            appendToConsole('→ <a href="{{ route('station.hall') }}" class="text-cyan-400 underline font-bold">Accéder au Hall de la Station</a>', 'text-cyan-400');
+
+            // Mettre à jour les informations du jeu
+            updateGameInfo({
+                energie_actuelle: data.energieRestante,
+                pa_restants: data.paRestants
+            });
+
+            // Rediriger vers le hall de la station après un court délai
+            setTimeout(() => {
+                window.location.href = '{{ route('station.hall') }}';
+            }, 2000);
+        } else {
+            sendCommand(`s-amarrer ${stationId}`);
+            appendToConsole(data.message || 'Amarrage effectué', 'text-gray-300');
+        }
+    } catch (error) {
+        sendCommand(`s-amarrer ${stationId}`);
+        appendToConsole('[ERREUR] Erreur: ' + error.message, 'text-red-400');
+    }
+}
+</script>
 <div class="h-screen flex flex-col bg-gray-900">
 
     {{-- Header 4 colonnes --}}
@@ -31,22 +234,39 @@
                 {{-- Position actuelle --}}
                 <div class="bg-gray-800/50 border border-cyan-500/30 rounded-lg p-4 mb-6">
                     <h3 class="text-lg text-cyan-300 mb-3">Position actuelle</h3>
-                    <div class="grid grid-cols-3 gap-4 text-sm">
-                        <div>
+                    <div class="flex flex-wrap items-center gap-4 text-sm">
+                        <div class="flex items-center gap-2">
                             <span class="text-gray-400">Secteur:</span>
-                            <span class="text-yellow-400 font-mono ml-2">
+                            <span class="text-yellow-400 font-mono">
                                 ({{ $objetSpatial->secteur_x }}, {{ $objetSpatial->secteur_y }}, {{ $objetSpatial->secteur_z }})
                             </span>
                         </div>
-                        <div>
+                        <div class="flex items-center gap-2">
                             <span class="text-gray-400">Position:</span>
-                            <span class="text-cyan-400 font-mono ml-2">
+                            <span class="text-cyan-400 font-mono">
                                 ({{ $objetSpatial->position_x }}, {{ $objetSpatial->position_y }}, {{ $objetSpatial->position_z }}) AL
                             </span>
                         </div>
-                        <div>
+                        <div class="flex items-center gap-2">
                             <span class="text-gray-400">Système:</span>
-                            <span class="text-green-400 ml-2">{{ $systemeActuel->nom ?? 'Espace profond' }}</span>
+                            <span class="text-green-400">{{ $systemeActuel->nom ?? 'Espace profond' }}</span>
+                        </div>
+                        <div class="flex gap-2 ml-auto">
+                            @php
+                                $puissanceAffichage = isset($systemeActuel->puissance_solaire) ? max(5, $systemeActuel->puissance_solaire) : 5;
+                            @endphp
+                            <button onclick="sendCommand('recharger 1')"
+                                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs transition whitespace-nowrap flex items-center gap-1 @if($vaisseau->energie_actuelle >= $vaisseau->reserve) disabled bg-gray-600 cursor-not-allowed @endif"
+                                    title="Recharger pour 1 PA (+{{ $puissanceAffichage }} énergie) @if($vaisseau->energie_actuelle >= $vaisseau->reserve) - Vaisseau déjà plein @endif"
+                                    @if($vaisseau->energie_actuelle >= $vaisseau->reserve) disabled @endif>
+                                ⚡ R+{{ $puissanceAffichage }}
+                            </button>
+                            <button onclick="sendCommand('recharger full')"
+                                    class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-xs transition whitespace-nowrap flex items-center gap-1 @if($vaisseau->energie_actuelle >= $vaisseau->reserve) disabled bg-gray-600 cursor-not-allowed @endif"
+                                    title="Recharger au maximum @if($vaisseau->energie_actuelle >= $vaisseau->reserve) - Vaisseau déjà plein @endif"
+                                    @if($vaisseau->energie_actuelle >= $vaisseau->reserve) disabled @endif>
+                                ⚡ R>>>100%
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -67,14 +287,22 @@
                                     <span class="text-white font-semibold">{{ $destination->nom }}</span>
                                 </div>
                                 <div class="text-yellow-400 whitespace-nowrap">
-                                    {{ number_format($destination->distance, 1) }} AL
+                                    @php
+                                        $distanceGm = $destination->distance * 149.6;
+                                        if ($distanceGm >= 1000) {
+                                            $distanceGkm = $distanceGm / 1000;
+                                            echo number_format($distanceGkm, 2) . ' G km';
+                                        } else {
+                                            echo number_format($distanceGm, 2) . ' Gm';
+                                        }
+                                    @endphp
                                 </div>
-                                <button onclick="calculerSaut({{ $destination->id }})"
+                                <button onclick="sendCommand('saut {{ $destination->secteur_x }} {{ $destination->secteur_y }} {{ $destination->secteur_z }}')"
                                         class="bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded text-xs transition whitespace-nowrap"
                                         @if(!$destination->accessible) disabled @endif>
                                     🧮 Calcul ({{ $destination->paRequis }} PA)
                                 </button>
-                                <button onclick="effectuerSaut({{ $destination->id }})"
+                                <button onclick="sendCommand('saut {{ $destination->secteur_x }} {{ $destination->secteur_y }} {{ $destination->secteur_z }}')"
                                         class="bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded text-xs font-semibold transition whitespace-nowrap"
                                         @if(!$destination->accessible) disabled @endif>
                                     ⚡ Saut ({{ $destination->energieRequise }} E)
@@ -107,7 +335,15 @@
                                     @endif
                                 </div>
                                 <div class="text-cyan-400 whitespace-nowrap planete-distance">
-                                    {{ number_format($poi->distance, 2) }} UA
+                                    @php
+                                        $distanceGm = $poi->distance * 149.6;
+                                        if ($distanceGm >= 1000) {
+                                            $distanceGkm = $distanceGm / 1000;
+                                            echo number_format($distanceGkm, 2) . ' G km';
+                                        } else {
+                                            echo number_format($distanceGm, 2) . ' Gm';
+                                        }
+                                    @endphp
                                 </div>
                                 <button onclick="sApprocher({{ $poi->id }}, '{{ $poi->type_poi }}')"
                                         class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs transition whitespace-nowrap">
@@ -137,10 +373,17 @@
             </div>
         </main>
 
-        <!-- Console Droite -->
-        @include('game.partials.console')
-    </div>
+        <!-- Console Droite Redimensionnable -->
+        <div class="console-container w-96 min-w-[200px] max-w-[500px] border-l border-gray-700 relative flex">
+            <!-- Poignée de redimensionnement -->
+            <div class="console-resizer w-1 h-full cursor-col-resize bg-gray-700 hover:bg-cyan-500 transition-colors"></div>
 
+            <!-- Contenu de la console - prend toute la largeur disponible -->
+            <div class="flex-1 min-w-0">
+                @include('game.partials.console')
+            </div>
+        </div>
+    </div>
 </div>
 
 {{-- Inclure le calculateur orbital JavaScript --}}
@@ -223,128 +466,56 @@ if (typeof OrbitalCalculator !== 'undefined') {
 }
 
 // ============================================================================
-// FONCTIONS DE NAVIGATION (existantes)
+// CONSOLE REDIMENSIONNABLE
 // ============================================================================
 
-async function calculerSaut(destinationId) {
-    try {
-        const response = await fetch('{{ route("navire.timonerie.calculer-saut") }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-            body: JSON.stringify({ destination_id: destinationId })
+document.addEventListener('DOMContentLoaded', function() {
+    const consoleContainer = document.querySelector('.console-container');
+    const consoleResizer = document.querySelector('.console-resizer');
+
+    if (consoleContainer && consoleResizer) {
+        let isResizing = false;
+        let startX, startWidth;
+
+        // Démarrer le redimensionnement
+        consoleResizer.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            startX = e.clientX;
+            startWidth = consoleContainer.offsetWidth;
+            e.preventDefault();
+            consoleResizer.style.backgroundColor = '#06b6d4'; // Cyan pour indiquer le mode redimensionnement
         });
-        const data = await response.json();
-        if (data.error) {
-            afficherResultat(data.error, 'error');
-        } else {
-            const message = `<div class="space-y-2"><p><strong>Destination :</strong> ${data.destination}</p><p><strong>Distance :</strong> ${data.distance} AL</p><p><strong>Énergie requise :</strong> ${data.energieRequise} (disponible: ${data.energieDisponible})</p><p><strong>PA requis :</strong> ${data.paRequis} (disponibles: ${data.paDisponibles})</p><p class="${data.accessible ? 'text-green-400' : 'text-red-400'}"><strong>${data.accessible ? '✓ Saut possible' : '✗ Ressources insuffisantes'}</strong></p></div>`;
-            afficherResultat(message, 'info');
-        }
-    } catch (error) {
-        afficherResultat('Erreur de calcul: ' + error.message, 'error');
-    }
-}
 
-async function effectuerSaut(destinationId) {
-    if (!confirm('Effectuer le saut hyperespace maintenant ?')) return;
-    try {
-        const response = await fetch('{{ route("navire.timonerie.effectuer-saut") }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-            body: JSON.stringify({ destination_id: destinationId })
-        });
-        const data = await response.json();
-        if (data.error) {
-            afficherResultat(data.error, 'error');
-        } else if (data.success) {
-            const precisionPercent = Math.round(data.arrivee.precision * 100);
-            const message = `<div class="space-y-2"><p class="text-green-400 font-bold">✓ ${data.message}</p><p><strong>Jet de navigation :</strong> ${data.jetNavigation}</p><p><strong>Position d'arrivée :</strong></p><ul class="ml-4"><li>Secteur: (${data.arrivee.secteur_x}, ${data.arrivee.secteur_y}, ${data.arrivee.secteur_z})</li><li>Position: (${data.arrivee.position_x}, ${data.arrivee.position_y}, ${data.arrivee.position_z}) AL</li><li>Précision: ${precisionPercent}% d'écart (max ${data.arrivee.ecart_max_ua} UA)</li></ul><p><strong>Ressources restantes :</strong></p><ul class="ml-4"><li>Énergie: ${data.energieRestante}</li><li>PA: ${data.paRestants}</li></ul><p class="mt-4"><a href="{{ route('navire.timonerie') }}" class="text-cyan-400 underline">Recharger la timonerie</a></p></div>`;
-            afficherResultat(message, 'success');
-        }
-    } catch (error) {
-        afficherResultat('Erreur lors du saut: ' + error.message, 'error');
-    }
-}
+        // Redimensionner
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
 
-async function sApprocher(poiId, poiType) {
-    try {
-        const response = await fetch('{{ route("navire.timonerie.s-approcher") }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-            body: JSON.stringify({ poi_id: poiId, poi_type: poiType })
-        });
-        const data = await response.json();
+            const newWidth = startWidth - (e.clientX - startX);
 
-        if (data.error) {
-            afficherResultat(data.error, 'error');
-        } else if (data.success) {
-            let message = `<div class="space-y-2"><p class="text-green-400 font-bold">✓ ${data.message}</p>`;
+            // Appliquer les limites min/max
+            const minWidth = 200;
+            const maxWidth = window.innerWidth * 0.6; // 60% de la largeur de l'écran
 
-            if (data.pourcentageTrajet) {
-                message += `<p class="text-yellow-400">⚠️ Déplacement partiel: ${data.pourcentageTrajet}% du trajet</p>`;
+            if (newWidth >= minWidth && newWidth <= maxWidth) {
+                consoleContainer.style.width = newWidth + 'px';
             }
-
-            message += `<p><strong>Distance parcourue:</strong> ${data.distanceParcourue} UA</p>`;
-            message += `<p><strong>Distance restante:</strong> ${data.distanceRestante} UA</p>`;
-            message += `<p><strong>Nouvelle position:</strong> (${data.nouvellePosition.x}, ${data.nouvellePosition.y}, ${data.nouvellePosition.z}) AL</p>`;
-            message += `<p><strong>Ressources consommées:</strong></p>`;
-            message += `<ul class="ml-4"><li>Énergie: -${data.energieConsommee} (restante: ${data.energieRestante})</li>`;
-            message += `<li>PA: -${data.paConsommes} (restants: ${data.paRestants})</li></ul>`;
-            message += `<p class="mt-4"><a href="{{ route('navire.timonerie') }}" class="text-cyan-400 underline">Recharger la timonerie</a></p></div>`;
-
-            afficherResultat(message, 'success');
-        } else {
-            afficherResultat(data.message || 'Déplacement effectué', 'info');
-        }
-    } catch (error) {
-        afficherResultat('Erreur: ' + error.message, 'error');
-    }
-}
-
-async function sAmarrer(stationId) {
-    if (!confirm('S\'amarrer à cette station ?')) return;
-    try {
-        const response = await fetch('{{ route("navire.timonerie.s-amarrer") }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-            body: JSON.stringify({ station_id: stationId })
         });
-        const data = await response.json();
 
-        if (data.error) {
-            afficherResultat(data.error + (data.message ? '<br>' + data.message : ''), 'error');
-        } else if (data.success) {
-            const message = `<div class="space-y-2">
-                <p class="text-green-400 font-bold text-xl">✓ ${data.message}</p>
-                <p><strong>Station:</strong> ${data.station.nom}</p>
-                <p><strong>Distance:</strong> ${data.distance} UA</p>
-                <p><strong>Ressources restantes:</strong></p>
-                <ul class="ml-4">
-                    <li>Énergie: ${data.energieRestante}</li>
-                    <li>PA: ${data.paRestants}</li>
-                </ul>
-                <p class="mt-4 text-cyan-400">Vous avez maintenant accès au menu Station !</p>
-                <p class="mt-2"><a href="{{ route('station.hall') }}" class="text-cyan-400 underline font-bold">→ Accéder au Hall de la Station</a></p>
-                <p><a href="{{ route('navire.timonerie') }}" class="text-gray-400 underline text-sm">Recharger la timonerie</a></p>
-            </div>`;
+        // Arrêter le redimensionnement
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+            consoleResizer.style.backgroundColor = ''; // Retour à la couleur normale
+        });
 
-            afficherResultat(message, 'success');
-        } else {
-            afficherResultat(data.message || 'Amarrage effectué', 'info');
-        }
-    } catch (error) {
-        afficherResultat('Erreur: ' + error.message, 'error');
+        // Empêcher la sélection de texte pendant le redimensionnement
+        document.addEventListener('selectstart', function(e) {
+            if (isResizing) {
+                e.preventDefault();
+            }
+        });
+    } else {
+        console.error('Console redimensionnable: éléments non trouvés');
     }
-}
-
-function afficherResultat(message, type = 'info') {
-    const resultatDiv = document.getElementById('resultat-navigation');
-    const contenuDiv = document.getElementById('resultat-contenu');
-    const styles = { info: 'border-cyan-500/30', success: 'border-green-500/30', error: 'border-red-500/30' };
-    resultatDiv.className = `mt-6 bg-gray-800/50 border rounded-lg p-4 ${styles[type] || styles.info}`;
-    contenuDiv.innerHTML = message;
-    resultatDiv.style.display = 'block';
-    resultatDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
+});
 </script>
 @endsection

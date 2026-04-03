@@ -36,7 +36,7 @@
                 <!-- Texte d'échelle -->
                 <text x="10" y="20" fill="rgba(200,200,200,0.7)" font-size="12">Secteur ({{ $x }}, {{ $y }}, {{ $z }})</text>
                 <text x="10" y="590" fill="rgba(200,200,200,0.5)" font-size="10">
-                    Système au centre | Échelle: distances en Unités Astronomiques (UA)
+                    Système au centre | Échelle: distances en Gigamètres (Gm) / Gigakilomètres (G km)
                 </text>
 
                 @php
@@ -106,7 +106,17 @@
                     <text x="{{ $planetX }}" y="{{ $planetY - 12 }}" fill="white" font-size="9" text-anchor="middle"
                           style="pointer-events: none;">{{ $planete->nom }}</text>
                     <text x="{{ $planetX }}" y="{{ $planetY + 18 }}" fill="rgba(200,200,200,0.6)" font-size="7" text-anchor="middle"
-                          style="pointer-events: none;">{{ number_format($planete->distance_etoile, 1) }} UA</text>
+                          style="pointer-events: none;">
+                        @php
+                            $distanceGm = $planete->distance_etoile * 149.6;
+                            if ($distanceGm >= 1000) {
+                                $distanceGkm = $distanceGm / 1000;
+                                echo number_format($distanceGkm, 2) . ' G km';
+                            } else {
+                                echo number_format($distanceGm, 2) . ' Gm';
+                            }
+                        @endphp
+                    </text>
 
                     @if($planete->accessible)
                         <text x="{{ $planetX }}" y="{{ $planetY + 28 }}" fill="lime" font-size="10" text-anchor="middle"
@@ -120,7 +130,17 @@
 
                 <!-- Échelle approximative -->
                 <line x1="20" y1="570" x2="80" y2="570" stroke="white" stroke-width="2"/>
-                <text x="50" y="565" fill="white" font-size="9" text-anchor="middle">≈ {{ number_format($scaleUA, 1) }} UA</text>
+                <text x="50" y="565" fill="white" font-size="9" text-anchor="middle">
+                    @php
+                        $scaleGm = $scaleUA * 149.6;
+                        if ($scaleGm >= 1000) {
+                            $scaleGkm = $scaleGm / 1000;
+                            echo '≈ ' . number_format($scaleGkm, 2) . ' G km';
+                        } else {
+                            echo '≈ ' . number_format($scaleGm, 2) . ' Gm';
+                        }
+                    @endphp
+                </text>
                 <line x1="20" y1="572" x2="20" y2="568" stroke="white" stroke-width="1"/>
                 <line x1="80" y1="572" x2="80" y2="568" stroke="white" stroke-width="1"/>
             </svg>

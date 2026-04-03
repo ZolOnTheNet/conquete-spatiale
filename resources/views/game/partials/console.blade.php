@@ -1,5 +1,5 @@
 {{-- Console Droite --}}
-<aside class="w-96 bg-gray-900/90 border-l border-cyan-500/30 flex flex-col">
+<aside class="w-full bg-gray-900/90 border-l border-cyan-500/30 flex flex-col h-full">
     <div class="bg-gray-800/50 border-b border-cyan-500/30 px-4 py-3">
         <h2 class="text-sm font-bold text-cyan-400">CONSOLE</h2>
     </div>
@@ -78,15 +78,24 @@ if (commandInput) {
 }
 
 // Envoyer une commande
-function sendCommand(event) {
-    if (event) event.preventDefault();
+function sendCommand(commandOrEvent) {
+    // Gérer les deux formats: commande en string ou événement
+    let command;
+    if (typeof commandOrEvent === 'string') {
+        command = commandOrEvent.trim();
+    } else {
+        // C'est un événement
+        const event = commandOrEvent;
+        if (event) event.preventDefault();
+        command = commandInput ? commandInput.value.trim() : '';
+        if (!command) return;
+    }
 
-    const command = commandInput ? commandInput.value.trim() : '';
-    if (!command) return;
-
-    // Ajouter à l'historique
-    commandHistory.unshift(command);
-    historyIndex = -1;
+    // Ajouter à l'historique seulement pour les commandes depuis l'input
+    if (typeof commandOrEvent !== 'string') {
+        commandHistory.unshift(command);
+        historyIndex = -1;
+    }
 
     // Afficher la commande
     appendToConsole('> ' + command, 'text-cyan-400');
@@ -120,8 +129,10 @@ function sendCommand(event) {
         appendToConsole('[ERREUR] ' + error.message, 'text-red-400');
     });
 
-    // Vider l'input
-    if (commandInput) commandInput.value = '';
+    // Vider l'input seulement pour les commandes depuis l'input
+    if (typeof commandOrEvent !== 'string' && commandInput) {
+        commandInput.value = '';
+    }
 }
 
 // Commande rapide (boutons)
@@ -152,6 +163,12 @@ function appendToConsole(text, colorClass = 'text-gray-300') {
     }
     
     consoleOutput.appendChild(div);
+    
+    // Sauvegarder l'historique
+    if (typeof saveConsoleHistory === 'function') {
+        saveConsoleHistory();
+    }
+    
     consoleOutput.scrollTop = consoleOutput.scrollHeight;
 }
 
