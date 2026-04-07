@@ -205,6 +205,24 @@ async function sApprocher(poiId, poiType) {
     }
 }
 
+// Fonction pour mettre à jour la destination de saut avec un POI spécifique
+function updateSautDestination(selectElement, secteurX, secteurY, secteurZ) {
+    const poiId = selectElement.value;
+    const destinationName = selectElement.closest('.bg-gray-900\/50').querySelector('.text-white.font-semibold').textContent;
+    
+    if (poiId === 'systeme') {
+        // Saut vers le système lui-même (comportement par défaut)
+        console.log(`Destination: ${destinationName} (système)`);
+        // Ici vous pourrez ajouter la logique pour cibler le système
+    } else {
+        // Saut vers un POI spécifique
+        const poiName = selectElement.options[selectElement.selectedIndex].text;
+        console.log(`Destination: ${destinationName} → POI: ${poiName} (ID: ${poiId})`);
+        // Ici vous pourrez ajouter la logique pour cibler le POI spécifique
+        // Exemple: sendCommand(`saut ${secteurX} ${secteurY} ${secteurZ} ${poiId}`)
+    }
+}
+
 async function sAmarrer(stationId) {
     try {
         const response = await fetch('{{ route("navire.timonerie.s-amarrer") }}', {
@@ -333,12 +351,9 @@ async function sAmarrer(stationId) {
 
                         <div class="space-y-2 max-h-[600px] overflow-y-auto">
                             @forelse($sautsDisponibles as $destination)
-                            <div class="bg-gray-900/50 border border-gray-700 rounded px-3 py-2 hover:border-yellow-500/50 transition flex items-center gap-3 text-sm group relative">
+                            <div class="bg-gray-900/50 border border-gray-700 rounded px-3 py-2 hover:border-yellow-500/50 transition flex items-center gap-3 text-sm">
                                 <div class="flex-1 min-w-0">
                                     <span class="text-white font-semibold">{{ $destination->nom }}</span>
-                                    @if($destination->pois_connus && $destination->pois_connus->count() > 0)
-                                        <span class="text-xs text-gray-400 ml-1">({{ $destination->pois_connus->count() }} POI)</span>
-                                    @endif
                                 </div>
                                 <div class="text-yellow-400 whitespace-nowrap">
                                     @php
@@ -350,6 +365,20 @@ async function sAmarrer(stationId) {
                                         }
                                     @endphp
                                 </div>
+                                
+                                <!-- Combobox pour sélectionner le POI cible -->
+                                @if($destination->pois_connus && $destination->pois_connus->count() > 0)
+                                    <select 
+                                        class="bg-gray-700 border border-gray-600 text-white text-xs rounded px-2 py-1 hover:border-cyan-400 transition min-w-[120px] max-w-[180px]"
+                                        onchange="updateSautDestination(this, {{ $destination->secteur_x }}, {{ $destination->secteur_y }}, {{ $destination->secteur_z }})"
+                                        data-destination-id="{{ $destination->id }}">
+                                        <option value="systeme" selected>&lt;système&gt;</option>
+                                        @foreach($destination->pois_connus as $poi)
+                                            <option value="{{ $poi->id }}">{{ $poi->icone }} {{ $poi->nom }}</option>
+                                        @endforeach
+                                    </select>
+                                @endif
+                                
                                 <button onclick="sendCommand('saut {{ $destination->secteur_x }} {{ $destination->secteur_y }} {{ $destination->secteur_z }}')"
                                         class="bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded text-xs transition whitespace-nowrap"
                                         @if(!$destination->accessible) disabled @endif>
@@ -360,22 +389,6 @@ async function sAmarrer(stationId) {
                                         @if(!$destination->accessible) disabled @endif>
                                     ⚡ Saut ({{ $destination->energieRequise }} E)
                                 </button>
-                                
-                                <!-- Info-bulle avec les POI connus -->
-                                @if($destination->pois_connus && $destination->pois_connus->count() > 0)
-                                    <div class="absolute left-0 top-full mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-xs text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-                                        <div class="font-semibold text-cyan-400 mb-2">POI connus dans ce secteur :</div>
-                                        <ul class="space-y-1">
-                                            @foreach($destination->pois_connus as $poi)
-                                                <li class="flex items-center gap-2">
-                                                    <span>{!! $poi->icone !!}</span>
-                                                    <span class="text-white">{{ $poi->nom }}</span>
-                                                    <span class="text-gray-400 text-xs">({{ $poi->type_poi }})</span>
-                                                </li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                @endif
                             </div>
                             @empty
                             <p class="text-gray-500 text-center py-8">Aucun saut disponible</p>
