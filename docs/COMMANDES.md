@@ -17,7 +17,7 @@ Liste complete des commandes disponibles dans le jeu.
 | `vaisseau` | `ship` | Affiche les details du vaisseau actif |
 | `carte` | `map` | Affiche la carte des systemes decouverts |
 | `deplacer <x> <y> <z>` | `move` | Deplace le vaisseau en sous-lumiere |
-| `saut <systeme>` | `jump` | Effectue un saut hyperespace vers un systeme |
+| `saut <systeme> ou <x> <y> <z>` | `jump` | Effectue un saut hyperespace vers un systeme |
 | `scan` | `scanner` | Scanne la zone pour decouvrir des systemes |
 
 ## Economie et Ressources

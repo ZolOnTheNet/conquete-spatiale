@@ -1,7 +1,11 @@
 {{-- Console Droite --}}
 <aside class="w-full bg-gray-900/90 border-l border-cyan-500/30 flex flex-col h-full">
-    <div class="bg-gray-800/50 border-b border-cyan-500/30 px-4 py-3">
+    <div class="bg-gray-800/50 border-b border-cyan-500/30 px-4 py-3 flex justify-between items-center">
         <h2 class="text-sm font-bold text-cyan-400">CONSOLE</h2>
+        <div class="flex items-center gap-1">
+            <button onclick="adjustFontSize(-1)" class="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded transition" title="Diminuer la taille de police">-</button>
+            <button onclick="adjustFontSize(1)" class="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded transition" title="Augmenter la taille de police">+</button>
+        </div>
     </div>
     <style>
         .command-text {

@@ -6,7 +6,58 @@
 
 <script>
 
+// CONSOLE REDIMENSIONNABLE
 // ============================================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    const consoleContainer = document.querySelector('.console-container');
+    const consoleResizer = document.querySelector('.console-resizer');
+
+    if (consoleContainer && consoleResizer) {
+        let isResizing = false;
+        let startX, startWidth;
+
+        // Démarrer le redimensionnement
+        consoleResizer.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            startX = e.clientX;
+            startWidth = consoleContainer.offsetWidth;
+            e.preventDefault();
+            consoleResizer.style.backgroundColor = '#06b6d4'; // Cyan pour indiquer le mode redimensionnement
+        });
+
+        // Redimensionner
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+
+            const newWidth = startWidth - (e.clientX - startX);
+
+            // Appliquer les limites min/max
+            const minWidth = 200;
+            const maxWidth = window.innerWidth * 0.6; // 60% de la largeur de l'écran
+
+            if (newWidth >= minWidth && newWidth <= maxWidth) {
+                consoleContainer.style.width = newWidth + 'px';
+            }
+        });
+
+        // Arrêter le redimensionnement
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+            consoleResizer.style.backgroundColor = ''; // Retour à la couleur normale
+        });
+
+        // Empêcher la sélection de texte pendant le redimensionnement
+        document.addEventListener('selectstart', function(e) {
+            if (isResizing) {
+                e.preventDefault();
+            }
+        });
+    } else {
+        console.error('Console redimensionnable: éléments non trouvés');
+    }
+});
+===================================================================================
 // FONCTIONS DE NAVIGATION
 // ============================================================================
 
@@ -374,15 +425,9 @@ async function sAmarrer(stationId) {
         </main>
 
         <!-- Console Droite Redimensionnable -->
-        <div class="console-container w-96 min-w-[200px] max-w-[500px] border-l border-gray-700 relative flex">
-            <!-- Poignée de redimensionnement -->
-            <div class="console-resizer w-1 h-full cursor-col-resize bg-gray-700 hover:bg-cyan-500 transition-colors"></div>
-
-            <!-- Contenu de la console - prend toute la largeur disponible -->
-            <div class="flex-1 min-w-0">
-                @include('game.partials.console')
-            </div>
-        </div>
+        <x-console-resizable>
+            @include('game.partials.console')
+        </x-console-resizable>
     </div>
 </div>
 

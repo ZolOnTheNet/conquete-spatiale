@@ -28,7 +28,9 @@
             </div>
         </main>
 
-        @include('game.partials.console')
+        <x-console-resizable>
+            @include('game.partials.console')
+        </x-console-resizable>
     </div>
 </div>
 @endsection

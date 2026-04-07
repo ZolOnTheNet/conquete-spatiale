@@ -177,8 +177,10 @@
             </div>
         </main>
 
-        <!-- Console Droite -->
-        @include('game.partials.console')
+        <!-- Console Droite Redimensionnable -->
+        <x-console-resizable>
+            @include('game.partials.console')
+        </x-console-resizable>
     </div>
 </div>
 @endsection
