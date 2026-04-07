@@ -333,18 +333,20 @@ async function sAmarrer(stationId) {
 
                         <div class="space-y-2 max-h-[600px] overflow-y-auto">
                             @forelse($sautsDisponibles as $destination)
-                            <div class="bg-gray-900/50 border border-gray-700 rounded px-3 py-2 hover:border-yellow-500/50 transition flex items-center gap-3 text-sm">
+                            <div class="bg-gray-900/50 border border-gray-700 rounded px-3 py-2 hover:border-yellow-500/50 transition flex items-center gap-3 text-sm group relative">
                                 <div class="flex-1 min-w-0">
                                     <span class="text-white font-semibold">{{ $destination->nom }}</span>
+                                    @if($destination->pois_connus && $destination->pois_connus->count() > 0)
+                                        <span class="text-xs text-gray-400 ml-1">({{ $destination->pois_connus->count() }} POI)</span>
+                                    @endif
                                 </div>
                                 <div class="text-yellow-400 whitespace-nowrap">
                                     @php
-                                        $distanceGm = $destination->distance * 149.6;
-                                        if ($distanceGm >= 1000) {
-                                            $distanceGkm = $distanceGm / 1000;
-                                            echo number_format($distanceGkm, 2) . ' G km';
+                                        // Afficher la distance en secteurs ou en AL avec 1 décimale
+                                        if ($destination->distance_secteurs > 0) {
+                                            echo number_format($destination->distance_secteurs, 0) . ' secteurs';
                                         } else {
-                                            echo number_format($distanceGm, 2) . ' Gm';
+                                            echo number_format($destination->distance, 1) . ' AL';
                                         }
                                     @endphp
                                 </div>
@@ -358,6 +360,22 @@ async function sAmarrer(stationId) {
                                         @if(!$destination->accessible) disabled @endif>
                                     ⚡ Saut ({{ $destination->energieRequise }} E)
                                 </button>
+                                
+                                <!-- Info-bulle avec les POI connus -->
+                                @if($destination->pois_connus && $destination->pois_connus->count() > 0)
+                                    <div class="absolute left-0 top-full mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-xs text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                                        <div class="font-semibold text-cyan-400 mb-2">POI connus dans ce secteur :</div>
+                                        <ul class="space-y-1">
+                                            @foreach($destination->pois_connus as $poi)
+                                                <li class="flex items-center gap-2">
+                                                    <span>{!! $poi->icone !!}</span>
+                                                    <span class="text-white">{{ $poi->nom }}</span>
+                                                    <span class="text-gray-400 text-xs">({{ $poi->type_poi }})</span>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
                             </div>
                             @empty
                             <p class="text-gray-500 text-center py-8">Aucun saut disponible</p>
