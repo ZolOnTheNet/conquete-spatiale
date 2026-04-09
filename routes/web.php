@@ -53,6 +53,8 @@ Route::middleware('auth')->group(function () {
             Route::post('/timonerie/effectuer-saut', [TimonerieController::class, 'effectuerSaut'])->name('timonerie.effectuer-saut');
             Route::post('/timonerie/s-approcher', [TimonerieController::class, 'sApprocher'])->name('timonerie.s-approcher');
             Route::post('/timonerie/s-amarrer', [TimonerieController::class, 'sAmarrer'])->name('timonerie.s-amarrer');
+            Route::post('/timonerie/annuler-calcul', [TimonerieController::class, 'annulerCalculSaut'])->name('timonerie.annuler-calcul');
+            Route::post('/timonerie/ameliorer-calcul', [TimonerieController::class, 'ameliorerCalculSaut'])->name('timonerie.ameliorer-calcul');
 
             Route::get('/ingenierie', [VaisseauController::class, 'etat'])->name('ingenierie');
             Route::get('/com', [ComController::class, 'databases'])->name('com');

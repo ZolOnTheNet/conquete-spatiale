@@ -300,6 +300,47 @@ async function sAmarrer(stationId) {
 
                 <h2 class="text-3xl font-orbitron text-cyan-400 mb-6">🚀 TIMONERIE</h2>
 
+                @if(session()->has('dernier_calcul_saut'))
+                <div class="bg-cyan-900/30 border border-cyan-500/50 rounded-lg p-3 mb-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="text-cyan-400 font-bold">📊 CALCUL EN COURS</span>
+                            <span class="text-white">
+                                {{ session('dernier_calcul_saut.destination_nom') }}
+                                @if(session('dernier_calcul_saut.poi_cible') !== 'systeme')
+                                    → {{ session('dernier_calcul_saut.poi_nom') }}
+                                @endif
+                            </span>
+                            <span class="text-gray-400 text-sm">
+                                ({{ number_format(session('dernier_calcul_saut.distance'), 1) }} AL,
+                                {{ session('dernier_calcul_saut.energie_requise') }} E,
+                                {{ session('dernier_calcul_saut.pa_requis') }} PA)
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-400">
+                                Valide jusqu'à {{ date('H:i:s', session('dernier_calcul_saut.valid_until')) }}
+                            </span>
+                            <button onclick="annulerCalculSaut()"
+                                    class="text-xs bg-red-600 hover:bg-red-700 px-2 py-1 rounded transition"
+                                    title="Annuler ce calcul">
+                                ❌ Annuler
+                            </button>
+                            <button onclick="ameliorerCalculSaut()"
+                                    class="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded transition"
+                                    title="Améliorer le calcul (coûte 1 PA)">
+                                ⬆️ Améliorer (1 PA)
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-xs text-gray-400">
+                        Jet de navigation: {{ session('dernier_calcul_saut.jet_navigation') }} |
+                        Score d'erreur: {{ session('dernier_calcul_saut.score_erreur') }} |
+                        Précision: {{ number_format(100 - session('dernier_calcul_saut.score_erreur') * 0.5, 1) }}%
+                    </div>
+                </div>
+                @endif
+
                 {{-- Position actuelle --}}
                 <div class="bg-gray-800/50 border border-cyan-500/30 rounded-lg p-4 mb-6">
                     <h3 class="text-lg text-cyan-300 mb-3">Position actuelle</h3>
@@ -638,5 +679,59 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Console redimensionnable: éléments non trouvés');
     }
 });
+</script>
+
+<!-- Fonctions pour la gestion des calculs de saut -->
+<script>
+function annulerCalculSaut() {
+    if (!confirm('Êtes-vous sûr de vouloir annuler ce calcul de saut ?')) {
+        return;
+    }
+
+    fetch('{{ route("navire.timonerie.annuler-calcul") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            appendToConsole('✓ Calcul de saut annulé', 'text-gray-300');
+            location.reload(); // Recharger pour mettre à jour l'affichage
+        }
+    })
+    .catch(error => {
+        appendToConsole('[ERREUR] ' + error.message, 'text-red-400');
+    });
+}
+
+function ameliorerCalculSaut() {
+    if (!confirm('Améliorer ce calcul coûte 1 PA. Continuer ?')) {
+        return;
+    }
+
+    fetch('{{ route("navire.timonerie.ameliorer-calcul") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            appendToConsole('[ERREUR] ' + data.error, 'text-red-400');
+        } else {
+            appendToConsole('✓ Calcul amélioré! Nouveau score: ' + data.nouveau_score, 'text-green-400');
+            appendToConsole('Précision: ' + data.precision + '%', 'text-gray-300');
+            location.reload();
+        }
+    })
+    .catch(error => {
+        appendToConsole('[ERREUR] ' + error.message, 'text-red-400');
+    });
+}
 </script>
 @endsection
