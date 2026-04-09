@@ -367,14 +367,36 @@ async function sAmarrer(stationId) {
                                 </div>
                                 
                                 <!-- Combobox pour sélectionner le POI cible -->
-                                @if($destination->pois_connus && $destination->pois_connus->count() > 0)
+                                @php
+                                    // Vérifier si les POI sont disponibles (plusieurs façons possibles)
+                                    $hasPoi = false;
+                                    $pois = [];
+                                    
+                                    // Méthode 1: pois_connus (si la relation est chargée)
+                                    if (isset($destination->pois_connus) && $destination->pois_connus->count() > 0) {
+                                        $hasPoi = true;
+                                        $pois = $destination->pois_connus;
+                                    }
+                                    // Méthode 2: pois (si la propriété existe)
+                                    elseif (isset($destination->pois) && count($destination->pois) > 0) {
+                                        $hasPoi = true;
+                                        $pois = $destination->pois;
+                                    }
+                                    // Méthode 3: pois_list (pour compatibilité)
+                                    elseif (isset($destination->pois_list) && count($destination->pois_list) > 0) {
+                                        $hasPoi = true;
+                                        $pois = $destination->pois_list;
+                                    }
+                                @endphp
+                                
+                                @if($hasPoi)
                                     <select 
                                         class="bg-gray-700 border border-gray-600 text-white text-xs rounded px-2 py-1 hover:border-cyan-400 transition min-w-[120px] max-w-[180px]"
                                         onchange="updateSautDestination(this, {{ $destination->secteur_x }}, {{ $destination->secteur_y }}, {{ $destination->secteur_z }})"
                                         data-destination-id="{{ $destination->id }}">
                                         <option value="systeme" selected>&lt;système&gt;</option>
-                                        @foreach($destination->pois_connus as $poi)
-                                            <option value="{{ $poi->id }}">{{ $poi->icone }} {{ $poi->nom }}</option>
+                                        @foreach($pois as $poi)
+                                            <option value="{{ $poi->id ?? $poi['id'] ?? '' }}">{!! $poi->icone ?? $poi['icone'] ?? '' !!} {{ $poi->nom ?? $poi['nom'] ?? 'POI' }}</option>
                                         @endforeach
                                     </select>
                                 @endif
