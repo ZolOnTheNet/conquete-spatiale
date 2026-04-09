@@ -387,6 +387,16 @@ async function sAmarrer(stationId) {
                                         $hasPoi = true;
                                         $pois = $destination->pois_list;
                                     }
+                                    
+                                    // DEBUG: Forcer l'affichage pour Sol en environnement local
+                                    if (app()->environment('local') && $destination->nom === 'Sol') {
+                                        $hasPoi = true;
+                                        $pois = [
+                                            (object)['id' => 1, 'icone' => '🌍', 'nom' => 'Terre'],
+                                            (object)['id' => 2, 'icone' => '🔴', 'nom' => 'Mars'],
+                                            (object)['id' => 3, 'icone' => '☀️', 'nom' => 'Soleil'],
+                                        ];
+                                    }
                                 @endphp
                                 
                                 @if($hasPoi)
@@ -399,6 +409,19 @@ async function sAmarrer(stationId) {
                                             <option value="{{ $poi->id ?? $poi['id'] ?? '' }}">{!! $poi->icone ?? $poi['icone'] ?? '' !!} {{ $poi->nom ?? $poi['nom'] ?? 'POI' }}</option>
                                         @endforeach
                                     </select>
+                                @else
+                                    <!-- DEBUG: Commentaire pour aider au débogage -->
+                                    @if(app()->environment('local'))
+                                        <!-- DEBUG: Aucun POI trouvé pour {{ $destination->nom }} -->
+                                        @php
+                                            // Afficher les propriétés disponibles pour le débogage
+                                            $debugProps = [];
+                                            if (isset($destination->pois_connus)) $debugProps[] = 'pois_connus: ' . (is_object($destination->pois_connus) ? get_class($destination->pois_connus) : 'non objet');
+                                            if (isset($destination->pois)) $debugProps[] = 'pois: ' . (is_array($destination->pois) ? 'array['.count($destination->pois).']' : gettype($destination->pois));
+                                            if (isset($destination->pois_list)) $debugProps[] = 'pois_list: ' . (is_array($destination->pois_list) ? 'array['.count($destination->pois_list).']' : gettype($destination->pois_list));
+                                        @endphp
+                                        <!-- DEBUG: Propriétés disponibles: {{ implode(', ', $debugProps) }} -->
+                                    @endif
                                 @endif
                                 
                                 <button onclick="sendCommand('saut {{ $destination->secteur_x }} {{ $destination->secteur_y }} {{ $destination->secteur_z }}')"
