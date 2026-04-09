@@ -334,9 +334,25 @@ async function sAmarrer(stationId) {
                         </div>
                     </div>
                     <div class="mt-2 text-xs text-gray-400">
-                        Jet de navigation: {{ session('dernier_calcul_saut.jet_navigation') }} |
+                        @if(session('dernier_calcul_saut.est_critique'))
+                            <span class="text-yellow-400 font-bold">⭐ CRITIQUE ⭐</span> |
+                        @endif
+                        @if(session('dernier_calcul_saut.est_espoir'))
+                            <span class="text-green-400 font-bold">⬆️ ESPOIR</span> |
+                        @endif
+                        @if(session('dernier_calcul_saut.est_peur'))
+                            <span class="text-red-400 font-bold">⬇️ PEUR</span> |
+                        @endif
+                        Dés: [{{ session('dernier_calcul_saut.de1') }} + {{ session('dernier_calcul_saut.de2') }}] |
+                        Jet: {{ session('dernier_calcul_saut.jet_navigation') }} |
                         Score d'erreur: {{ session('dernier_calcul_saut.score_erreur') }} |
                         Précision: {{ number_format(100 - session('dernier_calcul_saut.score_erreur') * 0.5, 1) }}%
+                        @if(session('dernier_calcul_saut.hope_gain') > 0)
+                            | <span class="text-green-400">+{{ session('dernier_calcul_saut.hope_gain') }} Hope</span>
+                        @endif
+                        @if(session('dernier_calcul_saut.fear_gain') > 0)
+                            | <span class="text-red-400">+{{ session('dernier_calcul_saut.fear_gain') }} Fear</span>
+                        @endif
                     </div>
                 </div>
                 @endif

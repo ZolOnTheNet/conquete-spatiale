@@ -89,7 +89,8 @@ class TimonerieController extends Controller
         $paRequis = $this->navigationService->calculerCoutPA($distance);
 
         // Calculer le jet de navigation
-        $jetNavigation = $this->calculerJetNavigation($personnage, $vaisseau);
+        $jetResult = $this->calculerJetNavigation($personnage, $vaisseau);
+        $jetNavigation = $jetResult['jet'];
         $scoreErreur = 50 - $jetNavigation;
         $deltaCalcule = $this->calculerDelta($scoreErreur, $distance);
 
@@ -117,6 +118,7 @@ class TimonerieController extends Controller
             'scoreErreur' => $scoreErreur,
             'deltaCalcule' => $deltaCalcule,
             'positionCible' => $positionCible,
+            'jetDetails' => $jetResult,
         ]);
 
         // Vérifier la disponibilité
@@ -577,6 +579,8 @@ class TimonerieController extends Controller
      */
     protected function storeCalculSaut(Request $request, $destination, $poiId, $poiNom, $calculData)
     {
+        $jetDetails = $calculData['jetDetails'] ?? [];
+        
         $request->session()->put('dernier_calcul_saut', [
             'destination_id' => $destination->id,
             'destination_nom' => $destination->nom,
@@ -590,6 +594,13 @@ class TimonerieController extends Controller
             'delta_calcule' => $calculData['deltaCalcule'],
             'position_cible' => $calculData['positionCible'],
             'valid_until' => now()->addMinutes(30)->timestamp,
+            'est_critique' => $jetDetails['estCritique'] ?? false,
+            'est_espoir' => $jetDetails['estEspoir'] ?? false,
+            'est_peur' => $jetDetails['estPeur'] ?? false,
+            'hope_gain' => $jetDetails['hopeGain'] ?? 0,
+            'fear_gain' => $jetDetails['fearGain'] ?? 0,
+            'de1' => $jetDetails['de1'] ?? 0,
+            'de2' => $jetDetails['de2'] ?? 0,
         ]);
     }
 
@@ -614,9 +625,9 @@ class TimonerieController extends Controller
     /**
      * Calculer le jet de navigation
      */
-    protected function calculerJetNavigation($personnage, $vaisseau): int
+    protected function calculerJetNavigation($personnage, $vaisseau): array
     {
-        // Base: 2d12 + Intelligence + Navigation + Ordinateur + Module
+        // Lancer les 2d12
         $de1 = rand(1, 12);
         $de2 = rand(1, 12);
 
@@ -625,13 +636,52 @@ class TimonerieController extends Controller
         $ordinateur = $vaisseau->ordinateur->bonus_navigation ?? 0;
         $module = $vaisseau->modules()->where('type', 'navigation')->sum('bonus');
 
-        $jet = $de1 + $de2 + $intelligence + $navigation + $ordinateur + $module;
+        // Calculer le jet de base
+        $jetBase = $de1 + $de2 + $intelligence + $navigation + $ordinateur + $module;
 
         // Vérifier si c'est un critique (dés égaux)
         $estCritique = $de1 === $de2;
-        $bonusCritique = $estCritique ? 35 : 0;
+        $estEspoir = false;
+        $estPeur = false;
+        $hopeGain = 0;
+        $fearGain = 0;
 
-        return $jet + $bonusCritique;
+        if ($estCritique) {
+            // Critique: résultat substitué à 35
+            $jetFinal = 35;
+            $hopeGain = 1; // Réussite avec espoir
+        } else {
+            // Vérifier espoir/peur
+            if ($de1 > $de2) {
+                $estEspoir = true;
+                $hopeGain = 1;
+            } elseif ($de1 < $de2) {
+                $estPeur = true;
+                $fearGain = 1;
+            }
+            
+            $jetFinal = $jetBase;
+        }
+
+        // Plafonner à 49
+        $jetFinal = min(49, $jetFinal);
+
+        return [
+            'jet' => $jetFinal,
+            'de1' => $de1,
+            'de2' => $de2,
+            'estCritique' => $estCritique,
+            'estEspoir' => $estEspoir,
+            'estPeur' => $estPeur,
+            'hopeGain' => $hopeGain,
+            'fearGain' => $fearGain,
+            'details' => [
+                'intelligence' => $intelligence,
+                'navigation' => $navigation,
+                'ordinateur' => $ordinateur,
+                'module' => $module,
+            ]
+        ];
     }
 
     /**
