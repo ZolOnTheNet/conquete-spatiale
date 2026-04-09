@@ -66,6 +66,7 @@ class TimonerieController extends Controller
     public function calculerSaut(Request $request): JsonResponse
     {
         $destinationId = $request->input('destination_id');
+        $poiId = $request->input('poi_id', 'systeme');
         $personnage = $request->attributes->get('personnage');
         $vaisseau = $personnage->vaisseauActif;
 
@@ -87,18 +88,55 @@ class TimonerieController extends Controller
         $energieRequise = $this->navigationService->calculerCoutEnergie($distance);
         $paRequis = $this->navigationService->calculerCoutPA($distance);
 
+        // Calculer le jet de navigation
+        $jetNavigation = $this->calculerJetNavigation($personnage, $vaisseau);
+        $scoreErreur = 50 - $jetNavigation;
+        $deltaCalcule = $this->calculerDelta($scoreErreur, $distance);
+
+        // Position cible (avant application du delta)
+        $positionCible = [
+            'x' => $destination->position_x,
+            'y' => $destination->position_y,
+            'z' => $destination->position_z,
+        ];
+
+        // Déterminer le nom du POI cible
+        $poiNom = 'système';
+        if ($poiId !== 'systeme') {
+            // TODO: Charger le POI réel depuis la base de données
+            // Pour l'instant, utiliser un nom par défaut
+            $poiNom = "POI #{$poiId}";
+        }
+
+        // Stocker le calcul en session
+        $this->storeCalculSaut($request, $destination, $poiId, $poiNom, [
+            'distance' => $distance,
+            'energieRequise' => $energieRequise,
+            'paRequis' => $paRequis,
+            'jetNavigation' => $jetNavigation,
+            'scoreErreur' => $scoreErreur,
+            'deltaCalcule' => $deltaCalcule,
+            'positionCible' => $positionCible,
+        ]);
+
         // Vérifier la disponibilité
         $accessible = $vaisseau->energie_actuelle >= $energieRequise
             && $personnage->points_action >= $paRequis;
 
         return response()->json([
             'destination' => $destination->nom,
+            'poiCible' => $poiNom,
             'distance' => round($distance, 2),
             'energieRequise' => $energieRequise,
             'paRequis' => $paRequis,
             'accessible' => $accessible,
             'energieDisponible' => $vaisseau->energie_actuelle,
             'paDisponibles' => $personnage->points_action,
+            'jetNavigation' => $jetNavigation,
+            'scoreErreur' => $scoreErreur,
+            'precision' => number_format(100 - ($scoreErreur * 0.5), 1),
+            'calculValide' => true,
+            'calculValideJusquau' => now()->addMinutes(30)->format('H:i:s'),
         ]);
     }
 
@@ -108,6 +146,7 @@ class TimonerieController extends Controller
     public function effectuerSaut(Request $request): JsonResponse
     {
         $destinationId = $request->input('destination_id');
+        $poiId = $request->input('poi_id', 'systeme');
         $personnage = $request->attributes->get('personnage');
         $vaisseau = $personnage->vaisseauActif;
 
@@ -115,34 +154,38 @@ class TimonerieController extends Controller
             return response()->json(['error' => 'Aucun vaisseau actif'], 400);
         }
 
+        // Vérifier si un calcul valide existe
+        $calcul = $this->getCalculSautValide($request, $destinationId, $poiId);
+        
+        if (!$calcul) {
+            return response()->json([
+                'error' => 'Aucun calcul de saut valide. Utilisez d\'abord "Calculer".',
+                'action' => 'calculer_requis'
+            ], 400);
+        }
+
         $destination = SystemeStellaire::find($destinationId);
         if (!$destination) {
             return response()->json(['error' => 'Destination introuvable'], 404);
         }
 
-        // Calculer le coût
-        $distance = $this->navigationService->calculerDistance(
-            $vaisseau->objetSpatial,
-            $destination
-        );
-
-        $energieRequise = $this->navigationService->calculerCoutEnergie($distance);
-        $paRequis = $this->navigationService->calculerCoutPA($distance);
-
-        // Vérifier les ressources
-        if ($vaisseau->energie_actuelle < $energieRequise) {
+        // Vérifier les ressources (déjà vérifié dans calculerSaut, mais on reverifie)
+        if ($vaisseau->energie_actuelle < $calcul['energieRequise']) {
             return response()->json(['error' => 'Énergie insuffisante'], 400);
         }
 
-        if ($personnage->points_action < $paRequis) {
+        if ($personnage->points_action < $calcul['paRequis']) {
             return response()->json(['error' => 'Points d\'action insuffisants'], 400);
         }
 
-        // Effectuer le jet de navigation (TODO: implémenter le système de compétences)
-        $jetNavigation = rand(1, 100); // Temporaire
-
-        // Calculer la position d'arrivée
-        $arrivee = $this->navigationService->calculerArrivee($vaisseau, $destination, $jetNavigation);
+        // Calculer la position d'arrivée avec le delta
+        $distanceLocale = $poiId === 'systeme' ? 0.5 : $calcul['distance'];
+        $arrivee = $this->calculerArriveeAvecDelta(
+            $vaisseau,
+            $calcul['positionCible'],
+            $calcul['deltaCalcule'],
+            $distanceLocale
+        );
 
         // Mettre à jour la position du vaisseau
         $vaisseau->objetSpatial->update([
@@ -155,17 +198,23 @@ class TimonerieController extends Controller
         ]);
 
         // Consommer les ressources
-        $vaisseau->energie_actuelle -= $energieRequise;
+        $vaisseau->energie_actuelle -= $calcul['energieRequise'];
         $vaisseau->save();
 
-        $personnage->points_action -= $paRequis;
+        $personnage->points_action -= $calcul['paRequis'];
         $personnage->save();
+
+        // Invalider le calcul après utilisation
+        $request->session()->forget('dernier_calcul_saut');
 
         return response()->json([
             'success' => true,
             'message' => "Saut effectué vers {$destination->nom}",
+            'poiCible' => $calcul['poiNom'],
             'arrivee' => $arrivee,
-            'jetNavigation' => $jetNavigation,
+            'jetNavigation' => $calcul['jetNavigation'],
+            'scoreErreur' => $calcul['scoreErreur'],
+            'precision' => number_format(100 - ($calcul['scoreErreur'] * 0.5), 1),
             'energieRestante' => $vaisseau->energie_actuelle,
             'paRestants' => $personnage->points_action,
         ]);
@@ -521,5 +570,151 @@ class TimonerieController extends Controller
         usort($pois, fn($a, $b) => $a->distance <=> $b->distance);
 
         return $pois;
+    }
+
+    /**
+     * Stocker un calcul de saut en session
+     */
+    protected function storeCalculSaut(Request $request, $destination, $poiId, $poiNom, $calculData)
+    {
+        $request->session()->put('dernier_calcul_saut', [
+            'destination_id' => $destination->id,
+            'destination_nom' => $destination->nom,
+            'poi_cible' => $poiId,
+            'poi_nom' => $poiNom,
+            'distance' => $calculData['distance'],
+            'energie_requise' => $calculData['energieRequise'],
+            'pa_requis' => $calculData['paRequis'],
+            'jet_navigation' => $calculData['jetNavigation'],
+            'score_erreur' => $calculData['scoreErreur'],
+            'delta_calcule' => $calculData['deltaCalcule'],
+            'position_cible' => $calculData['positionCible'],
+            'valid_until' => now()->addMinutes(30)->timestamp,
+        ]);
+    }
+
+    /**
+     * Récupérer un calcul de saut valide depuis la session
+     */
+    protected function getCalculSautValide(Request $request, $destinationId, $poiId = 'systeme')
+    {
+        $calcul = $request->session()->get('dernier_calcul_saut');
+
+        // Vérifier si le calcul existe et est valide
+        if (!$calcul ||
+            $calcul['destination_id'] != $destinationId ||
+            $calcul['poi_cible'] != $poiId ||
+            $calcul['valid_until'] < now()->timestamp) {
+            return null;
+        }
+
+        return $calcul;
+    }
+
+    /**
+     * Calculer le jet de navigation
+     */
+    protected function calculerJetNavigation($personnage, $vaisseau): int
+    {
+        // Base: 2d12 + Intelligence + Navigation + Ordinateur + Module
+        $de1 = rand(1, 12);
+        $de2 = rand(1, 12);
+
+        $intelligence = $personnage->intelligence ?? 0;
+        $navigation = $personnage->competences()->where('type', 'navigation')->first()->niveau ?? 0;
+        $ordinateur = $vaisseau->ordinateur->bonus_navigation ?? 0;
+        $module = $vaisseau->modules()->where('type', 'navigation')->sum('bonus');
+
+        $jet = $de1 + $de2 + $intelligence + $navigation + $ordinateur + $module;
+
+        // Vérifier si c'est un critique (dés égaux)
+        $estCritique = $de1 === $de2;
+        $bonusCritique = $estCritique ? 35 : 0;
+
+        return $jet + $bonusCritique;
+    }
+
+    /**
+     * Calculer le delta basé sur le score d'erreur
+     */
+    protected function calculerDelta($scoreErreur, $distance): float
+    {
+        // Formule: D(2 x ScoreErreur)/ScoreErreur-1
+        // Où D(n) est un nombre aléatoire entre -n et +n
+        if ($scoreErreur <= 1) {
+            return 0; // Éviter la division par zéro
+        }
+        
+        $d = rand(-$scoreErreur * 2, $scoreErreur * 2);
+        return $d / ($scoreErreur - 1);
+    }
+
+    /**
+     * Calculer la position d'arrivée avec delta
+     */
+    protected function calculerArriveeAvecDelta($vaisseau, $positionCible, $delta, $distanceLocale): array
+    {
+        // Appliquer le delta aux coordonnées
+        $arrivee = [
+            'secteur_x' => $positionCible['x'],
+            'secteur_y' => $positionCible['y'],
+            'secteur_z' => $positionCible['z'],
+            'position_x' => $positionCible['x'] + ($delta * $distanceLocale),
+            'position_y' => $positionCible['y'] + ($delta * $distanceLocale),
+            'position_z' => $positionCible['z'] + ($delta * $distanceLocale / 2), // Moins précis en Z
+        ];
+
+        // S'assurer que les valeurs restent dans des limites raisonnables
+        $arrivee['position_x'] = max(-100, min(100, $arrivee['position_x']));
+        $arrivee['position_y'] = max(-100, min(100, $arrivee['position_y']));
+        $arrivee['position_z'] = max(-100, min(100, $arrivee['position_z']));
+
+        return $arrivee;
+    }
+
+    /**
+     * Annuler le calcul de saut en cours
+     */
+    public function annulerCalculSaut(Request $request): JsonResponse
+    {
+        $request->session()->forget('dernier_calcul_saut');
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Améliorer le calcul de saut (coûte 1 PA)
+     */
+    public function ameliorerCalculSaut(Request $request): JsonResponse
+    {
+        $personnage = $request->attributes->get('personnage');
+        $calcul = $request->session()->get('dernier_calcul_saut');
+
+        if (!$calcul) {
+            return response()->json(['error' => 'Aucun calcul en cours'], 400);
+        }
+
+        if ($personnage->points_action < 1) {
+            return response()->json(['error' => '1 PA requis pour améliorer le calcul'], 400);
+        }
+
+        // Réduire le score d'erreur de 5 à 15 (aléatoire)
+        $amelioration = rand(5, 15);
+        $nouveauScore = max(5, $calcul['score_erreur'] - $amelioration);
+
+        // Mettre à jour le calcul
+        $calcul['score_erreur'] = $nouveauScore;
+        $calcul['delta_calcule'] = $this->calculerDelta($nouveauScore, $calcul['distance']);
+        $request->session()->put('dernier_calcul_saut', $calcul);
+
+        // Consommer 1 PA
+        $personnage->points_action -= 1;
+        $personnage->save();
+
+        return response()->json([
+            'success' => true,
+            'nouveau_score' => $nouveauScore,
+            'precision' => number_format(100 - $nouveauScore * 0.5, 1),
+            'message' => 'Calcul amélioré! Précision augmentée.'
+        ]);
     }
 }
