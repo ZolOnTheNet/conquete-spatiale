@@ -159,7 +159,7 @@ class TimonerieController extends Controller
 
         // Vérifier si un calcul valide existe
         $calcul = $this->getCalculSautValide($request, $destinationId, $poiId);
-        
+
         if (!$calcul) {
             return response()->json([
                 'error' => 'Aucun calcul de saut valide. Utilisez d\'abord "Calculer".',
@@ -582,9 +582,9 @@ class TimonerieController extends Controller
     protected function storeCalculSaut(Request $request, $destination, $poiId, $poiNom, $calculData)
     {
         $jetDetails = $calculData['jetDetails'] ?? [];
-        
+
         $deltaDetails = $calculData['deltaDetails'] ?? [];
-        
+
         $request->session()->put('dernier_calcul_saut', [
             'destination_id' => $destination->id,
             'destination_nom' => $destination->nom,
@@ -667,7 +667,7 @@ class TimonerieController extends Controller
                 $estPeur = true;
                 $fearGain = 1;
             }
-            
+
             $jetFinal = $jetBase;
         }
 
@@ -694,39 +694,8 @@ class TimonerieController extends Controller
 
     /**
      * Calculer le delta basé sur le score d'erreur
-     * Formule corrigée: ((3d10-15) + 1d2_signé + Score d'Erreur) / 100 × Distance
+     * Formule corrigée: 1d2_signé * ((3d10-15) + Score d'Erreur) / 100 × Distance
      */
-    protected function calculerDelta($scoreErreur, $distanceReference, $pourSystème = false)
-    {
-        // Lancer 3d10-15
-        $d10_1 = rand(1, 10);
-        $d10_2 = rand(1, 10);
-        $d10_3 = rand(1, 10);
-        $sommeD10 = $d10_1 + $d10_2 + $d10_3 - 15;
-        
-        // Lancer 1d2 signé
-        $d2 = rand(1, 2);
-        $d2Signé = $d2 == 1 ? -1 : 1;
-        
-        // Calculer le multiplicateur: ((3d10-15) + 1d2 + Score) / 100
-        $multiplicateur = ($sommeD10 + $d2Signé + $scoreErreur) / 100;
-        
-        // Pour Z, diviser par 2 (moins précis en altitude)
-        $multiplicateurZ = $multiplicateur / 2;
-        
-        return [
-            'x' => $multiplicateur * $distanceReference,
-            'y' => $multiplicateur * $distanceReference,
-            'z' => $multiplicateurZ * $distanceReference,
-            'details' => [
-                'd10' => [$d10_1, $d10_2, $d10_3],
-                'd2' => $d2,
-                'sommeD10' => $sommeD10,
-                'd2Signé' => $d2Signé,
-                'multiplicateur' => $multiplicateur,
-            ]
-        ];
-    }
 
     /**
      * Calculer la position d'arrivée avec delta
@@ -795,5 +764,56 @@ class TimonerieController extends Controller
             'precision' => number_format(100 - $nouveauScore * 0.5, 1),
             'message' => 'Calcul amélioré! Précision augmentée.'
         ]);
+    }
+}
+
+    /**
+     * Calculer le delta basé sur le score d'erreur
+     * Formule finale: 1d2_signé × (3d10-15 + Score d'Erreur) / 100 × Distance
+     * Le signe s'applique à toute l'expression, pas juste ajouté
+     * Calcul séparé pour X, Y, Z avec des valeurs aléatoires différentes
+     */
+    protected function calculerDelta($scoreErreur, $distanceReference, $pourSystème = false)
+    {
+        $deltas = [];
+        $allDetails = [];
+        
+        // Calculer 3 deltas séparés (X, Y, Z) avec des jets différents
+        for ($i = 0; $i < 3; $i++) {
+            // Lancer 3d10-15 pour chaque axe
+            $d10_1 = rand(1, 10);
+            $d10_2 = rand(1, 10);
+            $d10_3 = rand(1, 10);
+            $sommeD10 = $d10_1 + $d10_2 + $d10_3 - 15;
+            
+            // Lancer 1d2 signé pour chaque axe
+            $d2 = rand(1, 2);
+            $d2Signé = $d2 == 1 ? -1 : 1;
+            
+            // Calculer le multiplicateur: 1d2 × (3d10-15 + Score) / 100
+            $multiplicateur = $d2Signé * ($sommeD10 + $scoreErreur) / 100;
+            
+            $deltas[$i] = $multiplicateur * $distanceReference;
+            
+            $allDetails[$i] = [
+                'd10' => [$d10_1, $d10_2, $d10_3],
+                'd2' => $d2,
+                'sommeD10' => $sommeD10,
+                'd2Signé' => $d2Signé,
+                'multiplicateur' => $multiplicateur,
+            ];
+        }
+        
+        // Pour Z, diviser par 2 (moins précis en altitude)
+        return [
+            'x' => $deltas[0],
+            'y' => $deltas[1],
+            'z' => $deltas[2] / 2,
+            'details' => [
+                'x' => $allDetails[0],
+                'y' => $allDetails[1],
+                'z' => array_merge($allDetails[2], ['divisé_par_2' => true]),
+            ]
+        ];
     }
 }
