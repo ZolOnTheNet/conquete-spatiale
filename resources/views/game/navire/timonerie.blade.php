@@ -343,8 +343,21 @@ async function sAmarrer(stationId) {
                         @if(session('dernier_calcul_saut.est_peur'))
                             <span class="text-red-400 font-bold">⬇️ PEUR</span> |
                         @endif
-                        Dés: [{{ session('dernier_calcul_saut.de1') }} + {{ session('dernier_calcul_saut.de2') }}] |
-                        Jet: {{ session('dernier_calcul_saut.jet_navigation') }} |
+                        <br>
+                        <span class="font-bold">Jet Navigation:</span>
+                        [{{ session('dernier_calcul_saut.de1') }} + {{ session('dernier_calcul_saut.de2') }}]
+                        + {{ session('dernier_calcul_saut.jetDetails.details.intelligence', 0) }} Int
+                        + {{ session('dernier_calcul_saut.jetDetails.details.navigation', 0) }} Nav
+                        + {{ session('dernier_calcul_saut.jetDetails.details.ordinateur', 0) }} Ord
+                        + {{ session('dernier_calcul_saut.jetDetails.details.module', 0) }} Mod
+                        = {{ session('dernier_calcul_saut.jet_navigation') }}
+                        <br>
+                        <span class="font-bold">Delta Position:</span>
+                        [{{ implode('+', session('dernier_calcul_saut.delta_d10', [0,0,0])) }} - 15]
+                        + {{ session('dernier_calcul_saut.delta_d2_signe') > 0 ? '+' : '' }}{{ session('dernier_calcul_saut.delta_d2_signe') }}
+                        = {{ session('dernier_calcul_saut.delta_somme_d10') + session('dernier_calcul_saut.delta_d2_signe') }}
+                        × {{ session('dernier_calcul_saut.score_erreur') }}%
+                        <br>
                         Score d'erreur: {{ session('dernier_calcul_saut.score_erreur') }} |
                         Précision: {{ number_format(100 - session('dernier_calcul_saut.score_erreur') * 0.5, 1) }}%
                         @if(session('dernier_calcul_saut.hope_gain') > 0)

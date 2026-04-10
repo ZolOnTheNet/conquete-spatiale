@@ -92,7 +92,8 @@ class TimonerieController extends Controller
         $jetResult = $this->calculerJetNavigation($personnage, $vaisseau);
         $jetNavigation = $jetResult['jet'];
         $scoreErreur = 50 - $jetNavigation;
-        $deltaCalcule = $this->calculerDelta($scoreErreur, $distance);
+        $deltaResult = $this->calculerDelta($scoreErreur, $distance);
+        $deltaCalcule = $deltaResult['x']; // Utiliser delta X pour la représentation
 
         // Position cible (avant application du delta)
         $positionCible = [
@@ -116,7 +117,7 @@ class TimonerieController extends Controller
             'paRequis' => $paRequis,
             'jetNavigation' => $jetNavigation,
             'scoreErreur' => $scoreErreur,
-            'deltaCalcule' => $deltaCalcule,
+            'deltaDetails' => $deltaResult,
             'positionCible' => $positionCible,
             'jetDetails' => $jetResult,
         ]);
@@ -182,10 +183,11 @@ class TimonerieController extends Controller
 
         // Calculer la position d'arrivée avec le delta
         $distanceLocale = $poiId === 'systeme' ? 0.5 : $calcul['distance'];
+        $deltaResult = $this->calculerDelta($calcul['score_erreur'], $distanceLocale, $poiId === 'systeme');
         $arrivee = $this->calculerArriveeAvecDelta(
             $vaisseau,
             $calcul['positionCible'],
-            $calcul['deltaCalcule'],
+            $deltaResult,
             $distanceLocale
         );
 
@@ -581,6 +583,8 @@ class TimonerieController extends Controller
     {
         $jetDetails = $calculData['jetDetails'] ?? [];
         
+        $deltaDetails = $calculData['deltaDetails'] ?? [];
+        
         $request->session()->put('dernier_calcul_saut', [
             'destination_id' => $destination->id,
             'destination_nom' => $destination->nom,
@@ -591,7 +595,6 @@ class TimonerieController extends Controller
             'pa_requis' => $calculData['paRequis'],
             'jet_navigation' => $calculData['jetNavigation'],
             'score_erreur' => $calculData['scoreErreur'],
-            'delta_calcule' => $calculData['deltaCalcule'],
             'position_cible' => $calculData['positionCible'],
             'valid_until' => now()->addMinutes(30)->timestamp,
             'est_critique' => $jetDetails['estCritique'] ?? false,
@@ -601,6 +604,11 @@ class TimonerieController extends Controller
             'fear_gain' => $jetDetails['fearGain'] ?? 0,
             'de1' => $jetDetails['de1'] ?? 0,
             'de2' => $jetDetails['de2'] ?? 0,
+            'delta_d10' => $deltaDetails['d10'] ?? [0, 0, 0],
+            'delta_d2' => $deltaDetails['d2'] ?? 1,
+            'delta_somme_d10' => $deltaDetails['sommeD10'] ?? 0,
+            'delta_d2_signe' => $deltaDetails['d2Signé'] ?? 0,
+            'delta_multiplicateur' => $deltaDetails['multiplicateur'] ?? 0,
         ]);
     }
 
@@ -686,32 +694,53 @@ class TimonerieController extends Controller
 
     /**
      * Calculer le delta basé sur le score d'erreur
+     * Nouvelle formule: (3d10-15 + 1d2_signé) × (score% / 100) × distance
      */
-    protected function calculerDelta($scoreErreur, $distance): float
+    protected function calculerDelta($scoreErreur, $distanceReference, $pourSystème = false)
     {
-        // Formule: D(2 x ScoreErreur)/ScoreErreur-1
-        // Où D(n) est un nombre aléatoire entre -n et +n
-        if ($scoreErreur <= 1) {
-            return 0; // Éviter la division par zéro
-        }
+        // Lancer 3d10-15
+        $d10_1 = rand(1, 10);
+        $d10_2 = rand(1, 10);
+        $d10_3 = rand(1, 10);
+        $sommeD10 = $d10_1 + $d10_2 + $d10_3 - 15;
         
-        $d = rand(-$scoreErreur * 2, $scoreErreur * 2);
-        return $d / ($scoreErreur - 1);
+        // Lancer 1d2 signé
+        $d2 = rand(1, 2);
+        $d2Signé = $d2 == 1 ? -1 : 1;
+        
+        // Calculer le multiplicateur
+        $multiplicateur = ($sommeD10 + $d2Signé) / 100;
+        
+        // Pour Z, diviser par 2 (moins précis en altitude)
+        $multiplicateurZ = $multiplicateur / 2;
+        
+        return [
+            'x' => $multiplicateur * $scoreErreur * $distanceReference,
+            'y' => $multiplicateur * $scoreErreur * $distanceReference,
+            'z' => $multiplicateurZ * $scoreErreur * $distanceReference,
+            'details' => [
+                'd10' => [$d10_1, $d10_2, $d10_3],
+                'd2' => $d2,
+                'sommeD10' => $sommeD10,
+                'd2Signé' => $d2Signé,
+                'multiplicateur' => $multiplicateur,
+            ]
+        ];
     }
 
     /**
      * Calculer la position d'arrivée avec delta
      */
-    protected function calculerArriveeAvecDelta($vaisseau, $positionCible, $delta, $distanceLocale): array
+    protected function calculerArriveeAvecDelta($vaisseau, $positionCible, $deltaResult, $distanceLocale): array
     {
-        // Appliquer le delta aux coordonnées
+        // Appliquer les deltas X, Y, Z aux coordonnées
         $arrivee = [
             'secteur_x' => $positionCible['x'],
             'secteur_y' => $positionCible['y'],
             'secteur_z' => $positionCible['z'],
-            'position_x' => $positionCible['x'] + ($delta * $distanceLocale),
-            'position_y' => $positionCible['y'] + ($delta * $distanceLocale),
-            'position_z' => $positionCible['z'] + ($delta * $distanceLocale / 2), // Moins précis en Z
+            'position_x' => $positionCible['x'] + $deltaResult['x'],
+            'position_y' => $positionCible['y'] + $deltaResult['y'],
+            'position_z' => $positionCible['z'] + $deltaResult['z'],
         ];
 
         // S'assurer que les valeurs restent dans des limites raisonnables
