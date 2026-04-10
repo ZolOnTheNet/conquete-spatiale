@@ -355,8 +355,9 @@ async function sAmarrer(stationId) {
                         <span class="font-bold">Delta Position:</span>
                         [{{ implode('+', session('dernier_calcul_saut.delta_d10', [0,0,0])) }} - 15]
                         + {{ session('dernier_calcul_saut.delta_d2_signe') > 0 ? '+' : '' }}{{ session('dernier_calcul_saut.delta_d2_signe') }}
-                        = {{ session('dernier_calcul_saut.delta_somme_d10') + session('dernier_calcul_saut.delta_d2_signe') }}
-                        × {{ session('dernier_calcul_saut.score_erreur') }}%
+                        + {{ session('dernier_calcul_saut.score_erreur') }}
+                        = {{ session('dernier_calcul_saut.delta_somme_d10') + session('dernier_calcul_saut.delta_d2_signe') + session('dernier_calcul_saut.score_erreur') }}
+                        / 100
                         <br>
                         Score d'erreur: {{ session('dernier_calcul_saut.score_erreur') }} |
                         Précision: {{ number_format(100 - session('dernier_calcul_saut.score_erreur') * 0.5, 1) }}%

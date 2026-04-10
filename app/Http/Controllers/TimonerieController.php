@@ -694,7 +694,7 @@ class TimonerieController extends Controller
 
     /**
      * Calculer le delta basé sur le score d'erreur
-     * Nouvelle formule: (3d10-15 + 1d2_signé) × (score% / 100) × distance
+     * Formule corrigée: ((3d10-15) + 1d2_signé + Score d'Erreur) / 100 × Distance
      */
     protected function calculerDelta($scoreErreur, $distanceReference, $pourSystème = false)
     {
@@ -708,16 +708,16 @@ class TimonerieController extends Controller
         $d2 = rand(1, 2);
         $d2Signé = $d2 == 1 ? -1 : 1;
         
-        // Calculer le multiplicateur
-        $multiplicateur = ($sommeD10 + $d2Signé) / 100;
+        // Calculer le multiplicateur: ((3d10-15) + 1d2 + Score) / 100
+        $multiplicateur = ($sommeD10 + $d2Signé + $scoreErreur) / 100;
         
         // Pour Z, diviser par 2 (moins précis en altitude)
         $multiplicateurZ = $multiplicateur / 2;
         
         return [
-            'x' => $multiplicateur * $scoreErreur * $distanceReference,
-            'y' => $multiplicateur * $scoreErreur * $distanceReference,
-            'z' => $multiplicateurZ * $scoreErreur * $distanceReference,
+            'x' => $multiplicateur * $distanceReference,
+            'y' => $multiplicateur * $distanceReference,
+            'z' => $multiplicateurZ * $distanceReference,
             'details' => [
                 'd10' => [$d10_1, $d10_2, $d10_3],
                 'd2' => $d2,

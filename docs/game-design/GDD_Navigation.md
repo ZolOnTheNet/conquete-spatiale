@@ -78,13 +78,14 @@ Delta Z = (3d10 - 15 + 1d2_signé) × (Score d'Erreur / 200) × 100
 2. **1d2_signé** : 
    - 1 → -1
    - 2 → +1
-3. **Multiplication** par le pourcentage d'erreur
-4. **Application** à la distance de référence
+3. **Ajouter le score d'erreur** directement
+4. **Diviser par 100** pour obtenir un multiplicateur
+5. **Application** à la distance de référence
 
 ### Plage de Valeurs
-- **Minimum** : (3-15-1) × score% = -13 × score%
-- **Maximum** : (30-15+1) × score% = 16 × score%
-- **Pour score=48** : -624% à +768% de la distance de référence
+- **Minimum** : (-15-1+0)/100 × distance = -16% × distance
+- **Maximum** : (15+1+48)/100 × distance = 64% × distance
+- **Pour score=48** : (-15-1+48)/100 = 32% à (15+1+48)/100 = 64% de la distance de référence
 
 ---
 
@@ -110,27 +111,27 @@ Position Finale Z = Position Cible Z + Delta Z
 - **Score d'Erreur** : 50 - 35 = 15
 - **Précision** : 100 - (15 × 0.5) = 92.5%
 - **Distance Planète-Étoile** : 149.6 Gm
-- **Delta X** : (3d10-15+1d2) × 0.15 × 149.6
-  - Supposons 3d10=15, 1d2=1 → (0-1) × 0.15 × 149.6 = -22.44 Gm
-- **Position Finale** : Position Terre ± (-22.44, deltaY, deltaZ/2)
+- **Delta X** : ((3d10-15) + 1d2 + 15) / 100 × 149.6
+  - Supposons 3d10=15, 1d2=1 → (0 + (-1) + 15) / 100 × 149.6 = 14/100 × 149.6 = +20.94 Gm
+- **Position Finale** : Position Terre ± (+20.94, deltaY, deltaZ/2)
 
 ### Exemple 2: Espoir vers Mars
 - **Jet** : 10+5+5+3+2+1 = 26 (Espoir car 10>5)
 - **Score d'Erreur** : 50 - 26 = 24
 - **Précision** : 100 - (24 × 0.5) = 88%
 - **Distance Planète-Étoile** : 227.9 Gm
-- **Delta X** : (3d10-15+1d2) × 0.24 × 227.9
-  - Supposons 3d10=18, 1d2=2 → (3+1) × 0.24 × 227.9 = +218.78 Gm
-- **Position Finale** : Position Mars ± (+218.78, deltaY, deltaZ/2)
+- **Delta X** : ((3d10-15) + 1d2 + 24) / 100 × 227.9
+  - Supposons 3d10=18, 1d2=2 → (3 + 1 + 24) / 100 × 227.9 = 28/100 × 227.9 = +63.81 Gm
+- **Position Finale** : Position Mars ± (+63.81, deltaY, deltaZ/2)
 
 ### Exemple 3: Peur vers Soleil (<système>)
 - **Jet** : 3+9+5+3+2+1 = 23 (Peur car 3<9)
 - **Score d'Erreur** : 50 - 23 = 27
 - **Précision** : 100 - (27 × 0.5) = 86.5%
 - **Distance de référence** : 100 Gm
-- **Delta X** : (3d10-15+1d2) × 0.27 × 100
-  - Supposons 3d10=6, 1d2=1 → (-9-1) × 0.27 × 100 = -270 Gm
-- **Position Finale** : (100,100,0) ± (-270, deltaY, deltaZ/2)
+- **Delta X** : ((3d10-15) + 1d2 + 27) / 100 × 100
+  - Supposons 3d10=6, 1d2=1 → (-9 + (-1) + 27) / 100 × 100 = 17 Gm
+- **Position Finale** : (100,100,0) ± (+17, deltaY, deltaZ/2)
 
 ---
 
