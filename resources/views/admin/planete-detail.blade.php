@@ -8,6 +8,11 @@
     <header class="bg-gray-900/90 border-b border-red-500/30 px-6 py-4 flex items-center justify-between">
         <div class="flex items-center gap-4">
             <h1 class="text-2xl font-orbitron text-red-400">PLANÈTE: {{ $planete->nom }}</h1>
+            @if($planete->source_nasa_exoplanet)
+                <span class="bg-green-600 text-white px-3 py-1 rounded text-sm font-bold">
+                    🪐 EXOPLANÈTE RÉELLE NASA
+                </span>
+            @endif
         </div>
         <div class="flex gap-4">
             <a href="{{ route('admin.univers.show', $planete->systeme_stellaire_id) }}" class="text-cyan-400 hover:text-cyan-300 text-sm">
@@ -97,7 +102,7 @@
                         <!-- Distance à l'étoile -->
                         <div>
                             <label class="text-xs text-gray-200 mb-1 block">Distance à l'étoile (UA)</label>
-                            <input type="number" name="distance_etoile" value="{{ $planete->distance_etoile }}" step="0.01"
+                            <input type="number" name="distance_etoile" value="{{ $planete->distance_etoile / 100 }}" step="0.01"
                                    class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                         </div>
 
@@ -217,6 +222,46 @@
                     </div>
                 </div>
             </form>
+
+            {{-- Section NASA Exoplanet --}}
+            @if($planete->source_nasa_exoplanet)
+            <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-6 mb-6">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <span class="text-green-400">📡</span>
+                    Données NASA Exoplanet Archive
+                </h2>
+
+                <div class="bg-green-900/20 border border-green-500/30 rounded p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <div class="text-xs text-gray-200 mb-1">ID NASA</div>
+                            <div class="text-green-300 font-mono text-sm">{{ $planete->nasa_exo_id ?? 'N/A' }}</div>
+                        </div>
+
+                        <div>
+                            <div class="text-xs text-gray-200 mb-1">Méthode de découverte</div>
+                            <div class="text-white">{{ $planete->nasa_discovery_method ?? 'N/A' }}</div>
+                        </div>
+
+                        <div>
+                            <div class="text-xs text-gray-200 mb-1">Année de découverte</div>
+                            <div class="text-cyan-300 font-bold">{{ $planete->nasa_discovery_year ?? 'N/A' }}</div>
+                        </div>
+
+                        <div>
+                            <div class="text-xs text-gray-200 mb-1">Excentricité orbitale</div>
+                            <div class="text-white">{{ $planete->excentricite_orbitale !== null ? number_format($planete->excentricite_orbitale, 3) : 'N/A' }}</div>
+                        </div>
+
+                        <div class="col-span-2">
+                            <div class="text-xs text-gray-400 italic">
+                                Cette planète provient du catalogue NASA Exoplanet Archive et représente une exoplanète réelle découverte par les astronomes.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <!-- Gisements de la planète -->
             <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-6 mb-6">

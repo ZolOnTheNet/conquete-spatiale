@@ -19,10 +19,10 @@
             </a>
         </div>
 
-        {{-- SECTION VAISSEAU (contextuel : devient STATION si amarré) --}}
+        {{-- SECTION VAISSEAU (contextuel : devient STATION si dans une station) --}}
         <div class="mb-3">
-            @if(isset($vaisseau) && $vaisseau && $vaisseau->dans_station_id)
-                {{-- Amarré dans une station --}}
+            @if(isset($personnage) && $personnage->dans_station_id)
+                {{-- Dans une station (transbordé) --}}
                 <h3 class="text-xs text-gray-500 uppercase px-2 mb-1">🏭 Station</h3>
                 <a href="{{ route('station.hall') }}" class="block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400 hover:bg-cyan-900/20 transition">
                     Hall

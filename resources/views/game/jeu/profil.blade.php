@@ -60,9 +60,29 @@
                                         <div>
                                             <h4 class="text-white font-bold text-lg">{{ $perso->nom }}</h4>
                                             <p class="text-gray-400 text-sm">
-                                                Niveau {{ $perso->niveau ?? 1 }} • 
-                                                {{ number_format($perso->credits ?? 0, 0, ',', ' ') }} CR • 
-                                                {{ $perso->points_action ?? 0 }} PA
+                                                Niveau {{ $perso->niveau ?? 1 }} •
+                                                {{ number_format($perso->credits ?? 0, 0, ',', ' ') }} CR •
+                                                {{ $perso->points_action ?? 0 }}/{{ $perso->max_points_action ?? 36 }} PA
+                                                @php
+                                                    $paRestant = '';
+                                                    if ($perso->points_action >= $perso->max_points_action) {
+                                                        $paRestant = '<span class="text-green-400">(max)</span>';
+                                                    } elseif ($perso->derniere_recuperation_pa) {
+                                                        $delai_minutes = config('game.pa.recuperation_delai', 60);
+                                                        $minutes_ecoulees = now()->diffInMinutes($perso->derniere_recuperation_pa);
+                                                        $minutes_restantes = $delai_minutes - ($minutes_ecoulees % $delai_minutes);
+                                                        if ($minutes_restantes >= 60) {
+                                                            $heures = floor($minutes_restantes / 60);
+                                                            $mins = $minutes_restantes % 60;
+                                                            $paRestant = $mins > 0
+                                                                ? "<span class=\"text-cyan-400\">(+1 dans {$heures}h{$mins}m)</span>"
+                                                                : "<span class=\"text-cyan-400\">(+1 dans {$heures}h)</span>";
+                                                        } else {
+                                                            $paRestant = "<span class=\"text-cyan-400\">(+1 dans {$minutes_restantes}m)</span>";
+                                                        }
+                                                    }
+                                                @endphp
+                                                {!! $paRestant !!}
                                             </p>
                                         </div>
                                         @if($perso->id === $personnage->id)

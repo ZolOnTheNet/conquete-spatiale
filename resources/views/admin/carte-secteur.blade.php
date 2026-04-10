@@ -14,7 +14,7 @@
                 <div>Planètes: <span class="text-green-400">{{ $systeme->planetes->count() }}</span></div>
             </div>
             <div class="text-xs text-gray-500 mt-1">
-                Secteur ({{ $x }}, {{ $y }}, {{ $z }}) | Position intra-secteur: ({{ number_format($systeme->position_x, 2) }}, {{ number_format($systeme->position_y, 2) }}, {{ number_format($systeme->position_z, 2) }}) AL
+                Secteur ({{ $x }}, {{ $y }}, {{ $z }}) | Position intra-secteur: ({{ number_format($systeme->position_x/100, 2) }}, {{ number_format($systeme->position_y/100, 2) }}, {{ number_format($systeme->position_z/100, 2) }}) UA
             </div>
         </div>
 
@@ -54,7 +54,8 @@
 
                     if ($planetesPlusEloignee && $radiusMaxPx > 0) {
                         // Calculer combien de UA correspondent à 60 pixels (taille de la barre d'échelle)
-                        $scaleUA = ($planetesPlusEloignee->distance_etoile / $radiusMaxPx) * 60;
+                        // distance_etoile est en cUA, donc diviser par 100 pour obtenir UA
+                        $scaleUA = (($planetesPlusEloignee->distance_etoile / 100) / $radiusMaxPx) * 60;
                     } else {
                         $scaleUA = 10; // Valeur par défaut
                     }
@@ -106,17 +107,7 @@
                     <text x="{{ $planetX }}" y="{{ $planetY - 12 }}" fill="white" font-size="9" text-anchor="middle"
                           style="pointer-events: none;">{{ $planete->nom }}</text>
                     <text x="{{ $planetX }}" y="{{ $planetY + 18 }}" fill="rgba(200,200,200,0.6)" font-size="7" text-anchor="middle"
-                          style="pointer-events: none;">
-                        @php
-                            $distanceGm = $planete->distance_etoile * 149.6;
-                            if ($distanceGm >= 1000) {
-                                $distanceGkm = $distanceGm / 1000;
-                                echo number_format($distanceGkm, 2) . ' G km';
-                            } else {
-                                echo number_format($distanceGm, 2) . ' Gm';
-                            }
-                        @endphp
-                    </text>
+                          style="pointer-events: none;">{{ number_format($planete->distance_etoile / 100, 2) }} UA</text>
 
                     @if($planete->accessible)
                         <text x="{{ $planetX }}" y="{{ $planetY + 28 }}" fill="lime" font-size="10" text-anchor="middle"
@@ -277,7 +268,7 @@
 
                     <div class="grid grid-cols-2 gap-2 text-gray-400 mb-2">
                         <div><span class="text-gray-500">Type:</span> {{ ucfirst($planete->type) }}</div>
-                        <div><span class="text-gray-500">Distance:</span> {{ number_format($planete->distance_etoile, 2) }} UA</div>
+                        <div><span class="text-gray-500">Distance:</span> {{ number_format($planete->distance_etoile / 100, 2) }} UA</div>
                         <div><span class="text-gray-500">Rayon:</span> {{ number_format($planete->rayon, 2) }} R⊕</div>
                         <div><span class="text-gray-500">Masse:</span> {{ number_format($planete->masse, 2) }} M⊕</div>
                         <div><span class="text-gray-500">Gravité:</span> {{ number_format($planete->gravite, 2) }} g</div>

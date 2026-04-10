@@ -3,6 +3,16 @@
 
 ---
 
+## ⚠️ DOCUMENT OBSOLÈTE - NE PLUS UTILISER
+
+**Ce document est OBSOLÈTE et ne doit plus être utilisé comme référence.**
+
+**Version actuelle : Voir [`GDD_SYSTEME_DETECTION_V2.md`](./GDD_SYSTEME_DETECTION_V2.md)**
+
+Le système décrit ci-dessous (points de tâche) n'a jamais été implémenté et a été remplacé par un système plus simple et équilibré dans la v2.0.
+
+---
+
 ## œ? DISCLAIMER
 Algorithme de recherche et découverte des systèmes stellaires (PoV brillants).
 

@@ -62,8 +62,8 @@
                         @foreach($comptes as $compte)
                         <tr class="hover:bg-gray-700/30">
                             <td class="px-4 py-3 text-sm text-gray-300">{{ $compte->id }}</td>
-                            <td class="px-4 py-3 text-sm text-white">{{ $compte->name }}</td>
-                            <td class="px-4 py-3 text-sm text-gray-300">{{ $compte->email }}</td>
+                            <td class="px-4 py-3 text-sm text-white">{{ $compte->nom_login }}</td>
+                            <td class="px-4 py-3 text-sm text-gray-300">{{ $compte->adresse_mail }}</td>
                             <td class="px-4 py-3 text-sm text-cyan-400">{{ $compte->personnages->count() }}</td>
                             <td class="px-4 py-3 text-sm">
                                 @if($compte->is_admin)

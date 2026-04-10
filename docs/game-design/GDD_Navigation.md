@@ -79,13 +79,22 @@ Delta Z = (3d10 - 15 + 1d2_signé) × (Score d'Erreur / 200) × 100
    - 1 → -1
    - 2 → +1
 3. **Ajouter le score d'erreur** directement
-4. **Diviser par 100** pour obtenir un multiplicateur
-5. **Application** à la distance de référence
+4. **Multiplier par 1d2_signé** pour obtenir le signe
+5. **Diviser par 100** pour obtenir un multiplicateur
+6. **Application** à la distance de référence
 
 ### Plage de Valeurs
 - **Minimum** : (-15-1+0)/100 × distance = -16% × distance
 - **Maximum** : (15+1+48)/100 × distance = 64% × distance
 - **Pour score=48** : (-15-1+48)/100 = 32% à (15+1+48)/100 = 64% de la distance de référence
+
+### Calcul séparé pour X, Y, Z
+Chaque axe (X, Y, Z) utilise des valeurs aléatoires différentes:
+- X: 3d10a-15 + 1d2a + Score
+- Y: 3d10b-15 + 1d2b + Score
+- Z: 3d10c-15 + 1d2c + Score (puis divisé par 2)
+
+Cela permet une variation indépendante pour chaque axe.
 
 ---
 
@@ -111,27 +120,39 @@ Position Finale Z = Position Cible Z + Delta Z
 - **Score d'Erreur** : 50 - 35 = 15
 - **Précision** : 100 - (15 × 0.5) = 92.5%
 - **Distance Planète-Étoile** : 149.6 Gm
-- **Delta X** : ((3d10-15) + 1d2 + 15) / 100 × 149.6
+- **Delta X** : (3d10a-15 + 1d2a + 15) / 100 × 149.6
   - Supposons 3d10=15, 1d2=1 → (0 + (-1) + 15) / 100 × 149.6 = 14/100 × 149.6 = +20.94 Gm
-- **Position Finale** : Position Terre ± (+20.94, deltaY, deltaZ/2)
+- **Delta Y** : (3d10b-15 + 1d2b + 15) / 100 × 149.6
+  - Supposons 3d10=8, 1d2=2 → (3 + 1 + 15) / 100 × 149.6 = 19/100 × 149.6 = +28.42 Gm
+- **Delta Z** : (3d10c-15 + 1d2c + 15) / 100 × 149.6 / 2
+  - Supposons 3d10=12, 1d2=1 → (2 + (-1) + 15) / 100 × 149.6 / 2 = 16/100 × 74.8 = +11.97 Gm
+- **Position Finale** : Position Terre ± (+20.94, +28.42, +11.97)
 
 ### Exemple 2: Espoir vers Mars
 - **Jet** : 10+5+5+3+2+1 = 26 (Espoir car 10>5)
 - **Score d'Erreur** : 50 - 26 = 24
 - **Précision** : 100 - (24 × 0.5) = 88%
 - **Distance Planète-Étoile** : 227.9 Gm
-- **Delta X** : ((3d10-15) + 1d2 + 24) / 100 × 227.9
+- **Delta X** : (3d10a-15 + 1d2a + 24) / 100 × 227.9
   - Supposons 3d10=18, 1d2=2 → (3 + 1 + 24) / 100 × 227.9 = 28/100 × 227.9 = +63.81 Gm
-- **Position Finale** : Position Mars ± (+63.81, deltaY, deltaZ/2)
+- **Delta Y** : (3d10b-15 + 1d2b + 24) / 100 × 227.9
+  - Supposons 3d10=5, 1d2=1 → (-10 + (-1) + 24) / 100 × 227.9 = 13/100 × 227.9 = +29.63 Gm
+- **Delta Z** : (3d10c-15 + 1d2c + 24) / 100 × 227.9 / 2
+  - Supposons 3d10=10, 1d2=2 → (0 + 1 + 24) / 100 × 227.9 / 2 = 25/100 × 113.95 = +28.49 Gm
+- **Position Finale** : Position Mars ± (+63.81, +29.63, +28.49)
 
 ### Exemple 3: Peur vers Soleil (<système>)
 - **Jet** : 3+9+5+3+2+1 = 23 (Peur car 3<9)
 - **Score d'Erreur** : 50 - 23 = 27
 - **Précision** : 100 - (27 × 0.5) = 86.5%
 - **Distance de référence** : 100 Gm
-- **Delta X** : ((3d10-15) + 1d2 + 27) / 100 × 100
+- **Delta X** : (3d10a-15 + 1d2a + 27) / 100 × 100
   - Supposons 3d10=6, 1d2=1 → (-9 + (-1) + 27) / 100 × 100 = 17 Gm
-- **Position Finale** : (100,100,0) ± (+17, deltaY, deltaZ/2)
+- **Delta Y** : (3d10b-15 + 1d2b + 27) / 100 × 100
+  - Supposons 3d10=15, 1d2=2 → (0 + 1 + 27) / 100 × 100 = 28 Gm
+- **Delta Z** : (3d10c-15 + 1d2c + 27) / 100 × 100 / 2
+  - Supposons 3d10=3, 1d2=1 → (-12 + (-1) + 27) / 100 × 100 / 2 = 14/2 = 7 Gm
+- **Position Finale** : (100,100,0) ± (+17, +28, +7)
 
 ---
 

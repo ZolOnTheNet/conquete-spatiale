@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Mine extends Model
 {
     protected $fillable = [
+        'objet_spatial_id',
         'nom',
         'planete_id',
         'gisement_id',
@@ -107,6 +108,19 @@ class Mine extends Model
     public function base(): BelongsTo
     {
         return $this->belongsTo(Base::class);
+    }
+
+    /**
+     * Objet spatial associé (position 3D complète)
+     *
+     * IMPORTANT : Depuis migration 2025_12_31_140001, chaque Mine
+     * hérite d'un ObjetSpatial pour gérer sa position 3D
+     *
+     * @see ObjetSpatial
+     */
+    public function objetSpatial(): BelongsTo
+    {
+        return $this->belongsTo(ObjetSpatial::class, 'objet_spatial_id');
     }
 
     // ========== MÉTHODES MÉTIER ==========
@@ -360,5 +374,226 @@ class Mine extends Model
         ];
 
         return $statuts[$this->statut] ?? $this->statut;
+    }
+
+    /**
+     * Obtenir la position complète de la mine
+     *
+     * PRIORITÉ : Si objet_spatial_id existe, utiliser la position de l'ObjetSpatial
+     * SINON : Fallback sur l'ancienne méthode (legacy)
+     */
+    public function getPosition(): array
+    {
+        // Nouvelle méthode : Utiliser ObjetSpatial
+        if ($this->objet_spatial_id && $this->objetSpatial) {
+            return $this->objetSpatial->getPosition();
+        }
+
+        // Fallback legacy (pour mines non migrées)
+        $planete = $this->planete;
+        if (!$planete) {
+            return [
+                'secteur_x' => 0,
+                'secteur_y' => 0,
+                'secteur_z' => 0,
+                'position_x' => 0,
+                'position_y' => 0,
+                'position_z' => 0,
+            ];
+        }
+
+        $systeme = $planete->systemeStellaire;
+        if (!$systeme) {
+            return [
+                'secteur_x' => 0,
+                'secteur_y' => 0,
+                'secteur_z' => 0,
+                'position_x' => 0,
+                'position_y' => 0,
+                'position_z' => 0,
+            ];
+        }
+
+        // Position de la planète
+        $posPlanete = $planete->getPositionOrbitale();
+
+        return [
+            'secteur_x' => $systeme->secteur_x,
+            'secteur_y' => $systeme->secteur_y,
+            'secteur_z' => $systeme->secteur_z,
+            'position_x' => (int)$posPlanete['x'],
+            'position_y' => (int)$posPlanete['y'],
+            'position_z' => (int)$posPlanete['z'],
+        ];
+    }
+
+    /**
+     * Obtenir la position orbitale précise de la mine
+     * Utilisé par ObjetSpatial.getPositionEffective()
+     *
+     * Pour les mines, la position est généralement celle de la planète
+     * (posées au sol) ou celle de la base (attachées)
+     *
+     * @param float|null $timestampJours Timestamp du jeu en jours
+     * @return array Position absolue [secteur_x/y/z, position_x/y/z]
+     */
+    public function getPositionOrbitale(?float $timestampJours = null): array
+    {
+        // Cas 1 : Mine attachée à une base
+        if ($this->base_id) {
+            $base = $this->base;
+            if ($base && $base->objetSpatial) {
+                $posBase = $base->objetSpatial->getPositionEffective($timestampJours);
+                return [
+                    'secteur_x' => $posBase['secteur_x'] ?? 0,
+                    'secteur_y' => $posBase['secteur_y'] ?? 0,
+                    'secteur_z' => $posBase['secteur_z'] ?? 0,
+                    'position_x' => $posBase['position_x'] ?? 0,
+                    'position_y' => $posBase['position_y'] ?? 0,
+                    'position_z' => $posBase['position_z'] ?? 0,
+                ];
+            }
+        }
+
+        // Cas 2 : Mine sur planète (standard)
+        if ($this->planete_id) {
+            $planete = $this->planete;
+            if ($planete) {
+                $posPlanete = $planete->getPositionOrbitale($timestampJours);
+                $systeme = $planete->systemeStellaire;
+
+                return [
+                    'secteur_x' => $systeme->secteur_x ?? 0,
+                    'secteur_y' => $systeme->secteur_y ?? 0,
+                    'secteur_z' => $systeme->secteur_z ?? 0,
+                    'position_x' => (int)$posPlanete['x'],
+                    'position_y' => (int)$posPlanete['y'],
+                    'position_z' => (int)$posPlanete['z'],
+                ];
+            }
+        }
+
+        // Fallback : position nulle
+        return [
+            'secteur_x' => 0,
+            'secteur_y' => 0,
+            'secteur_z' => 0,
+            'position_x' => 0,
+            'position_y' => 0,
+            'position_z' => 0,
+        ];
+    }
+
+    // === SYSTÈME DE DÉTECTION ===
+
+    /**
+     * Calcule le score de détection de la mine (RÈGLE INTRA-SECTEUR)
+     *
+     * PRIORITÉ : Si objet_spatial_id existe, déléguer à ObjetSpatial
+     * SINON : Fallback sur l'ancienne méthode (legacy)
+     *
+     * @param int $fromSecteurX Secteur X du scanner (AL)
+     * @param int $fromSecteurY Secteur Y du scanner (AL)
+     * @param int $fromSecteurZ Secteur Z du scanner (AL)
+     * @param int $fromPositionX Position X du scanner (cUA)
+     * @param int $fromPositionY Position Y du scanner (cUA)
+     * @param int $fromPositionZ Position Z du scanner (cUA)
+     * @return float Score de détection requis
+     */
+    public function getScoreDetection(
+        int $fromSecteurX,
+        int $fromSecteurY,
+        int $fromSecteurZ,
+        int $fromPositionX = 0,
+        int $fromPositionY = 0,
+        int $fromPositionZ = 0
+    ): float {
+        // Nouvelle méthode : Déléguer à ObjetSpatial
+        if ($this->objet_spatial_id && $this->objetSpatial) {
+            return $this->objetSpatial->getScoreDetection(
+                $fromSecteurX,
+                $fromSecteurY,
+                $fromSecteurZ,
+                $fromPositionX,
+                $fromPositionY,
+                $fromPositionZ
+            );
+        }
+
+        // Fallback legacy (pour mines non migrées)
+        // Si déjà connue, seuil de détection = 0 (apparaît automatiquement)
+        if ($this->poi_connu) {
+            return 0;
+        }
+
+        // Les mines sont en orbite d'une planète, donc on utilise la position de la planète
+        $planete = $this->planete;
+        if (!$planete) {
+            return 999999; // Mine orpheline, impossible à détecter
+        }
+
+        $systeme = $planete->systemeStellaire;
+        if (!$systeme) {
+            return 999999; // Planète orpheline, impossible à détecter
+        }
+
+        // RÈGLE INTRA-SECTEUR: Vérifier si même secteur
+        if ($systeme->secteur_x !== $fromSecteurX ||
+            $systeme->secteur_y !== $fromSecteurY ||
+            $systeme->secteur_z !== $fromSecteurZ) {
+            // Pas dans le même secteur → non détectable en local
+            return 999999;
+        }
+
+        // IMPORTANT: Utiliser cache_position de la planète si disponible, sinon position du système
+        $planeteX = $planete->cache_position_x ?? $systeme->position_x;
+        $planeteY = $planete->cache_position_y ?? $systeme->position_y;
+        $planeteZ = $planete->cache_position_z ?? $systeme->position_z;
+
+        // Distance calculée UNIQUEMENT avec positions (cUA) - secteurs ignorés
+        $dx = $planeteX - $fromPositionX;
+        $dy = $planeteY - $fromPositionY;
+        $dz = $planeteZ - $fromPositionZ;
+
+        $distance_cUA = sqrt($dx * $dx + $dy * $dy + $dz * $dz);
+
+        // Si detectabilite_base n'est pas initialisé (0 ou -1), calculer
+        $detectabilite = $this->detectabilite_base;
+        if ($detectabilite <= 0) {
+            $detectabilite = $this->calculerDetectabilite();
+        }
+
+        // Formule INTRA-SECTEUR: (distance_cUA / 1000) × detectabilite_base
+        return ($distance_cUA / 1000) * $detectabilite;
+    }
+
+    /**
+     * Calcule la détectabilité de base si non initialisée
+     * Formule: 100 - (taux_extraction × 10) - (capacite_stockage / 100)
+     * Les mines actives et grandes sont plus faciles à détecter
+     */
+    public function calculerDetectabilite(): float
+    {
+        $taux = $this->taux_extraction ?? 1.0;
+        $capacite = $this->capacite_stockage ?? 100;
+
+        // Base de 100, réduit par l'activité et la taille
+        $detectabilite = 100 - ($taux * 10) - ($capacite / 100);
+
+        // Les mines inactives sont plus difficiles à détecter
+        if ($this->statut !== 'active') {
+            $detectabilite += 20;
+        }
+
+        return max(10, $detectabilite); // Minimum 10
+    }
+
+    /**
+     * Marque la mine comme découverte (poi_connu = true)
+     */
+    public function marquerDecouvert(): void
+    {
+        $this->poi_connu = true;
+        $this->save();
     }
 }

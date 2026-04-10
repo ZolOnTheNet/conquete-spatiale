@@ -212,7 +212,7 @@
                         <!-- VUE TEXTE -->
                         <div id="carte-text-view" class="relative bg-black border border-gray-700 rounded p-2">
                             <!-- Grille proprement dite -->
-                            <div class="font-mono text-xs leading-none relative" style="letter-spacing: 0;">
+                            <div class="font-mono text-sm leading-tight relative" style="letter-spacing: 0.05em;">
                                 @for($v = $halfSize - 1; $v >= -$halfSize; $v--)
                                 <div class="flex">
                                     @for($h = -$halfSize; $h < $halfSize; $h++)
@@ -311,21 +311,21 @@
                             <div class="grid grid-cols-3 gap-2">
                                 <div>
                                     <label class="block text-xs text-gray-200 mb-1">X (AL)</label>
-                                    <input type="number" step="0.01" name="coord_x" id="create-coord-x" required
+                                    <input type="number" step="1" name="coord_x" id="create-coord-x" required
                                            value="{{ $centerX }}"
                                            oninput="checkExistingSystem()"
                                            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm">
                                 </div>
                                 <div>
                                     <label class="block text-xs text-gray-200 mb-1">Y (AL)</label>
-                                    <input type="number" step="0.01" name="coord_y" id="create-coord-y" required
+                                    <input type="number" step="1" name="coord_y" id="create-coord-y" required
                                            value="{{ $centerY }}"
                                            oninput="checkExistingSystem()"
                                            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm">
                                 </div>
                                 <div>
                                     <label class="block text-xs text-gray-200 mb-1">Z (AL)</label>
-                                    <input type="number" step="0.01" name="coord_z" id="create-coord-z" required
+                                    <input type="number" step="1" name="coord_z" id="create-coord-z" required
                                            value="{{ $centerZ }}"
                                            oninput="checkExistingSystem()"
                                            class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm">
@@ -639,7 +639,7 @@ function drawGraphicMap() {
     const ctx = canvas.getContext('2d');
 
     // Configuration - Taille de la carte = 100x100 cellules
-    const cellSize = 6; // pixels par cellule AL
+    const cellSize = 10; // pixels par cellule AL (agrandi de 6 à 10)
     const halfSize = 50;
     const plan = '{{ $plan }}';
     const centerX = {{ $centerX }};
@@ -810,7 +810,7 @@ function setupCanvasEvents() {
     const canvas = document.getElementById('carte-canvas');
     if (!canvas) return;
 
-    const cellSize = 6;
+    const cellSize = 10; // Doit correspondre à drawGraphicMap
     const halfSize = 50;
     const plan = '{{ $plan }}';
     const centerX = {{ $centerX }};
@@ -960,8 +960,11 @@ function handleCanvasDoubleClick(absX, absY, absZ, secteurX, secteurY, secteurZ)
     window.location.href = `/admin/carte?x=${absX}&y=${absY}&z=${absZ}&plan=${plan}`;
 }
 
-// Support clavier pour navigation
+// Support clavier pour navigation (Maj+Flèches)
 document.addEventListener('keydown', function(e) {
+    // Ne réagir que si Shift est pressé
+    if (!e.shiftKey) return;
+
     const x = parseInt(document.getElementById('coord-x').value);
     const y = parseInt(document.getElementById('coord-y').value);
     const z = parseInt(document.getElementById('coord-z').value);

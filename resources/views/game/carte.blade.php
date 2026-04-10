@@ -96,7 +96,7 @@
         ])
 
         <!-- Contenu Principal Carte -->
-        <main class="flex-1 overflow-auto p-4 bg-gray-900">
+        <main class="flex-1 overflow-auto p-4 bg-gray-900" style="max-width: 100%;">
             <!-- En-tête avec Onglets -->
             <div class="mb-4 bg-gray-800/50 border-b border-cyan-500/30">
                 <div class="px-4 py-3 flex items-center justify-between">
@@ -187,7 +187,7 @@
         </div>
 
         <!-- Two Maps Side by Side -->
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 2xl:grid-cols-2 gap-4">
             <!-- Carte Niveau 1: Vue Secteurs -->
             <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
                 <h2 class="text-lg font-bold text-cyan-400 mb-2">
@@ -447,8 +447,11 @@ function loadSecteurDetail(x, y, z) {
         });
 }
 
-// Support clavier pour navigation
+// Support clavier pour navigation (Maj+Flèches)
 document.addEventListener('keydown', function(e) {
+    // Ne réagir que si Shift est pressé
+    if (!e.shiftKey) return;
+
     const x = parseInt(document.getElementById('coord-x').value);
     const y = parseInt(document.getElementById('coord-y').value);
     const z = parseInt(document.getElementById('coord-z').value);

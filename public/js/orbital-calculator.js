@@ -49,14 +49,14 @@ class OrbitalCalculator {
      * Calculer la position orbitale d'une planète à un instant donné
      *
      * @param {Object} planete Données orbitales de la planète
-     *   - distance_etoile: number (UA)
+     *   - distance_etoile: number (cUA depuis migration 2025_12_30_160337)
      *   - angle_orbital_initial: number (radians)
      *   - vitesse_angulaire: number (rad/jour)
-     *   - cache_position_x: number (UA, optionnel)
-     *   - cache_position_y: number (UA, optionnel)
+     *   - cache_position_x: number (cUA, optionnel)
+     *   - cache_position_y: number (cUA, optionnel)
      *   - cache_timestamp_jours: number (optionnel)
      * @param {number} timestampJours Temps actuel en jours depuis 3000-01-01
-     * @returns {Object} Position orbitale {x, y, z} en UA par rapport à l'étoile
+     * @returns {Object} Position orbitale {x, y, z} en cUA par rapport à l'étoile
      */
     static calculerPositionOrbitale(planete, timestampJours) {
         // Si cache valide, utiliser le cache comme base
@@ -79,6 +79,7 @@ class OrbitalCalculator {
                           (planete.vitesse_angulaire * timestampJours);
 
         // Position orbitale (orbite circulaire dans plan XY)
+        // IMPORTANT: distance_etoile est en cUA, pas en UA
         return {
             x: planete.distance_etoile * Math.cos(angleActuel),
             y: planete.distance_etoile * Math.sin(angleActuel),
@@ -89,22 +90,25 @@ class OrbitalCalculator {
     }
 
     /**
-     * Calculer la position absolue d'une planète dans l'espace (en AL)
+     * Calculer la position absolue d'une planète dans l'espace (en cUA)
+     *
+     * IMPORTANT: Dans un même secteur, pas besoin de convertir en AL !
+     * Tous les calculs se font directement en cUA pour éviter les pertes de précision.
      *
      * @param {Object} planete Données orbitales de la planète
-     * @param {Object} systeme Position du système stellaire {position_x, position_y, position_z} en AL
+     * @param {Object} systeme Position du système stellaire {position_x, position_y, position_z} en cUA
      * @param {number} timestampJours Temps actuel en jours
-     * @returns {Object} Position absolue {x, y, z} en AL
+     * @returns {Object} Position absolue {x, y, z} en cUA
      */
     static calculerPositionAbsolue(planete, systeme, timestampJours) {
-        // Position orbitale relative (en UA)
+        // Position orbitale relative (en cUA depuis migration 2025_12_30_160337)
         const positionOrbitale = this.calculerPositionOrbitale(planete, timestampJours);
 
-        // Conversion UA → AL et ajout position étoile
+        // Addition directe en cUA (pas de conversion nécessaire !)
         return {
-            x: systeme.position_x + (positionOrbitale.x * this.UA_VERS_AL),
-            y: systeme.position_y + (positionOrbitale.y * this.UA_VERS_AL),
-            z: systeme.position_z + (positionOrbitale.z * this.UA_VERS_AL),
+            x: systeme.position_x + positionOrbitale.x,
+            y: systeme.position_y + positionOrbitale.y,
+            z: systeme.position_z + positionOrbitale.z,
             angle: positionOrbitale.angle,
         };
     }
@@ -112,24 +116,26 @@ class OrbitalCalculator {
     /**
      * Calculer la distance entre une planète et un vaisseau (en UA)
      *
+     * IMPORTANT: Calcul direct en cUA sans passer par AL (plus précis)
+     *
      * @param {Object} planete Données orbitales de la planète
-     * @param {Object} systeme Position du système stellaire
-     * @param {Object} vaisseau Position du vaisseau {position_x, position_y, position_z} en AL
+     * @param {Object} systeme Position du système stellaire {position_x, position_y, position_z} en cUA
+     * @param {Object} vaisseau Position du vaisseau {position_x, position_y, position_z} en cUA
      * @param {number} timestampJours Temps actuel en jours
      * @returns {number} Distance en UA
      */
     static calculerDistance(planete, systeme, vaisseau, timestampJours) {
-        // Position absolue planète (en AL)
+        // Position absolue planète (en cUA)
         const posPlanete = this.calculerPositionAbsolue(planete, systeme, timestampJours);
 
-        // Distance en AL
+        // Distance en cUA (calcul direct sans conversion)
         const dx = posPlanete.x - vaisseau.position_x;
         const dy = posPlanete.y - vaisseau.position_y;
         const dz = posPlanete.z - vaisseau.position_z;
-        const distanceAL = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        const distanceCua = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-        // Conversion AL → UA
-        return distanceAL * this.AL_VERS_UA;
+        // Conversion cUA → UA pour l'affichage (1 UA = 100 cUA)
+        return distanceCua / 100;
     }
 
     /**

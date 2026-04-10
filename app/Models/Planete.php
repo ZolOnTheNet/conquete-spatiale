@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Helpers\GameTimeHelper;
+use App\Helpers\CoordinatesHelper;
 use Carbon\Carbon;
 
 class Planete extends Model
@@ -21,6 +22,7 @@ class Planete extends Model
         'gravite',
         'distance_etoile',
         'periode_orbitale',
+        'excentricite_orbitale',
         'angle_orbital_initial',
         'vitesse_angulaire',
         'cache_position_x',
@@ -43,6 +45,11 @@ class Planete extends Model
         'donnees_supplementaires',
         'detectabilite_base',
         'poi_connu',
+        // Champs NASA Exoplanet Archive
+        'source_nasa_exoplanet',
+        'nasa_exo_id',
+        'nasa_discovery_method',
+        'nasa_discovery_year',
     ];
 
     protected $casts = [
@@ -50,15 +57,18 @@ class Planete extends Model
         'habitee' => 'boolean',
         'a_atmosphere' => 'boolean',
         'poi_connu' => 'boolean',
+        'source_nasa_exoplanet' => 'boolean',
         'gisements' => 'array',
         'donnees_supplementaires' => 'array',
         'angle_orbital_initial' => 'float',
         'vitesse_angulaire' => 'float',
-        'cache_position_x' => 'float',
-        'cache_position_y' => 'float',
-        'cache_position_z' => 'float',
+        'cache_position_x' => 'integer', // cUA (centi-UA)
+        'cache_position_y' => 'integer', // cUA
+        'cache_position_z' => 'integer', // cUA
         'cache_timestamp_jours' => 'integer',
         'cache_validite_jours' => 'integer',
+        'nasa_discovery_year' => 'integer',
+        'excentricite_orbitale' => 'float',
     ];
 
     // Relations
@@ -415,6 +425,10 @@ class Planete extends Model
         }
 
         return [
+            // Identifiant
+            'id' => $this->id,
+            'nom' => $this->nom,
+
             // Paramètres orbitaux (constants)
             'distance_etoile' => $this->distance_etoile, // UA
             'periode_orbitale' => $this->periode_orbitale, // jours
@@ -449,45 +463,47 @@ class Planete extends Model
         $angleActuel = $this->angle_orbital_initial + ($this->vitesse_angulaire * $timestampJours);
 
         // Position orbitale (orbite circulaire dans plan XY)
-        $x_ua = $this->distance_etoile * cos($angleActuel);
-        $y_ua = $this->distance_etoile * sin($angleActuel);
-        $z_ua = 0.0; // Plan orbital simplifié (peut ajouter inclinaison plus tard)
+        // IMPORTANT: distance_etoile est en cUA depuis migration 2025_12_30_160337
+        $x_cua = (int)round($this->distance_etoile * cos($angleActuel));
+        $y_cua = (int)round($this->distance_etoile * sin($angleActuel));
+        $z_cua = 0; // Plan orbital simplifié (peut ajouter inclinaison plus tard)
 
-        // Mettre à jour le cache
+        // Mettre à jour le cache (déjà en cUA)
         $this->update([
-            'cache_position_x' => $x_ua,
-            'cache_position_y' => $y_ua,
-            'cache_position_z' => $z_ua,
+            'cache_position_x' => $x_cua,
+            'cache_position_y' => $y_cua,
+            'cache_position_z' => $z_cua,
             'cache_timestamp_jours' => (int)$timestampJours,
         ]);
     }
 
     /**
-     * Calculer la position absolue de la planète dans l'espace (en AL)
+     * Calculer la position absolue de la planète dans l'espace (en cUA)
      *
      * @param float|null $timestampJours Timestamp en jours (null = actuel)
-     * @return array ['x' => float, 'y' => float, 'z' => float] Position en AL
+     * @return array ['x' => int, 'y' => int, 'z' => int] Position en cUA
      */
     public function getPositionAbsolue(?float $timestampJours = null): array
     {
         $timestampJours = $timestampJours ?? GameTimeHelper::dateToJours(Carbon::now());
 
-        // Calculer position orbitale (en UA)
+        // Calculer position orbitale (orbite circulaire dans plan XY)
+        // IMPORTANT: distance_etoile est en cUA depuis migration 2025_12_30_160337
         $angleActuel = $this->angle_orbital_initial + ($this->vitesse_angulaire * $timestampJours);
-        $x_ua = $this->distance_etoile * cos($angleActuel);
-        $y_ua = $this->distance_etoile * sin($angleActuel);
-        $z_ua = 0.0;
+        $x_cua = (int)round($this->distance_etoile * cos($angleActuel));
+        $y_cua = (int)round($this->distance_etoile * sin($angleActuel));
+        $z_cua = 0;
 
-        // Position de l'étoile (système stellaire)
+        // Position de l'étoile (système stellaire) en cUA
         $systeme = $this->systemeStellaire;
-
-        // Conversion UA → AL (1 UA ≈ 0.0000158 AL)
-        $ua_vers_al = 0.0000158;
+        $systeme_x_cua = CoordinatesHelper::alToCua($systeme->secteur_x) + ($systeme->position_x ?? 0);
+        $systeme_y_cua = CoordinatesHelper::alToCua($systeme->secteur_y) + ($systeme->position_y ?? 0);
+        $systeme_z_cua = CoordinatesHelper::alToCua($systeme->secteur_z) + ($systeme->position_z ?? 0);
 
         return [
-            'x' => $systeme->position_x + ($x_ua * $ua_vers_al),
-            'y' => $systeme->position_y + ($y_ua * $ua_vers_al),
-            'z' => $systeme->position_z + ($z_ua * $ua_vers_al),
+            'x' => $systeme_x_cua + $x_cua,
+            'y' => $systeme_y_cua + $y_cua,
+            'z' => $systeme_z_cua + $z_cua,
         ];
     }
 
@@ -500,17 +516,107 @@ class Planete extends Model
      */
     public function getDistanceDepuisVaisseau($vaisseau, ?float $timestampJours = null): float
     {
-        $positionPlanete = $this->getPositionAbsolue($timestampJours);
+        $positionPlanete = $this->getPositionAbsolue($timestampJours); // En cUA
         $objetSpatialVaisseau = $vaisseau->objetSpatial;
 
-        // Distance en AL
-        $dx = $positionPlanete['x'] - $objetSpatialVaisseau->position_x;
-        $dy = $positionPlanete['y'] - $objetSpatialVaisseau->position_y;
-        $dz = $positionPlanete['z'] - $objetSpatialVaisseau->position_z;
+        // IMPORTANT: Utiliser position dynamique (prend en compte orbite si le vaisseau est en orbite)
+        $vaisseauPosAbs = $objetSpatialVaisseau->getPositionAbsolueCua($timestampJours);
+        $vaisseau_x_cua = $vaisseauPosAbs['x'];
+        $vaisseau_y_cua = $vaisseauPosAbs['y'];
+        $vaisseau_z_cua = $vaisseauPosAbs['z'];
 
-        $distance_al = sqrt($dx*$dx + $dy*$dy + $dz*$dz);
+        // Distance en cUA
+        $distance_cua = CoordinatesHelper::distance3D(
+            $positionPlanete['x'], $positionPlanete['y'], $positionPlanete['z'],
+            $vaisseau_x_cua, $vaisseau_y_cua, $vaisseau_z_cua
+        );
 
-        // Conversion AL → UA (1 AL ≈ 63241 UA)
-        return $distance_al * 63241;
+        // Conversion cUA → UA pour l'affichage gameplay
+        return CoordinatesHelper::cuaToUa($distance_cua);
+    }
+
+    /**
+     * Calcule le score de détection pour une planète (RÈGLE INTRA-SECTEUR)
+     *
+     * IMPORTANT:
+     * - Les planètes sont des POI locaux, détectables UNIQUEMENT dans le même secteur
+     * - Distance calculée UNIQUEMENT avec positions (cUA), secteurs ignorés
+     * - Formule: (distance_cUA / 1000) × detectabilite_base
+     *
+     * @param int $fromSecteurX Secteur X du scanner (AL)
+     * @param int $fromSecteurY Secteur Y du scanner (AL)
+     * @param int $fromSecteurZ Secteur Z du scanner (AL)
+     * @param int $fromPositionX Position X du scanner (cUA)
+     * @param int $fromPositionY Position Y du scanner (cUA)
+     * @param int $fromPositionZ Position Z du scanner (cUA)
+     * @return float Score de détection requis
+     */
+    public function getScoreDetection(
+        int $fromSecteurX,
+        int $fromSecteurY,
+        int $fromSecteurZ,
+        int $fromPositionX = 0,
+        int $fromPositionY = 0,
+        int $fromPositionZ = 0
+    ): float {
+        // Si déjà connue, seuil de détection = 0 (apparaît automatiquement)
+        if ($this->poi_connu) {
+            return 0;
+        }
+
+        $systeme = $this->systemeStellaire;
+        if (!$systeme) {
+            return 999999; // Planète orpheline, impossible à détecter
+        }
+
+        // RÈGLE INTRA-SECTEUR: Vérifier si même secteur
+        if ($systeme->secteur_x !== $fromSecteurX ||
+            $systeme->secteur_y !== $fromSecteurY ||
+            $systeme->secteur_z !== $fromSecteurZ) {
+            // Pas dans le même secteur → non détectable en local
+            return 999999;
+        }
+
+        // IMPORTANT: Utiliser cache_position si disponible, sinon position du système
+        $planeteX = $this->cache_position_x ?? $systeme->position_x;
+        $planeteY = $this->cache_position_y ?? $systeme->position_y;
+        $planeteZ = $this->cache_position_z ?? $systeme->position_z;
+
+        // Distance calculée UNIQUEMENT avec positions (cUA) - secteurs ignorés
+        $dx = $planeteX - $fromPositionX;
+        $dy = $planeteY - $fromPositionY;
+        $dz = $planeteZ - $fromPositionZ;
+
+        $distance_cUA = sqrt($dx * $dx + $dy * $dy + $dz * $dz);
+
+        // Si detectabilite_base n'est pas initialisé (0 ou -1), calculer
+        $detectabilite = $this->detectabilite_base;
+        if ($detectabilite <= 0) {
+            $detectabilite = $this->calculerDetectabilite();
+        }
+
+        // Formule INTRA-SECTEUR: (distance_cUA / 1000) × detectabilite_base
+        return ($distance_cUA / 1000) * $detectabilite;
+    }
+
+    /**
+     * Calcule la détectabilité de base si non initialisée
+     * Formule: floor((30 - taille_planete) / 2)
+     */
+    public function calculerDetectabilite(): float
+    {
+        // Utiliser le rayon comme approximation de la taille
+        // rayon est en rayons terrestres (0.5-12.0)
+        $taille = $this->rayon ?? 1.0;
+        return floor((30 - $taille) / 2);
+    }
+
+    /**
+     * Marque la planète comme découverte (poi_connu = true)
+     */
+    public function marquerDecouvert(): void
+    {
+        $this->poi_connu = true;
+        $this->save();
     }
 }

@@ -3,19 +3,27 @@
 namespace App\Http\Controllers;
 
 use App\Models\SystemeStellaire;
+use App\Models\Station;
 use App\Services\NavigationService;
+use App\Services\UniverseGeneratorService;
 use App\Helpers\GameTimeHelper;
+use App\Helpers\CoordinatesHelper;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class TimonerieController extends Controller
 {
     protected NavigationService $navigationService;
+    protected UniverseGeneratorService $universeGenerator;
 
-    public function __construct(NavigationService $navigationService)
-    {
+    public function __construct(
+        NavigationService $navigationService,
+        UniverseGeneratorService $universeGenerator
+    ) {
         $this->navigationService = $navigationService;
+        $this->universeGenerator = $universeGenerator;
     }
 
     /**
@@ -159,7 +167,7 @@ class TimonerieController extends Controller
 
         // Vérifier si un calcul valide existe
         $calcul = $this->getCalculSautValide($request, $destinationId, $poiId);
-        
+
         if (!$calcul) {
             return response()->json([
                 'error' => 'Aucun calcul de saut valide. Utilisez d\'abord "Calculer".',
@@ -191,6 +199,9 @@ class TimonerieController extends Controller
             $distanceLocale
         );
 
+        // 🚀 GÉNÉRATION DYNAMIQUE: Étendre l'univers autour de la destination
+        $this->expandUniverseAroundDestination($arrivee['secteur_x'], $arrivee['secteur_y'], $arrivee['secteur_z']);
+
         // Mettre à jour la position du vaisseau
         $vaisseau->objetSpatial->update([
             'secteur_x' => $arrivee['secteur_x'],
@@ -200,6 +211,19 @@ class TimonerieController extends Controller
             'position_y' => $arrivee['position_y'],
             'position_z' => $arrivee['position_z'],
         ]);
+
+        // IMPORTANT: Le vaisseau sort d'orbite lors d'un saut hyperespace
+        if ($vaisseau->estEnOrbite()) {
+            $vaisseau->update([
+                'orbite_planete_id' => null,
+                'orbite_rayon_ua' => null,
+                'orbite_angle_initial' => null,
+                'orbite_debut' => null,
+            ]);
+        }
+
+        // IMPORTANT: Réinitialiser le scan après un saut
+        $vaisseau->reinitialiserScan();
 
         // Consommer les ressources
         $vaisseau->energie_actuelle -= $calcul['energieRequise'];
@@ -238,37 +262,141 @@ class TimonerieController extends Controller
             return response()->json(['error' => 'Aucun vaisseau actif'], 400);
         }
 
-        // Récupérer le POI (pour l'instant, seulement les systèmes stellaires)
-        $poi = SystemeStellaire::find($poiId);
-        if (!$poi) {
-            return response()->json(['error' => 'POI introuvable'], 404);
-        }
-
         $objetSpatial = $vaisseau->objetSpatial;
+        $poiTypeNormalized = strtolower($poiType);
 
-        // Vérifier qu'on est dans le même secteur
-        if ($poi->secteur_x != $objetSpatial->secteur_x ||
-            $poi->secteur_y != $objetSpatial->secteur_y ||
-            $poi->secteur_z != $objetSpatial->secteur_z) {
-            return response()->json(['error' => 'Le POI n\'est pas dans ce secteur'], 400);
+        // Position vaisseau en cUA
+        $vaisseauPosCua = [
+            'x' => CoordinatesHelper::alToCua($objetSpatial->secteur_x) + $objetSpatial->position_x,
+            'y' => CoordinatesHelper::alToCua($objetSpatial->secteur_y) + $objetSpatial->position_y,
+            'z' => CoordinatesHelper::alToCua($objetSpatial->secteur_z) + $objetSpatial->position_z,
+        ];
+
+        // Récupérer le POI selon son type
+        $nomPoi = '';
+        $distanceCua = 0;
+        $ciblePosCua = ['x' => 0, 'y' => 0, 'z' => 0];
+
+        switch ($poiTypeNormalized) {
+            case 'systemestellaire':
+            case 'systeme':
+                $systeme = \App\Models\SystemeStellaire::find($poiId);
+                if (!$systeme) {
+                    return response()->json(['error' => 'Système introuvable'], 404);
+                }
+
+                $nomPoi = $systeme->nom;
+
+                // Vérifier qu'on est dans le même secteur
+                if ($systeme->secteur_x != $objetSpatial->secteur_x ||
+                    $systeme->secteur_y != $objetSpatial->secteur_y ||
+                    $systeme->secteur_z != $objetSpatial->secteur_z) {
+                    return response()->json(['error' => 'Le système n\'est pas dans ce secteur'], 400);
+                }
+
+                // Position système en cUA (centre du système)
+                $ciblePosCua = [
+                    'x' => CoordinatesHelper::alToCua($systeme->secteur_x) + ($systeme->position_x ?? 0),
+                    'y' => CoordinatesHelper::alToCua($systeme->secteur_y) + ($systeme->position_y ?? 0),
+                    'z' => CoordinatesHelper::alToCua($systeme->secteur_z) + ($systeme->position_z ?? 0),
+                ];
+                break;
+
+            case 'planete':
+                $planete = \App\Models\Planete::find($poiId);
+                if (!$planete || !$planete->systemeStellaire) {
+                    return response()->json(['error' => 'Planète introuvable'], 404);
+                }
+
+                $systeme = $planete->systemeStellaire;
+                $nomPoi = $planete->nom;
+
+                // Vérifier qu'on est dans le même secteur que le système
+                if ($systeme->secteur_x != $objetSpatial->secteur_x ||
+                    $systeme->secteur_y != $objetSpatial->secteur_y ||
+                    $systeme->secteur_z != $objetSpatial->secteur_z) {
+                    return response()->json(['error' => 'La planète n\'est pas dans ce secteur'], 400);
+                }
+
+                // IMPORTANT: Utiliser le timestamp du jeu pour cohérence
+                $timestampJours = GameTimeHelper::getTimestampJoursActuel($personnage);
+
+                // Position absolue de la planète en cUA (avec timestamp du jeu)
+                $ciblePosCua = $planete->getPositionAbsolue($timestampJours);
+                break;
+
+            case 'station':
+                $station = \App\Models\Station::find($poiId);
+                if (!$station || !$station->systemeStellaire) {
+                    return response()->json(['error' => 'Station introuvable'], 404);
+                }
+
+                $systeme = $station->systemeStellaire;
+                $nomPoi = $station->nom;
+
+                // Vérifier qu'on est dans le même secteur
+                if ($systeme->secteur_x != $objetSpatial->secteur_x ||
+                    $systeme->secteur_y != $objetSpatial->secteur_y ||
+                    $systeme->secteur_z != $objetSpatial->secteur_z) {
+                    return response()->json(['error' => 'La station n\'est pas dans ce secteur'], 400);
+                }
+
+                // IMPORTANT: Utiliser le timestamp du jeu pour cohérence
+                $timestampJours = GameTimeHelper::getTimestampJoursActuel($personnage);
+
+                // Position station (autour d'une planète ou de l'étoile)
+                if ($station->planete_id) {
+                    $planete = $station->planete;
+                    $ciblePosCua = $planete->getPositionAbsolue($timestampJours);
+                    // TODO: ajouter offset pour orbite station
+                } else {
+                    // Station autour de l'étoile
+                    $ciblePosCua = [
+                        'x' => CoordinatesHelper::alToCua($systeme->secteur_x) + ($systeme->position_x ?? 0),
+                        'y' => CoordinatesHelper::alToCua($systeme->secteur_y) + ($systeme->position_y ?? 0),
+                        'z' => CoordinatesHelper::alToCua($systeme->secteur_z) + ($systeme->position_z ?? 0),
+                    ];
+                }
+                break;
+
+            default:
+                return response()->json(['error' => 'Type de POI invalide: ' . $poiType], 400);
         }
 
-        // Calculer la distance actuelle en UA
-        $dx = $poi->position_x - $objetSpatial->position_x;
-        $dy = $poi->position_y - $objetSpatial->position_y;
-        $dz = $poi->position_z - $objetSpatial->position_z;
-        $distanceActuelle = sqrt($dx * $dx + $dy * $dy + $dz * $dz);
+        // Calculer distance en cUA
+        $distanceCua = CoordinatesHelper::distance3D(
+            $vaisseauPosCua['x'], $vaisseauPosCua['y'], $vaisseauPosCua['z'],
+            $ciblePosCua['x'], $ciblePosCua['y'], $ciblePosCua['z']
+        );
 
-        if ($distanceActuelle < 0.1) {
+        // Convertir en UA pour affichage
+        $distanceUa = CoordinatesHelper::cuaToUa($distanceCua);
+
+        // Vérifier la proximité pour amarrage (< 0.01 UA = 1 cUA)
+        $seuilAmarrageUa = 0.01;
+        if ($distanceUa < $seuilAmarrageUa) {
             return response()->json([
-                'message' => 'Vous êtes déjà à proximité immédiate de ' . $poi->nom,
-                'distance' => round($distanceActuelle, 2),
+                'success' => true,
+                'message' => 'Vous êtes à proximité immédiate de ' . $nomPoi . '. Vous pouvez vous amarrer.',
+                'distance' => round($distanceUa, 4),
+                'peutAmarrer' => true,
+                'distanceParcourue' => 0,
+                'distanceRestante' => round($distanceUa, 4),
+                'energieConsommee' => 0,
+                'paConsommes' => 0,
+                'energieRestante' => $vaisseau->energie_actuelle,
+                'paRestants' => $personnage->points_action,
+                'nouvellePosition' => [
+                    'x' => CoordinatesHelper::cuaToUa($vaisseauPosCua['x']),
+                    'y' => CoordinatesHelper::cuaToUa($vaisseauPosCua['y']),
+                    'z' => CoordinatesHelper::cuaToUa($vaisseauPosCua['z']),
+                ],
             ]);
         }
 
         // Calculer le coût du déplacement (énergie: 20 par UA, PA: 1 par 2 UA)
-        $energieRequise = max(10, (int)($distanceActuelle * 20));
-        $paRequis = max(1, (int)ceil($distanceActuelle / 2));
+        $energieRequise = max(10, (int)($distanceUa * 20));
+        $paRequis = max(1, (int)ceil($distanceUa / 2));
 
         // Vérifier les ressources disponibles
         $energieDisponible = $vaisseau->energie_actuelle;
@@ -283,17 +411,47 @@ class TimonerieController extends Controller
             return response()->json(['error' => 'Ressources insuffisantes pour se déplacer'], 400);
         }
 
-        // Calculer la nouvelle position
-        $nouveauX = $objetSpatial->position_x + ($dx * $pourcentageTrajet);
-        $nouveauY = $objetSpatial->position_y + ($dy * $pourcentageTrajet);
-        $nouveauZ = $objetSpatial->position_z + ($dz * $pourcentageTrajet);
+        // Calculer le déplacement en cUA
+        $dx_cua = $ciblePosCua['x'] - $vaisseauPosCua['x'];
+        $dy_cua = $ciblePosCua['y'] - $vaisseauPosCua['y'];
+        $dz_cua = $ciblePosCua['z'] - $vaisseauPosCua['z'];
+
+        // Nouvelle position en cUA
+        $nouvellePosCua = [
+            'x' => $vaisseauPosCua['x'] + (int)round($dx_cua * $pourcentageTrajet),
+            'y' => $vaisseauPosCua['y'] + (int)round($dy_cua * $pourcentageTrajet),
+            'z' => $vaisseauPosCua['z'] + (int)round($dz_cua * $pourcentageTrajet),
+        ];
+
+        // Décomposer en secteur (AL) + position intra (cUA)
+        // Le secteur ne change pas pour un déplacement intra-système
+        $nouveauSecteurX = $objetSpatial->secteur_x;
+        $nouveauSecteurY = $objetSpatial->secteur_y;
+        $nouveauSecteurZ = $objetSpatial->secteur_z;
+
+        $nouvellePosIntraX = $nouvellePosCua['x'] - CoordinatesHelper::alToCua($nouveauSecteurX);
+        $nouvellePosIntraY = $nouvellePosCua['y'] - CoordinatesHelper::alToCua($nouveauSecteurY);
+        $nouvellePosIntraZ = $nouvellePosCua['z'] - CoordinatesHelper::alToCua($nouveauSecteurZ);
 
         // Mettre à jour la position du vaisseau
         $objetSpatial->update([
-            'position_x' => round($nouveauX, 2),
-            'position_y' => round($nouveauY, 2),
-            'position_z' => round($nouveauZ, 2),
+            'position_x' => $nouvellePosIntraX,
+            'position_y' => $nouvellePosIntraY,
+            'position_z' => $nouvellePosIntraZ,
         ]);
+
+        // IMPORTANT: Le vaisseau sort d'orbite quand il utilise la propulsion conventionnelle
+        if ($vaisseau->estEnOrbite()) {
+            $vaisseau->update([
+                'orbite_planete_id' => null,
+                'orbite_rayon_ua' => null,
+                'orbite_angle_initial' => null,
+                'orbite_debut' => null,
+            ]);
+        }
+
+        // IMPORTANT: Réinitialiser le scan car le vaisseau a bougé
+        $vaisseau->reinitialiserScan();
 
         // Consommer les ressources (proportionnelles au trajet effectué)
         $energieConsommee = (int)ceil($energieRequise * $pourcentageTrajet);
@@ -305,26 +463,23 @@ class TimonerieController extends Controller
         $personnage->points_action -= $paConsommes;
         $personnage->save();
 
-        // Calculer la distance restante
-        $dxRestant = $poi->position_x - $nouveauX;
-        $dyRestant = $poi->position_y - $nouveauY;
-        $dzRestant = $poi->position_z - $nouveauZ;
-        $distanceRestante = sqrt($dxRestant * $dxRestant + $dyRestant * $dyRestant + $dzRestant * $dzRestant);
+        // Calculer la distance restante (proportionnelle au trajet non effectué)
+        $distanceRestante = $distanceUa * (1 - $pourcentageTrajet);
 
         if ($pourcentageTrajet >= 1.0) {
             return response()->json([
                 'success' => true,
-                'message' => "Déplacement effectué vers {$poi->nom}",
-                'distanceParcourue' => round($distanceActuelle, 2),
-                'distanceRestante' => round($distanceRestante, 2),
+                'message' => "Déplacement effectué vers {$nomPoi}",
+                'distanceParcourue' => round($distanceUa, 2),
+                'distanceRestante' => round($distanceRestante, 4),
                 'energieConsommee' => $energieConsommee,
                 'paConsommes' => $paConsommes,
                 'energieRestante' => $vaisseau->energie_actuelle,
                 'paRestants' => $personnage->points_action,
                 'nouvellePosition' => [
-                    'x' => round($nouveauX, 2),
-                    'y' => round($nouveauY, 2),
-                    'z' => round($nouveauZ, 2),
+                    'x' => CoordinatesHelper::cuaToUa($nouvellePosCua['x']),
+                    'y' => CoordinatesHelper::cuaToUa($nouvellePosCua['y']),
+                    'z' => CoordinatesHelper::cuaToUa($nouvellePosCua['z']),
                 ],
             ]);
         } else {
@@ -332,16 +487,16 @@ class TimonerieController extends Controller
                 'success' => true,
                 'message' => "Déplacement partiel effectué (ressources insuffisantes)",
                 'pourcentageTrajet' => round($pourcentageTrajet * 100, 1),
-                'distanceParcourue' => round($distanceActuelle * $pourcentageTrajet, 2),
-                'distanceRestante' => round($distanceRestante, 2),
+                'distanceParcourue' => round($distanceUa * $pourcentageTrajet, 2),
+                'distanceRestante' => round($distanceRestante, 4),
                 'energieConsommee' => $energieConsommee,
                 'paConsommes' => $paConsommes,
                 'energieRestante' => $vaisseau->energie_actuelle,
                 'paRestants' => $personnage->points_action,
                 'nouvellePosition' => [
-                    'x' => round($nouveauX, 2),
-                    'y' => round($nouveauY, 2),
-                    'z' => round($nouveauZ, 2),
+                    'x' => CoordinatesHelper::cuaToUa($nouvellePosCua['x']),
+                    'y' => CoordinatesHelper::cuaToUa($nouvellePosCua['y']),
+                    'z' => CoordinatesHelper::cuaToUa($nouvellePosCua['z']),
                 ],
             ]);
         }
@@ -360,46 +515,61 @@ class TimonerieController extends Controller
             return response()->json(['error' => 'Aucun vaisseau actif'], 400);
         }
 
-        // Pour l'instant, on considère les systèmes stellaires comme points d'amarrage
-        // TODO: Plus tard, implémenter des stations orbitales spécifiques
-        $station = SystemeStellaire::find($stationId);
+        // Chercher la vraie station (pas le système stellaire)
+        $station = Station::find($stationId);
         if (!$station) {
             return response()->json(['error' => 'Station introuvable'], 404);
         }
 
+        // LOGIQUE SIMPLE selon ARCHITECTURE_OBJETS_SPATIAUX.md:
+        // Si le bouton "Amarrer" est affiché, c'est qu'on PEUT amarrer.
+        // Les tests de proximité sont faits côté serveur lors de l'affichage du bouton.
+        // Ici, on fait juste l'amarrage.
+
         $objetSpatial = $vaisseau->objetSpatial;
-
-        // Vérifier qu'on est dans le même secteur
-        if ($station->secteur_x != $objetSpatial->secteur_x ||
-            $station->secteur_y != $objetSpatial->secteur_y ||
-            $station->secteur_z != $objetSpatial->secteur_z) {
-            return response()->json(['error' => 'La station n\'est pas dans ce secteur'], 400);
+        if (!$objetSpatial) {
+            return response()->json(['error' => 'Vaisseau sans objet spatial'], 500);
         }
 
-        // Calculer la distance en UA
-        $dx = $station->position_x - $objetSpatial->position_x;
-        $dy = $station->position_y - $objetSpatial->position_y;
-        $dz = $station->position_z - $objetSpatial->position_z;
-        $distance = sqrt($dx * $dx + $dy * $dy + $dz * $dz);
-
-        // Vérifier que la distance est inférieure à 1 UA
-        if ($distance >= 1.0) {
-            return response()->json([
-                'error' => 'Trop éloigné pour s\'amarrer',
-                'distance' => round($distance, 2),
-                'distanceMaximale' => 1.0,
-                'message' => 'Utilisez "S\'approcher" pour vous rapprocher d\'abord',
-            ], 400);
+        // Obtenir la position effective de la station (avec orbital si nécessaire)
+        $stationObjetSpatial = $station->objetSpatial;
+        if (!$stationObjetSpatial) {
+            return response()->json(['error' => 'Station sans objet spatial'], 500);
         }
 
-        // Amarrer le vaisseau (pour l'instant, on utilise l'ID du système comme station)
-        // TODO: Créer une table stations et utiliser l'ID de station réel
+        $timestampJours = GameTimeHelper::getTimestampJoursActuel($personnage);
+        $stationPos = $stationObjetSpatial->getPositionEffective($timestampJours);
+
+        // === AMARRAGE ===
+        // 1. Marquer l'amarrage dans la table vaisseaux
         $vaisseau->arrime_a_station_id = $stationId;
+
+        // 2. Sortir d'orbite si nécessaire
+        if ($vaisseau->estEnOrbite()) {
+            $vaisseau->orbite_planete_id = null;
+            $vaisseau->orbite_rayon_ua = null;
+            $vaisseau->orbite_angle_initial = null;
+            $vaisseau->orbite_debut = null;
+        }
+
         $vaisseau->save();
 
-        // Optionnel: mettre à jour le personnage pour qu'il soit considéré "dans la station"
-        $personnage->dans_station_id = $stationId;
-        $personnage->save();
+        // 3. Définir le parent dans objets_spatiaux (HÉRITAGE DE POSITION)
+        $objetSpatial->parent_type = Station::class;
+        $objetSpatial->parent_id = $stationId;
+
+        // 4. Copier la position de la station (le vaisseau hérite la position de son parent)
+        $objetSpatial->secteur_x = $stationPos['secteur_x'];
+        $objetSpatial->secteur_y = $stationPos['secteur_y'];
+        $objetSpatial->secteur_z = $stationPos['secteur_z'];
+        $objetSpatial->position_x = $stationPos['position_x'];
+        $objetSpatial->position_y = $stationPos['position_y'];
+        $objetSpatial->position_z = $stationPos['position_z'];
+
+        $objetSpatial->save();
+
+        // NOTE: Le personnage reste à bord de son vaisseau.
+        // personnage->dans_station_id sera défini lors du transbordement (StationController::transborder)
 
         // Consommer un minimum de ressources pour l'amarrage (1 PA, 10 énergie)
         if ($personnage->points_action > 0) {
@@ -419,10 +589,169 @@ class TimonerieController extends Controller
                 'id' => $station->id,
                 'nom' => $station->nom,
             ],
-            'distance' => round($distance, 2),
             'energieRestante' => $vaisseau->energie_actuelle,
             'paRestants' => $personnage->points_action,
             'contextMenu' => 'station',
+        ]);
+    }
+
+    /**
+     * S'orbiter autour d'une planète
+     */
+    public function sOrbiter(Request $request): JsonResponse
+    {
+        $planeteId = $request->input('planete_id');
+        $personnage = $request->attributes->get('personnage');
+        $vaisseau = $personnage->vaisseauActif;
+
+        if (!$vaisseau) {
+            return response()->json(['error' => 'Aucun vaisseau actif'], 400);
+        }
+
+        $planete = \App\Models\Planete::find($planeteId);
+        if (!$planete || !$planete->systemeStellaire) {
+            return response()->json(['error' => 'Planète introuvable'], 404);
+        }
+
+        $objetSpatial = $vaisseau->objetSpatial;
+        $systeme = $planete->systemeStellaire;
+
+        // Vérifier qu'on est dans le même secteur
+        if ($systeme->secteur_x != $objetSpatial->secteur_x ||
+            $systeme->secteur_y != $objetSpatial->secteur_y ||
+            $systeme->secteur_z != $objetSpatial->secteur_z) {
+            return response()->json(['error' => 'La planète n\'est pas dans ce secteur'], 400);
+        }
+
+        // IMPORTANT: Utiliser le timestamp du jeu pour cohérence
+        $timestampJours = GameTimeHelper::getTimestampJoursActuel($personnage);
+
+        // Calculer la distance à la planète en UA (avec timestamp du jeu)
+        $distance = $planete->getDistanceDepuisVaisseau($vaisseau, $timestampJours);
+
+        // Vérifier que la distance est inférieure à 0.1 UA (plus strict que pour les stations)
+        if ($distance >= 0.1) {
+            return response()->json([
+                'error' => 'Trop éloigné pour s\'orbiter',
+                'distance' => round($distance, 4),
+                'distanceMaximale' => 0.1,
+                'message' => 'Utilisez "S\'approcher" pour vous rapprocher d\'abord',
+            ], 400);
+        }
+
+        // Mettre le vaisseau en orbite de la planète
+        // Calculer la position relative du vaisseau par rapport à la planète
+        $planetePosAbs = $planete->getPositionAbsolue($timestampJours); // En cUA
+
+        $vaisseau_x_cua = CoordinatesHelper::alToCua($objetSpatial->secteur_x) + $objetSpatial->position_x;
+        $vaisseau_y_cua = CoordinatesHelper::alToCua($objetSpatial->secteur_y) + $objetSpatial->position_y;
+        $vaisseau_z_cua = CoordinatesHelper::alToCua($objetSpatial->secteur_z) + $objetSpatial->position_z;
+
+        // Vecteur relatif (vaisseau - planète) en cUA
+        $dx = $vaisseau_x_cua - $planetePosAbs['x'];
+        $dy = $vaisseau_y_cua - $planetePosAbs['y'];
+        $dz = $vaisseau_z_cua - $planetePosAbs['z'];
+
+        // Angle initial dans le plan XY (en radians)
+        $angleInitial = atan2($dy, $dx);
+
+        // Rayon orbital en UA
+        $rayonOrbitalUa = $distance; // Distance déjà calculée en UA
+
+        // Enregistrer l'état orbital dans le vaisseau
+        $vaisseau->orbite_planete_id = $planete->id;
+        $vaisseau->orbite_rayon_ua = $rayonOrbitalUa;
+        $vaisseau->orbite_angle_initial = $angleInitial;
+        $vaisseau->orbite_debut = GameTimeHelper::joursToDate($timestampJours);
+        $vaisseau->arrime_a_station_id = null; // Désarrimer si amarré
+        $vaisseau->save();
+
+        // Mettre à jour le personnage pour indiquer qu'il est en orbite d'une planète
+        $personnage->dans_station_id = null;
+        $personnage->save();
+
+        // Consommer un minimum de ressources pour la mise en orbite (1 PA, 5 énergie)
+        if ($personnage->points_action > 0) {
+            $personnage->points_action -= 1;
+            $personnage->save();
+        }
+
+        if ($vaisseau->energie_actuelle > 5) {
+            $vaisseau->energie_actuelle -= 5;
+            $vaisseau->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Mise en orbite réussie autour de {$planete->nom}\nOrbite stable à " . round($rayonOrbitalUa, 4) . " UA\nVotre vaisseau se déplace maintenant avec la planète",
+            'planete' => [
+                'id' => $planete->id,
+                'nom' => $planete->nom,
+                'type' => $planete->type,
+            ],
+            'orbite' => [
+                'rayon_ua' => round($rayonOrbitalUa, 4),
+                'angle_initial_rad' => round($angleInitial, 6),
+                'angle_initial_deg' => round(rad2deg($angleInitial), 2),
+            ],
+            'distance' => round($distance, 4),
+            'energieRestante' => $vaisseau->energie_actuelle,
+            'paRestants' => $personnage->points_action,
+        ]);
+    }
+
+    /**
+     * Tourner le vaisseau sur lui-même (rotation azimut)
+     * Ne déplace pas le vaisseau, donc ne réinitialise pas le scan
+     *
+     * @param Request $request {direction: 'gauche'|'droite', angle: 15}
+     */
+    public function tourner(Request $request): JsonResponse
+    {
+        $direction = $request->input('direction'); // 'gauche' ou 'droite'
+        $angle = $request->input('angle', 15); // Par défaut 15°
+        $personnage = $request->attributes->get('personnage');
+        $vaisseau = $personnage->vaisseauActif;
+
+        if (!$vaisseau) {
+            return response()->json(['error' => 'Aucun vaisseau actif'], 400);
+        }
+
+        $objetSpatial = $vaisseau->objetSpatial;
+
+        // Calculer le nouvel azimut
+        $azimutActuel = $objetSpatial->azimut ?? 0;
+        $deltaAzimut = ($direction === 'gauche') ? -$angle : $angle;
+        $nouvelAzimut = fmod($azimutActuel + $deltaAzimut + 360, 360);
+
+        // Mettre à jour l'azimut sans déplacer le vaisseau
+        $objetSpatial->azimut = round($nouvelAzimut, 2);
+        $objetSpatial->save();
+
+        // Consommer un minimum de ressources (0.1 PA, 1 énergie)
+        if ($personnage->points_action >= 0.1) {
+            $personnage->points_action -= 0.1;
+            $personnage->save();
+        }
+
+        if ($vaisseau->energie_actuelle > 1) {
+            $vaisseau->energie_actuelle -= 1;
+            $vaisseau->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => sprintf(
+                'Rotation de %d° vers la %s effectuée',
+                $angle,
+                $direction === 'gauche' ? 'gauche' : 'droite'
+            ),
+            'azimutPrecedent' => round($azimutActuel, 2),
+            'nouvelAzimut' => round($nouvelAzimut, 2),
+            'direction' => $direction,
+            'angle' => $angle,
+            'energieRestante' => $vaisseau->energie_actuelle,
+            'paRestants' => round($personnage->points_action, 2),
         ]);
     }
 
@@ -454,6 +783,31 @@ class TimonerieController extends Controller
                 $systeme
             );
 
+            // Calculer azimut et élévation du système par rapport au vaisseau
+            $vaisseauAbsX = CoordinatesHelper::alToCua($objetSpatial->secteur_x) + $objetSpatial->position_x;
+            $vaisseauAbsY = CoordinatesHelper::alToCua($objetSpatial->secteur_y) + $objetSpatial->position_y;
+            $vaisseauAbsZ = CoordinatesHelper::alToCua($objetSpatial->secteur_z) + $objetSpatial->position_z;
+
+            $systemeAbsX = CoordinatesHelper::alToCua($systeme->secteur_x) + ($systeme->position_x ?? 0);
+            $systemeAbsY = CoordinatesHelper::alToCua($systeme->secteur_y) + ($systeme->position_y ?? 0);
+            $systemeAbsZ = CoordinatesHelper::alToCua($systeme->secteur_z) + ($systeme->position_z ?? 0);
+
+            // Vecteur vaisseau → système
+            $dx = $systemeAbsX - $vaisseauAbsX;
+            $dy = $systemeAbsY - $vaisseauAbsY;
+            $dz = $systemeAbsZ - $vaisseauAbsZ;
+
+            // Azimut absolu (0° = Y+, sens horaire)
+            $azimutAbsolu = rad2deg(atan2($dx, $dy));
+            if ($azimutAbsolu < 0) $azimutAbsolu += 360;
+
+            // Azimut relatif (par rapport à l'orientation du vaisseau)
+            $azimutRelatif = fmod($azimutAbsolu - $objetSpatial->azimut + 360, 360);
+
+            // Élévation
+            $distance3D_cua = sqrt($dx * $dx + $dy * $dy + $dz * $dz);
+            $elevation = ($distance3D_cua > 0) ? rad2deg(asin($dz / $distance3D_cua)) : 0;
+
             // Calculer les coûts
             $energieRequise = $this->navigationService->calculerCoutEnergie($distance);
             $paRequis = $this->navigationService->calculerCoutPA($distance);
@@ -463,6 +817,9 @@ class TimonerieController extends Controller
                 && $personnage->points_action >= $paRequis;
 
             $systeme->distance = $distance;
+            $systeme->azimut_relatif = round($azimutRelatif, 2);
+            $systeme->azimut_absolu = round($azimutAbsolu, 2);
+            $systeme->elevation = round($elevation, 2);
             $systeme->energieRequise = $energieRequise;
             $systeme->paRequis = $paRequis;
             $systeme->accessible = $accessible;
@@ -496,6 +853,9 @@ class TimonerieController extends Controller
 
         $pois = [];
 
+        // Timestamp en jours depuis 3000-01-01 (pour calculs orbitaux)
+        $timestampJours = GameTimeHelper::getTimestampJoursActuel($personnage);
+
         // 1. Récupérer les PLANÈTES du système (POI connus)
         // TODO: Implémenter système de découverte de planètes (actuellement seulement poi_connu)
         $planetes = $systeme->planetes()
@@ -503,8 +863,33 @@ class TimonerieController extends Controller
             ->get();
 
         foreach ($planetes as $planete) {
-            // Calculer distance vaisseau <-> planète (en UA)
-            $distance = $planete->getDistanceDepuisVaisseau($vaisseau);
+            // Calculer distance vaisseau <-> planète (en UA) avec le timestamp du jeu
+            $distance = $planete->getDistanceDepuisVaisseau($vaisseau, $timestampJours);
+
+            // Calculer azimut et élévation de la planète par rapport au vaisseau
+            $planetePos = $planete->getPositionAbsolue($timestampJours); // Position en cUA
+
+            // IMPORTANT: Utiliser position dynamique (prend en compte orbite si le vaisseau est en orbite)
+            $vaisseauPosAbs = $objetSpatial->getPositionAbsolueCua($timestampJours);
+            $vaisseauAbsX = $vaisseauPosAbs['x'];
+            $vaisseauAbsY = $vaisseauPosAbs['y'];
+            $vaisseauAbsZ = $vaisseauPosAbs['z'];
+
+            // Vecteur vaisseau → planète
+            $dx = $planetePos['x'] - $vaisseauAbsX;
+            $dy = $planetePos['y'] - $vaisseauAbsY;
+            $dz = $planetePos['z'] - $vaisseauAbsZ;
+
+            // Azimut absolu (0° = Y+, sens horaire)
+            $azimutAbsolu = rad2deg(atan2($dx, $dy));
+            if ($azimutAbsolu < 0) $azimutAbsolu += 360;
+
+            // Azimut relatif (par rapport à l'orientation du vaisseau)
+            $azimutRelatif = fmod($azimutAbsolu - $objetSpatial->azimut + 360, 360);
+
+            // Élévation
+            $distance3D = sqrt($dx * $dx + $dy * $dy + $dz * $dz);
+            $elevation = ($distance3D > 0) ? rad2deg(asin($dz / $distance3D)) : 0;
 
             // Icône selon type de planète
             $icone = match($planete->type) {
@@ -518,17 +903,33 @@ class TimonerieController extends Controller
                 default => '🪨',
             };
 
+            // Couleur selon type (pour le radar SVG)
+            $couleur = match($planete->type) {
+                'terrestre' => '#8B4513',
+                'gazeuse' => '#FFA500',
+                'oceanique' => '#4169E1',
+                'glacee' => '#87CEEB',
+                'volcanique' => '#FF4500',
+                'desert' => '#DEB887',
+                'naine' => '#696969',
+                default => '#808080',
+            };
+
             // Créer un objet POI avec attributs pour affichage
-            // (évite de polluer le modèle Eloquent avec des attributs temporaires)
+            // Formules identiques à sApprocher() : énergie = 20/UA, PA = 1/2UA
             $poi = (object)[
                 'id' => $planete->id,
                 'nom' => $planete->nom,
                 'type' => $planete->type,
                 'icone' => $icone,
+                'couleur' => $couleur,
                 'distance' => $distance,
+                'azimut_absolu' => round($azimutAbsolu, 2),
+                'azimut_relatif' => round($azimutRelatif, 2),
+                'elevation' => round($elevation, 2),
                 'type_poi' => 'planete',
-                'energieRequise' => max(10, (int)($distance * 2)),
-                'paRequis' => max(1, (int)($distance / 10)),
+                'energieRequise' => max(10, (int)($distance * 20)),
+                'paRequis' => max(1, (int)ceil($distance / 2)),
                 'donneesOrbitales' => $planete->getDonneesOrbitales($personnage),
             ];
 
@@ -541,30 +942,69 @@ class TimonerieController extends Controller
             ->get();
 
         foreach ($stations as $station) {
-            // Distance station <-> vaisseau
-            // Les stations sont en orbite des planètes, donc proche de la planète
+            // IMPORTANT: Utiliser position dynamique (prend en compte orbite si le vaisseau est en orbite)
+            $vaisseauPosAbs = $objetSpatial->getPositionAbsolueCua($timestampJours);
+            $vaisseauAbsX = $vaisseauPosAbs['x'];
+            $vaisseauAbsY = $vaisseauPosAbs['y'];
+            $vaisseauAbsZ = $vaisseauPosAbs['z'];
+
+            // Distance station <-> vaisseau (en UA)
             if ($station->planete_id) {
+                // Station en orbite d'une planète
                 $planete = $station->planete;
-                $distancePlanete = $planete->getDistanceDepuisVaisseau($vaisseau);
+                $distancePlanete = $planete->getDistanceDepuisVaisseau($vaisseau, $timestampJours);
                 $distance = $distancePlanete + ($station->orbite_rayon_ua ?? 0);
+
+                // Position de la station = position de la planète (approximation)
+                $stationPos = $planete->getPositionAbsolue($timestampJours);
             } else {
-                // Station autour de l'étoile
-                $dx = $systeme->position_x - $objetSpatial->position_x;
-                $dy = $systeme->position_y - $objetSpatial->position_y;
-                $dz = $systeme->position_z - $objetSpatial->position_z;
-                $distance_al = sqrt($dx * $dx + $dy * $dy + $dz * $dz);
-                $distance = $distance_al * 63241; // AL → UA
+                // Station autour de l'étoile - utiliser le système cUA
+                $systemePosCua = [
+                    'x' => CoordinatesHelper::alToCua($systeme->secteur_x) + ($systeme->position_x ?? 0),
+                    'y' => CoordinatesHelper::alToCua($systeme->secteur_y) + ($systeme->position_y ?? 0),
+                    'z' => CoordinatesHelper::alToCua($systeme->secteur_z) + ($systeme->position_z ?? 0),
+                ];
+
+                $distanceCua = CoordinatesHelper::distance3D(
+                    $vaisseauAbsX, $vaisseauAbsY, $vaisseauAbsZ,
+                    $systemePosCua['x'], $systemePosCua['y'], $systemePosCua['z']
+                );
+
+                $distance = CoordinatesHelper::cuaToUa($distanceCua);
+                $stationPos = $systemePosCua;
             }
 
-            // Créer un objet POI pour affichage (même approche que les planètes)
+            // Vecteur vaisseau → station
+            $dx = $stationPos['x'] - $vaisseauAbsX;
+            $dy = $stationPos['y'] - $vaisseauAbsY;
+            $dz = $stationPos['z'] - $vaisseauAbsZ;
+
+            // Azimut absolu (0° = Y+, sens horaire)
+            $azimutAbsolu = rad2deg(atan2($dx, $dy));
+            if ($azimutAbsolu < 0) $azimutAbsolu += 360;
+
+            // Azimut relatif (par rapport à l'orientation du vaisseau)
+            $azimutRelatif = fmod($azimutAbsolu - $objetSpatial->azimut + 360, 360);
+
+            // Élévation
+            $distance3D = sqrt($dx * $dx + $dy * $dy + $dz * $dz);
+            $elevation = ($distance3D > 0) ? rad2deg(asin($dz / $distance3D)) : 0;
+
+            // Créer un objet POI pour affichage
+            // Formules identiques à sApprocher() : énergie = 20/UA, PA = 1/2UA
             $poi = (object)[
                 'id' => $station->id,
                 'nom' => $station->nom,
                 'icone' => '🛰️',
+                'couleur' => '#C0C0C0', // Gris argenté pour les stations
                 'distance' => $distance,
+                'azimut_absolu' => round($azimutAbsolu, 2),
+                'azimut_relatif' => round($azimutRelatif, 2),
+                'elevation' => round($elevation, 2),
                 'type_poi' => 'station',
-                'energieRequise' => max(5, (int)($distance * 2)),
-                'paRequis' => max(1, (int)($distance / 10)),
+                'energieRequise' => max(10, (int)($distance * 20)),
+                'paRequis' => max(1, (int)ceil($distance / 2)),
+                'est_amarre' => $vaisseau->arrime_a_station_id == $station->id,
             ];
 
             $pois[] = $poi;
@@ -582,9 +1022,9 @@ class TimonerieController extends Controller
     protected function storeCalculSaut(Request $request, $destination, $poiId, $poiNom, $calculData)
     {
         $jetDetails = $calculData['jetDetails'] ?? [];
-        
+
         $deltaDetails = $calculData['deltaDetails'] ?? [];
-        
+
         $request->session()->put('dernier_calcul_saut', [
             'destination_id' => $destination->id,
             'destination_nom' => $destination->nom,
@@ -667,7 +1107,7 @@ class TimonerieController extends Controller
                 $estPeur = true;
                 $fearGain = 1;
             }
-            
+
             $jetFinal = $jetBase;
         }
 
@@ -688,42 +1128,6 @@ class TimonerieController extends Controller
                 'navigation' => $navigation,
                 'ordinateur' => $ordinateur,
                 'module' => $module,
-            ]
-        ];
-    }
-
-    /**
-     * Calculer le delta basé sur le score d'erreur
-     * Formule corrigée: ((3d10-15) + 1d2_signé + Score d'Erreur) / 100 × Distance
-     */
-    protected function calculerDelta($scoreErreur, $distanceReference, $pourSystème = false)
-    {
-        // Lancer 3d10-15
-        $d10_1 = rand(1, 10);
-        $d10_2 = rand(1, 10);
-        $d10_3 = rand(1, 10);
-        $sommeD10 = $d10_1 + $d10_2 + $d10_3 - 15;
-        
-        // Lancer 1d2 signé
-        $d2 = rand(1, 2);
-        $d2Signé = $d2 == 1 ? -1 : 1;
-        
-        // Calculer le multiplicateur: ((3d10-15) + 1d2 + Score) / 100
-        $multiplicateur = ($sommeD10 + $d2Signé + $scoreErreur) / 100;
-        
-        // Pour Z, diviser par 2 (moins précis en altitude)
-        $multiplicateurZ = $multiplicateur / 2;
-        
-        return [
-            'x' => $multiplicateur * $distanceReference,
-            'y' => $multiplicateur * $distanceReference,
-            'z' => $multiplicateurZ * $distanceReference,
-            'details' => [
-                'd10' => [$d10_1, $d10_2, $d10_3],
-                'd2' => $d2,
-                'sommeD10' => $sommeD10,
-                'd2Signé' => $d2Signé,
-                'multiplicateur' => $multiplicateur,
             ]
         ];
     }
@@ -795,5 +1199,86 @@ class TimonerieController extends Controller
             'precision' => number_format(100 - $nouveauScore * 0.5, 1),
             'message' => 'Calcul amélioré! Précision augmentée.'
         ]);
+    }
+
+    /**
+     * Calculer le delta basé sur le score d'erreur
+     * Formule finale: 1d2_signé × (3d10-15 + Score d'Erreur) / 100 × Distance
+     * Le signe s'applique à toute l'expression, pas juste ajouté
+     * Calcul séparé pour X, Y, Z avec des valeurs aléatoires différentes
+     */
+    protected function calculerDelta($scoreErreur, $distanceReference, $pourSystème = false)
+    {
+        $deltas = [];
+        $allDetails = [];
+
+        // Calculer 3 deltas séparés (X, Y, Z) avec des jets différents
+        for ($i = 0; $i < 3; $i++) {
+            // Lancer 3d10-15 pour chaque axe
+            $d10_1 = rand(1, 10);
+            $d10_2 = rand(1, 10);
+            $d10_3 = rand(1, 10);
+            $sommeD10 = $d10_1 + $d10_2 + $d10_3 - 15;
+
+            // Lancer 1d2 signé pour chaque axe
+            $d2 = rand(1, 2);
+            $d2Signé = $d2 == 1 ? -1 : 1;
+
+            // Calculer le multiplicateur: 1d2 × (3d10-15 + Score) / 100
+            $multiplicateur = $d2Signé * ($sommeD10 + $scoreErreur) / 100;
+
+            $deltas[$i] = $multiplicateur * $distanceReference;
+
+            $allDetails[$i] = [
+                'd10' => [$d10_1, $d10_2, $d10_3],
+                'd2' => $d2,
+                'sommeD10' => $sommeD10,
+                'd2Signé' => $d2Signé,
+                'multiplicateur' => $multiplicateur,
+            ];
+        }
+
+        // Pour Z, diviser par 2 (moins précis en altitude)
+        return [
+            'x' => $deltas[0],
+            'y' => $deltas[1],
+            'z' => $deltas[2] / 2,
+            'details' => [
+                'x' => $allDetails[0],
+                'y' => $allDetails[1],
+                'z' => array_merge($allDetails[2], ['divisé_par_2' => true]),
+            ]
+        ];
+    }
+
+    /**
+     * Étendre l'univers autour d'une destination (génération dynamique)
+     */
+    protected function expandUniverseAroundDestination(
+        int $secteurX,
+        int $secteurY,
+        int $secteurZ
+    ): void {
+        if (!config('universe.dynamic_generation_enabled', true)) {
+            return;
+        }
+
+        try {
+            $radius = config('universe.dynamic_generation_radius', 3);
+
+            Log::info("Génération dynamique déclenchée : secteur [{$secteurX}, {$secteurY}, {$secteurZ}]");
+
+            $this->universeGenerator->expandUniverseAroundPosition(
+                $secteurX,
+                $secteurY,
+                $secteurZ,
+                $radius
+            );
+
+            Log::info("Génération dynamique terminée");
+
+        } catch (\Exception $e) {
+            Log::error("Erreur génération dynamique: " . $e->getMessage());
+        }
     }
 }

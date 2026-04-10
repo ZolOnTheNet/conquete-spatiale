@@ -11,6 +11,8 @@ class SystemeStellaire extends Model
 
     protected $fillable = [
         'nom',
+        'nom_commun',
+        'noms_alternatifs',
         'type_etoile',
         'couleur',
         'temperature',
@@ -31,13 +33,20 @@ class SystemeStellaire extends Model
         'poi_connu',
         'description',
         'donnees_supplementaires',
+        'source_gaia',
+        'gaia_source_id',
+        'gaia_ra',
+        'gaia_dec',
+        'gaia_distance_ly',
     ];
 
     protected $casts = [
         'explore' => 'boolean',
         'habite' => 'boolean',
         'poi_connu' => 'boolean',
+        'source_gaia' => 'boolean',
         'donnees_supplementaires' => 'array',
+        'noms_alternatifs' => 'array',
     ];
 
     // Relations
@@ -49,11 +58,76 @@ class SystemeStellaire extends Model
     // Méthodes utilitaires
     public function calculerDistance(SystemeStellaire $autre): float
     {
-        $dx = ($this->secteur_x + $this->position_x) - ($autre->secteur_x + $autre->position_x);
-        $dy = ($this->secteur_y + $this->position_y) - ($autre->secteur_y + $autre->position_y);
-        $dz = ($this->secteur_z + $this->position_z) - ($autre->secteur_z + $autre->position_z);
+        // RÈGLE INTER-SECTEUR: Pour les systèmes stellaires, on utilise SEULEMENT les secteurs (AL)
+        // Les positions dans le secteur sont ignorées pour la détection inter-système
+        $dx = $this->secteur_x - $autre->secteur_x;
+        $dy = $this->secteur_y - $autre->secteur_y;
+        $dz = $this->secteur_z - $autre->secteur_z;
 
         return sqrt($dx * $dx + $dy * $dy + $dz * $dz);
+    }
+
+    /**
+     * Calcule le score de détection depuis une position donnée
+     * RÈGLE INTER-SECTEUR: Utilise SEULEMENT les secteurs (AL), ignore les positions
+     * Formule: (distance_AL / 10) × detectabilite_base
+     *
+     * @param int $fromSecteurX Secteur X du vaisseau (en AL)
+     * @param int $fromSecteurY Secteur Y du vaisseau (en AL)
+     * @param int $fromSecteurZ Secteur Z du vaisseau (en AL)
+     * @param int $fromPositionX Position X du vaisseau (en cUA) - NON UTILISÉ pour systèmes
+     * @param int $fromPositionY Position Y du vaisseau (en cUA) - NON UTILISÉ pour systèmes
+     * @param int $fromPositionZ Position Z du vaisseau (en cUA) - NON UTILISÉ pour systèmes
+     * @return float Score de détection requis
+     */
+    public function getScoreDetection(
+        int $fromSecteurX,
+        int $fromSecteurY,
+        int $fromSecteurZ,
+        int $fromPositionX = 0,
+        int $fromPositionY = 0,
+        int $fromPositionZ = 0
+    ): float {
+        // Si déjà connu, seuil de détection = 0 (apparaît automatiquement)
+        if ($this->poi_connu) {
+            return 0;
+        }
+
+        // RÈGLE INTER-SECTEUR: Distance calculée UNIQUEMENT avec les secteurs (AL)
+        // Les positions sont ignorées car la détection inter-système est à l'échelle AL
+        $dx = $this->secteur_x - $fromSecteurX;
+        $dy = $this->secteur_y - $fromSecteurY;
+        $dz = $this->secteur_z - $fromSecteurZ;
+
+        $distanceAL = sqrt($dx * $dx + $dy * $dy + $dz * $dz);
+
+        // Si detectabilite_base n'est pas initialisé (0 ou -1), calculer
+        $detectabilite = $this->detectabilite_base;
+        if ($detectabilite <= 0) {
+            $detectabilite = $this->calculerDetectabilite();
+        }
+
+        // Formule: (distance_AL / 10) × detectabilite_base
+        return ($distanceAL / 10) * $detectabilite;
+    }
+
+    /**
+     * Calcule la détectabilité de base si non initialisée
+     * Formule: (200 - puissance) / 3
+     */
+    public function calculerDetectabilite(): float
+    {
+        $puissance = $this->puissance ?? $this->puissance_solaire ?? 50;
+        return (200 - $puissance) / 3;
+    }
+
+    /**
+     * Marque le système comme découvert (poi_connu = true)
+     */
+    public function marquerDecouvert(): void
+    {
+        $this->poi_connu = true;
+        $this->save();
     }
 
     /**

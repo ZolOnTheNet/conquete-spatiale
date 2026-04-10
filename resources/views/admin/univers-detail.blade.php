@@ -51,24 +51,26 @@
             </div>
             @endif
 
-            <!-- Informations du système -->
+            <!-- Informations du système + Visualisation -->
             <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-6 mb-6">
                 <h2 class="text-xl font-bold text-white mb-4">Informations stellaires</h2>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <div class="text-xs text-gray-200 mb-1">Nom</div>
-                        <div class="text-white font-bold">{{ $systeme->nom }}</div>
-                    </div>
-                    <div>
-                        <div class="text-xs text-gray-200 mb-1">Type spectral</div>
-                        <div class="text-yellow-400 font-bold">{{ $systeme->type_etoile }}</div>
-                    </div>
-                    <div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Colonne gauche : Informations -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <div class="text-xs text-gray-200 mb-1">Nom</div>
+                            <div class="text-white font-bold">{{ $systeme->nom }}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-200 mb-1">Type spectral</div>
+                            <div class="text-yellow-400 font-bold">{{ $systeme->type_etoile }}</div>
+                        </div>
+                        <div>
                         <div class="text-xs text-gray-200 mb-1">Couleur</div>
                         <div class="text-white">{{ $systeme->couleur }}</div>
                     </div>
-                    <div class="col-span-3">
+                    <div class="col-span-1 md:col-span-2">
                         <div class="text-xs text-gray-200 mb-2">Puissance</div>
                         <div class="flex gap-2 items-center">
                             <form method="POST" action="{{ route('admin.univers.update-puissance', $systeme->id) }}" class="flex gap-2 items-center flex-1">
@@ -125,19 +127,21 @@
                         </div>
                     </div>
                     <div>
-                        <div class="text-xs text-gray-200 mb-1">Position intra-secteur</div>
+                        <div class="text-xs text-gray-200 mb-1">Position intra-secteur (UA)</div>
                         <div class="text-gray-300">
-                            {{ number_format($systeme->position_x, 2) }},
-                            {{ number_format($systeme->position_y, 2) }},
-                            {{ number_format($systeme->position_z, 2) }}
+                            {{ number_format($systeme->position_x/100, 2) }},
+                            {{ number_format($systeme->position_y/100, 2) }},
+                            {{ number_format($systeme->position_z/100, 2) }}
+                            <span class="text-xs text-gray-500">UA</span>
                         </div>
                     </div>
                     <div>
                         <div class="text-xs text-gray-200 mb-1">Coordonnées absolues (AL)</div>
                         <div class="text-cyan-400 font-bold">
-                            {{ number_format($systeme->secteur_x * 10 + $systeme->position_x, 2) }},
-                            {{ number_format($systeme->secteur_y * 10 + $systeme->position_y, 2) }},
-                            {{ number_format($systeme->secteur_z * 10 + $systeme->position_z, 2) }}
+                            {{ $systeme->secteur_x }},
+                            {{ $systeme->secteur_y }},
+                            {{ $systeme->secteur_z }}
+                            <span class="text-xs text-gray-500">AL</span>
                         </div>
                     </div>
                     @if($systeme->source_gaia)
@@ -156,7 +160,46 @@
                         <div class="text-orange-300 font-bold">{{ number_format($systeme->gaia_distance_ly, 2) }}</div>
                     </div>
                     @endif
-                </div>
+
+                    {{-- Nom célèbre --}}
+                    @if($systeme->nom_commun)
+                    <div class="col-span-1 md:col-span-2 bg-purple-900/20 border border-purple-500/30 rounded p-3">
+                        <div class="text-xs text-purple-200 mb-1">🌟 Nom célèbre</div>
+                        <div class="text-purple-300 font-bold text-lg">{{ $systeme->nom_commun }}</div>
+
+                        @if($systeme->noms_alternatifs)
+                            @php
+                                $aliases = is_string($systeme->noms_alternatifs)
+                                    ? json_decode($systeme->noms_alternatifs, true)
+                                    : $systeme->noms_alternatifs;
+                            @endphp
+                            @if($aliases && count($aliases) > 0)
+                                <div class="mt-2 text-xs text-gray-400">
+                                    Noms alternatifs: {{ implode(', ', $aliases) }}
+                                </div>
+                            @endif
+                        @endif
+                    </div>
+                    @endif
+
+                    {{-- Nombre d'exoplanètes NASA --}}
+                    @php
+                        $nasaPlanetsCount = $systeme->planetes()->where('source_nasa_exoplanet', true)->count();
+                    @endphp
+                    @if($nasaPlanetsCount > 0)
+                    <div class="col-span-1 md:col-span-2 bg-green-900/20 border border-green-500/30 rounded p-3">
+                        <div class="text-green-300 font-bold">
+                            🪐 {{ $nasaPlanetsCount }} exoplanète(s) réelle(s) NASA
+                        </div>
+                    </div>
+                    @endif
+                    </div>{{-- Fin grid infos --}}
+
+                    <!-- Colonne droite : Visualisation du système -->
+                    <div class="h-full">
+                        @include('admin.partials.systeme-visualisation', ['systeme' => $systeme])
+                    </div>
+                </div>{{-- Fin grid 2 colonnes --}}
             </div>
 
             <!-- Planètes - Affichage condensé -->
@@ -172,7 +215,11 @@
                             <!-- En-tête planète compact -->
                             <div class="flex items-center justify-between mb-1 pb-1 border-b border-gray-700/50">
                                 <div class="flex items-center gap-2">
-                                    <h3 class="text-sm font-bold text-yellow-400">{{ $planete->nom }}</h3>
+                                    <a href="{{ route('admin.planetes.show', $planete->id) }}"
+                                       class="text-sm font-bold text-yellow-400 hover:text-yellow-300 underline hover:no-underline"
+                                       title="Voir les détails de la planète">
+                                        {{ $planete->nom }}
+                                    </a>
                                     <span class="text-xs text-gray-500">{{ ucfirst($planete->type) }}</span>
                                     <span class="text-xs text-gray-600">({{ number_format($planete->rayon, 1) }}R, {{ number_format($planete->masse, 1) }}M)</span>
                                 </div>

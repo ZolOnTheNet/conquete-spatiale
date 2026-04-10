@@ -83,6 +83,51 @@ return [
         'des_fear' => 12,                   // Nombre de faces dé Fear
     ],
 
+    // ====== SYSTÈME DE SCAN (v2.0) ======
+    'scan' => [
+        // Difficulté des jets de compétence
+        'difficulte_reglage' => 12,         // Difficulté jet Finesse (Réglage fin)
+        'difficulte_astro' => 12,           // Difficulté jet Savoir (Astronomie)
+
+        // Paliers de bonus selon marge de réussite
+        'paliers_bonus' => [
+            [0, 2, 4],      // Marge 0-2  → +1d4
+            [3, 5, 6],      // Marge 3-5  → +1d6
+            [6, 8, 8],      // Marge 6-8  → +1d8
+            [9, 11, 10],    // Marge 9-11 → +1d10
+            [12, 999, 12],  // Marge 12+  → +1d12
+        ],
+        'echec_malus' => 6,                 // Échec → -1d6
+
+        // Formules de détectabilité de base
+        // (Utilisées si detectabilite_base == 0 ou -1)
+        'detectabilite' => [
+            'systeme' => [
+                'formule' => '(200 - puissance) / 3',
+                'min' => 1,
+                'max' => 200,
+            ],
+            'planete' => [
+                'formule' => 'floor((30 - taille) / 2)',
+                'min' => 1,
+                'max' => 100,
+            ],
+            'station' => [
+                'formule' => '150 - modules - (10 × nb_mines) - (population / 1000)',
+                'min' => 1,
+                'max' => 150,
+            ],
+            'mine' => [
+                'formule' => '100 - (taux_extraction × 10) - (capacite / 100)',
+                'min' => 10,
+                'max' => 120,
+            ],
+        ],
+
+        // Score de détection = (distance / 10) × detectabilite_base
+        'coef_distance' => 10,              // Diviseur de distance dans la formule
+    ],
+
     // ====== GÉNÉRATION PROCÉDURALE - UNIVERS ======
     'univers' => [
         'systemes_initiaux' => env('GAME_UNIVERS_SYSTEMS', 10), // Nombre de systèmes voisins générés au départ
