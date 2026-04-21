@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timonerie — Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-void: #05070C;
+  --bg-panel: rgba(13, 17, 23, 0.85);
+  --bg-elevated: rgba(21, 27, 36, 0.95);
+  --border-subtle: rgba(125, 165, 200, 0.15);
+  --border-strong: rgba(125, 165, 200, 0.35);
+  --text-primary: #E6EDF3;
+  --text-secondary: #8B96A8;
+  --text-muted: #4F5B6F;
+  --accent: #FF8A3D;
+  --data: #7FD4FF;
+  --success: #4ADE80;
+  --warning: #FBBF24;
+  --danger: #EF4444;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Rajdhani', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+html { overflow: hidden; }
+body {
+  font-family: var(--sans);
+  background: var(--bg-void);
+  color: var(--text-primary);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  /* Design canvas : 1440×900 minimum. Viewports plus petits → scroll. */
+  min-width: 1440px;
+  min-height: 820px;
+  overflow: auto;
+}
+
+/* Notice pour viewport trop petit */
+.viewport-notice {
+  display: none;
+  position: fixed; top: 0; left: 0; right: 0;
+  padding: 8px 20px; z-index: 1000;
+  background: rgba(251, 191, 36, 0.95); color: #1a1410;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
+  text-align: center; text-transform: uppercase;
+}
+@media (max-width: 1439px) {
+  .viewport-notice { display: block; }
+}
+
+/* HUD Header persistant */
+.hud-header {
+  position: absolute; top: 0; left: 0; width: 1440px; height: 56px;
+  background: linear-gradient(180deg, rgba(5,7,12,0.98), rgba(5,7,12,0.75));
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex; align-items: center; padding: 0 20px; gap: 28px;
+  z-index: 100;
+  backdrop-filter: blur(6px);
+  flex-wrap: nowrap; white-space: nowrap;
+}
+.hud-brand { font-family: var(--mono); font-size: 11px; letter-spacing: 0.25em; color: var(--accent); font-weight: 700; }
+.hud-sep { width: 1px; height: 28px; background: var(--border-subtle); }
+.hud-block { display: flex; flex-direction: column; gap: 2px; }
+.hud-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; }
+.hud-value { font-family: var(--mono); font-size: 13px; color: var(--text-primary); font-weight: 500; }
+.hud-value.data { color: var(--data); }
+.hud-value.accent { color: var(--accent); }
+.gauge-group { display: flex; gap: 16px; }
+.gauge { display: flex; align-items: center; gap: 8px; }
+.gauge-icon { font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 0.1em; }
+.gauge-bar { width: 60px; height: 6px; background: rgba(125, 165, 200, 0.1); border: 1px solid var(--border-subtle); position: relative; }
+.gauge-fill { height: 100%; transition: width 0.3s; }
+.gauge-fill.ok { background: linear-gradient(90deg, var(--success), #86efac); box-shadow: 0 0 6px rgba(74, 222, 128, 0.4); }
+.gauge-fill.mid { background: linear-gradient(90deg, var(--warning), #fcd34d); box-shadow: 0 0 6px rgba(251, 191, 36, 0.4); }
+.gauge-fill.low { background: linear-gradient(90deg, var(--danger), #fca5a5); box-shadow: 0 0 6px rgba(239, 68, 68, 0.5); }
+.gauge-val { font-family: var(--mono); font-size: 10px; color: var(--text-secondary); min-width: 32px; }
+.hud-spacer { flex: 1; }
+.hud-btn { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; color: var(--text-muted); text-transform: uppercase; background: none; border: 1px solid var(--border-subtle); padding: 5px 10px; cursor: pointer; transition: all 0.15s; }
+.hud-btn:hover { color: var(--text-primary); border-color: var(--border-strong); }
+
+/* Main layout — hauteur fixe pour rester dans le viewport design */
+.stage {
+  position: absolute; top: 56px; left: 0;
+  width: 1440px; height: calc(100vh - 56px);
+  min-height: 764px;
+  display: grid; grid-template-columns: 260px 1fr 360px;
+  overflow: hidden;
+}
+
+/* Left nav */
+.nav {
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border-subtle);
+  padding: 20px 0;
+  overflow-y: auto;
+  backdrop-filter: blur(6px);
+}
+.nav-section { margin-bottom: 24px; }
+.nav-section-head { padding: 4px 20px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+.nav-section-head::before { content: ''; width: 4px; height: 4px; background: var(--text-muted); border-radius: 50%; }
+.nav-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 20px; color: var(--text-secondary); font-size: 13px; cursor: pointer;
+  transition: all 0.12s; border-left: 2px solid transparent; font-weight: 500;
+}
+.nav-item:hover { color: var(--text-primary); background: rgba(127, 212, 255, 0.04); }
+.nav-item.active { color: var(--accent); background: rgba(255, 138, 61, 0.06); border-left-color: var(--accent); }
+.nav-item.sub { padding-left: 36px; font-size: 12px; }
+.nav-cmd { font-family: var(--mono); font-size: 10px; color: var(--text-muted); opacity: 0; transition: opacity 0.15s; }
+.nav-item:hover .nav-cmd { opacity: 1; }
+
+/* Center — Starmap */
+.starmap-wrap { position: relative; background: radial-gradient(ellipse at center, #0a0f1a 0%, #050709 70%); overflow: hidden; min-width: 0; }
+#starmap { width: 100%; height: 100%; display: block; }
+.starmap-title {
+  position: absolute; top: 16px; left: 20px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.25em;
+  color: var(--text-muted); text-transform: uppercase;
+  display: flex; align-items: center; gap: 10px;
+}
+.starmap-title span.accent { color: var(--data); }
+.pulse { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent); animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+.compass {
+  position: absolute; bottom: 16px; left: 20px;
+  width: 100px; height: 100px; border: 1px solid var(--border-subtle);
+  background: rgba(5, 7, 12, 0.7); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 10px; color: var(--text-muted);
+}
+.compass-inner { position: relative; width: 100%; height: 100%; }
+.compass-label { position: absolute; font-size: 9px; color: var(--text-muted); }
+.compass-label.n { top: 4px; left: 50%; transform: translateX(-50%); color: var(--accent); }
+.compass-label.s { bottom: 4px; left: 50%; transform: translateX(-50%); }
+.compass-label.e { right: 4px; top: 50%; transform: translateY(-50%); }
+.compass-label.w { left: 4px; top: 50%; transform: translateY(-50%); }
+.compass-dot { position: absolute; top: 50%; left: 50%; width: 4px; height: 4px; background: var(--accent); border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 6px var(--accent); }
+.compass-ring { position: absolute; inset: 14px; border: 1px solid var(--border-subtle); border-radius: 50%; }
+
+.starmap-controls {
+  position: absolute; bottom: 16px; right: 16px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.ctrl-btn {
+  width: 32px; height: 32px; background: rgba(5, 7, 12, 0.8);
+  border: 1px solid var(--border-subtle); color: var(--text-secondary);
+  font-family: var(--mono); font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px); transition: all 0.15s;
+}
+.ctrl-btn:hover { color: var(--data); border-color: var(--border-strong); }
+
+.legend {
+  position: absolute; top: 16px; right: 16px;
+  background: rgba(5, 7, 12, 0.75); backdrop-filter: blur(4px);
+  border: 1px solid var(--border-subtle); padding: 10px 14px;
+  font-family: var(--mono); font-size: 10px; color: var(--text-secondary);
+  min-width: 160px;
+}
+.legend-head { font-size: 9px; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+.legend-row { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
+.legend-glyph { width: 12px; text-align: center; }
+
+/* Selected system tooltip */
+.sys-tooltip {
+  position: absolute; pointer-events: none;
+  background: rgba(5, 7, 12, 0.9); backdrop-filter: blur(4px);
+  border: 1px solid var(--data); padding: 10px 14px;
+  font-family: var(--mono); font-size: 11px; color: var(--text-primary);
+  box-shadow: 0 0 12px rgba(127, 212, 255, 0.3);
+  opacity: 0; transition: opacity 0.15s;
+  min-width: 180px;
+}
+.sys-tooltip.show { opacity: 1; }
+.sys-tooltip h4 { font-size: 13px; color: var(--data); margin-bottom: 6px; letter-spacing: 0.08em; }
+.sys-tooltip .row { display: flex; justify-content: space-between; margin: 2px 0; color: var(--text-secondary); }
+.sys-tooltip .cost.ok { color: var(--success); }
+.sys-tooltip .cost.mid { color: var(--warning); }
+.sys-tooltip .cost.ko { color: var(--danger); }
+
+/* Right — Instruments + Console */
+.right-col { display: flex; flex-direction: column; background: var(--bg-panel); border-left: 1px solid var(--border-subtle); backdrop-filter: blur(6px); min-height: 0; overflow: hidden; }
+
+.instruments { padding: 16px; border-bottom: 1px solid var(--border-subtle); }
+.inst-head {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.25em;
+  color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px;
+  display: flex; justify-content: space-between;
+}
+.inst-head .live { color: var(--success); display: flex; align-items: center; gap: 6px; }
+.inst-head .live::before { content: ''; width: 5px; height: 5px; background: var(--success); border-radius: 50%; box-shadow: 0 0 6px var(--success); animation: pulse 2s infinite; }
+
+.inst-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin-bottom: 14px; }
+.inst { display: flex; flex-direction: column; gap: 2px; }
+.inst-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.15em; color: var(--text-muted); text-transform: uppercase; }
+.inst-val { font-family: var(--mono); font-size: 14px; color: var(--text-primary); font-weight: 500; }
+.inst-val.data { color: var(--data); }
+
+.destination { padding: 14px 16px; border-bottom: 1px solid var(--border-subtle); }
+.dest-head { font-family: var(--mono); font-size: 9px; letter-spacing: 0.25em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+.dest-name { font-size: 16px; font-weight: 600; color: var(--data); margin-bottom: 2px; letter-spacing: 0.03em; }
+.dest-meta { font-family: var(--mono); font-size: 11px; color: var(--text-secondary); margin-bottom: 12px; }
+.dest-cost { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; margin-bottom: 10px; padding: 8px 10px; background: rgba(127, 212, 255, 0.04); border-left: 2px solid var(--data); }
+.dest-cost .val { color: var(--warning); }
+.dest-actions { display: flex; gap: 8px; }
+.btn {
+  flex: 1; font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
+  text-transform: uppercase; padding: 9px 12px; cursor: pointer;
+  background: transparent; color: var(--text-secondary);
+  border: 1px solid var(--border-subtle); transition: all 0.15s;
+  position: relative; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn:hover { color: var(--text-primary); border-color: var(--border-strong); }
+.btn.primary { color: var(--accent); border-color: var(--accent); }
+.btn.primary:hover { background: rgba(255, 138, 61, 0.1); box-shadow: 0 0 12px rgba(255, 138, 61, 0.2); }
+.btn.primary::before { content: '▶'; font-size: 8px; }
+.btn-cmd { position: absolute; bottom: -16px; left: 0; right: 0; font-size: 9px; color: var(--text-muted); text-align: center; opacity: 0; transition: opacity 0.15s; letter-spacing: 0.05em; }
+.btn:hover .btn-cmd { opacity: 1; }
+
+.scanner { padding: 14px 16px; border-bottom: 1px solid var(--border-subtle); flex-shrink: 0; }
+.scanner-head { font-family: var(--mono); font-size: 9px; letter-spacing: 0.25em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; display: flex; justify-content: space-between; }
+.scanner-head .range { color: var(--data); }
+.scan-list { display: flex; flex-direction: column; gap: 5px; max-height: 120px; overflow-y: auto; }
+.scan-item { display: flex; align-items: center; gap: 10px; padding: 5px 8px; cursor: pointer; transition: all 0.12s; border-left: 2px solid transparent; font-family: var(--mono); font-size: 11px; }
+.scan-item:hover { background: rgba(127, 212, 255, 0.04); border-left-color: var(--data); }
+.scan-glyph { width: 12px; text-align: center; color: var(--text-muted); }
+.scan-glyph.star { color: var(--warning); }
+.scan-glyph.station { color: var(--data); }
+.scan-glyph.planet { color: var(--success); }
+.scan-name { flex: 1; color: var(--text-primary); }
+.scan-dist { color: var(--text-muted); font-size: 10px; }
+
+/* Console panel */
+.console { flex: 1; display: flex; flex-direction: column; min-height: 180px; overflow: hidden; }
+.console-head {
+  padding: 10px 16px; font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.25em; color: var(--text-muted); text-transform: uppercase;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(5, 7, 12, 0.5);
+}
+.console-head .status { color: var(--success); display: flex; gap: 6px; align-items: center; }
+.console-head .status::before { content: ''; width: 5px; height: 5px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
+.console-out {
+  flex: 1; padding: 12px 16px; overflow-y: auto;
+  font-family: var(--mono); font-size: 11.5px; line-height: 1.7;
+  min-height: 0;
+}
+.console-line { margin: 1px 0; }
+.console-line.cmd { color: var(--accent); }
+.console-line.echo { color: var(--accent); opacity: 0.7; }
+.console-line.sys { color: var(--text-muted); }
+.console-line.ok { color: var(--success); }
+.console-line.data { color: var(--data); }
+.console-line.warn { color: var(--warning); }
+.console-line.err { color: var(--danger); }
+.console-line.dim { color: var(--text-muted); font-style: italic; font-size: 10.5px; }
+
+.console-input {
+  border-top: 1px solid var(--border-subtle);
+  padding: 10px 16px; display: flex; align-items: center; gap: 10px;
+  background: rgba(5, 7, 12, 0.5);
+}
+.prompt { font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 700; }
+.console-input input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text-primary); font-family: var(--mono); font-size: 12px;
+  caret-color: var(--accent);
+}
+.shortcuts {
+  padding: 10px 16px; border-top: 1px solid var(--border-subtle);
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+  background: rgba(5, 7, 12, 0.3);
+}
+.sc {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+  padding: 7px 4px; text-transform: uppercase; cursor: pointer;
+  background: transparent; color: var(--text-secondary);
+  border: 1px solid var(--border-subtle); transition: all 0.15s;
+  position: relative;
+}
+.sc:hover { color: var(--data); border-color: var(--data); background: rgba(127, 212, 255, 0.05); }
+.sc-cmd { display: block; font-size: 8px; color: var(--text-muted); letter-spacing: 0.05em; margin-top: 2px; text-transform: lowercase; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-subtle); }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* Alerts bar */
+.alerts-bar {
+  position: absolute; bottom: 0; left: 260px; width: 820px;
+  height: 28px; background: rgba(5, 7, 12, 0.8);
+  border-top: 1px solid var(--border-subtle);
+  display: flex; align-items: center; padding: 0 16px; gap: 20px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+  z-index: 50;
+  backdrop-filter: blur(4px);
+}
+.alert-label { color: var(--text-muted); }
+.alert-val { color: var(--success); }
+.alert-val.warn { color: var(--warning); }
+.clock { margin-left: auto; color: var(--data); font-family: var(--mono); }
+
+/* Spec callout */
+.spec {
+  position: fixed; top: 72px; right: 380px; z-index: 200;
+  background: rgba(5, 7, 12, 0.95); border: 1px solid var(--accent);
+  padding: 16px 20px; max-width: 320px;
+  font-family: var(--sans); font-size: 12px; color: var(--text-secondary); line-height: 1.5;
+  box-shadow: 0 0 24px rgba(255, 138, 61, 0.2);
+  display: none;
+}
+.spec.show { display: block; }
+.spec h3 { color: var(--accent); font-family: var(--mono); font-size: 10px; letter-spacing: 0.25em; margin-bottom: 8px; }
+.spec-close { position: absolute; top: 8px; right: 12px; color: var(--text-muted); cursor: pointer; font-size: 16px; }
+.spec-toggle {
+  position: fixed; top: 72px; right: 380px; z-index: 199;
+  background: rgba(5, 7, 12, 0.9); color: var(--accent);
+  border: 1px solid var(--accent); padding: 6px 12px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; cursor: pointer;
+  text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+
+<div class="viewport-notice">⚠ Mockup conçu pour 1440×820px minimum — faites défiler si nécessaire
+</div>
+
+<!-- HUD HEADER PERSISTANT -->
+<header class="hud-header">
+  <div class="hud-brand">CONQUÊTE SPATIALE</div>
+  <div class="hud-sep"></div>
+  <div class="hud-block">
+    <span class="hud-label">CMDR</span>
+    <span class="hud-value">ZOL STARK</span>
+  </div>
+  <div class="hud-block">
+    <span class="hud-label">Secteur</span>
+    <span class="hud-value data">(0, 0, 0) · SOL</span>
+  </div>
+  <div class="hud-block">
+    <span class="hud-label">Date galact.</span>
+    <span class="hud-value" id="gclock">3042.114 · 14:32</span>
+  </div>
+  <div class="hud-sep"></div>
+  <div class="gauge-group">
+    <div class="gauge" title="Points d'action">
+      <span class="gauge-icon">PA</span>
+      <div class="gauge-bar"><div class="gauge-fill ok" style="width: 38%"></div></div>
+      <span class="gauge-val">19/50</span>
+    </div>
+    <div class="gauge" title="Énergie vaisseau">
+      <span class="gauge-icon">⚡</span>
+      <div class="gauge-bar"><div class="gauge-fill ok" style="width: 72%"></div></div>
+      <span class="gauge-val">72%</span>
+    </div>
+    <div class="gauge" title="Coque">
+      <span class="gauge-icon">◈</span>
+      <div class="gauge-bar"><div class="gauge-fill ok" style="width: 100%"></div></div>
+      <span class="gauge-val">100%</span>
+    </div>
+    <div class="gauge" title="Bouclier">
+      <span class="gauge-icon">◎</span>
+      <div class="gauge-bar"><div class="gauge-fill mid" style="width: 45%"></div></div>
+      <span class="gauge-val">45%</span>
+    </div>
+    <div class="gauge" title="Cargaison">
+      <span class="gauge-icon">▣</span>
+      <div class="gauge-bar"><div class="gauge-fill ok" style="width: 15%"></div></div>
+      <span class="gauge-val">3/20t</span>
+    </div>
+  </div>
+  <div class="hud-sep"></div>
+  <div class="hud-block">
+    <span class="hud-label">Crédits</span>
+    <span class="hud-value accent">1 250 CR</span>
+  </div>
+  <div class="hud-spacer"></div>
+  <button class="hud-btn" data-cmd="logout">Déco</button>
+</header>
+
+<!-- MAIN STAGE -->
+<div class="stage">
+
+  <!-- LEFT NAV -->
+  <nav class="nav">
+    <div class="nav-section">
+      <div class="nav-section-head">Vaisseau</div>
+      <div class="nav-item active" data-cmd="timonerie">Timonerie <span class="nav-cmd">→ timonerie</span></div>
+      <div class="nav-item sub" data-cmd="position">Position <span class="nav-cmd">→ position</span></div>
+      <div class="nav-item sub" data-cmd="scan">Scanner <span class="nav-cmd">→ scan</span></div>
+      <div class="nav-item" data-cmd="ingenierie">Ingénierie <span class="nav-cmd">→ ingenierie</span></div>
+      <div class="nav-item sub" data-cmd="etat">État systèmes <span class="nav-cmd">→ etat</span></div>
+      <div class="nav-item sub" data-cmd="reparer">Réparations <span class="nav-cmd">→ reparer</span></div>
+      <div class="nav-item" data-cmd="soute">Soute <span class="nav-cmd">→ soute</span></div>
+      <div class="nav-item sub" data-cmd="cargaison">Cargaison <span class="nav-cmd">→ cargaison</span></div>
+      <div class="nav-item" data-cmd="armement">Armement <span class="nav-cmd">→ armement</span></div>
+      <div class="nav-item sub" data-cmd="armes">Armes <span class="nav-cmd">→ armes</span></div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-head">Navigation</div>
+      <div class="nav-item" data-cmd="carte">Carte galactique <span class="nav-cmd">→ carte</span></div>
+      <div class="nav-item" data-cmd="secteur">Secteur actuel <span class="nav-cmd">→ secteur</span></div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-head">Communications</div>
+      <div class="nav-item" data-cmd="com bdd">Bases de données <span class="nav-cmd">→ com bdd</span></div>
+      <div class="nav-item" data-cmd="com prix">Prix marchés <span class="nav-cmd">→ com prix</span></div>
+      <div class="nav-item" data-cmd="com demandes">Demandes <span class="nav-cmd">→ com demandes</span></div>
+      <div class="nav-item" data-cmd="com messages">Messages <span class="nav-cmd">→ com messages</span></div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-head">Personnage</div>
+      <div class="nav-item" data-cmd="inventaire">Inventaire <span class="nav-cmd">→ inv</span></div>
+      <div class="nav-item" data-cmd="fiche">Fiche <span class="nav-cmd">→ fiche</span></div>
+    </div>
+  </nav>
+
+  <!-- CENTER — STARMAP -->
+  <div class="starmap-wrap">
+    <canvas id="starmap"></canvas>
+
+    <div class="starmap-title">
+      <span class="pulse"></span>
+      <span>Timonerie · Starmap perspective 60°</span>
+      <span>—</span>
+      <span class="accent">12 systèmes dans la portée scanner</span>
+    </div>
+
+    <div class="legend">
+      <div class="legend-head">Légende</div>
+      <div class="legend-row"><span class="legend-glyph" style="color: var(--accent)">▲</span> Vaisseau (vous)</div>
+      <div class="legend-row"><span class="legend-glyph" style="color: var(--warning)">★</span> Étoile</div>
+      <div class="legend-row"><span class="legend-glyph" style="color: var(--data)">⊙</span> Station</div>
+      <div class="legend-row"><span class="legend-glyph" style="color: var(--success)">◇</span> Planète</div>
+      <div class="legend-row"><span class="legend-glyph" style="color: var(--text-muted)">·</span> Étoile lointaine</div>
+      <div class="legend-row" style="margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border-subtle);"><span style="color: var(--success)">━</span> Trajet accessible</div>
+      <div class="legend-row"><span style="color: var(--warning)">━</span> Trajet coûteux</div>
+      <div class="legend-row"><span style="color: var(--danger)">━</span> Trajet impossible</div>
+    </div>
+
+    <div class="compass">
+      <div class="compass-inner">
+        <div class="compass-ring"></div>
+        <span class="compass-label n">+Y</span>
+        <span class="compass-label s">-Y</span>
+        <span class="compass-label e">+X</span>
+        <span class="compass-label w">-X</span>
+        <div class="compass-dot"></div>
+      </div>
+    </div>
+
+    <div class="starmap-controls">
+      <button class="ctrl-btn" id="zoom-in" title="Zoom +">+</button>
+      <button class="ctrl-btn" id="zoom-out" title="Zoom -">−</button>
+      <button class="ctrl-btn" id="reset-view" title="Vue par défaut">⌂</button>
+      <button class="ctrl-btn" id="toggle-grid" title="Grille">#</button>
+    </div>
+
+    <div class="sys-tooltip" id="tooltip">
+      <h4 id="tt-name">—</h4>
+      <div class="row"><span>Distance</span><span id="tt-dist">—</span></div>
+      <div class="row"><span>Coût énergie</span><span id="tt-cost" class="cost">—</span></div>
+      <div class="row"><span>Type</span><span id="tt-type">—</span></div>
+      <div class="row" style="margin-top: 6px; font-size: 9px; color: var(--text-muted);">Cliquer pour cibler</div>
+    </div>
+  </div>
+
+  <!-- RIGHT — INSTRUMENTS + CONSOLE -->
+  <div class="right-col">
+
+    <div class="instruments">
+      <div class="inst-head">
+        <span>Instruments</span>
+        <span class="live">LIVE</span>
+      </div>
+      <div class="inst-grid">
+        <div class="inst"><span class="inst-label">Vitesse</span><span class="inst-val data">42 AL/h</span></div>
+        <div class="inst"><span class="inst-label">Cap</span><span class="inst-val">145° / +02°</span></div>
+        <div class="inst"><span class="inst-label">Carburant</span><span class="inst-val">72.4%</span></div>
+        <div class="inst"><span class="inst-label">Delta-V</span><span class="inst-val">8.2 km/s</span></div>
+      </div>
+    </div>
+
+    <div class="destination">
+      <div class="dest-head">Destination verrouillée</div>
+      <div class="dest-name" id="dest-name">Alpha Centauri A</div>
+      <div class="dest-meta" id="dest-meta">4.37 AL · ETA 06h42 · Trinaire</div>
+      <div class="dest-cost">
+        <span>Coût du saut</span>
+        <span class="val" id="dest-cost">18% énergie</span>
+      </div>
+      <div class="dest-actions">
+        <button class="btn" data-cmd="cible annuler">Annuler<span class="btn-cmd">→ cible annuler</span></button>
+        <button class="btn primary" data-cmd="saut initier">Initier saut<span class="btn-cmd">→ saut initier</span></button>
+      </div>
+    </div>
+
+    <div class="scanner">
+      <div class="scanner-head">
+        <span>Scanner courte portée</span>
+        <span class="range">5.0 AL</span>
+      </div>
+      <div class="scan-list" id="scan-list">
+        <div class="scan-item" data-cmd="cible sol-7"><span class="scan-glyph station">⊙</span><span class="scan-name">Station Sol-7</span><span class="scan-dist">0.2 AL</span></div>
+        <div class="scan-item" data-cmd="cible sol"><span class="scan-glyph star">★</span><span class="scan-name">Sol</span><span class="scan-dist">0.0 AL</span></div>
+        <div class="scan-item" data-cmd="cible terre"><span class="scan-glyph planet">◇</span><span class="scan-name">Terre</span><span class="scan-dist">0.15 AL</span></div>
+        <div class="scan-item" data-cmd="cible mars"><span class="scan-glyph planet">◇</span><span class="scan-name">Mars</span><span class="scan-dist">0.22 AL</span></div>
+        <div class="scan-item" data-cmd="cible jupiter"><span class="scan-glyph planet">◇</span><span class="scan-name">Jupiter</span><span class="scan-dist">0.78 AL</span></div>
+        <div class="scan-item" data-cmd="cible ast-3321"><span class="scan-glyph">▲</span><span class="scan-name">Astéroïde 3321</span><span class="scan-dist">0.8 AL</span></div>
+        <div class="scan-item" data-cmd="cible proxima"><span class="scan-glyph star">★</span><span class="scan-name">Proxima Centauri</span><span class="scan-dist">4.24 AL</span></div>
+        <div class="scan-item" data-cmd="cible alpha-a"><span class="scan-glyph star">★</span><span class="scan-name">Alpha Centauri A</span><span class="scan-dist">4.37 AL</span></div>
+      </div>
+    </div>
+
+    <div class="console">
+      <div class="console-head">
+        <span>Console</span>
+        <span class="status">Connecté</span>
+      </div>
+      <div class="console-out" id="console-out">
+        <div class="console-line sys">> Système initialisé — 14:32:02</div>
+        <div class="console-line ok">> Connexion COM établie · latence 42ms</div>
+        <div class="console-line sys">> Vaisseau identifié : KESTREL-II</div>
+        <div class="console-line sys">> Position verrouillée : secteur (0,0,0) · SOL</div>
+        <div class="console-line dim">> Tapez 'help' pour la liste des commandes.</div>
+        <div class="console-line sys">───────────────────────────────</div>
+        <div class="console-line cmd">> scan</div>
+        <div class="console-line data">  Scan actif · portée 5.0 AL · puissance 3</div>
+        <div class="console-line ok">  12 objets détectés dans la portée</div>
+        <div class="console-line cmd">> cible alpha-a</div>
+        <div class="console-line data">  Cible verrouillée : Alpha Centauri A</div>
+        <div class="console-line warn">  ⚠ Coût estimé : 18% énergie (distance 4.37 AL)</div>
+      </div>
+      <div class="console-input">
+        <span class="prompt">CMDR@KESTREL-II ▸</span>
+        <input type="text" id="cmd-input" placeholder="commande..." autocomplete="off">
+      </div>
+      <div class="shortcuts">
+        <button class="sc" data-cmd="scan">Scan<span class="sc-cmd">scan</span></button>
+        <button class="sc" data-cmd="saut initier">Saut<span class="sc-cmd">saut init</span></button>
+        <button class="sc" data-cmd="marche">Marche<span class="sc-cmd">marche</span></button>
+        <button class="sc" data-cmd="combat">Combat<span class="sc-cmd">combat</span></button>
+        <button class="sc" data-cmd="inv">Inv.<span class="sc-cmd">inv</span></button>
+        <button class="sc" data-cmd="help">Aide<span class="sc-cmd">help</span></button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="alerts-bar">
+  <span class="alert-label">Alertes</span>
+  <span class="alert-val">Aucune</span>
+  <span class="alert-label">· Éco mode</span>
+  <span class="alert-val">OFF</span>
+  <span class="alert-label">· Auto-nav</span>
+  <span class="alert-val warn">ARMÉ</span>
+  <span class="clock" id="local-clock">14:32:02 UTC</span>
+</div>
+
+<button class="spec-toggle" id="spec-toggle">ℹ Spec</button>
+<div class="spec" id="spec">
+  <span class="spec-close" id="spec-close">×</span>
+  <h3>Spec pour Claude Code</h3>
+  <p><strong style="color: var(--text-primary)">Rendu :</strong> Three.js WebGL, caméra perspective 60° au-dessus du plan galactique.</p>
+  <p><strong style="color: var(--text-primary)">Contrôles :</strong> drag pour orbiter, molette pour zoom, clic sur système pour cibler → émet <code style="color: var(--data); font-family: var(--mono); font-size: 11px;">cible [nom]</code> dans la console.</p>
+  <p><strong style="color: var(--text-primary)">Données :</strong> injecter positions Gaia réelles (étoiles à moins de 25 AL). Secteurs en 10×10×10 AL.</p>
+  <p><strong style="color: var(--text-primary)">Bridge UI→cmd :</strong> tout élément <code style="color: var(--data); font-family: var(--mono); font-size: 11px;">data-cmd</code> émet sa commande dans la console.</p>
+  <p><strong style="color: var(--text-primary)">Trajet :</strong> ligne courbe vaisseau→cible, couleur selon coût énergie (vert/jaune/rouge).</p>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+const canvas = document.getElementById('starmap');
+const wrap = canvas.parentElement;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x05070c, 0.008);
+
+const camera = new THREE.PerspectiveCamera(60, wrap.clientWidth / wrap.clientHeight, 0.1, 2000);
+// Vue 60° par-dessus le plan galactique
+camera.position.set(0, 50, 60);
+camera.lookAt(0, 0, 0);
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+// ============ STARFIELD LOINTAIN ============
+const starfieldGeo = new THREE.BufferGeometry();
+const starCount = 3000;
+const starPositions = new Float32Array(starCount * 3);
+const starColors = new Float32Array(starCount * 3);
+for (let i = 0; i < starCount; i++) {
+  const r = 400 + Math.random() * 600;
+  const theta = Math.random() * Math.PI * 2;
+  const phi = Math.acos(2 * Math.random() - 1);
+  starPositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+  starPositions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+  starPositions[i * 3 + 2] = r * Math.cos(phi);
+  const brightness = 0.3 + Math.random() * 0.7;
+  starColors[i * 3] = brightness;
+  starColors[i * 3 + 1] = brightness;
+  starColors[i * 3 + 2] = brightness + Math.random() * 0.2;
+}
+starfieldGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+starfieldGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+const starfieldMat = new THREE.PointsMaterial({ size: 0.8, vertexColors: true, transparent: true, opacity: 0.8, sizeAttenuation: false });
+const starfield = new THREE.Points(starfieldGeo, starfieldMat);
+scene.add(starfield);
+
+// ============ GRILLE GALACTIQUE ============
+const gridSize = 100;
+const gridDiv = 20;
+const gridGroup = new THREE.Group();
+const gridMat = new THREE.LineBasicMaterial({ color: 0x1f2937, transparent: true, opacity: 0.6 });
+const gridMatMajor = new THREE.LineBasicMaterial({ color: 0x2d3b4f, transparent: true, opacity: 0.8 });
+for (let i = -gridDiv; i <= gridDiv; i++) {
+  const x = (i / gridDiv) * gridSize;
+  const isMajor = i % 5 === 0;
+  const pts1 = [new THREE.Vector3(x, 0, -gridSize), new THREE.Vector3(x, 0, gridSize)];
+  const pts2 = [new THREE.Vector3(-gridSize, 0, x), new THREE.Vector3(gridSize, 0, x)];
+  gridGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts1), isMajor ? gridMatMajor : gridMat));
+  gridGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts2), isMajor ? gridMatMajor : gridMat));
+}
+scene.add(gridGroup);
+
+// ============ CERCLE PORTÉE SCANNER ============
+const scanRange = 15;
+const ringGeo = new THREE.RingGeometry(scanRange - 0.15, scanRange, 64);
+const ringMat = new THREE.MeshBasicMaterial({ color: 0x7fd4ff, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
+const scanRing = new THREE.Mesh(ringGeo, ringMat);
+scanRing.rotation.x = -Math.PI / 2;
+scene.add(scanRing);
+
+// ============ SYSTÈMES (fake data inspirée de vraies étoiles proches) ============
+const systemsData = [
+  { name: 'Sol', x: 0, y: 0, z: 0, type: 'star', class: 'G2V', color: 0xffe680, size: 1.8, dist: 0 },
+  { name: 'Terre', x: 0.5, y: 0.2, z: 0.3, type: 'planet', color: 0x4ade80, size: 0.4, dist: 0.15 },
+  { name: 'Mars', x: -0.4, y: 0.1, z: 0.8, type: 'planet', color: 0xff8a3d, size: 0.35, dist: 0.22 },
+  { name: 'Jupiter', x: 1.5, y: -0.3, z: -2, type: 'planet', color: 0xfbbf24, size: 0.7, dist: 0.78 },
+  { name: 'Station Sol-7', x: 1.2, y: 0.5, z: -0.8, type: 'station', color: 0x7fd4ff, size: 0.4, dist: 0.2 },
+  { name: 'Astéroïde 3321', x: -2.3, y: 0.2, z: 3.1, type: 'asteroid', color: 0x8b96a8, size: 0.3, dist: 0.8 },
+  { name: 'Proxima Centauri', x: -8, y: -1.5, z: 12, type: 'star', class: 'M5.5V', color: 0xff6b6b, size: 1.2, dist: 4.24 },
+  { name: 'Alpha Centauri A', x: -7, y: -1.2, z: 13.5, type: 'star', class: 'G2V', color: 0xffe680, size: 1.6, dist: 4.37 },
+  { name: 'Alpha Centauri B', x: -7.3, y: -1.3, z: 13.2, type: 'star', class: 'K1V', color: 0xffb366, size: 1.3, dist: 4.37 },
+  { name: "Barnard's Star", x: 5, y: 2, z: -8, type: 'star', class: 'M4V', color: 0xff6b6b, size: 1.0, dist: 5.96 },
+  { name: "Wolf 359", x: -6, y: 3, z: 5, type: 'star', class: 'M6V', color: 0xd97373, size: 0.9, dist: 7.86 },
+  { name: 'Lalande 21185', x: 8, y: -2, z: 3, type: 'star', class: 'M2V', color: 0xe89466, size: 1.0, dist: 8.29 },
+  { name: 'Sirius A', x: -3, y: -4, z: -8, type: 'star', class: 'A1V', color: 0xa0d8ff, size: 2.0, dist: 8.66 },
+  { name: 'Luyten 726-8', x: 9, y: 1, z: -4, type: 'star', class: 'M5.5V', color: 0xff6b6b, size: 0.85, dist: 8.73 },
+  { name: 'Ross 154', x: 2, y: -3, z: 9, type: 'star', class: 'M3.5V', color: 0xe89466, size: 0.95, dist: 9.69 },
+];
+
+const systemMeshes = [];
+const systemGroup = new THREE.Group();
+scene.add(systemGroup);
+
+systemsData.forEach(sys => {
+  const group = new THREE.Group();
+  group.position.set(sys.x, sys.y, sys.z);
+  group.userData = sys;
+
+  // Core sphere
+  const coreGeo = new THREE.SphereGeometry(sys.size * 0.5, 16, 16);
+  const coreMat = new THREE.MeshBasicMaterial({ color: sys.color });
+  const core = new THREE.Mesh(coreGeo, coreMat);
+  group.add(core);
+
+  // Glow (sprite billboard)
+  const glowMat = new THREE.SpriteMaterial({
+    map: makeGlowTexture(sys.color),
+    blending: THREE.AdditiveBlending,
+    transparent: true,
+    opacity: 0.8
+  });
+  const glow = new THREE.Sprite(glowMat);
+  glow.scale.set(sys.size * 3, sys.size * 3, 1);
+  group.add(glow);
+
+  // Line to plane (shows altitude above galactic plane)
+  const lineMat = new THREE.LineBasicMaterial({ color: sys.color, transparent: true, opacity: 0.25 });
+  const lineGeo = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(0, -sys.y, 0)
+  ]);
+  const line = new THREE.Line(lineGeo, lineMat);
+  group.add(line);
+
+  // Marker on plane
+  const markerGeo = new THREE.CircleGeometry(sys.size * 0.3, 16);
+  const markerMat = new THREE.MeshBasicMaterial({ color: sys.color, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
+  const marker = new THREE.Mesh(markerGeo, markerMat);
+  marker.rotation.x = -Math.PI / 2;
+  marker.position.y = -sys.y;
+  group.add(marker);
+
+  systemGroup.add(group);
+  systemMeshes.push({ group, core, glow, data: sys });
+});
+
+function makeGlowTexture(colorHex) {
+  const size = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const grad = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+  const c = new THREE.Color(colorHex);
+  const rgb = `${Math.floor(c.r*255)}, ${Math.floor(c.g*255)}, ${Math.floor(c.b*255)}`;
+  grad.addColorStop(0, `rgba(${rgb}, 1)`);
+  grad.addColorStop(0.2, `rgba(${rgb}, 0.5)`);
+  grad.addColorStop(0.5, `rgba(${rgb}, 0.15)`);
+  grad.addColorStop(1, `rgba(${rgb}, 0)`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, size, size);
+  return new THREE.CanvasTexture(canvas);
+}
+
+// ============ VAISSEAU (marqueur au centre) ============
+const shipGroup = new THREE.Group();
+// Triangle 3D
+const shipGeo = new THREE.ConeGeometry(0.4, 1, 4);
+const shipMat = new THREE.MeshBasicMaterial({ color: 0xff8a3d });
+const shipMesh = new THREE.Mesh(shipGeo, shipMat);
+shipMesh.rotation.x = Math.PI / 2;
+shipMesh.rotation.z = Math.PI / 4;
+shipGroup.add(shipMesh);
+
+// Halo
+const haloMat = new THREE.SpriteMaterial({
+  map: makeGlowTexture(0xff8a3d),
+  blending: THREE.AdditiveBlending,
+  transparent: true,
+  opacity: 0.9
+});
+const halo = new THREE.Sprite(haloMat);
+halo.scale.set(4, 4, 1);
+shipGroup.add(halo);
+scene.add(shipGroup);
+
+// ============ LIGNE VERS DESTINATION ============
+let destLine = null;
+function setDestination(sys) {
+  if (destLine) scene.remove(destLine);
+  const costRatio = sys.dist / 25; // 25 AL = autonomie max exemple
+  let color = 0x4ade80;
+  if (costRatio > 0.3) color = 0xfbbf24;
+  if (costRatio > 0.7) color = 0xef4444;
+
+  const curve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(sys.x * 0.4, Math.abs(sys.y) + 2, sys.z * 0.4),
+    new THREE.Vector3(sys.x, sys.y, sys.z)
+  ]);
+  const points = curve.getPoints(50);
+  const geo = new THREE.BufferGeometry().setFromPoints(points);
+  const mat = new THREE.LineDashedMaterial({ color, dashSize: 0.4, gapSize: 0.2, transparent: true, opacity: 0.8, linewidth: 2 });
+  destLine = new THREE.Line(geo, mat);
+  destLine.computeLineDistances();
+  scene.add(destLine);
+}
+setDestination(systemsData.find(s => s.name === 'Alpha Centauri A'));
+
+// ============ ORBIT CONTROLS (custom minimal) ============
+let isDragging = false;
+let prevMouse = { x: 0, y: 0 };
+let theta = 0;
+let phi = 1;
+let radius = 80;
+function updateCamera() {
+  camera.position.x = radius * Math.sin(phi) * Math.sin(theta);
+  camera.position.y = radius * Math.cos(phi);
+  camera.position.z = radius * Math.sin(phi) * Math.cos(theta);
+  camera.lookAt(0, 0, 0);
+}
+updateCamera();
+
+canvas.addEventListener('mousedown', e => { isDragging = true; prevMouse = { x: e.clientX, y: e.clientY }; });
+window.addEventListener('mouseup', () => isDragging = false);
+window.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  const dx = e.clientX - prevMouse.x;
+  const dy = e.clientY - prevMouse.y;
+  theta -= dx * 0.005;
+  phi = Math.max(0.2, Math.min(Math.PI - 0.2, phi + dy * 0.005));
+  prevMouse = { x: e.clientX, y: e.clientY };
+  updateCamera();
+});
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  radius = Math.max(20, Math.min(200, radius + e.deltaY * 0.08));
+  updateCamera();
+});
+
+document.getElementById('zoom-in').addEventListener('click', () => { radius = Math.max(20, radius - 10); updateCamera(); });
+document.getElementById('zoom-out').addEventListener('click', () => { radius = Math.min(200, radius + 10); updateCamera(); });
+document.getElementById('reset-view').addEventListener('click', () => {
+  theta = 0; phi = 1; radius = 80; updateCamera();
+});
+let gridVisible = true;
+document.getElementById('toggle-grid').addEventListener('click', () => {
+  gridVisible = !gridVisible;
+  gridGroup.visible = gridVisible;
+});
+
+// ============ HOVER & CLICK SYSTEMS ============
+const raycaster = new THREE.Raycaster();
+raycaster.params.Points = { threshold: 0.5 };
+const mouse = new THREE.Vector2();
+const tooltip = document.getElementById('tooltip');
+
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(systemMeshes.map(m => m.core));
+  if (intersects.length > 0) {
+    const sys = intersects[0].object.parent.userData;
+    tooltip.classList.add('show');
+    tooltip.style.left = (e.clientX - rect.left + 14) + 'px';
+    tooltip.style.top = (e.clientY - rect.top + 14) + 'px';
+    document.getElementById('tt-name').textContent = sys.name;
+    document.getElementById('tt-dist').textContent = sys.dist.toFixed(2) + ' AL';
+    const cost = Math.round((sys.dist / 25) * 100);
+    const costEl = document.getElementById('tt-cost');
+    costEl.textContent = cost + '% énergie';
+    costEl.className = 'cost ' + (cost <= 30 ? 'ok' : cost <= 70 ? 'mid' : 'ko');
+    document.getElementById('tt-type').textContent = sys.class || sys.type;
+    canvas.style.cursor = 'pointer';
+  } else {
+    tooltip.classList.remove('show');
+    canvas.style.cursor = isDragging ? 'grabbing' : 'grab';
+  }
+});
+
+canvas.addEventListener('click', e => {
+  const rect = canvas.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(systemMeshes.map(m => m.core));
+  if (intersects.length > 0) {
+    const sys = intersects[0].object.parent.userData;
+    const slug = sys.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    emitCommand(`cible ${slug}`);
+    setDestination(sys);
+    document.getElementById('dest-name').textContent = sys.name;
+    document.getElementById('dest-meta').textContent = sys.dist.toFixed(2) + ' AL · ' + (sys.class || sys.type);
+    const cost = Math.round((sys.dist / 25) * 100);
+    document.getElementById('dest-cost').textContent = cost + '% énergie';
+  }
+});
+canvas.style.cursor = 'grab';
+
+// ============ RESIZE ============
+window.addEventListener('resize', () => {
+  camera.aspect = wrap.clientWidth / wrap.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+});
+
+// ============ ANIMATE ============
+function animate(t) {
+  requestAnimationFrame(animate);
+  shipGroup.rotation.y = t * 0.0005;
+  systemMeshes.forEach(m => {
+    const pulse = 1 + Math.sin(t * 0.002 + m.data.x) * 0.05;
+    m.glow.scale.set(m.data.size * 3 * pulse, m.data.size * 3 * pulse, 1);
+  });
+  scanRing.rotation.z = t * 0.0002;
+  renderer.render(scene, camera);
+}
+animate(0);
+
+// ============ COMMAND BUS ============
+const consoleOut = document.getElementById('console-out');
+const cmdInput = document.getElementById('cmd-input');
+
+function emitCommand(cmd, source = 'ui') {
+  const line = document.createElement('div');
+  line.className = 'console-line cmd';
+  line.textContent = '> ' + cmd;
+  consoleOut.appendChild(line);
+  // Simulated response
+  setTimeout(() => {
+    const resp = document.createElement('div');
+    resp.className = 'console-line data';
+    resp.textContent = '  ' + mockResponse(cmd);
+    consoleOut.appendChild(resp);
+    consoleOut.scrollTop = consoleOut.scrollHeight;
+  }, 120);
+  consoleOut.scrollTop = consoleOut.scrollHeight;
+}
+
+function mockResponse(cmd) {
+  if (cmd.startsWith('cible')) return 'Cible verrouillée';
+  if (cmd === 'scan') return 'Scan actif · 12 objets détectés';
+  if (cmd === 'saut initier') return '⚡ Saut initié · décompte 5...4...3...';
+  if (cmd === 'help') return 'Commandes : scan, saut, cible, marche, cargaison, inv, help';
+  if (cmd === 'inv') return '3 objets dans l\'inventaire';
+  return 'Exécuté';
+}
+
+// Hook tous les [data-cmd]
+document.querySelectorAll('[data-cmd]').forEach(el => {
+  el.addEventListener('click', e => {
+    const cmd = el.getAttribute('data-cmd');
+    emitCommand(cmd);
+    // Active state pour nav
+    if (el.classList.contains('nav-item')) {
+      document.querySelectorAll('.nav-item.active').forEach(n => n.classList.remove('active'));
+      el.classList.add('active');
+    }
+  });
+});
+
+cmdInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && cmdInput.value.trim()) {
+    emitCommand(cmdInput.value.trim(), 'keyboard');
+    cmdInput.value = '';
+  }
+});
+
+// Clock
+function updateClock() {
+  const d = new Date();
+  const t = d.toTimeString().slice(0, 8);
+  document.getElementById('local-clock').textContent = t + ' UTC';
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Spec toggle
+document.getElementById('spec-toggle').addEventListener('click', () => {
+  document.getElementById('spec').classList.toggle('show');
+});
+document.getElementById('spec-close').addEventListener('click', () => {
+  document.getElementById('spec').classList.remove('show');
+});
+</script>
+</body>
+</html>

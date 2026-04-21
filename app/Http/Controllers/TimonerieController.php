@@ -765,7 +765,7 @@ class TimonerieController extends Controller
             'message' => 'Calcul amélioré! Précision augmentée.'
         ]);
     }
-}
+
 
     /**
      * Calculer le delta basé sur le score d'erreur
@@ -777,7 +777,7 @@ class TimonerieController extends Controller
     {
         $deltas = [];
         $allDetails = [];
-        
+
         // Calculer 3 deltas séparés (X, Y, Z) avec des jets différents
         for ($i = 0; $i < 3; $i++) {
             // Lancer 3d10-15 pour chaque axe
@@ -785,25 +785,25 @@ class TimonerieController extends Controller
             $d10_2 = rand(1, 10);
             $d10_3 = rand(1, 10);
             $sommeD10 = $d10_1 + $d10_2 + $d10_3 - 15;
-            
+
             // Lancer 1d2 signé pour chaque axe
             $d2 = rand(1, 2);
-            $d2Signé = $d2 == 1 ? -1 : 1;
-            
+            $d2Signe = $d2 == 1 ? -1 : 1;
+
             // Calculer le multiplicateur: 1d2 × (3d10-15 + Score) / 100
-            $multiplicateur = $d2Signé * ($sommeD10 + $scoreErreur) / 100;
-            
+            $multiplicateur = $d2Signe * ($sommeD10 + $scoreErreur) / 100;
+
             $deltas[$i] = $multiplicateur * $distanceReference;
-            
+
             $allDetails[$i] = [
                 'd10' => [$d10_1, $d10_2, $d10_3],
                 'd2' => $d2,
                 'sommeD10' => $sommeD10,
-                'd2Signé' => $d2Signé,
+                'd2Signé' => $d2Signe,
                 'multiplicateur' => $multiplicateur,
             ];
         }
-        
+
         // Pour Z, diviser par 2 (moins précis en altitude)
         return [
             'x' => $deltas[0],
