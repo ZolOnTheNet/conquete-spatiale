@@ -14,12 +14,15 @@ class Planete extends Model
 
     protected $fillable = [
         'systeme_stellaire_id',
+        'planete_parente_id',
+        'categorie',
         'nom',
         'type',
         'rayon',
         'masse',
         'gravite',
         'distance_etoile',
+        'distance_planete',
         'periode_orbitale',
         'angle_orbital_initial',
         'vitesse_angulaire',
@@ -54,6 +57,7 @@ class Planete extends Model
         'donnees_supplementaires' => 'array',
         'angle_orbital_initial' => 'float',
         'vitesse_angulaire' => 'float',
+        'distance_planete' => 'float',
         'cache_position_x' => 'float',
         'cache_position_y' => 'float',
         'cache_position_z' => 'float',
@@ -65,6 +69,16 @@ class Planete extends Model
     public function systemeStellaire(): BelongsTo
     {
         return $this->belongsTo(SystemeStellaire::class, 'systeme_stellaire_id');
+    }
+
+    public function planeteParente(): BelongsTo
+    {
+        return $this->belongsTo(Planete::class, 'planete_parente_id');
+    }
+
+    public function satellites(): HasMany
+    {
+        return $this->hasMany(Planete::class, 'planete_parente_id');
     }
 
     /**
@@ -89,6 +103,22 @@ class Planete extends Model
     public function mines(): HasMany
     {
         return $this->hasMany(Mine::class);
+    }
+
+    // Scopes
+    public function scopePrimaires($query)
+    {
+        return $query->where('categorie', 'planete');
+    }
+
+    public function scopeLunes($query)
+    {
+        return $query->where('categorie', 'lune');
+    }
+
+    public function estUneLune(): bool
+    {
+        return $this->categorie === 'lune';
     }
 
     /**
@@ -463,31 +493,41 @@ class Planete extends Model
     }
 
     /**
-     * Calculer la position absolue de la planète dans l'espace (en AL)
-     *
-     * @param float|null $timestampJours Timestamp en jours (null = actuel)
-     * @return array ['x' => float, 'y' => float, 'z' => float] Position en AL
+     * Calculer la position absolue dans l'espace (en AL).
+     * Pour une lune : position de la planète parente + offset orbital autour d'elle.
      */
     public function getPositionAbsolue(?float $timestampJours = null): array
     {
         $timestampJours = $timestampJours ?? GameTimeHelper::dateToJours(Carbon::now());
+        $ua_vers_al = 0.0000158;
 
-        // Calculer position orbitale (en UA)
+        if ($this->estUneLune()) {
+            $parente = $this->planeteParente;
+            $originePlanete = $parente
+                ? $parente->getPositionAbsolue($timestampJours)
+                : ['x' => 0.0, 'y' => 0.0, 'z' => 0.0];
+
+            $distance = $this->distance_planete ?? 0.01;
+            $angleActuel = $this->angle_orbital_initial + ($this->vitesse_angulaire * $timestampJours);
+
+            return [
+                'x' => $originePlanete['x'] + ($distance * cos($angleActuel) * $ua_vers_al),
+                'y' => $originePlanete['y'],
+                'z' => $originePlanete['z'] + ($distance * sin($angleActuel) * $ua_vers_al),
+            ];
+        }
+
+        // Planète primaire : orbite autour de l'étoile
         $angleActuel = $this->angle_orbital_initial + ($this->vitesse_angulaire * $timestampJours);
         $x_ua = $this->distance_etoile * cos($angleActuel);
         $y_ua = $this->distance_etoile * sin($angleActuel);
-        $z_ua = 0.0;
 
-        // Position de l'étoile (système stellaire)
         $systeme = $this->systemeStellaire;
-
-        // Conversion UA → AL (1 UA ≈ 0.0000158 AL)
-        $ua_vers_al = 0.0000158;
 
         return [
             'x' => $systeme->position_x + ($x_ua * $ua_vers_al),
             'y' => $systeme->position_y + ($y_ua * $ua_vers_al),
-            'z' => $systeme->position_z + ($z_ua * $ua_vers_al),
+            'z' => $systeme->position_z,
         ];
     }
 

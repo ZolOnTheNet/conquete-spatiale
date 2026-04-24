@@ -46,6 +46,13 @@ class SystemeStellaire extends Model
         return $this->hasMany(Planete::class, 'systeme_stellaire_id');
     }
 
+    /** Planètes primaires uniquement (exclut les lunes) */
+    public function planetesPrimaires(): HasMany
+    {
+        return $this->hasMany(Planete::class, 'systeme_stellaire_id')
+            ->where('categorie', 'planete');
+    }
+
     // Méthodes utilitaires
     public function calculerDistance(SystemeStellaire $autre): float
     {

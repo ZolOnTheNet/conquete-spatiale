@@ -8,7 +8,7 @@
             </h3>
             <div class="flex gap-3 text-xs text-gray-400">
                 <div>Type: <span class="text-white">{{ $systeme->type_etoile }}</span></div>
-                <div>Planètes: <span class="text-green-400">{{ $systeme->planetes->count() }}</span></div>
+                <div>Planètes: <span class="text-green-400">{{ $systeme->planetes->where('categorie', 'planete')->count() }}</span></div>
             </div>
             <div class="text-xs text-gray-500 mt-1">
                 Secteur ({{ $x }}, {{ $y }}, {{ $z }}) | Position: ({{ number_format($systeme->position_x, 2) }}, {{ number_format($systeme->position_y, 2) }}, {{ number_format($systeme->position_z, 2) }}) AL
@@ -37,28 +37,43 @@
                 </text>
 
                 @php
-                    // Convertir la position du système en coordonnées SVG
-                    // Le système est centré au milieu du SVG (300, 300)
                     $centerX = 300;
                     $centerY = 300;
-
-                    // Calculer l'échelle basée sur la planète la plus éloignée
-                    // Espacement visuel: 60px + (index * 35px)
-                    // Pour calculer l'échelle réelle en UA
-                    $planetesPlusEloignee = $systeme->planetes->sortByDesc('distance_etoile')->first();
-                    $indexMax = $systeme->planetes->count() - 1;
-                    $radiusMaxPx = 60 + ($indexMax * 35); // Position visuelle de la planète la plus éloignée
-
-                    if ($planetesPlusEloignee && $radiusMaxPx > 0) {
-                        // Calculer combien de UA correspondent à 60 pixels (taille de la barre d'échelle)
-                        $scaleUA = ($planetesPlusEloignee->distance_etoile / $radiusMaxPx) * 60;
-                    } else {
-                        $scaleUA = 10; // Valeur par défaut
-                    }
-
-                    // Placer le système au centre du SVG
                     $sysX = $centerX;
                     $sysY = $centerY;
+
+                    // Filtrage en mémoire depuis la collection déjà chargée
+                    $primaires = $systeme->planetes->where('categorie', 'planete')->sortBy('distance_etoile')->values();
+                    $lunesParParent = $systeme->planetes->where('categorie', 'lune')->groupBy('planete_parente_id');
+
+                    $planetColors = [
+                        'terrestre' => '#8B4513',
+                        'tellurique' => '#8B4513',
+                        'gazeuse' => '#4169E1',
+                        'glacee' => '#87CEEB',
+                        'oceanique' => '#1E90FF',
+                        'desertique' => '#DEB887',
+                        'volcanique' => '#FF4500',
+                    ];
+
+                    // Échelle basée sur les planètes primaires uniquement
+                    $planetesPlusEloignee = $primaires->sortByDesc('distance_etoile')->first();
+                    $indexMax = $primaires->count() - 1;
+                    $radiusMaxPx = 60 + ($indexMax * 35);
+                    $scaleUA = ($planetesPlusEloignee && $radiusMaxPx > 0)
+                        ? ($planetesPlusEloignee->distance_etoile / $radiusMaxPx) * 60
+                        : 10;
+
+                    // Précalculer les positions des planètes primaires pour les lunes
+                    $planetPositions = [];
+                    foreach ($primaires as $i => $p) {
+                        $a = ($i / max($primaires->count(), 1)) * 2 * M_PI;
+                        $r = 60 + ($i * 35);
+                        $planetPositions[$p->id] = [
+                            'x' => round($sysX + cos($a) * $r, 2),
+                            'y' => round($sysY + sin($a) * $r, 2),
+                        ];
+                    }
                 @endphp
 
                 <!-- Système stellaire (étoile) au centre -->
@@ -68,29 +83,18 @@
                 <text x="{{ $sysX }}" y="{{ $sysY - 18 }}" fill="yellow" font-size="16" text-anchor="middle" font-weight="bold">☉</text>
                 <text x="{{ $sysX }}" y="{{ $sysY + 28 }}" fill="white" font-size="11" text-anchor="middle" font-weight="bold">{{ $systeme->nom }}</text>
 
-                <!-- Planètes en orbite autour du système -->
-                @foreach($systeme->planetes as $index => $planete)
+                <!-- Planètes primaires en orbite autour de l'étoile -->
+                @foreach($primaires as $index => $planete)
                     @php
-                        // Disposer les planètes en cercle autour du système
-                        $angle = ($index / max($systeme->planetes->count(), 1)) * 2 * M_PI;
+                        $angle = ($index / max($primaires->count(), 1)) * 2 * M_PI;
                         $orbitRadius = 60 + ($index * 35);
-                        $planetX = $sysX + cos($angle) * $orbitRadius;
-                        $planetY = $sysY + sin($angle) * $orbitRadius;
-
-                        // Couleur selon le type de planète
-                        $planetColors = [
-                            'terrestre' => '#8B4513',
-                            'tellurique' => '#8B4513',
-                            'gazeuse' => '#4169E1',
-                            'glacee' => '#87CEEB',
-                            'oceanique' => '#1E90FF',
-                            'desertique' => '#DEB887',
-                            'volcanique' => '#FF4500',
-                        ];
+                        $planetX = $planetPositions[$planete->id]['x'];
+                        $planetY = $planetPositions[$planete->id]['y'];
                         $planetColor = $planetColors[$planete->type] ?? '#808080';
+                        $lunesDePlanete = $lunesParParent->get($planete->id, collect());
                     @endphp
 
-                    <!-- Orbite -->
+                    <!-- Orbite planétaire -->
                     <circle cx="{{ $sysX }}" cy="{{ $sysY }}" r="{{ $orbitRadius }}"
                             fill="none" stroke="rgba(100,100,100,0.3)" stroke-width="1" stroke-dasharray="3,3"/>
 
@@ -106,19 +110,34 @@
                           style="pointer-events: none;">
                         @php
                             $distanceGm = $planete->distance_etoile * 149.6;
-                            if ($distanceGm >= 1000) {
-                                $distanceGkm = $distanceGm / 1000;
-                                echo number_format($distanceGkm, 2) . ' G km';
-                            } else {
-                                echo number_format($distanceGm, 2) . ' Gm';
-                            }
+                            echo $distanceGm >= 1000
+                                ? number_format($distanceGm / 1000, 2) . ' G km'
+                                : number_format($distanceGm, 2) . ' Gm';
                         @endphp
                     </text>
-
                     @if($planete->accessible)
                         <text x="{{ $planetX }}" y="{{ $planetY + 28 }}" fill="lime" font-size="10" text-anchor="middle"
                               style="pointer-events: none;">✓</text>
                     @endif
+
+                    <!-- Lunes en orbite autour de cette planète -->
+                    @foreach($lunesDePlanete as $luneIdx => $lune)
+                        @php
+                            $luneAngle = ($luneIdx / max($lunesDePlanete->count(), 1)) * 2 * M_PI;
+                            $luneOrbit = 14 + ($luneIdx * 9);
+                            $luneX = round($planetX + cos($luneAngle) * $luneOrbit, 2);
+                            $luneY = round($planetY + sin($luneAngle) * $luneOrbit, 2);
+                        @endphp
+                        <circle cx="{{ $planetX }}" cy="{{ $planetY }}" r="{{ $luneOrbit }}"
+                                fill="none" stroke="rgba(150,150,150,0.2)" stroke-width="0.5" stroke-dasharray="2,2"/>
+                        <circle cx="{{ $luneX }}" cy="{{ $luneY }}" r="2.5" fill="#aaaaaa" stroke="rgba(255,255,255,0.6)" stroke-width="0.5"
+                                style="cursor: pointer;"
+                                onclick="zoomToPlanet_{{ $systeme->id }}({{ $luneX }}, {{ $luneY }})"
+                                onmouseover="this.setAttribute('r', 4)"
+                                onmouseout="this.setAttribute('r', 2.5)"/>
+                        <text x="{{ $luneX }}" y="{{ $luneY - 7 }}" fill="rgba(180,180,180,0.8)" font-size="6" text-anchor="middle"
+                              style="pointer-events: none;">{{ $lune->nom }}</text>
+                    @endforeach
                 @endforeach
 
                 <!-- Étiquettes des axes -->
@@ -230,11 +249,11 @@
         </script>
 
         <!-- Liste des planètes avec détails complets -->
-        @if($systeme->planetes->count() > 0)
+        @if($primaires->count() > 0)
         <div class="mt-3">
-            <h4 class="text-xs font-bold text-gray-400 mb-2">Planètes du système ({{ $systeme->planetes->count() }}):</h4>
+            <h4 class="text-xs font-bold text-gray-400 mb-2">Planètes du système ({{ $primaires->count() }}):</h4>
             <div class="space-y-2">
-                @foreach($systeme->planetes as $planete)
+                @foreach($primaires as $planete)
                 @php
                     // Accéder aux relations via getRelation pour éviter conflit avec attributs
                     try {
@@ -317,6 +336,25 @@
                             @foreach($stationsRelation as $station)
                             <div class="bg-gray-800/50 rounded px-2 py-1 text-xs text-cyan-400">
                                 {{ $station->nom }} - {{ $station->type }}
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Satellites naturels (lunes) -->
+                    @php $lunesList = $lunesParParent->get($planete->id, collect()); @endphp
+                    @if($lunesList->count() > 0)
+                    <div class="mt-2 pt-2 border-t border-gray-700">
+                        <div class="text-gray-500 text-xs mb-1">🌙 Satellites ({{ $lunesList->count() }}):</div>
+                        <div class="space-y-1">
+                            @foreach($lunesList as $lune)
+                            <div class="bg-gray-800/30 rounded px-2 py-1 text-xs text-gray-400">
+                                {{ $lune->nom }}
+                                <span class="text-gray-600 ml-1">— {{ ucfirst($lune->type) }}</span>
+                                @if($lune->distance_planete)
+                                    <span class="text-gray-600 ml-1">{{ number_format($lune->distance_planete * 149.6, 2) }} Gm</span>
+                                @endif
                             </div>
                             @endforeach
                         </div>

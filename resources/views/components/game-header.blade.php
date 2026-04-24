@@ -26,7 +26,7 @@
     $secteurLabel = 'Espace vide';
 
     if ($systeme) {
-        $nbPlanetes = $systeme->planetes ? $systeme->planetes->count() : 0;
+        $nbPlanetes = $systeme->planetesPrimaires ? $systeme->planetesPrimaires->count() : 0;
         $hasAsteroids = false; // TODO: détecter astéroïdes
 
         if ($nbPlanetes > 0) {
@@ -85,8 +85,8 @@
                         <span class="stat-item" title="Danger: Variable">
                             ☄️ 50
                         </span>
-                        <span class="stat-item" title="Planètes et POI: {{ $systeme->planetes ? $systeme->planetes->count() : 0 }}">
-                            🌍 {{ $systeme->planetes ? $systeme->planetes->count() : 0 }}
+                        <span class="stat-item" title="Planètes et POI: {{ $systeme->planetesPrimaires ? $systeme->planetesPrimaires->count() : 0 }}">
+                            🌍 {{ $systeme->planetesPrimaires ? $systeme->planetesPrimaires->count() : 0 }}
                         </span>
                     @else
                         <span class="stat-item" title="Puissance solaire: 0/100">

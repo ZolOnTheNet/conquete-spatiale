@@ -76,7 +76,7 @@ class AdminController extends Controller
         }
 
         // Construire la requête
-        $query = SystemeStellaire::withCount('planetes');
+        $query = SystemeStellaire::withCount(['planetesPrimaires as planetes_count']);
 
         // Calculer la distance au carré par rapport aux coordonnées saisies
         // Distance² = (x2-x1)² + (y2-y1)² + (z2-z1)²
@@ -600,7 +600,7 @@ class AdminController extends Controller
         $systeme = SystemeStellaire::findOrFail($id);
 
         // Vérifier si le système a déjà des planètes
-        if ($systeme->planetes()->count() > 0) {
+        if ($systeme->planetesPrimaires()->count() > 0) {
             return redirect()->back()->with('error', "Le système {$systeme->nom} a déjà des planètes générées.");
         }
 
