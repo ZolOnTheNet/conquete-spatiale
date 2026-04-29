@@ -9,6 +9,8 @@ use App\Models\SystemeStellaire;
 use App\Models\Planete;
 use App\Models\Station;
 use App\Services\GaiaCoordinateConverter;
+use App\Services\StarNameMatcher;
+use App\Helpers\CoordinatesHelper;
 
 class GaiaSeeder extends Seeder
 {
@@ -40,6 +42,9 @@ class GaiaSeeder extends Seeder
         $this->seedSolarSystem();
 
         $radius = config('universe.gaia_radius_ly', 100);
+
+        // Initialiser le service de matching des noms d'étoiles
+        $starMatcher = app(StarNameMatcher::class);
 
         // Compter le nombre total de lignes pour la barre de progression
         $this->command->info('📊 Analyse du fichier CSV...');
@@ -92,9 +97,18 @@ class GaiaSeeder extends Seeder
             // Calculer puissance et détectabilité
             [$puissance, $detectabilite] = $this->calculateStarDetectability($spectralType);
 
+            // Chercher nom commun via coordonnées (RA, Dec, Distance)
+            $match = $starMatcher->findCommonName(
+                (float)$data['ra'],
+                (float)$data['dec'],
+                (float)$data['distance']
+            );
+
             // Ajouter au batch (SANS générer les planètes maintenant)
             $batch[] = [
                 'nom' => $data['name'] ?: "GAIA-" . substr($data['source_id'], 0, 8),
+                'nom_commun' => $match['nom_commun'] ?? null,
+                'noms_alternatifs' => $match ? json_encode($match['aliases']) : null,
                 'secteur_x' => $coords['secteur_x'],
                 'secteur_y' => $coords['secteur_y'],
                 'secteur_z' => $coords['secteur_z'],
@@ -155,6 +169,9 @@ class GaiaSeeder extends Seeder
         $this->seedSolarSystem();
 
         $this->command->info('⭐ Import des étoiles proches connues...');
+
+        // Initialiser le service de matching des noms d'étoiles
+        $starMatcher = app(StarNameMatcher::class);
 
         $etoilesConnues = [
             [
@@ -261,9 +278,18 @@ class GaiaSeeder extends Seeder
             // Calculer puissance et détectabilité
             [$puissance, $detectabilite] = $this->calculateStarDetectability($spectralType);
 
+            // Chercher nom commun via coordonnées
+            $match = $starMatcher->findCommonName(
+                $data['ra'],
+                $data['dec'],
+                $data['distance']
+            );
+
             // Créer système
             $systeme = SystemeStellaire::create([
                 'nom' => $data['nom'],
+                'nom_commun' => $match['nom_commun'] ?? $data['nom'], // Utiliser nom existant si match
+                'noms_alternatifs' => $match ? json_encode($match['aliases']) : null,
                 'secteur_x' => $coords['secteur_x'],
                 'secteur_y' => $coords['secteur_y'],
                 'secteur_z' => $coords['secteur_z'],
@@ -334,7 +360,7 @@ class GaiaSeeder extends Seeder
         $terre = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Terre',
-            'distance_etoile' => 1.0, // 1 UA
+            'distance_etoile' => CoordinatesHelper::uaToCua(1.0), // 100 cUA = 1.0 UA
             'rayon' => $rayon_terre,
             'masse' => 1.0, // 1 masse terrestre
             'type' => 'terrestre',
@@ -370,7 +396,7 @@ class GaiaSeeder extends Seeder
         $lune = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Lune',
-            'distance_etoile' => 1.00257, // Légèrement plus loin que la Terre
+            'distance_etoile' => CoordinatesHelper::uaToCua(1.00257), // 100.257 cUA (légèrement plus loin que la Terre)
             'rayon' => $rayon_lune,
             'masse' => 0.0123, // 1.23% de la masse terrestre
             'type' => 'naine',
@@ -406,7 +432,7 @@ class GaiaSeeder extends Seeder
         $mars = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Mars',
-            'distance_etoile' => 1.52, // 1.52 UA
+            'distance_etoile' => CoordinatesHelper::uaToCua(1.52), // 152 cUA = 1.52 UA
             'rayon' => $rayon_mars,
             'masse' => 0.107, // 10.7% de la masse terrestre
             'type' => 'terrestre',
@@ -442,7 +468,7 @@ class GaiaSeeder extends Seeder
         $jupiter = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Jupiter',
-            'distance_etoile' => 5.2, // 5.2 UA
+            'distance_etoile' => CoordinatesHelper::uaToCua(5.2), // 520 cUA = 5.2 UA
             'rayon' => $rayon_jupiter,
             'masse' => 317.8, // 317.8 masses terrestres
             'type' => 'gazeuse',
@@ -478,7 +504,7 @@ class GaiaSeeder extends Seeder
         $neptune = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Neptune',
-            'distance_etoile' => 30.1, // 30.1 UA
+            'distance_etoile' => CoordinatesHelper::uaToCua(30.1), // 3010 cUA = 30.1 UA
             'rayon' => $rayon_neptune,
             'masse' => 17.15, // 17.15 masses terrestres
             'type' => 'gazeuse',
@@ -535,7 +561,7 @@ class GaiaSeeder extends Seeder
             $planete = Planete::create([
                 'systeme_stellaire_id' => $systeme->id,
                 'nom' => "{$systeme->nom} {$i}",
-                'distance_etoile' => $i * 0.5 + rand(0, 10) / 10,
+                'distance_etoile' => CoordinatesHelper::uaToCua($i * 0.5 + rand(0, 10) / 10),
                 'rayon' => $rayon,
                 'masse' => match($type) {
                     'terrestre' => rand(5, 30) / 10, // 0.5 à 3 masses terrestres

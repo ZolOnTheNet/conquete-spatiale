@@ -29,6 +29,7 @@ class Personnage extends Model
         'points_action',
         'max_points_action',
         'derniere_recuperation_pa',
+        'derniere_connexion',
         'vaisseau_actif_id',
         'dans_station_id',
         'date_logs',
@@ -38,6 +39,7 @@ class Personnage extends Model
         'competences' => 'array',
         'date_logs' => 'array',
         'derniere_recuperation_pa' => 'datetime',
+        'derniere_connexion' => 'datetime',
     ];
 
     // Relations
@@ -49,6 +51,11 @@ class Personnage extends Model
     public function vaisseauActif(): BelongsTo
     {
         return $this->belongsTo(Vaisseau::class, 'vaisseau_actif_id');
+    }
+
+    public function dansStation(): BelongsTo
+    {
+        return $this->belongsTo(Station::class, 'dans_station_id');
     }
 
     public function objetsSpatiauxPossedes(): HasMany
@@ -139,19 +146,44 @@ class Personnage extends Model
     public function consommerPA(int $pa): bool
     {
         if ($this->points_action >= $pa) {
-            // Si on était au max et qu'on dépense pour la première fois, démarrer le timestamp
-            $etait_au_max = ($this->points_action >= $this->max_points_action);
-
             $this->points_action -= $pa;
 
-            // Démarrer le chrono de récupération si on passe du max à moins que max
-            if ($etait_au_max && !$this->derniere_recuperation_pa) {
+            // Démarrer le chrono de récupération dès la première dépense de PA
+            if (!$this->derniere_recuperation_pa) {
                 $this->derniere_recuperation_pa = now();
             }
+
+            // Faire avancer le temps du jeu : 1 PA = 0.5 jour in-game
+            $this->avancerTempsJeu($pa);
 
             return true;
         }
         return false;
+    }
+
+    /**
+     * Faire avancer le temps in-game selon les PA dépensés
+     * Règle : 1 PA = 0.5 jour in-game
+     *
+     * @param int $pa Nombre de PA dépensés
+     * @return void
+     */
+    public function avancerTempsJeu(int $pa): void
+    {
+        $joursAvances = $pa * 0.5; // 1 PA = 0.5 jour
+
+        // Initialiser derniere_connexion si null (premier lancement)
+        if (!$this->derniere_connexion) {
+            $this->derniere_connexion = \App\Helpers\GameTimeHelper::DATE_REFERENCE;
+        }
+
+        // Avancer la date in-game
+        $dateActuelle = \Carbon\Carbon::parse($this->derniere_connexion);
+        $nouvelleDateJeu = $dateActuelle->copy()->addDays($joursAvances);
+        $this->derniere_connexion = $nouvelleDateJeu;
+
+        // Sauvegarder immédiatement (important pour les calculs orbitaux suivants)
+        $this->save();
     }
 
     public function restaurerPA(int $pa = null): void
@@ -183,7 +215,17 @@ class Personnage extends Model
      */
     public function recupererPAAutomatique(): array
     {
-        // Si pas de timestamp = jamais dépensé de PA, aucune récupération
+        // Si pas de timestamp et pas au max, initialiser maintenant pour les personnages existants
+        if (!$this->derniere_recuperation_pa && $this->points_action < $this->max_points_action) {
+            $this->derniere_recuperation_pa = now();
+            $this->save();
+            return [
+                'pa_recuperes' => 0,
+                'heures_ecoulees' => 0,
+            ];
+        }
+
+        // Si pas de timestamp et au max, rien à faire
         if (!$this->derniere_recuperation_pa) {
             return [
                 'pa_recuperes' => 0,
@@ -436,5 +478,106 @@ class Personnage extends Model
                 return $decouverte->getInformationsRevelees();
             })
             ->toArray();
+    }
+
+    // === SYSTÈME DE SCAN V2.0 (GDD) ===
+
+    /**
+     * Lance un jet de compétence pour le scan (Daggerheart)
+     *
+     * @param string $competence 'finesse' ou 'savoir'
+     * @param int $difficulte Difficulté du jet (12-25)
+     * @return array ['succes' => bool, 'espoir' => int, 'peur' => int, 'total' => int, 'marge' => int, 'dice_type' => int, 'complication' => bool]
+     */
+    public function lancerJetScan(string $competence, int $difficulte): array
+    {
+        $modificateur = $this->{$competence} ?? 0;
+
+        // Lancer 2d12 (Espoir et Peur)
+        $deEspoir = rand(1, 12);
+        $dePeur = rand(1, 12);
+        $total = $deEspoir + $dePeur + $modificateur;
+
+        $succes = $total >= $difficulte;
+        $marge = $total - $difficulte;
+        $complication = false;
+
+        // Déterminer le TYPE de dé de bonus/malus selon la marge
+        if ($succes) {
+            // Réussite - déterminer le dé selon la marge
+            if ($marge <= 2) {
+                $this->scan_bonus_dice_type = 4;  // 1d4
+            } elseif ($marge <= 5) {
+                $this->scan_bonus_dice_type = 6;  // 1d6
+            } elseif ($marge <= 8) {
+                $this->scan_bonus_dice_type = 8;  // 1d8
+            } elseif ($marge <= 11) {
+                $this->scan_bonus_dice_type = 10; // 1d10
+            } else {
+                $this->scan_bonus_dice_type = 12; // 1d12
+            }
+
+            // Complication mineure si Peur > Espoir
+            if ($dePeur > $deEspoir) {
+                $complication = true;
+            }
+        } else {
+            // Échec - malus de 1d6
+            $this->scan_bonus_dice_type = -6;
+        }
+
+        $this->save();
+
+        return [
+            'succes' => $succes,
+            'espoir' => $deEspoir,
+            'peur' => $dePeur,
+            'total' => $total,
+            'modificateur' => $modificateur,
+            'difficulte' => $difficulte,
+            'marge' => $marge,
+            'dice_type' => $this->scan_bonus_dice_type,
+            'dice_label' => $this->getScanBonusDiceLabel(),
+            'complication' => $complication,
+        ];
+    }
+
+    /**
+     * Retourne le label du dé de bonus/malus
+     */
+    public function getScanBonusDiceLabel(): string
+    {
+        if ($this->scan_bonus_dice_type == 0) {
+            return 'Aucun';
+        } elseif ($this->scan_bonus_dice_type < 0) {
+            return '-1d' . abs($this->scan_bonus_dice_type);
+        } else {
+            return '+1d' . $this->scan_bonus_dice_type;
+        }
+    }
+
+    /**
+     * Lance le dé de bonus/malus (appelé à chaque scan)
+     */
+    public function lancerBonusScan(): int
+    {
+        if ($this->scan_bonus_dice_type == 0) {
+            return 0;
+        } elseif ($this->scan_bonus_dice_type < 0) {
+            // Malus
+            return -rand(1, abs($this->scan_bonus_dice_type));
+        } else {
+            // Bonus
+            return rand(1, $this->scan_bonus_dice_type);
+        }
+    }
+
+    /**
+     * Réinitialise le dé de bonus de scan (quand le vaisseau change de position ou refait un jet)
+     */
+    public function reinitialiserBonusScan(): void
+    {
+        $this->scan_bonus_dice_type = 0;
+        $this->save();
     }
 }

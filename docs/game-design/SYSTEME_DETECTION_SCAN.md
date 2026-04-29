@@ -1,5 +1,17 @@
 # ? SYST?ME DE D?TECTION ET SCAN
 
+---
+
+## ⚠️ DOCUMENT OBSOLÈTE - NE PLUS UTILISER
+
+**Ce document est OBSOLÈTE et ne doit plus être utilisé comme référence.**
+
+**Version actuelle : Voir [`GDD_SYSTEME_DETECTION_V2.md`](./GDD_SYSTEME_DETECTION_V2.md)**
+
+Le système décrit ci-dessous est incomplet et utilise des formules incorrectes. Il a été remplacé par un système complet dans la v2.0.
+
+---
+
 ## Vue d'ensemble
 
 Le système de scan spatial permet aux joueurs de détecter les objets et points d'intérêt (PoI) dans l'univers.

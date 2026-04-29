@@ -26,7 +26,14 @@
       "Bash(find:*)",
       "Bash(grep:*)",
       "Bash(chmod:*)",
-      "Bash(mysql:*)"
+      "Bash(mysql:*)",
+      "WebSearch",
+      "Bash(sqlite3:*)",
+      "Bash(iconv:*)",
+      "Bash(python scripts/fix-all.py:*)",
+      "Bash(sort:*)",
+      "Bash(dir:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

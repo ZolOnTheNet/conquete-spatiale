@@ -1,174 +1,174 @@
-# Ã¢âºï¿½Ã¯Â¸ï¿½ SYSTÃËME DE MINES - MAME
+# ⛏️ SYSTÈME DE MINES - MAME
 
 ## Vue d'ensemble
 
-Les **MAME (Model Autonome de Mine d'Exploitation)** sont des **Points d'IntÃÂ©rÃÂªt (PoI)** abordables qui permettent l'extraction autonome de ressources depuis les gisements planÃÂ©taires.
+Les **MAME (Model Autonome de Mine d'Exploitation)** sont des **Points d'Intérêt (PoI)** abordables qui permettent l'extraction autonome de ressources depuis les gisements planétaires.
 
 ---
 
-## ÄÅ¸ââ¹ CaractÃÂ©ristiques
+## 🔹 Caractéristiques
 
-### DÃÂ©finition
+### Définition
 
-**MAME** = Plus petite unitÃÂ© de production d'une ressource (extraction)
+**MAME** = Plus petite unité de production d'une ressource (extraction)
 
 - **Type** : PoI abordable (comme une station)
 - **Fonction** : Extraction autonome de ressources
-- **PropriÃÂ©tÃÂ©** : PossÃÂ©dÃÂ©e par un joueur, peut ÃÂªtre vendue
-- **AccÃÂ¨s** : ContrÃÂ´lÃÂ© par le propriÃÂ©taire (public, privÃÂ©, faction)
+- **Propriété** : Possédée par un joueur, peut être vendue
+- **Accès** : Contrôlé par le propriétaire (public, privé, faction)
 
 ### Identification
 
-Chaque mine a un **ID unique** (bigint, auto-incrÃÂ©mentÃÂ©) dans la table `mines`.
+Chaque mine a un **ID unique** (bigint, auto-incrémenté) dans la table `mines`.
 
 **Exemple de nommage** :
 - MAME-Fer-Mars-Alpha
 - MAME-Titanium-Jupiter-Station-01
-- Mine PersonnalisÃÂ©e du Joueur
+- Mine Personnalisée du Joueur
 
 ---
 
-## ÄÅ¸ï¿½âÃ¯Â¸ï¿½ Installation
+## 🔧 Installation
 
-### PrÃÂ©requis
+### Prérequis
 
-1. Gisement de ressource dÃÂ©couvert sur une planÃÂ¨te
-2. Ressources nÃÂ©cessaires ÃÂ  l'installation :
+1. Gisement de ressource découvert sur une planète
+2. Ressources nécessaires à l'installation :
    - Modules de construction
-   - Ãâ°nergie pour l'installation
+   - Énergie pour l'installation
    - Licence d'exploitation (si applicable)
 
 ### Emplacements possibles
 
-| Emplacement | Description | Avantages | InconvÃÂ©nients |
+| Emplacement | Description | Avantages | Inconvénients |
 |-------------|-------------|-----------|---------------|
-| **Surface** | Mine installÃÂ©e ÃÂ  la surface de la planÃÂ¨te | AccÃÂ¨s direct au gisement, stable | NÃÂ©cessite planÃÂ¨te accessible |
-| **Orbite** | Mine orbitale (pour extraction depuis l'espace) | Pas besoin d'atterrir | CoÃÂ»t plus ÃÂ©levÃÂ©, moins efficace |
+| **Surface** | Mine installée à la surface de la planète | Accès direct au gisement, stable | Nécessite planète accessible |
+| **Orbite** | Mine orbitale (pour extraction depuis l'espace) | Pas besoin d'atterrir | Coût plus élevé, moins efficace |
 
 ---
 
-## Ã¢Å¡â¢Ã¯Â¸ï¿½ Fonctionnement
+## ⚙️ Fonctionnement
 
 ### Production autonome
 
-La mine **extrait automatiquement** des ressources en fonction du temps ÃÂ©coulÃÂ© dans le jeu.
+La mine **extrait automatiquement** des ressources en fonction du temps écoulé dans le jeu.
 
 **Formule** :
 ```
-quantite_extraite = taux_extraction Ãâ temps_passe Ãâ facteur_usure
+quantite_extraite = taux_extraction × temps_passe × facteur_usure
 ```
 
-**OÃÂ¹** :
-- `taux_extraction` : UnitÃÂ©s/jour (temps de jeu) - dÃÂ©faut 100 unitÃÂ©s/jour
-- `temps_passe` : Jours de jeu ÃÂ©coulÃÂ©s depuis derniÃÂ¨re extraction
-- `facteur_usure` : 1.0 - (niveau_usure / 200) Ã¢â â Max -50% ÃÂ  100% d'usure
+**Où** :
+- `taux_extraction` : Unités/jour (temps de jeu) - défaut 100 unités/jour
+- `temps_passe` : Jours de jeu écoulés depuis dernière extraction
+- `facteur_usure` : 1.0 - (niveau_usure / 200) → Max -50% à 100% d'usure
 
 ### Consommation de ressources
 
 Pour fonctionner, la mine consomme :
 
-| Ressource | Consommation | FrÃÂ©quence |
+| Ressource | Consommation | Fréquence |
 |-----------|--------------|-----------|
-| **Ãâ°nergie** | 10 unitÃÂ©s | Par jour |
-| **PiÃÂ¨ces de rechange** | 1 unitÃÂ© | Par mois |
-| **PiÃÂ¨ces d'usure** | 5 unitÃÂ©s | Par mois |
+| **Énergie** | 10 unités | Par jour |
+| **Pièces de rechange** | 1 unité | Par mois |
+| **Pièces d'usure** | 5 unités | Par mois |
 
-Ã¢Å¡Â Ã¯Â¸ï¿½ **Si la mine manque de ressources, elle s'arrÃÂªte !**
+⚠️ **Si la mine manque de ressources, elle s'arrête !**
 
 ### Stockage
 
-- **CapacitÃÂ© de stockage** : 10 000 unitÃÂ©s (configurable par modÃÂ¨le)
-- **Stock actuel** : QuantitÃÂ© de ressource actuellement stockÃÂ©e
-- **Stock plein** : La mine s'arrÃÂªte d'extraire si le stock est plein
+- **Capacité de stockage** : 10 000 unités (configurable par modèle)
+- **Stock actuel** : Quantité de ressource actuellement stockée
+- **Stock plein** : La mine s'arrête d'extraire si le stock est plein
 
 ---
 
-## ÄÅ¸ââ SystÃÂ¨me d'accÃÂ¨s
+## 🔐 Système d'accès
 
-### Modes d'accÃÂ¨s
+### Modes d'accès
 
-Le propriÃÂ©taire peut configurer l'accÃÂ¨s ÃÂ  la mine :
+Le propriétaire peut configurer l'accès à la mine :
 
-1. **PrivÃÂ©** (dÃÂ©faut) : Seul le propriÃÂ©taire peut accÃÂ©der
-2. **Public** : Tout le monde peut rÃÂ©cupÃÂ©rer des ressources
-3. **Faction** : Membres de la faction du propriÃÂ©taire
-4. **Liste d'autorisÃÂ©s** : Liste spÃÂ©cifique de personnages autorisÃÂ©s
+1. **Privé** (défaut) : Seul le propriétaire peut accéder
+2. **Public** : Tout le monde peut récupérer des ressources
+3. **Faction** : Membres de la faction du propriétaire
+4. **Liste d'autorisés** : Liste spécifique de personnages autorisés
 
 ### Actions possibles
 
-| Action | PropriÃÂ©taire | AutorisÃÂ© | Public (si activÃÂ©) |
+| Action | Propriétaire | Autorisé | Public (si activé) |
 |--------|--------------|----------|-------------------|
-| RÃÂ©cupÃÂ©rer ressources | Ã¢Åâ¦ | Ã¢Åâ¦ | Ã¢Åâ¦ |
-| Ravitailler (ÃÂ©nergie, piÃÂ¨ces) | Ã¢Åâ¦ | Ã¢Åâ¦ | Ã¢ï¿½Å |
-| Effectuer maintenance | Ã¢Åâ¦ | Ã¢Åâ¦ | Ã¢ï¿½Å |
-| Modifier accÃÂ¨s | Ã¢Åâ¦ | Ã¢ï¿½Å | Ã¢ï¿½Å |
-| Vendre la mine | Ã¢Åâ¦ | Ã¢ï¿½Å | Ã¢ï¿½Å |
+| Récupérer ressources | ✅ | ✅ | ✅ |
+| Ravitailler (énergie, pièces) | ✅ | ✅ | ❌ |
+| Effectuer maintenance | ✅ | ✅ | ❌ |
+| Modifier accès | ✅ | ❌ | ❌ |
+| Vendre la mine | ✅ | ❌ | ❌ |
 
 ---
 
-## ÄÅ¸âºÂ Ã¯Â¸ï¿½ Maintenance
+## 🔧 Maintenance
 
 ### Usure
 
 - **Niveau d'usure** : 0-100%
-- **Augmentation** : +0.1% par jour d'activitÃÂ©
-- **Effet** : RÃÂ©duit le taux d'extraction jusqu'ÃÂ  -50%
+- **Augmentation** : +0.1% par jour d'activité
+- **Effet** : Réduit le taux d'extraction jusqu'à -50%
 
-### Ãâ°tats opÃÂ©rationnels
+### États opérationnels
 
 | Statut | Description | Production |
 |--------|-------------|------------|
-| **Active** | Fonctionne normalement | Ã¢Åâ¦ 100% |
-| **Inactive** | ArrÃÂªtÃÂ©e manuellement | Ã¢ï¿½Å 0% |
-| **Maintenance** | Usure Ã¢â°Â¥ 100%, nÃÂ©cessite rÃÂ©paration | Ã¢ï¿½Å 0% |
-| **EndommagÃÂ©e** | DÃÂ©faillance technique | Ã¢ï¿½Å 0% |
+| **Active** | Fonctionne normalement | ✅ 100% |
+| **Inactive** | Arrêtée manuellement | ❌ 0% |
+| **Maintenance** | Usure ≥ 100%, nécessite réparation | ❌ 0% |
+| **Endommagée** | Défaillance technique | ❌ 0% |
 
 ### Effectuer la maintenance
 
-**CoÃÂ»t** :
-- 1 piÃÂ¨ce de rechange
-- 5 piÃÂ¨ces d'usure
+**Coût** :
+- 1 pièce de rechange
+- 5 pièces d'usure
 
 **Effet** :
-- RÃÂ©initialise l'usure ÃÂ  0%
+- Réinitialise l'usure à 0%
 - Remet la mine en statut "Active"
 
 ---
 
-## ÄÅ¸âÂ° Ãâ°conomie
+## 💰 Économie
 
 ### Prix et valeur
 
-- **Valeur estimÃÂ©e** : 50 000 crÃÂ©dits (dÃÂ©faut)
-- **Prix d'achat** : Prix payÃÂ© lors de l'achat (si seconde main)
+- **Valeur estimée** : 50 000 crédits (défaut)
+- **Prix d'achat** : Prix payé lors de l'achat (si seconde main)
 - **Vendable** : Oui, entre joueurs
 
-### RentabilitÃÂ©
+### Rentabilité
 
 **Exemple** : Mine de Fer
-- **Production** : 100 unitÃÂ©s/jour
-- **Consommation ÃÂ©nergie** : 10 unitÃÂ©s/jour (coÃÂ»t : ~10 crÃÂ©dits)
-- **Valeur du fer** : 5 crÃÂ©dits/unitÃÂ©
-- **Revenu brut** : 500 crÃÂ©dits/jour
-- **Revenu net** : ~490 crÃÂ©dits/jour
+- **Production** : 100 unités/jour
+- **Consommation énergie** : 10 unités/jour (coût : ~10 crédits)
+- **Valeur du fer** : 5 crédits/unité
+- **Revenu brut** : 500 crédits/jour
+- **Revenu net** : ~490 crédits/jour
 
-**Amortissement** : ~102 jours (si achat ÃÂ  50 000 crÃÂ©dits)
+**Amortissement** : ~102 jours (si achat à 50 000 crédits)
 
 ---
 
-## ÄÅ¸âï¿½ DÃÂ©tection
+## 🔍 Détection
 
 ### PoI connu
 
 - **Champ** : `poi_connu` (boolean)
-- **DÃÂ©tectabilitÃÂ© de base** : 30.0 (plus facile ÃÂ  dÃÂ©tecter qu'une petite station)
-- **Visible sur la carte** : Si dÃÂ©couverte
+- **Détectabilité de base** : 30.0 (plus facile à détecter qu'une petite station)
+- **Visible sur la carte** : Si découverte
 
-Les mines peuvent ÃÂªtre dÃÂ©tectÃÂ©es via la commande `scan`.
+Les mines peuvent être détectées via la commande `scan`.
 
 ---
 
-## ÄÅ¸ï¿½Â® Commandes joueur
+## 💻 Commandes joueur
 
 ### Aborder une mine
 
@@ -176,7 +176,7 @@ Les mines peuvent ÃÂªtre dÃÂ©tectÃÂ©es via la commande `scan`.
 arrimer mine <nom_mine>
 ```
 
-### RÃÂ©cupÃÂ©rer des ressources
+### Récupérer des ressources
 
 ```
 recuperer <quantite> <ressource> depuis mine
@@ -195,7 +195,7 @@ ravitailler mine <nom_mine> pieces <quantite>
 maintenance mine <nom_mine>
 ```
 
-### GÃÂ©rer les accÃÂ¨s
+### Gérer les accès
 
 ```
 mine acces <nom_mine> public
@@ -213,28 +213,28 @@ vendre mine <nom_mine> a <nom_joueur> pour <prix>
 
 ---
 
-## ÄÅ¸ï¿½Â¨ Interface Admin
+## 🔨 Interface Admin
 
 ### Gestion des mines
 
 Route : `/admin/mines`
 
-**FonctionnalitÃÂ©s** :
-- Ã¢Åâ¦ Lister toutes les mines
-- Ã¢Åâ¦ CrÃÂ©er une mine (pour test)
-- Ã¢Åâ¦ Modifier caractÃÂ©ristiques (taux extraction, capacitÃÂ©, etc.)
-- Ã¢Åâ¦ Supprimer une mine
-- Ã¢Åâ¦ Forcer maintenance
-- Ã¢Åâ¦ Ravitailler instantanÃÂ©ment
-- Ã¢Åâ¦ Changer propriÃÂ©taire
+**Fonctionnalités** :
+- ✅ Lister toutes les mines
+- ✅ Créer une mine (pour test)
+- ✅ Modifier caractéristiques (taux extraction, capacité, etc.)
+- ✅ Supprimer une mine
+- ✅ Forcer maintenance
+- ✅ Ravitailler instantanément
+- ✅ Changer propriétaire
 
 **Affichage dans planete-detail** :
-- Liste des mines sur la planÃÂ¨te
-- Bouton "CrÃÂ©er une mine" sur un gisement
+- Liste des mines sur la planète
+- Bouton "Créer une mine" sur un gisement
 
 ---
 
-## ÄÅ¸âÂ¾ Structure technique
+## 🗄️ Structure technique
 
 ### Table `mines`
 
@@ -251,114 +251,114 @@ base_id, connectee_base, valeur_estimee,
 poi_connu, detectabilite_base
 ```
 
-### ModÃÂ¨le `Mine`
+### Modèle `Mine`
 
 **Relations** :
-- `planete()` : PlanÃÂ¨te oÃÂ¹ se trouve la mine
-- `gisement()` : Gisement exploitÃÂ©
-- `proprietaire()` : PropriÃÂ©taire actuel
-- `installateur()` : Qui l'a installÃÂ©e
-- `faction()` : Faction associÃÂ©e (si applicable)
-- `base()` : Base connectÃÂ©e (optionnel)
+- `planete()` : Planète où se trouve la mine
+- `gisement()` : Gisement exploité
+- `proprietaire()` : Propriétaire actuel
+- `installateur()` : Qui l'a installée
+- `faction()` : Faction associée (si applicable)
+- `base()` : Base connectée (optionnel)
 
-**MÃÂ©thodes principales** :
-- `peutAcceder(Personnage)` : VÃÂ©rifier les droits d'accÃÂ¨s
-- `peutFonctionner()` : VÃÂ©rifier si peut produire
+**Méthodes principales** :
+- `peutAcceder(Personnage)` : Vérifier les droits d'accès
+- `peutFonctionner()` : Vérifier si peut produire
 - `extraire(tempsPasse)` : Extraction automatique
 - `recupererRessources(quantite, Personnage)` : Retrait manuel
-- `effectuerMaintenance()` : RÃÂ©paration
+- `effectuerMaintenance()` : Réparation
 - `ravitailler()` : Ajouter consommables
 - `vendre(nouveauProprietaire, prix)` : Transaction
 
 ---
 
-## ÄÅ¸Å¡â¬ Future : Interface avec base
+## 🏗️ Future : Interface avec base
 
-### Connexion ÃÂ  une base
+### Connexion à une base
 
-Une mine peut ÃÂªtre **connectÃÂ©e ÃÂ  une base** :
+Une mine peut être **connectée à une base** :
 
 **Avantages** :
-- Ã¢Åâ¦ Transfert automatique des ressources vers la base
-- Ã¢Åâ¦ Ravitaillement automatique depuis la base
-- Ã¢Åâ¦ Maintenance automatisÃÂ©e
-- Ã¢Åâ¦ Surveillance centralisÃÂ©e
+- ✅ Transfert automatique des ressources vers la base
+- ✅ Ravitaillement automatique depuis la base
+- ✅ Maintenance automatisée
+- ✅ Surveillance centralisée
 
 **Configuration** :
 - `base_id` : ID de la base
 - `connectee_base` : true/false
 
-Ã¢Å¡Â Ã¯Â¸ï¿½ **Non implÃÂ©mentÃÂ© dans la Phase 1**
+⚠️ **Non implémenté dans la Phase 1**
 
 ---
 
-## ÄÅ¸âÅ  Statistiques et monitoring
+## 📊 Statistiques et monitoring
 
-### Tableau de bord propriÃÂ©taire
+### Tableau de bord propriétaire
 
 **Affichage** :
 - Nom et localisation
-- Ressource exploitÃÂ©e
-- Production actuelle vs thÃÂ©orique
+- Ressource exploitée
+- Production actuelle vs théorique
 - Stock disponible
 - Niveau d'usure
 - Consommables restants (jours d'autonomie)
-- Revenu gÃÂ©nÃÂ©rÃÂ© (total)
+- Revenu généré (total)
 
 ---
 
-## Ã¢Åâ¦ Checklist d'implÃÂ©mentation
+## ✅ Checklist d'implémentation
 
 - [x] Migration `create_mines_table`
-- [x] ModÃÂ¨le `Mine` avec relations et mÃÂ©thodes
-- [x] Documentation complÃÂ¨te
+- [x] Modèle `Mine` avec relations et méthodes
+- [x] Documentation complète
 - [ ] Relations inverses (Planete, Gisement, Personnage)
 - [ ] Interface admin mines
-- [ ] Commandes joueur (arrimer, rÃÂ©cupÃÂ©rer, ravitailler)
-- [ ] SystÃÂ¨me d'extraction automatique (cron/temporel)
+- [ ] Commandes joueur (arrimer, récupérer, ravitailler)
+- [ ] Système d'extraction automatique (cron/temporel)
 - [ ] Tests unitaires
 
 ---
 
 ---
 
-## ÄÅ¸ï¿½Â¯ AccÃÂ¨s et Interface Contextuelle
+## 🔯 Accès et Interface Contextuelle
 
-### AccÃÂ¨s depuis le vaisseau
+### Accès depuis le vaisseau
 
-Les mines sont accessibles depuis diffÃÂ©rents contextes selon la localisation du personnage :
+Les mines sont accessibles depuis différents contextes selon la localisation du personnage :
 
 **Dans un vaisseau** :
-- Ã¢Åâ¦ Voir les mines via **COM (Communications)** - Bases de donnÃÂ©es ÃÂ  distance
-- Ã¢Åâ¦ Scanner les mines comme PoI
-- Ã¢ï¿½Å Pas d'accÃÂ¨s direct au marchÃÂ© (mais donnÃÂ©es des marchÃÂ©s via COM)
-- Ã¢ï¿½Å Pas d'accÃÂ¨s direct aux descriptions d'armes/combat
+- ✅ Voir les mines via **COM (Communications)** - Bases de données à distance
+- ✅ Scanner les mines comme PoI
+- ❌ Pas d'accès direct au marché (mais données des marchés via COM)
+- ❌ Pas d'accès direct aux descriptions d'armes/combat
 
 **Dans une station/ville** :
-- Ã¢Åâ¦ AccÃÂ¨s complet au marchÃÂ©
-- Ã¢Åâ¦ AccÃÂ¨s aux informations dÃÂ©taillÃÂ©es
-- Ã¢Åâ¦ PossibilitÃÂ© d'achat/vente
+- ✅ Accès complet au marché
+- ✅ Accès aux informations détaillées
+- ✅ Possibilité d'achat/vente
 
 **Menu Vaisseau** :
 - **Timonerie** : Position, Carte, Scanner
-- **IngÃÂ©nierie** : Ãâ°tat du vaisseau, rÃÂ©parations
+- **Ingénierie** : État du vaisseau, réparations
 - **Soute** : Inventaire, cargaison
-- **Armement** : Armes embarquÃÂ©es
+- **Armement** : Armes embarquées
 - **COM** : Communications
-  - Bases de donnÃÂ©es stations/villes ÃÂ  proximitÃÂ©
+  - Bases de données stations/villes à proximité
   - Prix d'achat/vente des ressources
   - Demande des stations et villes
-  - Messages sur sous-rÃÂ©seaux (achetables)
+  - Messages sur sous-réseaux (achetables)
 
 ### Position du personnage
 
-Le systÃÂ¨me affiche toujours :
-- **Type de localisation** : Vaisseau, Station, Navette, PlanÃÂ¨te, etc.
-- **Position spatiale** : CoordonnÃÂ©es (secteur + position)
+Le système affiche toujours :
+- **Type de localisation** : Vaisseau, Station, Navette, Planète, etc.
+- **Position spatiale** : Coordonnées (secteur + position)
 - **Objet spatial** : Nom du vaisseau/station
-- **Ãâ°tat** : En dÃÂ©placement, amarrÃÂ©, en orbite, etc.
+- **État** : En déplacement, amarré, en orbite, etc.
 
 ---
 
-**DerniÃÂ¨re mise ÃÂ  jour** : 2025-11-23
-**Statut** : En dÃÂ©veloppement
+**Dernière mise à jour** : 2025-11-23
+**Statut** : En développement

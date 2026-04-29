@@ -74,4 +74,46 @@ return [
     'planet_min_per_system' => env('UNIVERSE_PLANET_MIN', 0),
     'planet_max_per_system' => env('UNIVERSE_PLANET_MAX', 12),
 
+    /*
+    |--------------------------------------------------------------------------
+    | NASA Exoplanet Archive Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration pour l'import et l'utilisation des exoplanètes NASA
+    |
+    */
+
+    'exoplanet_enabled' => env('UNIVERSE_EXOPLANET_ENABLED', true),
+    'exoplanet_api_url' => env('UNIVERSE_EXOPLANET_API_URL', 'https://exoplanetarchive.ipac.caltech.edu/TAP/sync'),
+    'exoplanet_cache_duration' => env('UNIVERSE_EXOPLANET_CACHE', 86400), // 24 heures
+    'exoplanet_api_timeout' => env('UNIVERSE_EXOPLANET_TIMEOUT', 120), // 2 minutes
+
+    /*
+    |--------------------------------------------------------------------------
+    | Dynamic Universe Generation
+    |--------------------------------------------------------------------------
+    |
+    | Génération dynamique de l'univers pendant le jeu
+    | L'univers s'étend automatiquement quand les joueurs explorent
+    |
+    */
+
+    'dynamic_generation_enabled' => env('UNIVERSE_DYNAMIC_GENERATION', true),
+    'dynamic_generation_radius' => env('UNIVERSE_DYNAMIC_RADIUS', 3), // Rayon en secteurs
+    'generate_empty_sectors' => env('UNIVERSE_GENERATE_EMPTY', false), // Générer même si pas d'étoile GAIA
+
+    /*
+    |--------------------------------------------------------------------------
+    | Universe Expansion Strategy
+    |--------------------------------------------------------------------------
+    |
+    | Stratégie de génération dynamique:
+    | - 'on_jump': Générer autour de la destination à chaque saut (recommandé)
+    | - 'on_scan': Générer uniquement lors d'un scan
+    | - 'manual': Pas de génération automatique
+    |
+    */
+
+    'expansion_strategy' => env('UNIVERSE_EXPANSION_STRATEGY', 'on_jump'),
+
 ];

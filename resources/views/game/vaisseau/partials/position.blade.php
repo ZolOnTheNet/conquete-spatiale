@@ -31,9 +31,9 @@
                 <div class="flex justify-between">
                     <span class="text-gray-400">Position dans secteur:</span>
                     <span class="text-cyan-400 font-mono">
-                        ({{ $objetSpatial->position_x }},
-                         {{ $objetSpatial->position_y }},
-                         {{ $objetSpatial->position_z }}) AL
+                        ({{ number_format($objetSpatial->position_x/100, 2) }},
+                         {{ number_format($objetSpatial->position_y/100, 2) }},
+                         {{ number_format($objetSpatial->position_z/100, 2) }}) UA
                     </span>
                 </div>
             </div>

@@ -29,7 +29,9 @@ class GameTimeHelper
     public static function dateToJours(Carbon $date): float
     {
         $reference = Carbon::parse(self::DATE_REFERENCE);
-        return $date->floatDiffInDays($reference, false); // false = peut être négatif
+        // Inverser l'ordre : reference->diff(date) au lieu de date->diff(reference)
+        // pour obtenir un nombre positif quand date > reference
+        return $reference->floatDiffInDays($date, false); // false = peut être négatif
     }
 
     /**

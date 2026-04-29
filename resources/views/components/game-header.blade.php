@@ -2,8 +2,14 @@
 @props(['personnage', 'vaisseau' => null, 'systeme' => null, 'secteur' => null])
 
 @php
+    use App\Helpers\GameTimeHelper;
+
     // Récupérer l'objet spatial du vaisseau
     $objetSpatial = $vaisseau?->objetSpatial;
+
+    // Récupérer la date du jeu
+    $dateJeu = $personnage ? GameTimeHelper::getDateActuelleJeu($personnage) : null;
+    $dateJeuFormatee = $dateJeu ? GameTimeHelper::formatDateJeu($dateJeu, 'd M Y H:i') : '—';
 
     // Calculer les pourcentages pour le vaisseau
     $energiePercent = $vaisseau && $vaisseau->reserve > 0
@@ -56,7 +62,10 @@
 
         {{-- COLONNE 2 : SYSTÈME --}}
         <div class="header-column header-system">
-            <div class="column-title">📍 SYSTÈME</div>
+            <div class="column-title">
+                📍 SYSTÈME
+                <span class="text-purple-400 font-normal ml-2" title="Date in-game">🕐 {{ $dateJeuFormatee }}</span>
+            </div>
 
             @if($objetSpatial)
                 {{-- Position et Réseau sur la même ligne --}}
@@ -79,8 +88,8 @@
                 {{-- Bloc Caractéristiques COMPACT (icônes + valeurs, détails en tooltip) --}}
                 <div class="system-stats-compact">
                     @if($systeme)
-                        <span class="stat-item" title="Puissance solaire: {{ $systeme->puissance_solaire ?? 50 }}/100">
-                            ☀️ {{ number_format($systeme->puissance_solaire ?? 50, 2) }}
+                        <span class="stat-item" title="Puissance solaire: {{ $systeme->puissance ?? 50 }}/100">
+                            ☀️ {{ number_format($systeme->puissance ?? 50, 2) }}
                         </span>
                         <span class="stat-item" title="Danger: Variable">
                             ☄️ 50

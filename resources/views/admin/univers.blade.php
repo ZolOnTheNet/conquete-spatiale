@@ -1,50 +1,11 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Admin - Univers')
 
-@section('content')
-<div class="min-h-screen flex flex-col">
-    <!-- Header -->
-    <header class="bg-gray-900/90 border-b border-red-500/30 px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-4">
-            <h1 class="text-2xl font-orbitron text-red-400">ADMINISTRATION</h1>
-        </div>
-        <a href="{{ route('dashboard') }}" class="text-cyan-400 hover:text-cyan-300 text-sm">
-            Retour au jeu
-        </a>
-    </header>
+@section('admin-title', 'ADMINISTRATION')
 
-    <div class="flex-1 flex">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-gray-900/80 border-r border-red-500/20 p-4">
-            <nav class="space-y-2">
-                <a href="{{ route('admin.index') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Dashboard
-                </a>
-                <a href="{{ route('admin.comptes') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Comptes
-                </a>
-                <a href="{{ route('admin.univers') }}" class="block px-4 py-2 rounded bg-red-500/20 text-red-300">
-                    Univers
-                </a>
-                <a href="{{ route('admin.planetes') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Planètes
-                </a>
-                <a href="{{ route('admin.production') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Productions
-                </a>
-                <a href="{{ route('admin.carte') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Carte
-                </a>
-                <a href="{{ route('admin.backup') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Backup
-                </a>
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="flex-1 p-6">
-            <h2 class="text-xl font-bold text-white mb-6">Exploration de l'Univers</h2>
+@section('admin-content')
+<h2 class="text-xl font-bold text-white mb-6">Exploration de l'Univers</h2>
 
             <!-- Formulaire de filtrage -->
             <form method="GET" action="{{ route('admin.univers') }}" class="bg-gray-800/50 border border-gray-700 rounded-lg p-4 mb-6">
@@ -52,24 +13,24 @@
                     <!-- Coordonnées de référence -->
                     <div>
                         <label class="block text-xs text-gray-200 mb-1">Coord X (AL)</label>
-                        <input type="number" step="0.01" name="coord_x" value="{{ $coordX }}"
+                        <input type="number" step="1" name="coord_x" value="{{ $coordX }}"
                                class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                     </div>
                     <div>
                         <label class="block text-xs text-gray-200 mb-1">Coord Y (AL)</label>
-                        <input type="number" step="0.01" name="coord_y" value="{{ $coordY }}"
+                        <input type="number" step="1" name="coord_y" value="{{ $coordY }}"
                                class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                     </div>
                     <div>
                         <label class="block text-xs text-gray-200 mb-1">Coord Z (AL)</label>
-                        <input type="number" step="0.01" name="coord_z" value="{{ $coordZ }}"
+                        <input type="number" step="1" name="coord_z" value="{{ $coordZ }}"
                                class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                     </div>
 
                     <!-- Distance maximale -->
                     <div>
                         <label class="block text-xs text-gray-200 mb-1">Distance max (0=∞)</label>
-                        <input type="number" step="0.01" min="0" name="max_distance" value="{{ $maxDistance }}"
+                        <input type="number" step="1" min="0" name="max_distance" value="{{ $maxDistance }}"
                                class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                     </div>
 
@@ -192,7 +153,14 @@
                     <tbody class="divide-y divide-gray-700">
                         @foreach($systemes as $systeme)
                         <tr class="hover:bg-gray-700/50">
-                            <td class="px-4 py-3 text-sm text-white cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">{{ $systeme->nom }}</td>
+                            <td class="px-4 py-3 text-sm text-white cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">
+                                @if($systeme->nom_commun)
+                                    <div class="text-purple-300 font-bold">{{ $systeme->nom_commun }}</div>
+                                    <div class="text-xs text-gray-500">{{ $systeme->nom }}</div>
+                                @else
+                                    {{ $systeme->nom }}
+                                @endif
+                            </td>
                             <td class="px-4 py-3 text-sm text-yellow-400 cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">{{ $systeme->type_etoile }}</td>
                             <td class="px-4 py-3 text-sm text-orange-400 cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">
                                 @if($systeme->puissance)
@@ -229,13 +197,12 @@
                             <td class="px-4 py-3 text-sm text-cyan-400 cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">{{ $systeme->planetes_count }}</td>
                             <td class="px-4 py-3 text-sm cursor-pointer" onclick="window.location='{{ route('admin.univers.show', $systeme->id) }}'">
                                 <div class="text-white">
-                                    ({{ number_format($systeme->secteur_x + $systeme->position_x, 3) }},
-                                    {{ number_format($systeme->secteur_y + $systeme->position_y, 3) }},
-                                    {{ number_format($systeme->secteur_z + $systeme->position_z, 3) }})
+                                    ({{ $systeme->secteur_x }},
+                                    {{ $systeme->secteur_y }},
+                                    {{ $systeme->secteur_z }}) <span class="text-xs text-gray-500">AL</span>
                                 </div>
                                 <div class="text-xs text-gray-500">
-                                    S:[{{ $systeme->secteur_x }},{{ $systeme->secteur_y }},{{ $systeme->secteur_z }}]
-                                    P:[{{ number_format($systeme->position_x, 3) }},{{ number_format($systeme->position_y, 3) }},{{ number_format($systeme->position_z, 3) }}]
+                                    P:[{{ number_format($systeme->position_x/100, 2) }},{{ number_format($systeme->position_y/100, 2) }},{{ number_format($systeme->position_z/100, 2) }} UA]
                                 </div>
                             </td>
                             <td class="px-4 py-3 text-sm">
@@ -262,7 +229,4 @@
             <div class="mt-4">
                 {{ $systemes->links() }}
             </div>
-        </main>
-    </div>
-</div>
 @endsection

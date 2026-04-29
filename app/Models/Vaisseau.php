@@ -72,6 +72,11 @@ class Vaisseau extends Model
         'arrime_a_station_id',
         'arrime_le',
         'dernier_jet_pilotage',
+        // Système orbital
+        'orbite_planete_id',
+        'orbite_rayon_ua',
+        'orbite_angle_initial',
+        'orbite_debut',
     ];
 
     protected $casts = [
@@ -89,12 +94,83 @@ class Vaisseau extends Model
         'en_combat' => 'boolean',
         'dernier_jet_pilotage' => 'array',
         'arrime_le' => 'datetime',
+        'orbite_debut' => 'datetime',
     ];
 
     // Relations
     public function objetSpatial(): BelongsTo
     {
         return $this->belongsTo(ObjetSpatial::class, 'objet_spatial_id');
+    }
+
+    public function orbitePlanete(): BelongsTo
+    {
+        return $this->belongsTo(Planete::class, 'orbite_planete_id');
+    }
+
+    /**
+     * Calcule la position actuelle du vaisseau en orbite (en cUA)
+     * Retourne null si le vaisseau n'est pas en orbite
+     *
+     * @param float|null $timestampJours Timestamp en jours (null = actuel)
+     * @return array|null ['x' => int, 'y' => int, 'z' => int] Position en cUA, ou null si pas en orbite
+     */
+    public function getPositionOrbitale(?float $timestampJours = null): ?array
+    {
+        // Vérifier si le vaisseau est en orbite
+        if (!$this->orbite_planete_id || !$this->orbite_rayon_ua || $this->orbite_angle_initial === null) {
+            return null;
+        }
+
+        $timestampJours = $timestampJours ?? \App\Helpers\GameTimeHelper::getTimestampJoursActuel(
+            \App\Models\Personnage::where('vaisseau_actif_id', $this->id)->first()
+        );
+
+        // Charger la planète orbitée
+        $planete = $this->orbitePlanete;
+        if (!$planete) {
+            return null;
+        }
+
+        // Position absolue de la planète (en cUA)
+        $planetePosAbs = $planete->getPositionAbsolue($timestampJours);
+
+        // Calculer vitesse angulaire orbitale (rad/jour)
+        // Formule simplifiée: plus l'orbite est proche, plus elle est rapide
+        // Pour une orbite à 0.01 UA (~1.5M km), période ~1 jour
+        // vitesse_angulaire = 2π / période
+        $rayon_ua = $this->orbite_rayon_ua;
+        $periode_jours = sqrt($rayon_ua) * 10; // Simplifié (Kepler serait: T² ∝ R³)
+        $vitesse_angulaire = (2 * M_PI) / max(0.1, $periode_jours); // rad/jour
+
+        // Temps écoulé depuis début orbite
+        $tempsEcoule = $timestampJours - \App\Helpers\GameTimeHelper::dateToJours($this->orbite_debut);
+
+        // Angle actuel du vaisseau
+        $angleActuel = $this->orbite_angle_initial + ($vitesse_angulaire * $tempsEcoule);
+
+        // Position relative du vaisseau par rapport à la planète (orbite circulaire dans plan XY)
+        $rayon_cua = \App\Helpers\CoordinatesHelper::uaToCua($rayon_ua);
+        $x_relatif = (int)round($rayon_cua * cos($angleActuel));
+        $y_relatif = (int)round($rayon_cua * sin($angleActuel));
+        $z_relatif = 0; // Plan orbital simplifié
+
+        // Position absolue du vaisseau = position planète + offset orbital
+        return [
+            'x' => $planetePosAbs['x'] + $x_relatif,
+            'y' => $planetePosAbs['y'] + $y_relatif,
+            'z' => $planetePosAbs['z'] + $z_relatif,
+        ];
+    }
+
+    /**
+     * Vérifie si le vaisseau est actuellement en orbite
+     *
+     * @return bool
+     */
+    public function estEnOrbite(): bool
+    {
+        return $this->orbite_planete_id !== null;
     }
 
     // Méthodes de propulsion (selon GDD)
@@ -141,6 +217,93 @@ class Vaisseau extends Model
             $this->reserve,
             $this->energie_actuelle + $quantite
         );
+    }
+
+    /**
+     * Recharge l'énergie depuis une étoile (Type B uniquement)
+     * @param int $nb_pa Nombre de PA à dépenser pour recharger
+     * @param bool $admin_override Mode admin qui bypass les restrictions
+     * @return array Résultat du rechargement
+     */
+    public function rechargerDepuisEtoile(int $nb_pa, bool $admin_override = false): array
+    {
+        // Vérifier que le vaisseau est de Type B (extraction énergie) sauf en mode admin
+        if (!$admin_override && $this->mode !== 'energetique') {
+            return [
+                'success' => false,
+                'message' => "[ERREUR] Rechargement impossible. Votre vaisseau utilise une propulsion à combustible (Type A).\nVous devez vous ravitailler à une station avec la commande 'ravitailler'.",
+            ];
+        }
+
+        // Vérifier que l'énergie n'est pas déjà au maximum
+        if ($this->energie_actuelle >= $this->reserve) {
+            return [
+                'success' => false,
+                'message' => "[INFO] Réserve d'énergie déjà pleine ({$this->energie_actuelle}/{$this->reserve} UE).",
+            ];
+        }
+
+        // Trouver le système stellaire actuel
+        $os = $this->objetSpatial;
+        $systeme = \App\Models\SystemeStellaire::where('secteur_x', $os->secteur_x)
+            ->where('secteur_y', $os->secteur_y)
+            ->where('secteur_z', $os->secteur_z)
+            ->first();
+
+        if (!$systeme) {
+            return [
+                'success' => false,
+                'message' => "[ERREUR] Aucun système stellaire détecté à cette position. Impossible de recharger en espace profond.",
+            ];
+        }
+
+        // Calculer la puissance de l'étoile
+        $puissance_etoile = $systeme->puissance ?? $systeme->puissance_solaire ?? 50;
+
+        // Calculer l'énergie rechargée (puissance étoile par PA)
+        $energie_rechargee = $puissance_etoile * $nb_pa;
+
+        // Appliquer le rechargement
+        $energie_avant = $this->energie_actuelle;
+        $this->rechargerEnergie($energie_rechargee);
+        $energie_apres = $this->energie_actuelle;
+        $energie_reellement_ajoutee = $energie_apres - $energie_avant;
+
+        $this->save();
+
+        // Message différent selon le type de propulsion
+        $type_propulsion_msg = match($this->type_propulsion ?? 1) {
+            1 => 'micro-panneaux',
+            2 => 'voile solaire',
+            3 => 'matière noire',
+            default => 'extraction d\'énergie',
+        };
+
+        $message = "[RECHARGE] Extraction d'énergie stellaire réussie!\n";
+        $message .= "─────────────────────────────\n";
+        $message .= "Système: {$systeme->nom}\n";
+        $message .= "Type d'étoile: {$systeme->type_etoile} ({$systeme->couleur})\n";
+        $message .= "Puissance stellaire: {$puissance_etoile}\n";
+        $message .= "Type de propulsion: {$type_propulsion_msg}\n";
+        $message .= "─────────────────────────────\n";
+        $message .= "PA dépensés: {$nb_pa}\n";
+        $message .= "Énergie extraite: +{$energie_reellement_ajoutee} UE\n";
+        $message .= "Réserve: {$energie_apres}/{$this->reserve} UE\n";
+
+        // Info supplémentaire pour voile solaire
+        if ($this->type_propulsion == 2) {
+            $message .= "\n[INFO] Votre voile solaire vous permet de vous déplacer pendant le rechargement.";
+        }
+
+        return [
+            'success' => true,
+            'message' => $message,
+            'energie_avant' => $energie_avant,
+            'energie_apres' => $energie_apres,
+            'energie_ajoutee' => $energie_reellement_ajoutee,
+            'pa_depenses' => $nb_pa,
+            'puissance_etoile' => $puissance_etoile,
+        ];
     }
 
     public function consommerEnergie(float $quantite): bool
@@ -275,6 +438,7 @@ class Vaisseau extends Model
 
     /**
      * Réinitialise le scan en cours
+     * IMPORTANT: Supprime TOUS les progrès de scan du personnage et réinitialise le bonus
      */
     public function reinitialiserScan(): void
     {
@@ -286,6 +450,17 @@ class Vaisseau extends Model
         $this->scan_position_y = null;
         $this->scan_position_z = null;
         $this->save();
+
+        // Trouver le personnage qui possède ce vaisseau
+        $personnage = \App\Models\Personnage::where('vaisseau_actif_id', $this->id)->first();
+
+        if ($personnage) {
+            // Supprimer tous les ScanProgress du personnage
+            \App\Models\ScanProgress::where('personnage_id', $personnage->id)->delete();
+
+            // Réinitialiser le bonus de scan
+            $personnage->reinitialiserBonusScan();
+        }
     }
 
     /**
@@ -329,11 +504,107 @@ class Vaisseau extends Model
     }
 
     /**
-     * Obtient la puissance de scan effective (base + bonus + niveau cumulé)
+     * Obtient la puissance de scan (base + bonus équipement)
+     * NOTE: scan_niveau_actuel N'AFFECTE PAS la formule des dés
      */
     public function getPuissanceScanEffective(): int
     {
-        return $this->puissance_scan + $this->bonus_scan + $this->scan_niveau_actuel;
+        $base = $this->puissance_scan ?? 20;  // Valeur par défaut si NULL
+        $bonus = $this->bonus_scan ?? 0;
+
+        return $base + $bonus;
+    }
+
+    /**
+     * Retourne la formule de dés pour le scanner selon la puissance effective
+     * Système à 21 paliers (de 1d4 à 5d24+2d20)
+     * @return array ['formula' => string, 'dice' => array]
+     */
+    public function getDiceFormula(): array
+    {
+        $puissance = $this->getPuissanceScanEffective();
+
+        $tiers = [
+            ['min' => 1, 'max' => 4, 'dice' => [[1, 4]]],
+            ['min' => 5, 'max' => 9, 'dice' => [[2, 4]]],
+            ['min' => 10, 'max' => 14, 'dice' => [[3, 4]]],
+            ['min' => 15, 'max' => 19, 'dice' => [[1, 6]]],
+            ['min' => 20, 'max' => 29, 'dice' => [[2, 6]]],
+            ['min' => 30, 'max' => 39, 'dice' => [[3, 6]]],
+            ['min' => 40, 'max' => 49, 'dice' => [[4, 6]]],
+            ['min' => 50, 'max' => 59, 'dice' => [[1, 8]]],
+            ['min' => 60, 'max' => 69, 'dice' => [[2, 8]]],
+            ['min' => 70, 'max' => 79, 'dice' => [[3, 8]]],
+            ['min' => 80, 'max' => 89, 'dice' => [[1, 10]]],
+            ['min' => 90, 'max' => 99, 'dice' => [[2, 10]]],
+            ['min' => 100, 'max' => 109, 'dice' => [[3, 10]]],
+            ['min' => 110, 'max' => 119, 'dice' => [[1, 12]]],
+            ['min' => 120, 'max' => 124, 'dice' => [[2, 12]]],
+            ['min' => 125, 'max' => 129, 'dice' => [[3, 12]]],
+            ['min' => 130, 'max' => 134, 'dice' => [[4, 12]]],
+            ['min' => 135, 'max' => 139, 'dice' => [[5, 12]]],
+            ['min' => 140, 'max' => 144, 'dice' => [[1, 20]]],
+            ['min' => 145, 'max' => 149, 'dice' => [[1, 24]]],
+            ['min' => 150, 'max' => 9999, 'dice' => [[5, 24], [2, 20]]],
+        ];
+
+        foreach ($tiers as $tier) {
+            if ($puissance >= $tier['min'] && $puissance <= $tier['max']) {
+                $formula = [];
+                $diceArray = [];
+                foreach ($tier['dice'] as [$nb, $faces]) {
+                    $formula[] = "{$nb}d{$faces}";
+                    $diceArray[] = ['nb' => $nb, 'faces' => $faces];
+                }
+                return [
+                    'formula' => implode(' + ', $formula),
+                    'dice' => $diceArray,
+                    'puissance' => $puissance
+                ];
+            }
+        }
+
+        // Fallback (ne devrait jamais arriver)
+        return [
+            'formula' => '1d4',
+            'dice' => [['nb' => 1, 'faces' => 4]],
+            'puissance' => $puissance
+        ];
+    }
+
+    /**
+     * Lance les dés du scanner et retourne les résultats détaillés
+     * @return array Résultats du jet de scan
+     */
+    public function lancerDesScan(): array
+    {
+        $formula = $this->getDiceFormula();
+        $total = 0;
+        $details = [];
+        $allRolls = [];
+
+        foreach ($formula['dice'] as $die) {
+            $rolls = [];
+            for ($i = 0; $i < $die['nb']; $i++) {
+                $roll = rand(1, $die['faces']);
+                $rolls[] = $roll;
+                $total += $roll;
+            }
+            $allRolls[] = [
+                'dice' => "{$die['nb']}d{$die['faces']}",
+                'rolls' => $rolls,
+                'sum' => array_sum($rolls)
+            ];
+            $details[] = "{$die['nb']}d{$die['faces']}: [" . implode(', ', $rolls) . "] = " . array_sum($rolls);
+        }
+
+        return [
+            'total' => $total,
+            'formula' => $formula['formula'],
+            'puissance' => $formula['puissance'],
+            'details' => implode(' + ', $details),
+            'rolls' => $allRolls
+        ];
     }
 
     /**

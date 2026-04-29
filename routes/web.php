@@ -3,12 +3,20 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminStationController;
+use App\Http\Controllers\Admin\AdminMineController;
+use App\Http\Controllers\Admin\AdminResourceController;
 use App\Http\Controllers\VaisseauController;
 use App\Http\Controllers\ComController;
 use App\Http\Controllers\PersonnageController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\JeuController;
 use App\Http\Controllers\TimonerieController;
+use App\Http\Controllers\ScanController;
+use App\Http\Controllers\MarcheController;
+use App\Http\Controllers\RavitaillementController;
+use App\Http\Controllers\GarageController;
 
 // Page d'accueil avec login
 Route::get('/', function () {
@@ -55,6 +63,16 @@ Route::middleware('auth')->group(function () {
             Route::post('/timonerie/s-amarrer', [TimonerieController::class, 'sAmarrer'])->name('timonerie.s-amarrer');
             Route::post('/timonerie/annuler-calcul', [TimonerieController::class, 'annulerCalculSaut'])->name('timonerie.annuler-calcul');
             Route::post('/timonerie/ameliorer-calcul', [TimonerieController::class, 'ameliorerCalculSaut'])->name('timonerie.ameliorer-calcul');
+            Route::post('/timonerie/s-orbiter', [TimonerieController::class, 'sOrbiter'])->name('timonerie.s-orbiter');
+            Route::post('/timonerie/tourner', [TimonerieController::class, 'tourner'])->name('timonerie.tourner');
+
+            // Routes de scan
+            Route::post('/scan/simple', [ScanController::class, 'scanSimple'])->name('scan.simple');
+            Route::post('/scan/reglage', [ScanController::class, 'scanAvecReglage'])->name('scan.reglage');
+            Route::post('/scan/astro', [ScanController::class, 'scanAvecAstro'])->name('scan.astro');
+            Route::post('/scan/reinitialiser-bonus', [ScanController::class, 'reinitialiserBonus'])->name('scan.reinitialiser-bonus');
+            Route::post('/scan/reinitialiser-tout', [ScanController::class, 'reinitialiserTousLesScans'])->name('scan.reinitialiser-tout');
+            Route::get('/scan/liste', [ScanController::class, 'listeScans'])->name('scan.liste');
 
             Route::get('/ingenierie', [VaisseauController::class, 'etat'])->name('ingenierie');
             Route::get('/com', [ComController::class, 'databases'])->name('com');
@@ -64,11 +82,48 @@ Route::middleware('auth')->group(function () {
 
         // Routes Menu Station
         Route::prefix('station')->name('station.')->group(function () {
+            // Transbordement et embarquement
+            Route::post('/transborder', [StationController::class, 'transborder'])->name('transborder');
+            Route::post('/embarquer', [StationController::class, 'embarquer'])->name('embarquer');
+
+            // Menu principal
+            Route::get('/menu', [StationController::class, 'menu'])->name('menu');
+
+            // Services existants
             Route::get('/hall', [StationController::class, 'hall'])->name('hall');
             Route::get('/hangar', [StationController::class, 'hangar'])->name('hangar');
             Route::get('/marche', [StationController::class, 'marche'])->name('marche');
             Route::get('/missions', [StationController::class, 'missions'])->name('missions');
             Route::get('/cantina', [StationController::class, 'cantina'])->name('cantina');
+
+            // Services en construction
+            Route::get('/hopital', [StationController::class, 'hopital'])->name('hopital');
+            Route::get('/industrie', [StationController::class, 'industrie'])->name('industrie');
+
+            // Information station
+            Route::get('/{station}', [StationController::class, 'show'])->name('show');
+        });
+
+        // Routes Marché
+        Route::prefix('marche')->name('marche.')->group(function () {
+            Route::get('/', [MarcheController::class, 'index'])->name('index');
+            Route::post('/acheter', [MarcheController::class, 'acheter'])->name('acheter');
+            Route::post('/vendre', [MarcheController::class, 'vendre'])->name('vendre');
+        });
+
+        // Routes Ravitaillement
+        Route::prefix('ravitaillement')->name('ravitaillement.')->group(function () {
+            Route::get('/', [RavitaillementController::class, 'index'])->name('index');
+            Route::post('/complet', [RavitaillementController::class, 'ravitaillerComplet'])->name('complet');
+            Route::post('/carburant', [RavitaillementController::class, 'ravitaillerCarburant'])->name('carburant');
+        });
+
+        // Routes Garage
+        Route::prefix('garage')->name('garage.')->group(function () {
+            Route::get('/', [GarageController::class, 'index'])->name('index');
+            Route::post('/reparer-coque', [GarageController::class, 'reparerCoque'])->name('reparer-coque');
+            Route::post('/reparer-panne', [GarageController::class, 'reparerPanne'])->name('reparer-panne');
+            Route::post('/reparer-tout', [GarageController::class, 'reparerTout'])->name('reparer-tout');
         });
 
         // Routes Menu Jeu
@@ -80,7 +135,6 @@ Route::middleware('auth')->group(function () {
         Route::prefix('vaisseau')->name('vaisseau.')->group(function () {
             // Timonerie
             Route::get('/position', [VaisseauController::class, 'position'])->name('position');
-            Route::get('/scanner', [VaisseauController::class, 'scanner'])->name('scanner');
 
             // Ingénierie
             Route::get('/etat', [VaisseauController::class, 'etat'])->name('etat');
@@ -139,6 +193,23 @@ Route::middleware('auth')->group(function () {
         // Routes pour la gestion des systèmes stellaires
         Route::post('/systeme/{id}/generer-planetes', [AdminController::class, 'genererPlanetes'])->name('systeme.generer-planetes');
         Route::post('/systeme/creer', [AdminController::class, 'creerSystemeSolaire'])->name('systeme.creer');
+
+        // Nouveaux contrôleurs Admin (refactoring)
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+        // Stations admin CRUD
+        Route::resource('stations', AdminStationController::class)->except(['show']);
+
+        // Mines admin CRUD + actions
+        Route::resource('mines-admin', AdminMineController::class)->except(['show'])->parameters(['mines-admin' => 'mine']);
+        Route::post('/mines-admin/{mine}/ravitailler', [AdminMineController::class, 'ravitailler'])->name('mines-admin.ravitailler');
+        Route::post('/mines-admin/{mine}/maintenance', [AdminMineController::class, 'maintenance'])->name('mines-admin.maintenance');
+
+        // Ressources et gisements
+        Route::resource('ressources', AdminResourceController::class)->except(['show', 'destroy']);
+        Route::get('/gisements', [AdminResourceController::class, 'gisements'])->name('gisements.index');
+        Route::get('/gisements/create', [AdminResourceController::class, 'createGisement'])->name('gisements.create');
+        Route::post('/gisements', [AdminResourceController::class, 'storeGisement'])->name('gisements.store');
     });
 });
 

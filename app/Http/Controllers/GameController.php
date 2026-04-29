@@ -230,6 +230,24 @@ class GameController extends Controller
             }
         }
 
+        // Déterminer si l'interface doit être rafraîchie
+        // Commandes qui NE nécessitent PAS de refresh : status, vaisseau, lancer, inventaire, marche, prix, recettes, etat-combat, help, history, clear
+        $commandeLower = strtolower(trim($command));
+        $commandesPasDeRefresh = ['status', 'statut', 'vaisseau', 'ship', 'lancer', 'inventaire', 'inv', 'marche', 'market', 'prix', 'prices', 'recettes', 'etat-combat', 'help', 'aide', 'history', 'clear'];
+
+        $needsRefresh = true;
+        foreach ($commandesPasDeRefresh as $cmd) {
+            if (strpos($commandeLower, $cmd) === 0) {
+                $needsRefresh = false;
+                break;
+            }
+        }
+
+        // Ajouter le flag de rafraîchissement si la commande a réussi et nécessite un refresh
+        if ($needsRefresh && isset($result['success']) && $result['success']) {
+            $result['refresh_ui'] = true;
+        }
+
         return response()->json($result);
     }
 
@@ -250,6 +268,7 @@ class GameController extends Controller
             'vaisseau', 'ship' => $this->showShip($personnage),
             'lancer', 'roll' => $this->rollDice($personnage, $parts),
             'deplacer', 'move' => $this->moveShip($personnage, $parts),
+            'bouger' => $this->moveShipRelative($personnage, $parts),
             'saut', 'jump' => $this->jumpHyperspace($personnage, $parts),
             'scan', 'scanner' => $this->scanSystems($personnage, $parts),
             'carte', 'map' => $this->showMap($personnage),
@@ -292,7 +311,7 @@ class GameController extends Controller
             'hopital', 'hospital' => $this->accederHopital($personnage),
             'industrie', 'industry' => $this->accederIndustrie($personnage),
             'ravitailler', 'refuel' => $this->ravitaillerVaisseau($personnage, $parts),
-            'recharger', 'reload' => $this->rechargerVaisseau($personnage, $parts),
+            'recharger', 'reload', 'recharge' => $this->rechargerVaisseau($personnage, $parts),
             '' => ['success' => true, 'message' => ''],
             default => [
                 'success' => false,
@@ -419,6 +438,7 @@ class GameController extends Controller
             'mv', 'move' => $this->adminMove($personnage, $parts),
             'tp', 'teleport' => $this->adminTeleport($personnage, $parts),
             'give' => $this->adminGive($personnage, $parts),
+            'recharger', 'recharge' => $this->adminRecharger($personnage, $parts),
             'info' => $this->adminInfo($personnage, $parts),
             'list' => $this->adminList($personnage, $parts),
             'print', 'dump' => $this->adminPrint($personnage, $parts),
@@ -1258,20 +1278,35 @@ Total: {$result['total']}
             return ['success' => false, 'message' => 'Aucun vaisseau actif'];
         }
 
-        // Parser coordonnées: deplacer sx sy sz [px py pz]
+        $objetSpatial = $vaisseau->objetSpatial;
+
+        // Parser coordonnées:
+        // - 3 params: deplacer px py pz (déplacement local dans le secteur actuel)
+        // - 6 params: deplacer sx sy sz px py pz (déplacement absolu)
         if (count($parts) < 4) {
             return [
                 'success' => false,
-                'message' => "Usage: deplacer [secteur_x] [secteur_y] [secteur_z] [position_x] [position_y] [position_z]\nExemple: deplacer 0 0 0 ou deplacer 1 2 3 0.5 0.3 0.1",
+                'message' => "Usage:\n  deplacer [x] [y] [z] - Déplacement local (UA)\n  deplacer [sx] [sy] [sz] [px] [py] [pz] - Déplacement absolu\nExemple: deplacer 1 0 0 (se déplacer de 1 UA en X)",
             ];
         }
 
-        $secteur_x = (float)($parts[1] ?? 0);
-        $secteur_y = (float)($parts[2] ?? 0);
-        $secteur_z = (float)($parts[3] ?? 0);
-        $position_x = (float)($parts[4] ?? 0);
-        $position_y = (float)($parts[5] ?? 0);
-        $position_z = (float)($parts[6] ?? 0);
+        if (count($parts) == 4) {
+            // Mode local: déplacer dans le secteur actuel
+            $secteur_x = $objetSpatial->secteur_x;
+            $secteur_y = $objetSpatial->secteur_y;
+            $secteur_z = $objetSpatial->secteur_z;
+            $position_x = (float)($parts[1] ?? 0);
+            $position_y = (float)($parts[2] ?? 0);
+            $position_z = (float)($parts[3] ?? 0);
+        } else {
+            // Mode absolu: changer de secteur + position
+            $secteur_x = (int)($parts[1] ?? 0);
+            $secteur_y = (int)($parts[2] ?? 0);
+            $secteur_z = (int)($parts[3] ?? 0);
+            $position_x = (float)($parts[4] ?? 0);
+            $position_y = (float)($parts[5] ?? 0);
+            $position_z = (float)($parts[6] ?? 0);
+        }
 
         // Exécuter déplacement
         $result = $vaisseau->deplacerVers(
@@ -1301,6 +1336,9 @@ Total: {$result['total']}
             ];
         }
 
+        // IMPORTANT: Réinitialiser le scan après déplacement
+        $vaisseau->reinitialiserScan();
+
         $personnage->save();
         $vaisseau->save();
 
@@ -1314,6 +1352,80 @@ PA consommés: {$pa_requis}
 Énergie restante: {$result['energie_restante']} UE
 PA restants: {$personnage->points_action} / {$personnage->max_points_action}
 Nouvelle position: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z}) + ({$position_x}, {$position_y}, {$position_z})
+            ",
+        ];
+    }
+
+    private function moveShipRelative(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+        if (!$vaisseau) {
+            return ['success' => false, 'message' => 'Aucun vaisseau actif'];
+        }
+
+        $objetSpatial = $vaisseau->objetSpatial;
+
+        // Parser déplacement relatif: bouger dx dy dz
+        if (count($parts) < 4) {
+            return [
+                'success' => false,
+                'message' => "Usage: bouger [dx] [dy] [dz]\nDéplacement relatif depuis la position actuelle\nExemple: bouger -1 0 0 (se déplacer de -1 UA en X)",
+            ];
+        }
+
+        $dx = (float)($parts[1] ?? 0);
+        $dy = (float)($parts[2] ?? 0);
+        $dz = (float)($parts[3] ?? 0);
+
+        // Calculer nouvelle position absolue
+        $new_x = $objetSpatial->position_x + $dx;
+        $new_y = $objetSpatial->position_y + $dy;
+        $new_z = $objetSpatial->position_z + $dz;
+
+        // Exécuter déplacement vers la nouvelle position
+        $result = $vaisseau->deplacerVers(
+            $objetSpatial->secteur_x,
+            $objetSpatial->secteur_y,
+            $objetSpatial->secteur_z,
+            $new_x,
+            $new_y,
+            $new_z,
+            'conventionnel'
+        );
+
+        if (!$result['success']) {
+            return [
+                'success' => false,
+                'message' => "Déplacement impossible: {$result['erreur']}\nÉnergie requise: {$result['requis']} UE, manquant: {$result['manquant']} UE",
+            ];
+        }
+
+        // Consommer PA
+        $pa_requis = $result['pa'];
+        if (!$personnage->consommerPA($pa_requis)) {
+            return [
+                'success' => false,
+                'message' => "PA insuffisants ! Requis: {$pa_requis} PA, disponible: {$personnage->points_action} PA",
+            ];
+        }
+
+        // IMPORTANT: Réinitialiser le scan après déplacement
+        $vaisseau->reinitialiserScan();
+
+        $personnage->save();
+        $vaisseau->save();
+
+        return [
+            'success' => true,
+            'message' => "
+=== DÉPLACEMENT RELATIF ===
+Vecteur: ({$dx}, {$dy}, {$dz})
+Distance: {$result['distance']} UC
+Énergie consommée: {$result['consommation']} UE
+PA consommés: {$pa_requis}
+Énergie restante: {$result['energie_restante']} UE
+PA restants: {$personnage->points_action} / {$personnage->max_points_action}
+Nouvelle position: ({$new_x}, {$new_y}, {$new_z})
             ",
         ];
     }
@@ -3636,7 +3748,89 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
 
     }
 
-    // ========== CARTE DE L'UNIVERS ====================
+    /**
+     * Recharger l'énergie du vaisseau depuis une étoile (Type B uniquement)
+     */
+    private function rechargerVaisseau(Personnage $personnage, array $parts): array
+    {
+        $vaisseau = $personnage->vaisseauActif;
+
+        if (!$vaisseau) {
+            return [
+                'success' => false,
+                'message' => '[ERREUR] Aucun vaisseau actif.',
+            ];
+        }
+
+        // Parser le nombre de PA (défaut: 1)
+        $nb_pa = isset($parts[1]) ? (int)$parts[1] : 1;
+
+        if ($nb_pa < 1) {
+            return [
+                'success' => false,
+                'message' => '[ERREUR] Le nombre de PA doit être >= 1.',
+            ];
+        }
+
+        // Vérifier que le personnage a assez de PA
+        if ($personnage->points_action < $nb_pa) {
+            return [
+                'success' => false,
+                'message' => "[ERREUR] PA insuffisants. Vous avez {$personnage->points_action} PA, il faut {$nb_pa} PA.",
+            ];
+        }
+
+        // Effectuer le rechargement
+        $result = $vaisseau->rechargerDepuisEtoile($nb_pa, false);
+
+        // Si réussi, dépenser les PA
+        if ($result['success']) {
+            $personnage->consommerPA($nb_pa);
+            $personnage->save();
+
+            // Ajouter info PA au message
+            $result['message'] .= "\n\nPA restants: {$personnage->points_action}/{$personnage->max_points_action}";
+        }
+
+        return $result;
+    }
+
+    /**
+     * [ADMIN] Recharger l'énergie d'un vaisseau (fonctionne pour tous types)
+     */
+    private function adminRecharger(Personnage $personnage, array $parts): array
+    {
+        // Parser le nombre de PA (défaut: 1)
+        $nb_pa = isset($parts[1]) ? (int)$parts[1] : 1;
+
+        if ($nb_pa < 1) {
+            return [
+                'success' => false,
+                'message' => '[ERREUR] Le nombre de PA doit être >= 1.',
+            ];
+        }
+
+        $vaisseau = $personnage->vaisseauActif;
+
+        if (!$vaisseau) {
+            return [
+                'success' => false,
+                'message' => '[ERREUR] Aucun vaisseau actif.',
+            ];
+        }
+
+        // Effectuer le rechargement en mode admin (bypass restrictions)
+        $result = $vaisseau->rechargerDepuisEtoile($nb_pa, true);
+
+        if ($result['success']) {
+            $result['message'] = "[ADMIN] " . $result['message'];
+            $result['message'] .= "\n[ADMIN] Mode administrateur - Restrictions de type ignorées.";
+        }
+
+        return $result;
+    }
+
+    // ========== CARTE DE L'UNIVERS ==========
 
     /**
      * Afficher la carte de l'univers (systèmes découverts uniquement)

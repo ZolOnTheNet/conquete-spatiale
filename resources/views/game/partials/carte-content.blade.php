@@ -95,7 +95,7 @@
     </div>
 
     <!-- Two Maps Side by Side -->
-    <div class="grid grid-cols-2 gap-4 flex-1">
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 flex-1 overflow-hidden">
         <!-- Carte Niveau 1: Vue Secteurs (100 AL × 100 AL) -->
         <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
             <h2 class="text-lg font-bold text-cyan-400 mb-2">Systèmes Découverts (100 AL)</h2>
@@ -339,8 +339,11 @@ function loadSecteurDetail(x, y, z) {
         });
 }
 
-// Support clavier pour navigation
+// Support clavier pour navigation (Maj+Flèches)
 document.addEventListener('keydown', function(e) {
+    // Ne réagir que si Shift est pressé
+    if (!e.shiftKey) return;
+
     const x = parseInt(document.getElementById('coord-x').value);
     const y = parseInt(document.getElementById('coord-y').value);
     const z = parseInt(document.getElementById('coord-z').value);

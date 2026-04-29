@@ -34,11 +34,46 @@ class AdminController extends Controller
     /**
      * Gestion des comptes
      */
-    public function comptes()
+    public function comptes(Request $request)
     {
-        $comptes = Compte::with('personnages')->orderBy('created_at', 'desc')->paginate(20);
+        $query = Compte::with('personnages');
 
-        return view('admin.comptes', compact('comptes'));
+        // Recherche par nom
+        if ($request->filled('nom')) {
+            $query->where('nom_login', 'LIKE', '%' . $request->nom . '%');
+        }
+
+        // Recherche par email
+        if ($request->filled('email')) {
+            $query->where('adresse_mail', 'LIKE', '%' . $request->email . '%');
+        }
+
+        // Pagination
+        $perPage = $request->input('per_page', 20);
+        if ($perPage === 'all') {
+            $comptes = $query->orderBy('created_at', 'desc')->get();
+            // Créer une pagination manuelle pour "all"
+            $comptes = new \Illuminate\Pagination\LengthAwarePaginator(
+                $comptes,
+                $comptes->count(),
+                $comptes->count(),
+                1,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+        } else {
+            if (!in_array($perPage, [20, 50, 100, 200])) {
+                $perPage = 20;
+            }
+            $comptes = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
+        }
+
+        $filters = [
+            'nom' => $request->nom,
+            'email' => $request->email,
+            'per_page' => $perPage,
+        ];
+
+        return view('admin.comptes', compact('comptes', 'filters'));
     }
 
     /**
@@ -81,13 +116,13 @@ class AdminController extends Controller
         // Calculer la distance au carré par rapport aux coordonnées saisies
         // Distance² = (x2-x1)² + (y2-y1)² + (z2-z1)²
         // Note: secteur_x/y/z SONT déjà les coordonnées AL entières (pas de *10 !)
-        // Coordonnées complètes = secteur + position
+        // Pour les distances en AL, on utilise uniquement les secteurs (position en cUA négligeable)
         $query->selectRaw('systemes_stellaires.*');
         $query->selectRaw(
             '(
-                ((secteur_x + position_x) - ?) * ((secteur_x + position_x) - ?) +
-                ((secteur_y + position_y) - ?) * ((secteur_y + position_y) - ?) +
-                ((secteur_z + position_z) - ?) * ((secteur_z + position_z) - ?)
+                (secteur_x - ?) * (secteur_x - ?) +
+                (secteur_y - ?) * (secteur_y - ?) +
+                (secteur_z - ?) * (secteur_z - ?)
             ) as distance_squared',
             [$coordX, $coordX, $coordY, $coordY, $coordZ, $coordZ]
         );
@@ -97,9 +132,9 @@ class AdminController extends Controller
             $maxDistanceSquared = $maxDistance * $maxDistance;
             $query->whereRaw(
                 '(
-                    ((secteur_x + position_x) - ?) * ((secteur_x + position_x) - ?) +
-                    ((secteur_y + position_y) - ?) * ((secteur_y + position_y) - ?) +
-                    ((secteur_z + position_z) - ?) * ((secteur_z + position_z) - ?)
+                    (secteur_x - ?) * (secteur_x - ?) +
+                    (secteur_y - ?) * (secteur_y - ?) +
+                    (secteur_z - ?) * (secteur_z - ?)
                 ) <= ?',
                 [$coordX, $coordX, $coordY, $coordY, $coordZ, $coordZ, $maxDistanceSquared]
             );
@@ -212,13 +247,104 @@ class AdminController extends Controller
     /**
      * Gestion des planètes
      */
-    public function planetes()
+    public function planetes(Request $request)
     {
-        $planetes = Planete::with('systemeStellaire')
-            ->orderBy('nom')
-            ->paginate(20);
+        $query = Planete::with('systemeStellaire');
 
-        return view('admin.planetes', compact('planetes'));
+        // Filtrage par nom de planète
+        if ($request->filled('nom_planete')) {
+            $query->where('nom', 'LIKE', '%' . $request->nom_planete . '%');
+        }
+
+        // Filtrage par nom de système
+        if ($request->filled('nom_systeme')) {
+            $query->whereHas('systemeStellaire', function($q) use ($request) {
+                $q->where('nom', 'LIKE', '%' . $request->nom_systeme . '%')
+                  ->orWhere('nom_commun', 'LIKE', '%' . $request->nom_systeme . '%');
+            });
+        }
+
+        // Filtrage par type de planète
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        // Filtrage par coordonnées (distance max depuis un point)
+        // Note: SQLite ne supporte pas SQRT/POW, on filtre en PHP après récupération
+        $coordX = $request->filled('coord_x') ? (float) $request->coord_x : null;
+        $coordY = $request->filled('coord_y') ? (float) $request->coord_y : null;
+        $coordZ = $request->filled('coord_z') ? (float) $request->coord_z : null;
+        $maxDist = $request->filled('max_distance') ? (float) $request->max_distance : null;
+
+        $filtreDistance = $coordX !== null && $coordY !== null && $coordZ !== null && $maxDist > 0;
+
+        // Filtrage POI Connu
+        if ($request->filled('poi_connu')) {
+            $query->where('poi_connu', $request->poi_connu === 'true');
+        }
+
+        // Filtrage Source NASA
+        if ($request->filled('source_nasa')) {
+            $query->where('source_nasa_exoplanet', $request->source_nasa === 'true');
+        }
+
+        // Si filtrage distance activé, récupérer toutes les planètes et filtrer en PHP
+        if ($filtreDistance) {
+            $allPlanetes = $query->with('systemeStellaire')->orderBy('nom')->get();
+
+            // Filtrer par distance en PHP (SQLite ne supporte pas SQRT/POW)
+            $planetesFiltrees = $allPlanetes->filter(function($planete) use ($coordX, $coordY, $coordZ, $maxDist) {
+                if (!$planete->systemeStellaire) return false;
+
+                $sys = $planete->systemeStellaire;
+                // Coordonnées absolues : secteur_x/y/z SONT déjà les AL entières (pas de × 10 !)
+                // + position_x/y/z (décimale 0.0-1.0) pour précision
+                $sysX = $sys->secteur_x + $sys->position_x;
+                $sysY = $sys->secteur_y + $sys->position_y;
+                $sysZ = $sys->secteur_z + $sys->position_z;
+
+                $distance = sqrt(
+                    pow($sysX - $coordX, 2) +
+                    pow($sysY - $coordY, 2) +
+                    pow($sysZ - $coordZ, 2)
+                );
+
+                return $distance <= $maxDist;
+            });
+
+            // Paginer manuellement
+            $perPage = $request->input('per_page', 25);
+            $currentPage = request()->input('page', 1);
+            $offset = ($currentPage - 1) * $perPage;
+
+            $planetes = new \Illuminate\Pagination\LengthAwarePaginator(
+                $planetesFiltrees->slice($offset, $perPage)->values(),
+                $planetesFiltrees->count(),
+                $perPage,
+                $currentPage,
+                ['path' => request()->url(), 'query' => request()->query()]
+            );
+        } else {
+            // Pagination normale
+            $perPage = $request->input('per_page', 25);
+            $planetes = $query->orderBy('nom')->paginate($perPage)->withQueryString();
+        }
+
+        // Conserver les valeurs de filtres pour les passer à la vue
+        $filters = [
+            'nom_planete' => $request->nom_planete,
+            'nom_systeme' => $request->nom_systeme,
+            'type' => $request->type,
+            'coord_x' => $request->coord_x,
+            'coord_y' => $request->coord_y,
+            'coord_z' => $request->coord_z,
+            'max_distance' => $request->max_distance,
+            'poi_connu' => $request->poi_connu,
+            'source_nasa' => $request->source_nasa,
+            'per_page' => $perPage,
+        ];
+
+        return view('admin.planetes', compact('planetes', 'filters'));
     }
 
     /**
@@ -263,6 +389,11 @@ class AdminController extends Controller
             'population' => 'nullable|integer',
             'accessible' => 'boolean',
         ]);
+
+        // Convertir distance_etoile de UA vers cUA (l'utilisateur entre en UA, on stocke en cUA)
+        if (isset($validated['distance_etoile'])) {
+            $validated['distance_etoile'] = $validated['distance_etoile'] * 100;
+        }
 
         $planete->update($validated);
 
@@ -366,25 +497,57 @@ class AdminController extends Controller
         // Récupérer tous les systèmes pour le sélecteur
         $systemes = SystemeStellaire::orderBy('nom')->get();
 
-        // Si un système est sélectionné, charger ses planètes et gisements
-        $planetes = collect();
-        $systeme_actuel = null;
-
-        if ($request->has('system_id') && $request->system_id) {
-            $systeme_actuel = SystemeStellaire::find($request->system_id);
-
-            if ($systeme_actuel) {
-                $planetes = Planete::where('systeme_stellaire_id', $systeme_actuel->id)
-                    ->with(['gisements.ressource'])
-                    ->orderBy('nom')
-                    ->get();
-            }
-        }
-
         // Récupérer toutes les ressources pour les sélecteurs
         $ressources = Ressource::orderBy('nom')->get();
 
-        return view('admin.production', compact('systemes', 'planetes', 'systeme_actuel', 'ressources'));
+        // Construire la requête des gisements
+        $query = Gisement::with(['planete.systemeStellaire', 'ressource']);
+
+        // Filtre par système (recherche textuelle)
+        if ($request->filled('systeme')) {
+            $query->whereHas('planete.systemeStellaire', function($q) use ($request) {
+                $q->where('nom', 'LIKE', '%' . $request->systeme . '%');
+            });
+        }
+
+        // Filtre par planète (recherche textuelle)
+        if ($request->filled('planete')) {
+            $query->whereHas('planete', function($q) use ($request) {
+                $q->where('nom', 'LIKE', '%' . $request->planete . '%');
+            });
+        }
+
+        // Filtre par ressource
+        if ($request->filled('ressource_id')) {
+            $query->where('ressource_id', $request->ressource_id);
+        }
+
+        // Pagination
+        $perPage = $request->input('per_page', 20);
+        if ($perPage === 'all') {
+            $gisements = $query->orderBy('created_at', 'desc')->get();
+            $gisements = new \Illuminate\Pagination\LengthAwarePaginator(
+                $gisements,
+                $gisements->count(),
+                $gisements->count(),
+                1,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+        } else {
+            if (!in_array($perPage, [20, 50, 100, 200])) {
+                $perPage = 20;
+            }
+            $gisements = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
+        }
+
+        $filters = [
+            'systeme' => $request->systeme,
+            'planete' => $request->planete,
+            'ressource_id' => $request->ressource_id,
+            'per_page' => $perPage,
+        ];
+
+        return view('admin.production', compact('systemes', 'ressources', 'gisements', 'filters'));
     }
 
     /**
@@ -424,7 +587,8 @@ class AdminController extends Controller
     {
         $mines = Mine::with(['planete.systemeStellaire', 'gisement.ressource', 'proprietaire', 'installateur'])
             ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
         return view('admin.mines', compact('mines'));
     }
@@ -626,7 +790,7 @@ class AdminController extends Controller
             $planete = Planete::create([
                 'systeme_stellaire_id' => $systeme->id,
                 'nom' => "{$systeme->nom} {$i}",
-                'distance_etoile' => $i * 0.5 + rand(0, 10) / 10,
+                'distance_etoile' => ($i * 0.5 + rand(0, 10) / 10) * 100, // Convertir UA → cUA
                 'rayon' => $rayon,
                 'masse' => match($type) {
                     'terrestre' => rand(5, 30) / 10, // 0.5 à 3 masses terrestres

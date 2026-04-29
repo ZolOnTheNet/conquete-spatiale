@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Helpers\CoordinatesHelper;
+
 class GaiaCoordinateConverter
 {
     /**
@@ -27,40 +29,43 @@ class GaiaCoordinateConverter
         $z = $distanceLy * sin($decRad);
 
         // Sol (notre Soleil) est au centre (0, 0, 0)
-        // Séparer partie entière (secteur) et décimale (position)
+        // Séparer partie entière (secteur en AL) et décimale (position dans le secteur)
+        // IMPORTANT: Les positions doivent être en cUA (centièmes d'UA), pas en AL !
+        // 1 AL = 63,241 UA = 6,324,100 cUA
         return [
             'secteur_x' => (int)floor($x),
             'secteur_y' => (int)floor($y),
             'secteur_z' => (int)floor($z),
-            'position_x' => $x - floor($x),
-            'position_y' => $y - floor($y),
-            'position_z' => $z - floor($z),
+            'position_x' => CoordinatesHelper::alToCua($x - floor($x)),
+            'position_y' => CoordinatesHelper::alToCua($y - floor($y)),
+            'position_z' => CoordinatesHelper::alToCua($z - floor($z)),
         ];
     }
 
     /**
      * Convertir coordonnées du jeu vers coordonnées galactiques
      *
-     * @param int $secteurX
-     * @param int $secteurY
-     * @param int $secteurZ
-     * @param float $positionX
-     * @param float $positionY
-     * @param float $positionZ
+     * @param int $secteurX Secteur en AL
+     * @param int $secteurY Secteur en AL
+     * @param int $secteurZ Secteur en AL
+     * @param int $positionX Position en cUA
+     * @param int $positionY Position en cUA
+     * @param int $positionZ Position en cUA
      * @return array ['ra', 'dec', 'distance_ly']
      */
     public static function gameToGalactic(
         int $secteurX,
         int $secteurY,
         int $secteurZ,
-        float $positionX,
-        float $positionY,
-        float $positionZ
+        int $positionX,
+        int $positionY,
+        int $positionZ
     ): array {
-        // Reconstruire coordonnées cartésiennes complètes
-        $x = $secteurX + $positionX;
-        $y = $secteurY + $positionY;
-        $z = $secteurZ + $positionZ;
+        // Reconstruire coordonnées cartésiennes complètes en AL
+        // Convertir positions de cUA vers AL
+        $x = $secteurX + CoordinatesHelper::cuaToAl($positionX);
+        $y = $secteurY + CoordinatesHelper::cuaToAl($positionY);
+        $z = $secteurZ + CoordinatesHelper::cuaToAl($positionZ);
 
         // Distance euclidienne
         $distance = sqrt($x * $x + $y * $y + $z * $z);

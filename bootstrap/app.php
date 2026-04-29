@@ -30,7 +30,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'requires.location' => \App\Http\Middleware\RequiresLocation::class,
         ]);
 
-        //
+        // Injecter le personnage actif dans toutes les requêtes web
+        $middleware->web(append: [
+            \App\Http\Middleware\InjectPersonnage::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

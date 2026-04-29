@@ -59,6 +59,15 @@ class Compte extends Authenticatable
         return $this->belongsTo(Personnage::class, 'perso_principal');
     }
 
+    /**
+     * Alias pour personnagePrincipal (toujours recharger depuis DB)
+     */
+    public function getPersonnageActifAttribute()
+    {
+        // Force reload from database to avoid cached data
+        return $this->personnagePrincipal()->first();
+    }
+
     // Méthodes du GDD
     public function setMotDePasse(string $password): void
     {

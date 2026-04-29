@@ -1,58 +1,11 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Admin - Détails Planète')
 
-@section('content')
-<div class="min-h-screen flex flex-col">
-    <!-- Header -->
-    <header class="bg-gray-900/90 border-b border-red-500/30 px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-4">
-            <h1 class="text-2xl font-orbitron text-red-400">PLANÈTE: {{ $planete->nom }}</h1>
-        </div>
-        <div class="flex gap-4">
-            <a href="{{ route('admin.univers.show', $planete->systeme_stellaire_id) }}" class="text-cyan-400 hover:text-cyan-300 text-sm">
-                ← Retour au système {{ $planete->systemeStellaire->nom }}
-            </a>
-            <a href="{{ route('admin.planetes') }}" class="text-cyan-400 hover:text-cyan-300 text-sm">
-                Liste des planètes
-            </a>
-        </div>
-    </header>
+@section('admin-title', 'PLANÈTE: {{ $planete->nom }}')
 
-    <div class="flex-1 flex">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-gray-900/80 border-r border-red-500/20 p-4">
-            <nav class="space-y-2">
-                <a href="{{ route('admin.index') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Dashboard
-                </a>
-                <a href="{{ route('admin.comptes') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Comptes
-                </a>
-                <a href="{{ route('admin.univers') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Univers
-                </a>
-                <a href="{{ route('admin.planetes') }}" class="block px-4 py-2 rounded bg-red-500/20 text-red-300">
-                    Planètes
-                </a>
-                <a href="{{ route('admin.production') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Productions
-                </a>
-                <a href="{{ route('admin.mines') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Mines (MAME)
-                </a>
-                <a href="{{ route('admin.carte') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Carte
-                </a>
-                <a href="{{ route('admin.backup') }}" class="block px-4 py-2 rounded hover:bg-red-500/10 text-gray-300">
-                    Backup
-                </a>
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="flex-1 p-6">
-            <!-- Messages de succès -->
+@section('admin-content')
+<!-- Messages de succès -->
             @if(session('success'))
             <div class="bg-green-900/50 border border-green-500 text-green-300 px-4 py-3 rounded mb-6">
                 {{ session('success') }}
@@ -97,7 +50,7 @@
                         <!-- Distance à l'étoile -->
                         <div>
                             <label class="text-xs text-gray-200 mb-1 block">Distance à l'étoile (UA)</label>
-                            <input type="number" name="distance_etoile" value="{{ $planete->distance_etoile }}" step="0.01"
+                            <input type="number" name="distance_etoile" value="{{ $planete->distance_etoile / 100 }}" step="0.01"
                                    class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
                         </div>
 
@@ -217,6 +170,46 @@
                     </div>
                 </div>
             </form>
+
+            {{-- Section NASA Exoplanet --}}
+            @if($planete->source_nasa_exoplanet)
+            <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-6 mb-6">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <span class="text-green-400">📡</span>
+                    Données NASA Exoplanet Archive
+                </h2>
+
+                <div class="bg-green-900/20 border border-green-500/30 rounded p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <div class="text-xs text-gray-200 mb-1">ID NASA</div>
+                            <div class="text-green-300 font-mono text-sm">{{ $planete->nasa_exo_id ?? 'N/A' }}</div>
+                        </div>
+
+                        <div>
+                            <div class="text-xs text-gray-200 mb-1">Méthode de découverte</div>
+                            <div class="text-white">{{ $planete->nasa_discovery_method ?? 'N/A' }}</div>
+                        </div>
+
+                        <div>
+                            <div class="text-xs text-gray-200 mb-1">Année de découverte</div>
+                            <div class="text-cyan-300 font-bold">{{ $planete->nasa_discovery_year ?? 'N/A' }}</div>
+                        </div>
+
+                        <div>
+                            <div class="text-xs text-gray-200 mb-1">Excentricité orbitale</div>
+                            <div class="text-white">{{ $planete->excentricite_orbitale !== null ? number_format($planete->excentricite_orbitale, 3) : 'N/A' }}</div>
+                        </div>
+
+                        <div class="col-span-2">
+                            <div class="text-xs text-gray-400 italic">
+                                Cette planète provient du catalogue NASA Exoplanet Archive et représente une exoplanète réelle découverte par les astronomes.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <!-- Gisements de la planète -->
             <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-6 mb-6">
@@ -456,362 +449,4 @@
                 </div>
             </div>
             @endif
-        </main>
-    </div>
-</div>
-
-<!-- JavaScript pour édition gisements et mines -->
-<script>
-// Créer un nouveau gisement
-function creerGisement() {
-    const planeteId = {{ $planete->id }};
-    const ressources = @json($ressources);
-
-    // Créer dialogue HTML pour saisir les infos
-    const html = `
-        <div id="dialog-gisement" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-            <div class="bg-gray-800 border border-gray-600 rounded-lg p-6 max-w-md w-full">
-                <h3 class="text-xl font-bold text-white mb-4">Créer un gisement</h3>
-                <div class="space-y-3">
-                    <div>
-                        <label class="text-xs text-gray-200 block mb-1">Ressource</label>
-                        <select id="gisement-ressource" class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
-                            ${ressources.map(r => `<option value="${r.id}">${r.nom}</option>`).join('')}
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-200 block mb-1">Richesse (%)</label>
-                        <input type="number" id="gisement-richesse" value="${Math.floor(Math.random() * 81) + 20}" min="1" max="100"
-                               class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-200 block mb-1">Quantité totale</label>
-                        <input type="number" id="gisement-quantite" value="${Math.floor(Math.random() * 15000000) + 1000000}"
-                               class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
-                    </div>
-                </div>
-                <div class="flex gap-2 mt-6">
-                    <button onclick="submitCreerGisement()" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold">
-                        Créer
-                    </button>
-                    <button onclick="document.getElementById('dialog-gisement').remove()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">
-                        Annuler
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', html);
-}
-
-function submitCreerGisement() {
-    const planeteId = {{ $planete->id }};
-    const ressourceId = document.getElementById('gisement-ressource').value;
-    const richesse = document.getElementById('gisement-richesse').value;
-    const quantite = document.getElementById('gisement-quantite').value;
-
-    fetch('{{ route('admin.production.gisement.store') }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({
-            planete_id: planeteId,
-            ressource_id: ressourceId,
-            richesse: richesse,
-            quantite_totale: quantite
-        })
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            location.reload();
-        } else {
-            alert('Erreur: ' + (result.message || 'Erreur inconnue'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Erreur de connexion');
-    });
-}
-
-// Créer une mine sur un gisement
-function creerMine(gisementId, ressourceNom) {
-    const planeteId = {{ $planete->id }};
-    const planeteNom = '{{ $planete->nom }}';
-
-    const html = `
-        <div id="dialog-mine" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-            <div class="bg-gray-800 border border-gray-600 rounded-lg p-6 max-w-md w-full">
-                <h3 class="text-xl font-bold text-white mb-4">Créer une mine (MAME)</h3>
-                <p class="text-sm text-gray-400 mb-4">Gisement de <span class="text-yellow-400">${ressourceNom}</span></p>
-                <div class="space-y-3">
-                    <div>
-                        <label class="text-xs text-gray-200 block mb-1">Nom de la mine</label>
-                        <input type="text" id="mine-nom" value="MAME-${ressourceNom}-${planeteNom}-${Math.floor(Math.random() * 1000)}"
-                               class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-200 block mb-1">Emplacement</label>
-                        <select id="mine-emplacement" class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
-                            <option value="surface">Surface</option>
-                            <option value="orbite">Orbite</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-200 block mb-1">Taux d'extraction (u/jour)</label>
-                        <input type="number" id="mine-taux" value="100" min="1" step="0.01"
-                               class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-200 block mb-1">Capacité de stockage</label>
-                        <input type="number" id="mine-capacite" value="10000" min="100"
-                               class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
-                    </div>
-                </div>
-                <div class="flex gap-2 mt-6">
-                    <button onclick="submitCreerMine(${gisementId})" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold">
-                        Créer
-                    </button>
-                    <button onclick="document.getElementById('dialog-mine').remove()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">
-                        Annuler
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', html);
-}
-
-function submitCreerMine(gisementId) {
-    const planeteId = {{ $planete->id }};
-    const nom = document.getElementById('mine-nom').value;
-    const emplacement = document.getElementById('mine-emplacement').value;
-    const taux = document.getElementById('mine-taux').value;
-    const capacite = document.getElementById('mine-capacite').value;
-
-    fetch('{{ route('admin.mines.store') }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({
-            nom: nom,
-            planete_id: planeteId,
-            gisement_id: gisementId,
-            emplacement: emplacement,
-            taux_extraction: taux,
-            capacite_stockage: capacite
-        })
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            location.reload();
-        } else {
-            alert('Erreur: ' + (result.message || 'Erreur inconnue'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Erreur de connexion');
-    });
-}
-
-// Ravitailler une mine
-function ravitaillerMine(mineId) {
-    const html = `
-        <div id="dialog-ravitailler" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-            <div class="bg-gray-800 border border-gray-600 rounded-lg p-6 max-w-md w-full">
-                <h3 class="text-xl font-bold text-white mb-4">Ravitailler la mine</h3>
-                <div class="space-y-3">
-                    <div>
-                        <label class="text-xs text-gray-200 block mb-1">Énergie (unités)</label>
-                        <input type="number" id="ravit-energie" value="1000" min="0"
-                               class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-200 block mb-1">Pièces de rechange</label>
-                        <input type="number" id="ravit-pieces-rechange" value="50" min="0"
-                               class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-200 block mb-1">Pièces d'usure</label>
-                        <input type="number" id="ravit-pieces-usure" value="100" min="0"
-                               class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white text-sm">
-                    </div>
-                </div>
-                <div class="flex gap-2 mt-6">
-                    <button onclick="submitRavitailler(${mineId})" class="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded font-bold">
-                        Ravitailler
-                    </button>
-                    <button onclick="document.getElementById('dialog-ravitailler').remove()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">
-                        Annuler
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', html);
-}
-
-function submitRavitailler(mineId) {
-    const energie = document.getElementById('ravit-energie').value;
-    const piecesRechange = document.getElementById('ravit-pieces-rechange').value;
-    const piecesUsure = document.getElementById('ravit-pieces-usure').value;
-
-    fetch(`/admin/mines/${mineId}/ravitailler`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({
-            energie: energie,
-            pieces_rechange: piecesRechange,
-            pieces_usure: piecesUsure
-        })
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            location.reload();
-        } else {
-            alert('Erreur: ' + (result.message || 'Erreur inconnue'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Erreur de connexion');
-    });
-}
-
-// Maintenance d'une mine
-function maintenanceMine(mineId) {
-    if (!confirm('Effectuer la maintenance de cette mine? (Réinitialise l\'usure à 0%)')) {
-        return;
-    }
-
-    fetch(`/admin/mines/${mineId}/maintenance`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        }
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            alert(result.message);
-            location.reload();
-        } else {
-            alert('Erreur: ' + (result.message || 'Erreur inconnue'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Erreur de connexion');
-    });
-}
-
-// Supprimer une mine
-function supprimerMine(mineId, nom) {
-    if (!confirm(`Supprimer définitivement la mine "${nom}"?`)) {
-        return;
-    }
-
-    fetch(`/admin/mines/${mineId}`, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        }
-    })
-    .then(response => {
-        if (response.ok) {
-            location.reload();
-        } else {
-            alert('Erreur lors de la suppression');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Erreur de connexion');
-    });
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Boutons recalculer
-    document.querySelectorAll('.recalc-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const gisementId = this.dataset.gisementId;
-            const field = this.dataset.field;
-            const row = this.closest('tr');
-
-            if (field === 'richesse') {
-                // Richesse aléatoire 20-100
-                const newValue = Math.floor(Math.random() * 81) + 20;
-                row.querySelector(`[data-field="${field}"][data-gisement-id="${gisementId}"]`).value = newValue;
-            } else if (field === 'quantite_totale') {
-                // Quantité aléatoire basée sur rareté
-                const newValue = Math.floor(Math.random() * 15000000) + 1000000;
-                row.querySelector(`[data-field="${field}"][data-gisement-id="${gisementId}"]`).value = newValue;
-            } else if (field === 'quantite_restante') {
-                // Copier la quantité totale
-                const totalQty = row.querySelector(`[data-field="quantite_totale"][data-gisement-id="${gisementId}"]`).value;
-                row.querySelector(`[data-field="${field}"][data-gisement-id="${gisementId}"]`).value = totalQty;
-            }
-        });
-    });
-
-    // Boutons sauvegarder
-    document.querySelectorAll('.save-gisement-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const gisementId = this.dataset.gisementId;
-            const row = this.closest('tr');
-
-            // Collecter les données
-            const data = {
-                ressource_id: row.querySelector(`[data-field="ressource_id"][data-gisement-id="${gisementId}"]`).value,
-                richesse: row.querySelector(`[data-field="richesse"][data-gisement-id="${gisementId}"]`).value,
-                quantite_totale: row.querySelector(`[data-field="quantite_totale"][data-gisement-id="${gisementId}"]`).value,
-                quantite_restante: row.querySelector(`[data-field="quantite_restante"][data-gisement-id="${gisementId}"]`).value,
-                _token: '{{ csrf_token() }}'
-            };
-
-            // Sauvegarder via AJAX
-            fetch(`/admin/production/gisement/${gisementId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    // Feedback visuel
-                    this.textContent = '✓ Sauvegardé';
-                    this.classList.remove('bg-green-600/80', 'hover:bg-green-600');
-                    this.classList.add('bg-gray-600');
-                    setTimeout(() => {
-                        this.textContent = '💾 Sauvegarder';
-                        this.classList.remove('bg-gray-600');
-                        this.classList.add('bg-green-600/80', 'hover:bg-green-600');
-                    }, 2000);
-                } else {
-                    alert('Erreur: ' + (result.message || 'Erreur inconnue'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Erreur de connexion');
-            });
-        });
-    });
-});
-</script>
 @endsection

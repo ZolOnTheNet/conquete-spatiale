@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\SystemeStellaire;
 use App\Models\Planete;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class UniverseGeneratorService
 {
@@ -325,5 +326,229 @@ class UniverseGeneratorService
         }
 
         return $systemes;
+    }
+
+    /**
+     * Vérifier si un secteur existe et le générer à la volée si nécessaire
+     * ⭐ GÉNÉRATION DYNAMIQUE À LA VOLÉE ⭐
+     *
+     * @param int $secteurX Coordonnée X du secteur
+     * @param int $secteurY Coordonnée Y du secteur
+     * @param int $secteurZ Coordonnée Z du secteur
+     * @param bool $forceGenerate Forcer la génération même si aucune étoile n'est trouvée
+     * @return SystemeStellaire|null Système stellaire généré ou existant
+     */
+    public function ensureSectorExists(
+        int $secteurX,
+        int $secteurY,
+        int $secteurZ,
+        bool $forceGenerate = false
+    ): ?SystemeStellaire {
+        // Vérifier si un système existe déjà dans ce secteur
+        $systeme = SystemeStellaire::where('secteur_x', $secteurX)
+            ->where('secteur_y', $secteurY)
+            ->where('secteur_z', $secteurZ)
+            ->first();
+
+        if ($systeme) {
+            Log::debug("Secteur [{$secteurX}, {$secteurY}, {$secteurZ}] : système existant trouvé ({$systeme->nom})");
+            return $systeme;
+        }
+
+        // Secteur vide : tenter de générer avec GAIA/NASA ou procédural
+        Log::info("Secteur [{$secteurX}, {$secteurY}, {$secteurZ}] : génération à la volée...");
+
+        return $this->generateSectorOnTheFly($secteurX, $secteurY, $secteurZ, $forceGenerate);
+    }
+
+    /**
+     * Générer un secteur à la volée (intégration GAIA/NASA + procédural)
+     * 🚀 CŒUR DE LA GÉNÉRATION DYNAMIQUE 🚀
+     *
+     * @param int $secteurX
+     * @param int $secteurY
+     * @param int $secteurZ
+     * @param bool $forceGenerate Forcer génération procédurale si aucune étoile réelle
+     * @return SystemeStellaire|null
+     */
+    protected function generateSectorOnTheFly(
+        int $secteurX,
+        int $secteurY,
+        int $secteurZ,
+        bool $forceGenerate = false
+    ): ?SystemeStellaire {
+        // ÉTAPE 1: Chercher une étoile GAIA proche de ce secteur
+        $gaiaSysteme = $this->findGaiaStarNearSector($secteurX, $secteurY, $secteurZ);
+
+        if ($gaiaSysteme) {
+            Log::info("  ✓ Étoile GAIA trouvée proche: {$gaiaSysteme->nom}");
+
+            // ÉTAPE 2: Importer les exoplanètes NASA pour cette étoile
+            if (config('universe.exoplanet_enabled', true)) {
+                $this->importExoplanetsForGaiaStar($gaiaSysteme);
+            }
+
+            return $gaiaSysteme;
+        }
+
+        // ÉTAPE 3: Pas d'étoile GAIA → Génération procédurale ?
+        if (!$forceGenerate && !config('universe.generate_empty_sectors', false)) {
+            Log::debug("  → Secteur vide (pas d'étoile GAIA, génération procédurale désactivée)");
+            return null;
+        }
+
+        // ÉTAPE 4: Génération procédurale
+        $probabilite = config('universe.procedural_density', 0.05); // 5% de chance par défaut
+
+        if (rand(1, 100) / 100 > $probabilite) {
+            Log::debug("  → Secteur vide (probabilité procédurale non atteinte)");
+            return null;
+        }
+
+        Log::info("  ✓ Génération procédurale déclenchée");
+        return $this->genererSysteme($secteurX, $secteurY, $secteurZ);
+    }
+
+    /**
+     * Chercher une étoile GAIA proche d'un secteur donné
+     *
+     * @param int $secteurX
+     * @param int $secteurY
+     * @param int $secteurZ
+     * @param float $tolerance Tolérance en AL (défaut: 0.5)
+     * @return SystemeStellaire|null
+     */
+    protected function findGaiaStarNearSector(
+        int $secteurX,
+        int $secteurY,
+        int $secteurZ,
+        float $tolerance = 0.5
+    ): ?SystemeStellaire {
+        // Chercher dans un cube autour du secteur cible
+        return SystemeStellaire::where('source_gaia', true)
+            ->where('secteur_x', '>=', $secteurX - 1)
+            ->where('secteur_x', '<=', $secteurX + 1)
+            ->where('secteur_y', '>=', $secteurY - 1)
+            ->where('secteur_y', '<=', $secteurY + 1)
+            ->where('secteur_z', '>=', $secteurZ - 1)
+            ->where('secteur_z', '<=', $secteurZ + 1)
+            ->get()
+            ->sortBy(function($systeme) use ($secteurX, $secteurY, $secteurZ) {
+                // Calculer distance exacte
+                $dx = ($systeme->secteur_x + $systeme->position_x) - ($secteurX + 0.5);
+                $dy = ($systeme->secteur_y + $systeme->position_y) - ($secteurY + 0.5);
+                $dz = ($systeme->secteur_z + $systeme->position_z) - ($secteurZ + 0.5);
+                return sqrt($dx * $dx + $dy * $dy + $dz * $dz);
+            })
+            ->first();
+    }
+
+    /**
+     * Importer les exoplanètes NASA pour une étoile GAIA
+     *
+     * @param SystemeStellaire $systeme
+     * @return int Nombre de planètes importées
+     */
+    protected function importExoplanetsForGaiaStar(SystemeStellaire $systeme): int
+    {
+        // Vérifier si les planètes ont déjà été importées
+        $hasNasaPlanets = $systeme->planetes()
+            ->where('source_nasa_exoplanet', true)
+            ->exists();
+
+        if ($hasNasaPlanets) {
+            return 0; // Déjà importées
+        }
+
+        // Utiliser le ExoplanetService pour importer
+        $exoplanetService = app(ExoplanetService::class);
+
+        try {
+            $count = $exoplanetService->importExoplanetsForSystem($systeme);
+
+            if ($count > 0) {
+                Log::info("    → {$count} exoplanète(s) NASA importée(s) pour {$systeme->nom}");
+            }
+
+            return $count;
+
+        } catch (\Exception $e) {
+            Log::error("Erreur import exoplanètes NASA pour {$systeme->nom}: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Étendre l'univers autour d'une position (génération en masse)
+     * Utile pour pré-générer autour de la position d'un joueur
+     *
+     * @param int $centreX Centre X
+     * @param int $centreY Centre Y
+     * @param int $centreZ Centre Z
+     * @param int $rayon Rayon en secteurs
+     * @return array Systèmes générés
+     */
+    public function expandUniverseAroundPosition(
+        int $centreX,
+        int $centreY,
+        int $centreZ,
+        int $rayon = 5
+    ): array {
+        Log::info("Expansion univers autour de [{$centreX}, {$centreY}, {$centreZ}] (rayon: {$rayon})");
+
+        $systemes = [];
+        $generated = 0;
+        $existing = 0;
+
+        // Parcourir un cube autour de la position
+        for ($x = $centreX - $rayon; $x <= $centreX + $rayon; $x++) {
+            for ($y = $centreY - $rayon; $y <= $centreY + $rayon; $y++) {
+                for ($z = $centreZ - $rayon; $z <= $centreZ + $rayon; $z++) {
+                    // Vérifier distance euclidienne (sphère au lieu de cube)
+                    $distance = sqrt(
+                        pow($x - $centreX, 2) +
+                        pow($y - $centreY, 2) +
+                        pow($z - $centreZ, 2)
+                    );
+
+                    if ($distance > $rayon) {
+                        continue; // Hors de la sphère
+                    }
+
+                    $systeme = $this->ensureSectorExists($x, $y, $z, false);
+
+                    if ($systeme) {
+                        $systemes[] = $systeme;
+
+                        if ($systeme->wasRecentlyCreated) {
+                            $generated++;
+                        } else {
+                            $existing++;
+                        }
+                    }
+                }
+            }
+        }
+
+        Log::info("Expansion terminée: {$generated} nouveaux systèmes, {$existing} existants");
+
+        return $systemes;
+    }
+
+    /**
+     * Obtenir ou générer un système stellaire dans un secteur
+     * (Alias pratique pour ensureSectorExists)
+     *
+     * @param int $secteurX
+     * @param int $secteurY
+     * @param int $secteurZ
+     * @return SystemeStellaire|null
+     */
+    public function getOrCreateSystemInSector(
+        int $secteurX,
+        int $secteurY,
+        int $secteurZ
+    ): ?SystemeStellaire {
+        return $this->ensureSectorExists($secteurX, $secteurY, $secteurZ, false);
     }
 }
