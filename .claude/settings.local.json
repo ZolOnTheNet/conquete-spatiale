@@ -33,7 +33,11 @@
       "Bash(python scripts/fix-all.py:*)",
       "Bash(sort:*)",
       "Bash(dir:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(git stash *)",
+      "Bash(git fetch *)",
+      "Bash(git ls-tree *)",
+      "Bash(git merge *)"
     ],
     "deny": [],
     "ask": []

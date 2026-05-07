@@ -150,8 +150,10 @@ Echec : le vaisseau ne peut s'apporcher en temps et en heure, plus l'échec est 
     * embouteillage : 1d10+1 µPA
     * controle doannier : en fonction de la quanité de marchandise Dé(NbSCU).Test de detection de contrebande.
     * controle de police: 1d10+1 *PA
-    *
+    * avarie suite à une mauvaise manoeuvre (voir les avaries possibles)
 ### attérissage sur une planete
+Très proche de l'appontement d'une station.
+Jet de pilotage(Fin) vs difficulté d'atterissage de la planete (population en milliard)
 
 ### appontement entre vaisseau
 
