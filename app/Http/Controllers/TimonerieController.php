@@ -103,11 +103,11 @@ class TimonerieController extends Controller
         $deltaResult = $this->calculerDelta($scoreErreur, $distance);
         $deltaCalcule = $deltaResult['x']; // Utiliser delta X pour la représentation
 
-        // Position cible (avant application du delta)
+        // Position cible (avant application du delta) — coordonnées secteur (années-lumière entières)
         $positionCible = [
-            'x' => $destination->position_x,
-            'y' => $destination->position_y,
-            'z' => $destination->position_z,
+            'secteur_x' => $destination->secteur_x,
+            'secteur_y' => $destination->secteur_y,
+            'secteur_z' => $destination->secteur_z,
         ];
 
         // Déterminer le nom du POI cible
@@ -194,7 +194,7 @@ class TimonerieController extends Controller
         $deltaResult = $this->calculerDelta($calcul['score_erreur'], $distanceLocale, $poiId === 'systeme');
         $arrivee = $this->calculerArriveeAvecDelta(
             $vaisseau,
-            $calcul['positionCible'],
+            $calcul['position_cible'],
             $deltaResult,
             $distanceLocale
         );
@@ -1137,22 +1137,19 @@ class TimonerieController extends Controller
      */
     protected function calculerArriveeAvecDelta($vaisseau, $positionCible, $deltaResult, $distanceLocale): array
     {
-        // Appliquer les deltas X, Y, Z aux coordonnées
-        $arrivee = [
-            'secteur_x' => $positionCible['x'],
-            'secteur_y' => $positionCible['y'],
-            'secteur_z' => $positionCible['z'],
-            'position_x' => $positionCible['x'] + $deltaResult['x'],
-            'position_y' => $positionCible['y'] + $deltaResult['y'],
-            'position_z' => $positionCible['z'] + $deltaResult['z'],
+        // Le delta est en années-lumière → s'applique aux coordonnées de secteur
+        $secteurX = (int) round(($positionCible['secteur_x'] ?? 0) + $deltaResult['x']);
+        $secteurY = (int) round(($positionCible['secteur_y'] ?? 0) + $deltaResult['y']);
+        $secteurZ = (int) round(($positionCible['secteur_z'] ?? 0) + $deltaResult['z']);
+
+        return [
+            'secteur_x' => $secteurX,
+            'secteur_y' => $secteurY,
+            'secteur_z' => $secteurZ,
+            'position_x' => 0.5,
+            'position_y' => 0.5,
+            'position_z' => 0.5,
         ];
-
-        // S'assurer que les valeurs restent dans des limites raisonnables
-        $arrivee['position_x'] = max(-100, min(100, $arrivee['position_x']));
-        $arrivee['position_y'] = max(-100, min(100, $arrivee['position_y']));
-        $arrivee['position_z'] = max(-100, min(100, $arrivee['position_z']));
-
-        return $arrivee;
     }
 
     /**

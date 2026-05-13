@@ -876,7 +876,12 @@ scene.add(orbitsGroup);
 let pickables = [];
 let scanRing = null;
 let orbitsVisible = true;
-let viewMode = 'galactic';
+let viewMode = new URLSearchParams(location.search).get('mode') || 'galactic';
+function reloadWithMode() {
+  const url = new URL(location.href);
+  url.searchParams.set('mode', viewMode);
+  location.href = url.toString();
+}
 
 function clearGroup(g) {
   while (g.children.length) {
@@ -1369,7 +1374,7 @@ async function calculerSaut(destinationId, poiId = 'systeme') {
       btnAct.onclick = () => effectuerSaut(destinationId, poiId);
       btnAct.disabled = false;
     }
-    location.reload();
+    reloadWithMode();
   } catch (e) {
     consoleLog('[ERREUR] ' + e.message, 'err');
   }
@@ -1389,7 +1394,7 @@ async function effectuerSaut(destinationId, poiId = 'systeme') {
     consoleLog('  Énergie restante : ' + data.energieRestante + ' · PA : ' + data.paRestants, 'sys');
     updateGaugeEnergy(data.energieRestante);
     updateGaugePA(data.paRestants);
-    setTimeout(() => location.reload(), 2000);
+    setTimeout(() => reloadWithMode(), 2000);
   } catch (e) {
     consoleLog('[ERREUR] ' + e.message, 'err');
   }
@@ -1408,7 +1413,7 @@ async function sApprocher(poiId, poiType) {
     consoleLog('  ✓ ' + data.message, 'ok');
     updateGaugeEnergy(data.energieRestante);
     updateGaugePA(data.paRestants);
-    setTimeout(() => location.reload(), 2000);
+    setTimeout(() => reloadWithMode(), 2000);
   } catch (e) {
     consoleLog('[ERREUR] ' + e.message, 'err');
   }
@@ -1443,7 +1448,7 @@ async function annulerCalculSaut() {
   });
   const data = await r.json();
   consoleLog(data.error ? '[ERREUR] ' + data.error : '  ✓ Calcul annulé', data.error ? 'err' : 'ok');
-  if (!data.error) location.reload();
+  if (!data.error) reloadWithMode();
 }
 
 async function ameliorerCalculSaut() {
@@ -1455,7 +1460,7 @@ async function ameliorerCalculSaut() {
   const data = await r.json();
   if (data.error) { consoleLog('[ERREUR] ' + data.error, 'err'); return; }
   consoleLog('  ✓ Calcul amélioré · Score : ' + data.nouveau_score + ' · Précision : ' + data.precision + '%', 'ok');
-  location.reload();
+  reloadWithMode();
 }
 
 // ============ RACCOURCIS ============
