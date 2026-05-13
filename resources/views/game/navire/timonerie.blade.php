@@ -77,6 +77,8 @@ body {
 .calc-btn.cancel:hover { background: rgba(239,68,68,0.1); }
 .calc-btn.improve { color: var(--data); border-color: var(--data); }
 .calc-btn.improve:hover { background: rgba(127,212,255,0.1); }
+.calc-btn.jump { color: var(--ok); border-color: var(--ok); }
+.calc-btn.jump:hover { background: rgba(74,222,128,0.15); }
 
 /* STAGE */
 .stage { position: fixed; top: 52px; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: 200px 1fr 320px; min-width: 1200px; }
@@ -524,6 +526,7 @@ $calculSaut = session('dernier_calcul_saut');
   <div class="calc-actions">
     <button class="calc-btn cancel" onclick="annulerCalculSaut()">✕ Annuler</button>
     <button class="calc-btn improve" onclick="ameliorerCalculSaut()">↑ Améliorer (1 PA)</button>
+    <button class="calc-btn jump" onclick="effectuerSaut({{ $calculSaut['destination_id'] }})">▶ Initier saut</button>
   </div>
 </div>
 @endif
@@ -783,8 +786,6 @@ import * as THREE from 'three';
 // ============================================================
 const galacticData = @json($galacticData);
 const localData   = @json($localPOIs);
-// Si un calcul de saut est en cours, le bouton "Initier saut" ne doit pas être écrasé
-const jumpCalcActive = {{ $calculSaut ? 'true' : 'false' }};
 
 // ============================================================
 // THREE.JS SETUP
@@ -1151,17 +1152,12 @@ canvas.addEventListener('click', e => {
     if (hit && hit.data.id !== 0) {
       if (hit.data.isJumpTarget) {
         window.lockJumpTarget(hit.data);
-        setDestinationLine(hit.data);
-        consoleLog('> cible ' + hit.data.name, 'cmd');
-        consoleLog('  Cible verrouillée : ' + hit.data.name, 'data');
       } else {
-        window.lockLocalTarget(hit.data); // no-op si saut en cours
-        if (!jumpCalcActive) {
-          setDestinationLine(hit.data);
-          consoleLog('> cible ' + hit.data.name, 'cmd');
-          consoleLog('  Cible locale : ' + hit.data.name, 'data');
-        }
+        window.lockLocalTarget(hit.data);
       }
+      setDestinationLine(hit.data);
+      consoleLog('> cible ' + hit.data.name, 'cmd');
+      consoleLog('  Cible verrouillée : ' + hit.data.name, 'data');
     }
   }
 });
@@ -1311,9 +1307,6 @@ window.lockJumpTarget = function(sys) {
 };
 
 window.lockLocalTarget = function(sys) {
-  // Si un calcul de saut est en session, ne pas écraser l'overlay de saut
-  if (jumpCalcActive) return;
-
   lockedTargetId = sys.id;
   lockedTargetType = 'local';
   document.getElementById('dest-head').textContent = 'Cible locale';
