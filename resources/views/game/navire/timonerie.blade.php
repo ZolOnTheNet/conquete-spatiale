@@ -447,6 +447,14 @@ unset($sat);
 $localPOIs = array_merge($localPlanets, $orderedSatellites);
 
 $calculSaut = session('dernier_calcul_saut');
+
+// Position approx du vaisseau dans la scène système (1 UA ≈ 7 unités scène)
+$starOffX = $systemeActuel ? ($systemeActuel->position_x ?? 0) : 0;
+$starOffY = $systemeActuel ? ($systemeActuel->position_y ?? 0) : 0;
+$shipSceneX = round(($objetSpatial->position_x - $starOffX) / 100 * 7.0, 2);
+$shipSceneZ = round(($objetSpatial->position_y - $starOffY) / 100 * 7.0, 2);
+$shipSceneX = max(-28, min(28, $shipSceneX));
+$shipSceneZ = max(-28, min(28, $shipSceneZ));
 @endphp
 
 @section('content')
@@ -784,8 +792,10 @@ import * as THREE from 'three';
 // ============================================================
 // DATA (depuis Laravel)
 // ============================================================
-const galacticData = @json($galacticData);
-const localData   = @json($localPOIs);
+const galacticData  = @json($galacticData);
+const localData     = @json($localPOIs);
+const shipInitX     = {{ $shipSceneX }};
+const shipInitZ     = {{ $shipSceneZ }};
 
 // ============================================================
 // THREE.JS SETUP
@@ -1054,7 +1064,7 @@ function buildSystem() {
     pickables.push({ core: sCore, data: sat, group: sGroup });
   });
 
-  shipGroup.position.set(3, 1, 2);
+  shipGroup.position.set(shipInitX || 3, 1, shipInitZ || 2);
   orbitsGroup.visible = orbitsVisible;
   setCameraDefault(40);
   document.getElementById('view-label').textContent = 'Vue système — {{ $systemeActuel->nom ?? "Local" }} · {{ count($poisSecteur) }} corps';
@@ -1180,10 +1190,27 @@ new ResizeObserver(onResize).observe(wrap);
 // ============================================================
 // ANIMATE
 // ============================================================
+let shipMoveTo = null;
+let shipMoveOnDone = null;
+
+function moveShipTo(x, y, z, onDone) {
+  shipMoveTo = new THREE.Vector3(x, y, z);
+  shipMoveOnDone = onDone || null;
+}
+
 function animate(t) {
   requestAnimationFrame(animate);
   shipGroup.rotation.y = t * 0.0005;
   if (scanRing) scanRing.rotation.z = t * 0.0002;
+  if (shipMoveTo) {
+    shipGroup.position.lerp(shipMoveTo, 0.05);
+    if (shipGroup.position.distanceTo(shipMoveTo) < 0.12) {
+      shipGroup.position.copy(shipMoveTo);
+      const cb = shipMoveOnDone;
+      shipMoveTo = null; shipMoveOnDone = null;
+      if (cb) cb();
+    }
+  }
   renderer.render(scene, camera);
 }
 
@@ -1397,7 +1424,10 @@ async function effectuerSaut(destinationId, poiId = 'systeme') {
     consoleLog('  Énergie restante : ' + data.energieRestante + ' · PA : ' + data.paRestants, 'sys');
     updateGaugeEnergy(data.energieRestante);
     updateGaugePA(data.paRestants);
-    setTimeout(() => reloadWithMode(), 2000);
+    // Animer : vaisseau s'éloigne rapidement (simulation saut hyperespacial)
+    const sx = shipGroup.position.x, sz = shipGroup.position.z;
+    const angle = Math.atan2(sz, sx) + Math.PI; // direction opposée au centre
+    moveShipTo(sx + Math.cos(angle)*40, 1, sz + Math.sin(angle)*40, reloadWithMode);
   } catch (e) {
     consoleLog('[ERREUR] ' + e.message, 'err');
   }
@@ -1416,7 +1446,13 @@ async function sApprocher(poiId, poiType) {
     consoleLog('  ✓ ' + data.message, 'ok');
     updateGaugeEnergy(data.energieRestante);
     updateGaugePA(data.paRestants);
-    setTimeout(() => reloadWithMode(), 2000);
+    // Animer le vaisseau vers la cible puis recharger
+    const target = localData.find(p => p.id == poiId);
+    if (target && viewMode === 'system') {
+      moveShipTo(target.x || 0, 1, target.z || 0, () => setTimeout(reloadWithMode, 400));
+    } else {
+      setTimeout(reloadWithMode, 1500);
+    }
   } catch (e) {
     consoleLog('[ERREUR] ' + e.message, 'err');
   }
