@@ -796,6 +796,9 @@ const galacticData  = @json($galacticData);
 const localData     = @json($localPOIs);
 const shipInitX     = {{ $shipSceneX }};
 const shipInitZ     = {{ $shipSceneZ }};
+// Exposer pour les scripts non-module
+window._localData   = localData;
+window._moveShipTo  = null; // sera défini après buildScene()
 
 // ============================================================
 // THREE.JS SETUP
@@ -1197,6 +1200,8 @@ function moveShipTo(x, y, z, onDone) {
   shipMoveTo = new THREE.Vector3(x, y, z);
   shipMoveOnDone = onDone || null;
 }
+window._moveShipTo  = moveShipTo;
+window._shipGroup   = shipGroup;
 
 function animate(t) {
   requestAnimationFrame(animate);
@@ -1424,10 +1429,15 @@ async function effectuerSaut(destinationId, poiId = 'systeme') {
     consoleLog('  Énergie restante : ' + data.energieRestante + ' · PA : ' + data.paRestants, 'sys');
     updateGaugeEnergy(data.energieRestante);
     updateGaugePA(data.paRestants);
-    // Animer : vaisseau s'éloigne rapidement (simulation saut hyperespacial)
-    const sx = shipGroup.position.x, sz = shipGroup.position.z;
-    const angle = Math.atan2(sz, sx) + Math.PI; // direction opposée au centre
-    moveShipTo(sx + Math.cos(angle)*40, 1, sz + Math.sin(angle)*40, reloadWithMode);
+    // Animer : vaisseau s'éloigne rapidement (simulation saut hyperspacial)
+    const mst = window._moveShipTo;
+    if (mst && window._shipGroup) {
+      const sx = window._shipGroup.position.x, sz = window._shipGroup.position.z;
+      const angle = Math.atan2(sz, sx) + Math.PI;
+      mst(sx + Math.cos(angle)*40, 1, sz + Math.sin(angle)*40, reloadWithMode);
+    } else {
+      setTimeout(reloadWithMode, 1200);
+    }
   } catch (e) {
     consoleLog('[ERREUR] ' + e.message, 'err');
   }
@@ -1447,9 +1457,11 @@ async function sApprocher(poiId, poiType) {
     updateGaugeEnergy(data.energieRestante);
     updateGaugePA(data.paRestants);
     // Animer le vaisseau vers la cible puis recharger
-    const target = localData.find(p => p.id == poiId);
-    if (target && viewMode === 'system') {
-      moveShipTo(target.x || 0, 1, target.z || 0, () => setTimeout(reloadWithMode, 400));
+    const ld = window._localData || [];
+    const target = ld.find(p => p.id == poiId);
+    const mst = window._moveShipTo;
+    if (target && mst && viewMode === 'system') {
+      mst(target.x || 0, 1, target.z || 0, () => setTimeout(reloadWithMode, 400));
     } else {
       setTimeout(reloadWithMode, 1500);
     }
