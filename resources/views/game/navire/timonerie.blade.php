@@ -308,24 +308,26 @@ foreach ($sautsDisponibles as $dest) {
 }
 
 // Build system (local) data for Three.js
-// Load planete models to get orbital distance from star + satellite info
+// Load planete models (distance from star, satellite links)
 $planeteModels = $systemeActuel
     ? $systemeActuel->planetes()->get()->keyBy('id')
     : collect();
 
-$localPlanets  = []; // planets orbiting the star
-$localMoons    = []; // satellites orbiting a planet
-$localStations = []; // stations
+// Load station models → map station_id → planete_id (parent body)
+$stationModels = $systemeActuel
+    ? \App\Models\Station::where('systeme_stellaire_id', $systemeActuel->id)->get()->keyBy('id')
+    : collect();
+
+$localPlanets  = []; // corps orbitant directement l'étoile
+$localSatellites = []; // lunes ET stations avec un parent
 
 foreach ($poisSecteur as $poi) {
     if ($poi->type_poi === 'planete') {
         $m = $planeteModels->get($poi->id);
-        $categorie = $m ? ($m->categorie ?? 'planete') : 'planete';
-        $parentId  = $m ? $m->planete_parente_id : null;
-        // Use orbital radius from star (cUA → UA), not ship distance
+        $categorie    = $m ? ($m->categorie ?? 'planete') : 'planete';
+        $parentId     = $m ? $m->planete_parente_id : null;
         $distEtoileUA = $m ? ($m->distance_etoile / 100.0) : $poi->distance;
-        // Power scale: 1 UA→4, 1.5→5, 5.2→8, 30→13
-        $displayR = max(3.5, pow(max(0.5, $distEtoileUA), 0.35) * 7.0);
+        $displayR     = max(3.5, pow(max(0.5, $distEtoileUA), 0.35) * 7.0);
 
         $entry = [
             'id' => $poi->id, 'name' => $poi->nom,
@@ -340,26 +342,38 @@ foreach ($poisSecteur as $poi) {
         ];
 
         if ($parentId) {
-            $localMoons[] = $entry;
+            $localSatellites[] = $entry;
         } else {
             $localPlanets[] = $entry;
         }
+
     } else { // station
-        $r = max(3.5, pow(max(0.5, $poi->distance), 0.35) * 7.0);
-        $localStations[] = [
+        $sModel   = $stationModels->get($poi->id);
+        $parentId = $sModel ? $sModel->planete_id : null;
+
+        $entry = [
             'id' => $poi->id, 'name' => $poi->nom,
             'type' => 'station', 'poiType' => 'station',
-            'colorHex' => '#7fd4ff', 'size' => 0.35,
+            'colorHex' => '#7fd4ff', 'size' => 0.3,
             'dist' => round($poi->distance / 63241, 3),
             'distanceUA' => round($poi->distance, 1),
             'categorie' => 'station',
-            'planete_parente_id' => null,
-            'orbitRadius' => $r,
+            'planete_parente_id' => $parentId,
+            'orbitRadius' => 0.0, // calculé plus bas
         ];
+
+        if ($parentId) {
+            $localSatellites[] = $entry;
+        } else {
+            // Station sans planète parente : orbite directe autour de l'étoile
+            $r = max(3.5, pow(max(0.5, $poi->distance), 0.35) * 7.0);
+            $entry['orbitRadius'] = $r;
+            $localPlanets[] = $entry;
+        }
     }
 }
 
-// Assign x/z positions to planets around the star
+// --- Étape 1 : positionner les corps autour de l'étoile ---
 $nPlanets = count($localPlanets);
 foreach ($localPlanets as $i => &$planet) {
     $angle = $i * (M_PI * 2 / max($nPlanets, 1));
@@ -369,50 +383,66 @@ foreach ($localPlanets as $i => &$planet) {
 }
 unset($planet);
 
-// Map planets by id for moon lookup
-$planetsById = [];
-foreach ($localPlanets as $p) $planetsById[$p['id']] = $p;
+// Map de tous les corps par id (planètes d'abord, puis on ajoutera les lunes au fur et à mesure)
+$bodiesById = [];
+foreach ($localPlanets as $p) $bodiesById[$p['id']] = $p;
 
-// Moons: position relative to parent planet
-// Orbit radius based on distance_planete (UA) to stay within the gap to the next planet.
-// Scale: pow(dist_planete_UA * 1000, 0.28) * 0.45, capped at 0.65 scene units
-// Lune (0.00257 UA) → pow(2.57, 0.28)*0.45 ≈ 0.62 — well inside the Earth-Mars gap (~1.1 units)
-foreach ($localMoons as $j => &$moon) {
-    $parent = $planetsById[$moon['planete_parente_id']] ?? null;
-    $moonAngle = $j * 1.3 + 0.6;
+// --- Étape 2 : positionner satellites (lunes + stations) en 2 passes ---
+// Passe 1 : lunes (parent = planète, déjà dans bodiesById)
+// Passe 2 : stations dont le parent est une lune (besoin de la position de la lune)
+$pass1 = array_filter($localSatellites, fn($s) => isset($bodiesById[$s['planete_parente_id'] ?? -1]));
+$pass2 = array_filter($localSatellites, fn($s) => !isset($bodiesById[$s['planete_parente_id'] ?? -1]));
 
-    // Retrieve distance_planete from planete model
-    $mModel = $planeteModels->get($moon['id']);
-    $distPlaneteUA = $mModel ? max(0.0001, (float)($mModel->distance_planete ?? 0.001)) : 0.001;
-    $moonOrbitR = min(0.65, max(0.3, pow($distPlaneteUA * 1000, 0.28) * 0.45));
+$satAngleOffset = []; // angle courant par parent_id pour éviter superpositions
+
+function positionSatellite(array &$sat, array $bodiesById, array &$satAngleOffset, \Illuminate\Support\Collection $planeteModels): void {
+    $parentId = $sat['planete_parente_id'];
+    $parent   = $bodiesById[$parentId] ?? null;
+
+    // Angle décalé par parent pour espacer les satellites du même corps
+    $satAngleOffset[$parentId] = ($satAngleOffset[$parentId] ?? 0.5) + 1.1;
+    $angle = $satAngleOffset[$parentId];
+
+    // Rayon orbital affiché
+    if ($sat['categorie'] === 'lune') {
+        $mModel = $planeteModels->get($sat['id']);
+        $distPlaneteUA = $mModel ? max(0.0001, (float)($mModel->distance_planete ?? 0.001)) : 0.001;
+        $orbitR = min(0.65, max(0.3, pow($distPlaneteUA * 1000, 0.28) * 0.45));
+    } else {
+        // Station : rayon fixe légèrement plus grand que la lune typique
+        $orbitR = 0.5;
+    }
+    $sat['orbitRadius'] = $orbitR;
 
     if ($parent) {
-        $moon['x'] = round($parent['x'] + cos($moonAngle) * $moonOrbitR, 2);
-        $moon['z'] = round($parent['z'] + sin($moonAngle) * $moonOrbitR, 2);
-        $moon['y'] = 0.0;
-        $moon['parentX'] = $parent['x'];
-        $moon['parentZ'] = $parent['z'];
+        $sat['x'] = round($parent['x'] + cos($angle) * $orbitR, 2);
+        $sat['z'] = round($parent['z'] + sin($angle) * $orbitR, 2);
+        $sat['y'] = 0.0;
+        $sat['parentX'] = $parent['x'];
+        $sat['parentZ'] = $parent['z'];
     } else {
-        $moon['x'] = round(cos($moonAngle) * 4.0, 2);
-        $moon['z'] = round(sin($moonAngle) * 4.0, 2);
-        $moon['y'] = 0.0;
-        $moon['parentX'] = 0; $moon['parentZ'] = 0;
+        $sat['x'] = round(cos($angle) * 4.0, 2);
+        $sat['z'] = round(sin($angle) * 4.0, 2);
+        $sat['y'] = 0.0;
+        $sat['parentX'] = 0; $sat['parentZ'] = 0;
     }
-    $moon['moonOrbitRadius'] = $moonOrbitR;
+    $sat['moonOrbitRadius'] = $orbitR;
 }
-unset($moon);
 
-// Stations: place at their orbital distance
-$nStations = count($localStations);
-foreach ($localStations as $i => &$station) {
-    $angle = $i * (M_PI * 2 / max($nStations, 1)) + 0.4;
-    $station['x'] = round(cos($angle) * $station['orbitRadius'], 2);
-    $station['z'] = round(sin($angle) * $station['orbitRadius'], 2);
-    $station['y'] = 0.4;
+$orderedSatellites = [];
+foreach ($pass1 as &$sat) {
+    positionSatellite($sat, $bodiesById, $satAngleOffset, $planeteModels);
+    $bodiesById[$sat['id']] = $sat; // rend la lune disponible pour passe2
+    $orderedSatellites[] = $sat;
 }
-unset($station);
+unset($sat);
+foreach ($pass2 as &$sat) {
+    positionSatellite($sat, $bodiesById, $satAngleOffset, $planeteModels);
+    $orderedSatellites[] = $sat;
+}
+unset($sat);
 
-$localPOIs = array_merge($localPlanets, $localMoons, $localStations);
+$localPOIs = array_merge($localPlanets, $orderedSatellites);
 
 $calculSaut = session('dernier_calcul_saut');
 @endphp
@@ -958,12 +988,12 @@ function buildSystem() {
   objectsGroup.add(sGroup);
   pickables.push({ core: starCore, data: sGroup.userData, group: sGroup });
 
-  // Séparer planètes/stations (orbite autour de l'étoile) et lunes (orbite autour de parent)
-  const planets  = localData.filter(p => p.categorie !== 'lune');
-  const moons    = localData.filter(p => p.categorie === 'lune');
+  // Séparer : corps sans parent (orbitent l'étoile) vs satellites (lunes + stations avec parent)
+  const primary    = localData.filter(p => !p.planete_parente_id);
+  const satellites = localData.filter(p =>  p.planete_parente_id);
 
-  // --- PLANÈTES & STATIONS : orbite autour de l'étoile ---
-  planets.forEach(poi => {
+  // --- CORPS PRIMAIRES : orbite autour de l'étoile ---
+  primary.forEach(poi => {
     const r = Math.sqrt(poi.x*poi.x + poi.z*poi.z);
     if (r > 0.1) {
       const pts = new THREE.EllipseCurve(0,0,r,r,0,Math.PI*2,false,0)
@@ -988,29 +1018,32 @@ function buildSystem() {
     pickables.push({ core: pCore, data: poi, group: pGroup });
   });
 
-  // --- LUNES : orbite autour de leur planète parente ---
-  moons.forEach(moon => {
-    const px = moon.parentX || 0;
-    const pz = moon.parentZ || 0;
-    const mr = moon.moonOrbitRadius || 1.4;
+  // --- SATELLITES (lunes + stations) : orbite autour de leur parent ---
+  satellites.forEach(sat => {
+    const px = sat.parentX || 0;
+    const pz = sat.parentZ || 0;
+    const mr = sat.moonOrbitRadius || sat.orbitRadius || 0.5;
 
-    // Cercle d'orbite de la lune (centré sur le parent, pas sur l'étoile)
-    const mPts = new THREE.EllipseCurve(0,0,mr,mr,0,Math.PI*2,false,0)
+    // Orbite centrée sur le parent
+    const oPts = new THREE.EllipseCurve(0,0,mr,mr,0,Math.PI*2,false,0)
       .getPoints(64).map(pt => new THREE.Vector3(pt.x + px, 0, pt.y + pz));
-    orbitsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(mPts),
-      new THREE.LineBasicMaterial({ color: 0xa0a0b0, transparent: true, opacity: 0.2 })));
+    const oCol = sat.type === 'station' ? 0x7fd4ff : 0xa0a0b0;
+    orbitsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(oPts),
+      new THREE.LineBasicMaterial({ color: oCol, transparent: true, opacity: 0.2 })));
 
-    const mGroup = new THREE.Group();
-    mGroup.position.set(moon.x, 0, moon.z);
-    const sz = moon.size * 0.5;
-    const mCore = new THREE.Mesh(new THREE.SphereGeometry(sz, 16, 16), new THREE.MeshBasicMaterial({ color: new THREE.Color(moon.colorHex) }));
-    mGroup.add(mCore);
-    const mGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture(moon.colorHex), blending: THREE.AdditiveBlending, transparent: true, opacity: 0.4 }));
-    mGlow.scale.set(moon.size*2.5, moon.size*2.5, 1);
-    mGroup.add(mGlow);
-    mGroup.userData = moon;
-    objectsGroup.add(mGroup);
-    pickables.push({ core: mCore, data: moon, group: mGroup });
+    const sGroup = new THREE.Group();
+    sGroup.position.set(sat.x, 0, sat.z);
+    const sz = sat.size * 0.5;
+    const sCore = sat.type === 'station'
+      ? new THREE.Mesh(new THREE.BoxGeometry(sz, sz*0.4, sz), new THREE.MeshBasicMaterial({ color: new THREE.Color(sat.colorHex) }))
+      : new THREE.Mesh(new THREE.SphereGeometry(sz, 16, 16), new THREE.MeshBasicMaterial({ color: new THREE.Color(sat.colorHex) }));
+    sGroup.add(sCore);
+    const sGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture(sat.colorHex), blending: THREE.AdditiveBlending, transparent: true, opacity: 0.45 }));
+    sGlow.scale.set(sat.size*2.5, sat.size*2.5, 1);
+    sGroup.add(sGlow);
+    sGroup.userData = sat;
+    objectsGroup.add(sGroup);
+    pickables.push({ core: sCore, data: sat, group: sGroup });
   });
 
   shipGroup.position.set(3, 1, 2);
