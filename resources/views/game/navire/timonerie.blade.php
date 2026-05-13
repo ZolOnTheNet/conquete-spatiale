@@ -783,6 +783,8 @@ import * as THREE from 'three';
 // ============================================================
 const galacticData = @json($galacticData);
 const localData   = @json($localPOIs);
+// Si un calcul de saut est en cours, le bouton "Initier saut" ne doit pas être écrasé
+const jumpCalcActive = {{ $calculSaut ? 'true' : 'false' }};
 
 // ============================================================
 // THREE.JS SETUP
@@ -1149,12 +1151,17 @@ canvas.addEventListener('click', e => {
     if (hit && hit.data.id !== 0) {
       if (hit.data.isJumpTarget) {
         window.lockJumpTarget(hit.data);
+        setDestinationLine(hit.data);
+        consoleLog('> cible ' + hit.data.name, 'cmd');
+        consoleLog('  Cible verrouillée : ' + hit.data.name, 'data');
       } else {
-        window.lockLocalTarget(hit.data);
+        window.lockLocalTarget(hit.data); // no-op si saut en cours
+        if (!jumpCalcActive) {
+          setDestinationLine(hit.data);
+          consoleLog('> cible ' + hit.data.name, 'cmd');
+          consoleLog('  Cible locale : ' + hit.data.name, 'data');
+        }
       }
-      setDestinationLine(hit.data);
-      consoleLog('> cible ' + hit.data.name, 'cmd');
-      consoleLog('  Cible verrouillée : ' + hit.data.name, 'data');
     }
   }
 });
@@ -1304,6 +1311,9 @@ window.lockJumpTarget = function(sys) {
 };
 
 window.lockLocalTarget = function(sys) {
+  // Si un calcul de saut est en session, ne pas écraser l'overlay de saut
+  if (jumpCalcActive) return;
+
   lockedTargetId = sys.id;
   lockedTargetType = 'local';
   document.getElementById('dest-head').textContent = 'Cible locale';
