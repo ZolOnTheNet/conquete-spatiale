@@ -448,13 +448,20 @@ $localPOIs = array_merge($localPlanets, $orderedSatellites);
 
 $calculSaut = session('dernier_calcul_saut');
 
-// Position approx du vaisseau dans la scène système (1 UA ≈ 7 unités scène)
-$starOffX = $systemeActuel ? ($systemeActuel->position_x ?? 0) : 0;
-$starOffY = $systemeActuel ? ($systemeActuel->position_y ?? 0) : 0;
-$shipSceneX = round(($objetSpatial->position_x - $starOffX) / 100 * 7.0, 2);
-$shipSceneZ = round(($objetSpatial->position_y - $starOffY) / 100 * 7.0, 2);
-$shipSceneX = max(-28, min(28, $shipSceneX));
-$shipSceneZ = max(-28, min(28, $shipSceneZ));
+// Position du vaisseau dans la scène système — même échelle non-linéaire que les planètes
+// Formule planètes : orbitRadius = max(3.5, pow(distUA, 0.35) * 7.0)
+$starOffX  = $systemeActuel ? ($systemeActuel->position_x ?? 0) : 0;
+$starOffY  = $systemeActuel ? ($systemeActuel->position_y ?? 0) : 0;
+$dxCua     = (float)$objetSpatial->position_x - (float)$starOffX;
+$dyCua     = (float)$objetSpatial->position_y - (float)$starOffY;
+$distCua   = sqrt($dxCua * $dxCua + $dyCua * $dyCua);
+$distUA    = $distCua / 100.0;
+$shipAngle = $distCua > 0.001 ? atan2($dyCua, $dxCua) : 0.0;
+$shipSceneR = $distUA < 0.1
+    ? 1.5  // très proche de l'étoile
+    : max(3.5, pow(max(0.5, $distUA), 0.35) * 7.0);
+$shipSceneX = round(cos($shipAngle) * $shipSceneR, 2);
+$shipSceneZ = round(sin($shipAngle) * $shipSceneR, 2);
 @endphp
 
 @section('content')
@@ -1460,7 +1467,7 @@ async function sApprocher(poiId, poiType) {
     const ld = window._localData || [];
     const target = ld.find(p => p.id == poiId);
     const mst = window._moveShipTo;
-    if (target && mst && viewMode === 'system') {
+    if (target && mst) {
       mst(target.x || 0, 1, target.z || 0, () => setTimeout(reloadWithMode, 400));
     } else {
       setTimeout(reloadWithMode, 1500);

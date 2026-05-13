@@ -202,6 +202,17 @@ class TimonerieController extends Controller
         // 🚀 GÉNÉRATION DYNAMIQUE: Étendre l'univers autour de la destination
         $this->expandUniverseAroundDestination($arrivee['secteur_x'], $arrivee['secteur_y'], $arrivee['secteur_z']);
 
+        // Placer le vaisseau près de l'étoile du système destination (position en cUA)
+        // position_x/y/z du système est le décalage de l'étoile dans son secteur (en cUA)
+        $systemeDest = SystemeStellaire::where('secteur_x', $arrivee['secteur_x'])
+            ->where('secteur_y', $arrivee['secteur_y'])
+            ->where('secteur_z', $arrivee['secteur_z'])
+            ->first();
+
+        $arrivee['position_x'] = ($systemeDest->position_x ?? 0) + rand(-150, 150);
+        $arrivee['position_y'] = ($systemeDest->position_y ?? 0) + rand(-150, 150);
+        $arrivee['position_z'] = ($systemeDest->position_z ?? 0) + rand(-150, 150);
+
         // Mettre à jour la position du vaisseau
         $vaisseau->objetSpatial->update([
             'secteur_x' => $arrivee['secteur_x'],
