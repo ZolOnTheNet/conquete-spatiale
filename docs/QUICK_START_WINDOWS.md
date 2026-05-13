@@ -9,8 +9,9 @@ Guide rapide pour démarrer sur Windows 11 en 5 minutes.
 Installez dans l'ordre :
 1. **PHP 8.2+** : https://windows.php.net/download/ ou XAMPP https://www.apachefriends.org/
 2. **Composer** : https://getcomposer.org/Composer-Setup.exe
-3. **Node.js LTS** : https://nodejs.org/
-4. **Git** : https://git-scm.com/download/win
+3. **Git** : https://git-scm.com/download/win
+
+> **Note :** Node.js n'est pas nécessaire — Tailwind CSS est chargé via CDN.
 
 ### 2. Installation du Projet
 
@@ -54,8 +55,6 @@ scripts\start-dev.bat
 
 # Option 2 : Serveur seul
 php artisan serve
-# puis dans un autre terminal :
-npm run dev
 ```
 
 ### Arrêter le serveur

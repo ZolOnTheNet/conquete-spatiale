@@ -7,7 +7,7 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Vérification des prérequis
-Write-Host "[1/8] Vérification des prérequis..." -ForegroundColor Yellow
+Write-Host "[1/6] Vérification des prérequis..." -ForegroundColor Yellow
 
 # Vérifier PHP
 try {
@@ -34,29 +34,10 @@ try {
     exit 1
 }
 
-# Vérifier Node.js
-try {
-    $nodeVersion = node -v
-    Write-Host "  ✓ Node.js $nodeVersion détecté" -ForegroundColor Green
-} catch {
-    Write-Host "  ✗ Node.js non trouvé" -ForegroundColor Red
-    Write-Host "    Téléchargez depuis https://nodejs.org/" -ForegroundColor Yellow
-    exit 1
-}
-
-# Vérifier npm
-try {
-    $npmVersion = npm -v
-    Write-Host "  ✓ npm $npmVersion détecté" -ForegroundColor Green
-} catch {
-    Write-Host "  ✗ npm non trouvé (devrait être installé avec Node.js)" -ForegroundColor Red
-    exit 1
-}
-
 Write-Host ""
 
 # Installation des dépendances Composer
-Write-Host "[2/8] Installation des dépendances PHP (Composer)..." -ForegroundColor Yellow
+Write-Host "[2/6] Installation des dépendances PHP (Composer)..." -ForegroundColor Yellow
 composer install
 if ($LASTEXITCODE -ne 0) {
     Write-Host "  ✗ Erreur lors de l'installation Composer" -ForegroundColor Red
@@ -66,7 +47,7 @@ Write-Host "  ✓ Dépendances PHP installées" -ForegroundColor Green
 Write-Host ""
 
 # Copie du fichier .env
-Write-Host "[3/8] Configuration de l'environnement..." -ForegroundColor Yellow
+Write-Host "[3/6] Configuration de l'environnement..." -ForegroundColor Yellow
 if (-not (Test-Path ".env")) {
     Copy-Item ".env.example" ".env"
     Write-Host "  ✓ Fichier .env créé" -ForegroundColor Green
@@ -76,13 +57,13 @@ if (-not (Test-Path ".env")) {
 Write-Host ""
 
 # Génération de la clé d'application
-Write-Host "[4/8] Génération de la clé d'application..." -ForegroundColor Yellow
+Write-Host "[4/6] Génération de la clé d'application..." -ForegroundColor Yellow
 php artisan key:generate --force
 Write-Host "  ✓ Clé d'application générée" -ForegroundColor Green
 Write-Host ""
 
 # Création de la base de données SQLite
-Write-Host "[5/8] Création de la base de données SQLite..." -ForegroundColor Yellow
+Write-Host "[5/6] Création de la base de données SQLite..." -ForegroundColor Yellow
 $dbPath = "database\database.sqlite"
 if (-not (Test-Path $dbPath)) {
     New-Item -Path $dbPath -ItemType File | Out-Null
@@ -93,32 +74,12 @@ if (-not (Test-Path $dbPath)) {
 Write-Host ""
 
 # Exécution des migrations
-Write-Host "[6/8] Exécution des migrations..." -ForegroundColor Yellow
+Write-Host "[6/6] Exécution des migrations..." -ForegroundColor Yellow
 php artisan migrate --force
 if ($LASTEXITCODE -ne 0) {
     Write-Host "  ⚠ Erreur lors des migrations (peut-être déjà exécutées)" -ForegroundColor Yellow
 } else {
     Write-Host "  ✓ Migrations exécutées" -ForegroundColor Green
-}
-Write-Host ""
-
-# Installation des dépendances Node.js
-Write-Host "[7/8] Installation des dépendances Node.js..." -ForegroundColor Yellow
-npm install
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "  ✗ Erreur lors de l'installation npm" -ForegroundColor Red
-    exit 1
-}
-Write-Host "  ✓ Dépendances Node.js installées" -ForegroundColor Green
-Write-Host ""
-
-# Compilation des assets
-Write-Host "[8/8] Compilation des assets..." -ForegroundColor Yellow
-npm run build
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "  ⚠ Erreur lors de la compilation des assets" -ForegroundColor Yellow
-} else {
-    Write-Host "  ✓ Assets compilés" -ForegroundColor Green
 }
 Write-Host ""
 

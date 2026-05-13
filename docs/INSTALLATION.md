@@ -5,7 +5,8 @@
 - PHP 8.2+
 - Composer
 - MySQL 8.0+ ou MariaDB 10.3+
-- Node.js et npm (optionnel pour assets)
+
+> **Note :** Node.js et npm ne sont pas nécessaires — Tailwind CSS est chargé via CDN.
 
 ## Installation
 

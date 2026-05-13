@@ -16,24 +16,10 @@ if %ERRORLEVEL% NEQ 0 (
     exit /b 1
 )
 
-REM Vérifier si node est installé
-where node >nul 2>nul
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERREUR] Node.js n'est pas installe
-    echo Consultez docs/INSTALLATION_WINDOWS.md
-    pause
-    exit /b 1
-)
-
 REM Vérifier si les dépendances sont installées
 if not exist "vendor\" (
     echo [INFO] Dossier vendor/ manquant. Lancement de l'installation...
     call composer install
-)
-
-if not exist "node_modules\" (
-    echo [INFO] Dossier node_modules/ manquant. Lancement de l'installation...
-    call npm install
 )
 
 REM Vérifier si .env existe
@@ -59,7 +45,6 @@ echo ========================================
 echo.
 echo Services qui vont demarrer:
 echo   - Laravel Server  : http://localhost:8000
-echo   - Vite Dev Server : http://localhost:5173
 echo   - Queue Worker    : En arriere-plan
 echo   - Laravel Pail    : Logs en temps reel
 echo.
