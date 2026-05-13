@@ -20,39 +20,15 @@ class DatabaseSeeder extends Seeder
 
         $this->command->info("🎮 Mode de génération: {$mode}");
 
-        // Toujours créer les comptes et personnages de test
+        // GameSeeder orchestre tout : ressources, factions, univers GAIA, compte test
+        // (appelle en interne : RessourceSeeder, FactionSeeder, GaiaSeeder)
         $this->call(GameSeeder::class);
 
-        // Créer les ressources (nécessaires pour génération gisements)
-        $this->call(RessourceSeeder::class);
-
-        // Créer les recettes (après les ressources)
+        // Contenu additionnel (après GameSeeder pour éviter les doublons)
         $this->call(RecetteSeeder::class);
-
-        // Créer les équipements (armes et boucliers)
         $this->call(EquipementSeeder::class);
-
-        // Créer les ennemis
         $this->call(EnnemiSeeder::class);
-
-        // Générer l'univers selon le mode
-        match($mode) {
-            'basic', 'procedural' => $this->call(UniverseSeeder::class),
-            'gaia' => $this->call(GaiaSeeder::class),
-            'hybrid' => $this->call([
-                GaiaSeeder::class,
-                UniverseSeeder::class,
-            ]),
-            default => $this->call(UniverseSeeder::class),
-        };
-
-        // Créer les marchés (après la génération des planètes)
         $this->call(MarcheSeeder::class);
-
-        // Créer les factions
-        $this->call(FactionSeeder::class);
-
-        // Créer les missions (après les factions et ressources)
         $this->call(MissionSeeder::class);
 
         $this->command->info('');

@@ -21,6 +21,12 @@ class GaiaSeeder extends Seeder
     {
         $this->command->info('🌟 Import des étoiles GAIA...');
 
+        // Nettoyer les tables pour permettre un re-seeding propre
+        $this->command->info('🧹 Nettoyage des tables...');
+        DB::table('stations')->delete();
+        DB::table('planetes')->delete();
+        DB::table('systemes_stellaires')->delete();
+
         $csvPath = database_path('data/gaia_nearby_stars.csv');
 
         if (file_exists($csvPath)) {
@@ -357,6 +363,8 @@ class GaiaSeeder extends Seeder
 
         // Créer la Terre (planète inaccessible - surpopulation)
         $rayon_terre = 1.0;
+        // Kepler: T = 365.25 × d_UA^1.5 (d_UA = distance_etoile / 100)
+        $periode_terre = 365; // jours
         $terre = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Terre',
@@ -370,6 +378,11 @@ class GaiaSeeder extends Seeder
             'raison_inaccessible' => 'Surpopulation - Vaisseaux trop gros pour atterrir',
             'detectabilite_base' => $this->calculatePlanetDetectability($rayon_terre),
             'poi_connu' => true,
+            // Paramètres orbitaux (Kepler)
+            'periode_orbitale' => $periode_terre,
+            'angle_orbital_initial' => 0.0,
+            'vitesse_angulaire' => (2 * M_PI) / $periode_terre, // ≈ 0.01720 rad/jour
+            'cache_validite_jours' => max(10, (int)($periode_terre / 50)),
         ]);
 
         // Station Terra-Maxi-Hub (ACCESSIBLE)
@@ -391,12 +404,19 @@ class GaiaSeeder extends Seeder
             'accessible' => true,
         ]);
 
-        // Créer la Lune (planète inaccessible - surpopulation)
+        // Créer la Lune (satellite de la Terre)
         $rayon_lune = 0.27;
+        // Lune orbite à ~1 UA du Soleil (légèrement différent de la Terre)
+        // On lui donne un angle orbital différent pour qu'elle ne se superpose pas à la Terre
+        $angle_lune = M_PI / 6; // 30° d'avance sur la Terre (approximation)
+        $periode_lune = 365; // même période orbitale autour du Soleil que la Terre
         $lune = Planete::create([
             'systeme_stellaire_id' => $sol->id,
+            'planete_parente_id' => $terre->id, // Satellite de la Terre
+            'categorie' => 'lune',
             'nom' => 'Lune',
-            'distance_etoile' => CoordinatesHelper::uaToCua(1.00257), // 100.257 cUA (légèrement plus loin que la Terre)
+            'distance_etoile' => CoordinatesHelper::uaToCua(1.0), // 100 cUA ≈ 1 UA du Soleil
+            'distance_planete' => 0.00257, // 0.00257 UA = 384 400 km de la Terre
             'rayon' => $rayon_lune,
             'masse' => 0.0123, // 1.23% de la masse terrestre
             'type' => 'naine',
@@ -406,6 +426,11 @@ class GaiaSeeder extends Seeder
             'raison_inaccessible' => 'Transport - Vaisseaux trop gros pour atterrir',
             'detectabilite_base' => $this->calculatePlanetDetectability($rayon_lune),
             'poi_connu' => true,
+            // Paramètres orbitaux (orbite autour du Soleil avec Terre)
+            'periode_orbitale' => $periode_lune,
+            'angle_orbital_initial' => $angle_lune,
+            'vitesse_angulaire' => (2 * M_PI) / $periode_lune,
+            'cache_validite_jours' => max(10, (int)($periode_lune / 50)),
         ]);
 
         // Station Lunastar-station (ACCESSIBLE - station de départ)
@@ -429,6 +454,8 @@ class GaiaSeeder extends Seeder
 
         // Créer Mars (planète inaccessible - colonisation)
         $rayon_mars = 0.53;
+        // T = 365.25 × (1.52)^1.5 ≈ 685 jours
+        $periode_mars = 685;
         $mars = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Mars',
@@ -442,6 +469,11 @@ class GaiaSeeder extends Seeder
             'raison_inaccessible' => 'Colonisation - Vaisseaux trop gros pour atterrir',
             'detectabilite_base' => $this->calculatePlanetDetectability($rayon_mars),
             'poi_connu' => true,
+            // Paramètres orbitaux (Kepler)
+            'periode_orbitale' => $periode_mars,
+            'angle_orbital_initial' => M_PI * 0.8, // ~144° par rapport à la Terre
+            'vitesse_angulaire' => (2 * M_PI) / $periode_mars,
+            'cache_validite_jours' => max(10, (int)($periode_mars / 50)),
         ]);
 
         // Station Mars-spatiogare (ACCESSIBLE)
@@ -465,6 +497,8 @@ class GaiaSeeder extends Seeder
 
         // Créer Jupiter (planète gazeuse inaccessible)
         $rayon_jupiter = 11.2;
+        // T = 365.25 × (5.2)^1.5 ≈ 4333 jours
+        $periode_jupiter = 4333;
         $jupiter = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Jupiter',
@@ -478,6 +512,11 @@ class GaiaSeeder extends Seeder
             'raison_inaccessible' => 'Planète gazeuse - Impossible d\'atterrir',
             'detectabilite_base' => $this->calculatePlanetDetectability($rayon_jupiter),
             'poi_connu' => true,
+            // Paramètres orbitaux (Kepler)
+            'periode_orbitale' => $periode_jupiter,
+            'angle_orbital_initial' => M_PI * 1.3, // ~234°
+            'vitesse_angulaire' => (2 * M_PI) / $periode_jupiter,
+            'cache_validite_jours' => max(10, (int)($periode_jupiter / 50)),
         ]);
 
         // Station Jupiter-spatiogare (accessible)
@@ -501,6 +540,8 @@ class GaiaSeeder extends Seeder
 
         // Créer Neptune (planète gazeuse inaccessible)
         $rayon_neptune = 3.88;
+        // T = 365.25 × (30.1)^1.5 ≈ 60321 jours
+        $periode_neptune = 60321;
         $neptune = Planete::create([
             'systeme_stellaire_id' => $sol->id,
             'nom' => 'Neptune',
@@ -514,6 +555,11 @@ class GaiaSeeder extends Seeder
             'raison_inaccessible' => 'Planète gazeuse - Impossible d\'atterrir',
             'detectabilite_base' => $this->calculatePlanetDetectability($rayon_neptune),
             'poi_connu' => true,
+            // Paramètres orbitaux (Kepler)
+            'periode_orbitale' => $periode_neptune,
+            'angle_orbital_initial' => M_PI * 1.7, // ~306°
+            'vitesse_angulaire' => (2 * M_PI) / $periode_neptune,
+            'cache_validite_jours' => max(10, (int)($periode_neptune / 50)),
         ]);
 
         // Station Neptune-spatiogare (accessible)

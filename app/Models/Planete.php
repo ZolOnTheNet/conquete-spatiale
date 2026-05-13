@@ -35,6 +35,8 @@ class Planete extends Model
         'cache_position_z',
         'cache_timestamp_jours',
         'cache_validite_jours',
+        'accessible',
+        'raison_inaccessible',
         'habitable',
         'habitee',
         'population',
