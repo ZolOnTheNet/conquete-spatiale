@@ -7,6 +7,7 @@
 
 {{-- Onglets --}}
 <div style="display:flex;margin-bottom:16px;border:1px solid var(--border-subtle);">
+    <a href="{{ route('carte.3d') }}" style="padding:8px 20px;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);text-decoration:none;border-right:1px solid var(--border-subtle);transition:color 0.12s;" onmouseover="this.style.color='var(--data)'" onmouseout="this.style.color='var(--text-muted)'">◈ Carte 3D</a>
     <a href="{{ route('carte') }}" style="padding:8px 20px;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);text-decoration:none;border-right:1px solid var(--border-subtle);transition:color 0.12s;" onmouseover="this.style.color='var(--data)'" onmouseout="this.style.color='var(--text-muted)'">🗺 Carte</a>
     <span style="padding:8px 20px;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--data);border-right:1px solid var(--border-subtle);">📚 Atlas</span>
 </div>

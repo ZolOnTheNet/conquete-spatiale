@@ -973,7 +973,8 @@ function setDestinationLine(pos) {
   const sx = shipGroup.position.x;
   const sy = shipGroup.position.y;
   const sz = shipGroup.position.z;
-  const tx = pos.x || 0, ty = pos.y || 0, tz = pos.z || 0;
+  const stp = toSceneVec(pos.x || 0, pos.y || 0, pos.z || 0);
+  const tx = stp.x, ty = stp.y, tz = stp.z;
   const midY = Math.max(sy, ty) + Math.max(2, Math.sqrt((tx-sx)**2+(tz-sz)**2)*0.15);
   const curve = new THREE.CatmullRomCurve3([
     new THREE.Vector3(sx, sy, sz),

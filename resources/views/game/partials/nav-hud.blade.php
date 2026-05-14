@@ -26,7 +26,7 @@
   <div class="nav-section">
     <div class="nav-section-head">Personnage</div>
     <a href="{{ route('personnage.dossier') }}" class="nav-item {{ request()->routeIs('personnage.dossier') ? 'active' : '' }}">Dossier    <span class="nav-cmd">→</span></a>
-    <a href="{{ route('carte') }}"              class="nav-item {{ (request()->routeIs('carte*') || request()->routeIs('personnage.spatiocarte*')) ? 'active' : '' }}">Spatiocarte <span class="nav-cmd">→</span></a>
+    <a href="{{ route('carte.3d') }}"            class="nav-item {{ (request()->routeIs('carte*') || request()->routeIs('personnage.spatiocarte*')) ? 'active' : '' }}">Spatiocarte <span class="nav-cmd">→</span></a>
     <a href="{{ route('personnage.gestion') }}" class="nav-item {{ request()->routeIs('personnage.gestion') ? 'active' : '' }}">Gestion    <span class="nav-cmd">→</span></a>
   </div>
 

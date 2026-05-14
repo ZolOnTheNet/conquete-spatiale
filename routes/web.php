@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
         // Carte de l'univers (systèmes découverts)
         Route::get('/carte', [GameController::class, 'carte'])->name('carte');
         Route::get('/carte/secteur/{x}/{y}/{z}', [GameController::class, 'carteSecteur'])->name('carte.secteur');
+        Route::get('/carte/3d', [PersonnageController::class, 'carte3d'])->name('carte.3d');
 
         // Routes Menu Personnage
         Route::prefix('personnage')->name('personnage.')->group(function () {
@@ -163,6 +164,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/api/status', [GameController::class, 'apiGetStatus'])->name('api.status');
         Route::get('/api/vaisseau', [GameController::class, 'apiGetVaisseau'])->name('api.vaisseau');
         Route::get('/api/carte', [GameController::class, 'apiGetCarte'])->name('api.carte');
+        Route::get('/api/carte/systeme/{id}', [PersonnageController::class, 'carte3dSysteme'])->name('api.carte.3d.systeme');
     });
 
     // Routes Admin
