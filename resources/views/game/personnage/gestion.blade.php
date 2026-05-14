@@ -1,81 +1,43 @@
-@extends('layouts.app')
+@extends('layouts.game-hud')
 
 @section('title', 'Gestion Personnage')
 
-@section('content')
-<div class="h-screen flex flex-col bg-gray-900">
+@section('hud-content')
+<div class="hud-page-title">Gestion Personnage</div>
 
-    {{-- Header 4 colonnes --}}
-    <x-game-header
-        :personnage="$personnage"
-        :vaisseau="$personnage->vaisseauActif"
-        :systeme="$systeme ?? null"
-    />
-
-    {{-- Layout principal : Menu + Contenu --}}
-    <div class="flex-1 flex overflow-hidden">
-
-        {{-- Menu latéral gauche --}}
-        @include('game.partials.menu-lateral', [
-            'personnage' => $personnage,
-            'vaisseau' => $personnage->vaisseauActif ?? null,
-            'compte' => auth()->user()
-        ])
-
-        {{-- Zone de contenu principale --}}
-        <main class="flex-1 overflow-auto p-6">
-            <div class="max-w-7xl mx-auto">
-
-                <h2 class="text-3xl font-orbitron text-cyan-400 mb-6">⚙️ GESTION PERSONNAGE</h2>
-
-                {{-- Paramètres du compte --}}
-                <div class="bg-gray-800/50 border border-cyan-500/30 rounded-lg p-6 mb-6">
-                    <h3 class="text-xl text-cyan-300 mb-4">Paramètres du compte</h3>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="text-gray-400 text-sm">Nom du personnage</label>
-                            <input type="text" value="{{ $personnage->nom }}" disabled
-                                   class="w-full bg-gray-900/50 border border-gray-700 rounded px-3 py-2 text-white mt-1" />
-                        </div>
-                        <p class="text-gray-400 text-sm italic">La gestion du nom et des paramètres sera disponible prochainement.</p>
-                    </div>
-                </div>
-
-                {{-- Vaisseaux --}}
-                <div class="bg-gray-800/50 border border-yellow-500/30 rounded-lg p-6 mb-6">
-                    <h3 class="text-xl text-yellow-300 mb-4">Vaisseaux possédés</h3>
-                    @if($personnage->vaisseauActif)
-                        <div class="bg-gray-900/50 border border-gray-700 rounded-lg p-4">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <h4 class="text-white font-bold">{{ $personnage->vaisseauActif->nom ?? 'Vaisseau sans nom' }}</h4>
-                                    <p class="text-gray-400 text-sm">{{ $personnage->vaisseauActif->modele ?? 'Modèle inconnu' }}</p>
-                                </div>
-                                <span class="px-3 py-1 bg-green-900/30 text-green-400 text-sm rounded">✓ Actif</span>
-                            </div>
-                        </div>
-                    @else
-                        <p class="text-gray-400 text-sm italic">Aucun vaisseau actif</p>
-                    @endif
-                </div>
-
-                {{-- Actions dangereuses --}}
-                <div class="bg-gray-800/50 border border-red-500/30 rounded-lg p-6">
-                    <h3 class="text-xl text-red-300 mb-4">Zone dangereuse</h3>
-                    <p class="text-gray-400 text-sm mb-4">Ces actions sont irréversibles.</p>
-                    <button disabled class="bg-red-600/50 text-red-200 px-4 py-2 rounded cursor-not-allowed">
-                        Supprimer le personnage (désactivé)
-                    </button>
-                </div>
-
-            </div>
-        </main>
-
-        {{-- Console Droite Redimensionnable --}}
-        <x-console-resizable>
-            @include('game.partials.console')
-        </x-console-resizable>
+{{-- Paramètres --}}
+<div class="hud-panel" style="margin-bottom:16px;">
+    <div class="hud-panel-title">Paramètres du compte</div>
+    <div style="margin-bottom:12px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.1em;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">Nom du personnage</div>
+        <input type="text" value="{{ $personnage->nom }}" disabled
+               style="width:100%;background:rgba(5,7,12,0.4);border:1px solid var(--border-subtle);color:var(--text-primary);font-family:var(--mono);font-size:12px;padding:6px 10px;outline:none;" />
     </div>
+    <p style="font-family:var(--mono);font-size:10px;color:var(--text-muted);font-style:italic;">La gestion du nom et des paramètres sera disponible prochainement.</p>
+</div>
 
+{{-- Vaisseaux --}}
+<div class="hud-panel" style="margin-bottom:16px;border-color:rgba(251,191,36,0.3);">
+    <div class="hud-panel-title" style="color:var(--warning);">Vaisseaux possédés</div>
+    @if($personnage->vaisseauActif)
+    <div style="padding:12px;background:rgba(5,7,12,0.4);border:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center;">
+        <div>
+            <div style="font-size:13px;font-weight:700;color:var(--text-primary);">{{ $personnage->vaisseauActif->nom ?? 'Vaisseau sans nom' }}</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:2px;">{{ $personnage->vaisseauActif->modele ?? 'Modèle inconnu' }}</div>
+        </div>
+        <span style="font-family:var(--mono);font-size:9px;letter-spacing:0.1em;color:var(--success);padding:3px 8px;border:1px solid rgba(74,222,128,0.4);">✓ ACTIF</span>
+    </div>
+    @else
+    <p style="color:var(--text-muted);font-style:italic;font-size:12px;">Aucun vaisseau actif</p>
+    @endif
+</div>
+
+{{-- Zone dangereuse --}}
+<div class="hud-panel" style="border-color:rgba(239,68,68,0.3);">
+    <div class="hud-panel-title" style="color:var(--danger);">Zone dangereuse</div>
+    <p style="color:var(--text-muted);font-size:12px;margin-bottom:12px;">Ces actions sont irréversibles.</p>
+    <button disabled style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 14px;background:rgba(239,68,68,0.1);color:rgba(239,68,68,0.4);border:1px solid rgba(239,68,68,0.2);cursor:not-allowed;">
+        Supprimer le personnage (désactivé)
+    </button>
 </div>
 @endsection

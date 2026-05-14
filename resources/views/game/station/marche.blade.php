@@ -1,59 +1,27 @@
-@extends('layouts.app')
+@extends('layouts.game-hud')
 
 @section('title', 'Marché')
 
-@section('content')
-<div class="h-screen flex flex-col bg-gray-900">
+@section('hud-content')
+<div class="hud-page-title">Marché</div>
 
-    {{-- Header 4 colonnes --}}
-    <x-game-header
-        :personnage="$personnage"
-        :vaisseau="$personnage->vaisseauActif"
-        :systeme="$systeme ?? null"
-    />
-
-    {{-- Layout principal : Menu + Contenu --}}
-    <div class="flex-1 flex overflow-hidden">
-
-        {{-- Menu latéral gauche --}}
-        @include('game.partials.menu-lateral', [
-            'personnage' => $personnage,
-            'vaisseau' => $personnage->vaisseauActif ?? null,
-            'compte' => auth()->user()
-        ])
-
-        {{-- Zone de contenu principale --}}
-        <main class="flex-1 overflow-auto p-6">
-            <div class="max-w-7xl mx-auto">
-
-                <h2 class="text-3xl font-orbitron text-green-400 mb-6">💰 MARCHÉ</h2>
-
-                {{-- Crédits du joueur --}}
-                <div class="bg-gray-800/50 border border-yellow-500/30 rounded-lg p-4 mb-6">
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-400">Vos crédits:</span>
-                        <span class="text-yellow-400 font-mono text-2xl">{{ number_format($personnage->credits ?? 0, 0, ',', ' ') }} CR</span>
-                    </div>
-                </div>
-
-                {{-- Marchandises à vendre --}}
-                <div class="bg-gray-800/50 border border-green-500/30 rounded-lg p-6 mb-6">
-                    <h3 class="text-xl text-green-300 mb-4">Marchandises Disponibles</h3>
-                    <p class="text-gray-400 text-sm italic">Système de commerce en développement...</p>
-                </div>
-
-                {{-- Votre cargaison --}}
-                <div class="bg-gray-800/50 border border-cyan-500/30 rounded-lg p-6">
-                    <h3 class="text-xl text-cyan-300 mb-4">Votre Cargaison</h3>
-                    <p class="text-gray-400 text-sm italic">Accédez à votre soute depuis le menu Navire</p>
-                </div>
-
-            </div>
-        </main>
-
-        {{-- Console Droite --}}
-        @include('game.partials.console')
+{{-- Crédits --}}
+<div class="hud-panel" style="margin-bottom:16px;border-color:rgba(251,191,36,0.3);">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="color:var(--text-muted);font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">Vos crédits</span>
+        <span style="color:var(--accent);font-family:var(--mono);font-size:18px;font-weight:700;">{{ number_format($personnage->credits ?? 0, 0, ',', ' ') }} CR</span>
     </div>
+</div>
 
+{{-- Marchandises --}}
+<div class="hud-panel" style="margin-bottom:16px;border-color:rgba(74,222,128,0.3);">
+    <div class="hud-panel-title" style="color:var(--success);">Marchandises Disponibles</div>
+    <p style="color:var(--text-muted);font-style:italic;font-size:12px;">Système de commerce en développement...</p>
+</div>
+
+{{-- Cargaison --}}
+<div class="hud-panel">
+    <div class="hud-panel-title">Votre Cargaison</div>
+    <p style="color:var(--text-secondary);font-size:12px;">Accédez à votre soute depuis le menu Vaisseau.</p>
 </div>
 @endsection

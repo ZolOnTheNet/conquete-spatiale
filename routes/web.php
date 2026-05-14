@@ -64,6 +64,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/timonerie/annuler-calcul', [TimonerieController::class, 'annulerCalculSaut'])->name('timonerie.annuler-calcul');
             Route::post('/timonerie/ameliorer-calcul', [TimonerieController::class, 'ameliorerCalculSaut'])->name('timonerie.ameliorer-calcul');
             Route::post('/timonerie/s-orbiter', [TimonerieController::class, 'sOrbiter'])->name('timonerie.s-orbiter');
+            Route::post('/timonerie/atterrir', [TimonerieController::class, 'atterrir'])->name('timonerie.atterrir');
             Route::post('/timonerie/tourner', [TimonerieController::class, 'tourner'])->name('timonerie.tourner');
 
             // Routes de scan

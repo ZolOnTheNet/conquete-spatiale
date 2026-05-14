@@ -1,66 +1,29 @@
-@extends('layouts.app')
+@extends('layouts.game-hud')
 
 @section('title', 'Cantina')
 
-@section('content')
-<div class="h-screen flex flex-col bg-gray-900">
+@section('hud-content')
+<div class="hud-page-title">Cantina</div>
 
-    {{-- Header 4 colonnes --}}
-    <x-game-header
-        :personnage="$personnage"
-        :vaisseau="$personnage->vaisseauActif"
-        :systeme="$systeme ?? null"
-    />
-
-    {{-- Layout principal : Menu + Contenu --}}
-    <div class="flex-1 flex overflow-hidden">
-
-        {{-- Menu latéral gauche --}}
-        @include('game.partials.menu-lateral', [
-            'personnage' => $personnage,
-            'vaisseau' => $personnage->vaisseauActif ?? null,
-            'compte' => auth()->user()
-        ])
-
-        {{-- Zone de contenu principale --}}
-        <main class="flex-1 overflow-auto p-6">
-            <div class="max-w-7xl mx-auto">
-
-                <h2 class="text-3xl font-orbitron text-orange-400 mb-6">🍺 CANTINA</h2>
-
-                {{-- Joueurs présents --}}
-                <div class="bg-gray-800/50 border border-orange-500/30 rounded-lg p-6 mb-6">
-                    <h3 class="text-xl text-orange-300 mb-4">Pilotes présents</h3>
-                    <div class="bg-gray-900/50 border border-gray-700 rounded-lg p-4">
-                        <div class="flex items-center gap-3">
-                            <div class="text-2xl">👤</div>
-                            <div>
-                                <h4 class="text-white font-bold">{{ $personnage->nom }}</h4>
-                                <p class="text-gray-400 text-sm">C'est vous!</p>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="text-gray-400 text-sm italic mt-4">Système multijoueur en développement...</p>
-                </div>
-
-                {{-- Rumeurs --}}
-                <div class="bg-gray-800/50 border border-cyan-500/30 rounded-lg p-6 mb-6">
-                    <h3 class="text-xl text-cyan-300 mb-4">Rumeurs & Informations</h3>
-                    <p class="text-gray-400 text-sm italic">Système de rumeurs en développement...</p>
-                </div>
-
-                {{-- Chat --}}
-                <div class="bg-gray-800/50 border border-purple-500/30 rounded-lg p-6">
-                    <h3 class="text-xl text-purple-300 mb-4">Chat Local</h3>
-                    <p class="text-gray-400 text-sm italic">Système de chat en développement...</p>
-                </div>
-
-            </div>
-        </main>
-
-        {{-- Console Droite --}}
-        @include('game.partials.console')
+<div class="hud-panel" style="margin-bottom:16px;border-color:rgba(251,146,60,0.3);">
+    <div class="hud-panel-title" style="color:var(--accent);">Pilotes présents</div>
+    <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(5,7,12,0.4);border:1px solid var(--border-subtle);">
+        <div style="font-size:24px;">👤</div>
+        <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-primary);">{{ $personnage->nom }}</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:2px;">C'est vous</div>
+        </div>
     </div>
+    <p style="margin-top:10px;color:var(--text-muted);font-style:italic;font-size:12px;">Système multijoueur en développement...</p>
+</div>
 
+<div class="hud-panel" style="margin-bottom:16px;">
+    <div class="hud-panel-title">Rumeurs & Informations</div>
+    <p style="color:var(--text-muted);font-style:italic;font-size:12px;">Système de rumeurs en développement...</p>
+</div>
+
+<div class="hud-panel" style="border-color:rgba(167,139,250,0.3);">
+    <div class="hud-panel-title" style="color:rgba(167,139,250,0.8);">Chat Local</div>
+    <p style="color:var(--text-muted);font-style:italic;font-size:12px;">Système de chat en développement...</p>
 </div>
 @endsection

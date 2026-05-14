@@ -81,7 +81,7 @@ body {
 .calc-btn.jump:hover { background: rgba(74,222,128,0.15); }
 
 /* STAGE */
-.stage { position: fixed; top: 52px; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: 200px 1fr 320px; min-width: 1200px; }
+.stage { position: fixed; top: 52px; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: 200px 1fr 6px var(--console-w, 320px); min-width: 1200px; }
 
 /* LEFT NAV */
 .nav {
@@ -232,14 +232,20 @@ body {
 .console-line.warn { color: var(--warning); }
 .console-line.err { color: var(--danger); }
 .console-line.dim { color: var(--text-muted); font-style: italic; font-size: 10.5px; }
-.console-input { border-top: 1px solid var(--border-subtle); padding: 8px 12px; display: flex; align-items: center; gap: 8px; background: rgba(5,7,12,0.65); flex-shrink: 0; min-height: 38px; }
-.prompt { font-family: var(--mono); font-size: 11px; color: var(--accent); font-weight: 700; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
-.console-input input { flex: 1; min-width: 0; background: rgba(127,212,255,0.03); border: 1px solid var(--border-subtle); outline: none; color: var(--text-primary); font-family: var(--mono); font-size: 12px; caret-color: var(--accent); padding: 4px 8px; transition: border-color 0.15s; }
-.console-input input:focus { border-color: var(--data); background: rgba(127,212,255,0.05); }
+.console-input { border-top: 1px solid var(--border-subtle); background: rgba(5,7,12,0.65); flex-shrink: 0; }
+.console-prompt-label { padding: 5px 12px 3px; font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 0.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.console-input input { display: block; width: 100%; box-sizing: border-box; background: transparent; border: none; border-top: 1px solid var(--border-subtle); outline: none; color: var(--text-primary); font-family: var(--mono); font-size: 12px; caret-color: var(--accent); padding: 6px 12px; transition: background 0.15s; }
+.console-input input:focus { background: rgba(127,212,255,0.04); }
 .shortcuts { padding: 6px 8px; border-top: 1px solid var(--border-subtle); display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; background: rgba(5,7,12,0.3); flex-shrink: 0; }
 .sc { font-family: var(--mono); font-size: 9px; letter-spacing: 0.05em; padding: 4px 2px; text-transform: uppercase; cursor: pointer; background: transparent; color: var(--text-secondary); border: 1px solid var(--border-subtle); transition: all 0.12s; text-align: center; position: relative; }
 .sc:hover { color: var(--data); border-color: var(--data); background: rgba(127,212,255,0.05); }
 .sc[title]:hover::after { content: attr(title); position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); background: rgba(5,7,12,0.95); border: 1px solid var(--border-subtle); padding: 3px 6px; font-family: var(--mono); font-size: 9px; color: var(--text-primary); white-space: nowrap; z-index: 50; text-transform: none; pointer-events: none; }
+
+/* RESIZE HANDLE */
+.tim-resize-handle { background: var(--border-subtle); cursor: ew-resize; transition: background 0.15s; position: relative; }
+.tim-resize-handle::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 2px; height: 40px; background: var(--border-strong); border-radius: 1px; }
+.tim-resize-handle:hover, .tim-resize-handle.active { background: rgba(127,212,255,0.12); }
+.tim-resize-handle:hover::after, .tim-resize-handle.active::after { background: var(--data); }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -295,14 +301,21 @@ foreach ($sautsDisponibles as $dest) {
     $x3 = ($dx == 0 && $dy == 0) ? ($dest->position_x ?? 1) * 2 : $dx * 9;
     $z3 = ($dx == 0 && $dy == 0) ? ($dest->position_y ?? 1) * 2 : $dy * 9;
     $y3 = $dz * 1.8;
+    // Couleur : accessible=jaune, visité=cyan, cartographié=gris-bleu, inaccessible=gris
+    $visite = $dest->visite ?? false;
+    $colorHex = $dest->accessible
+        ? ($visite ? '#7fd4ff' : '#ffe680')
+        : ($visite ? '#4a8fa8' : '#8b96a8');
     $galacticData[] = [
         'name' => $dest->nom,
         'x' => round($x3, 2), 'y' => round($y3, 2), 'z' => round($z3, 2),
         'type' => 'star',
-        'colorHex' => $dest->accessible ? '#ffe680' : '#8b96a8',
-        'size' => 1.2, 'dist' => round($dest->distance, 2),
+        'colorHex' => $colorHex,
+        'size' => $visite ? 1.4 : 1.1,
+        'dist' => round($dest->distance, 2),
         'id' => $dest->id,
         'accessible' => (bool)$dest->accessible,
+        'visite' => (bool)$visite,
         'energieRequise' => $dest->energieRequise,
         'paRequis' => $dest->paRequis,
         'isJumpTarget' => true,
@@ -462,6 +475,11 @@ $shipSceneR = $distUA < 0.1
     : max(3.5, pow(max(0.5, $distUA), 0.35) * 7.0);
 $shipSceneX = round(cos($shipAngle) * $shipSceneR, 2);
 $shipSceneZ = round(sin($shipAngle) * $shipSceneR, 2);
+
+// Coordonnées locales pour mode système (UA depuis l'étoile)
+$shipLocalXUA = round($dxCua / 100, 1);
+$shipLocalYUA = round($dyCua / 100, 1);
+$shipLocalDistUA = round($distUA, 1);
 @endphp
 
 @section('content')
@@ -552,26 +570,40 @@ $shipSceneZ = round(sin($shipAngle) * $shipSceneR, 2);
   <!-- LEFT NAV -->
   <nav class="nav">
     <div class="nav-scroll">
+
+      {{-- Section contextuelle : Vaisseau ou Station --}}
+      @if($personnage->dans_station_id)
+      <div class="nav-section">
+        <div class="nav-section-head">Station</div>
+        <a href="{{ route('station.hall') }}" class="nav-item">Hall <span class="nav-cmd">→</span></a>
+        <a href="{{ route('station.hangar') }}" class="nav-item">Hangar <span class="nav-cmd">→</span></a>
+        <a href="{{ route('station.marche') }}" class="nav-item">Marché <span class="nav-cmd">→</span></a>
+        <a href="{{ route('station.missions') }}" class="nav-item">Missions <span class="nav-cmd">→</span></a>
+        <a href="{{ route('station.cantina') }}" class="nav-item">Cantina <span class="nav-cmd">→</span></a>
+      </div>
+      @else
       <div class="nav-section">
         <div class="nav-section-head">Vaisseau</div>
         <a href="{{ route('navire.timonerie') }}" class="nav-item active">Timonerie <span class="nav-cmd">→</span></a>
         <a href="{{ route('navire.ingenierie') }}" class="nav-item">Ingénierie <span class="nav-cmd">→</span></a>
+        <a href="{{ route('navire.com') }}" class="nav-item">COM <span class="nav-cmd">→</span></a>
         <a href="{{ route('navire.soute') }}" class="nav-item">Soute <span class="nav-cmd">→</span></a>
         <a href="{{ route('navire.equipage') }}" class="nav-item">Équipage <span class="nav-cmd">→</span></a>
       </div>
+      @endif
 
-      <!-- MODULE INSTRUMENTS -->
+      <!-- MODULE INSTRUMENTS (timonerie-specific) -->
       <div class="nav-module">
         <div class="nav-module-head"><span>Instruments</span><span class="live">LIVE</span></div>
         <div class="nav-module-body">
           <div class="inst-grid">
             <div class="inst">
-              <span class="inst-label">Mode</span>
-              <span class="inst-val data" id="inst-mode">Stationnaire</span>
+              <span class="inst-label" id="inst-pos-label">Secteur</span>
+              <span class="inst-val" id="inst-pos-val">{{ $objetSpatial->secteur_x }},{{ $objetSpatial->secteur_y }},{{ $objetSpatial->secteur_z }}</span>
             </div>
             <div class="inst">
-              <span class="inst-label">Secteur</span>
-              <span class="inst-val">{{ $objetSpatial->secteur_x }},{{ $objetSpatial->secteur_y }},{{ $objetSpatial->secteur_z }}</span>
+              <span class="inst-label" id="inst-ctx-label">Système</span>
+              <span class="inst-val data" id="inst-ctx-val">{{ $systemeName }}</span>
             </div>
             <div class="inst">
               <span class="inst-label">Énergie</span>
@@ -585,7 +617,7 @@ $shipSceneZ = round(sin($shipAngle) * $shipSceneR, 2);
         </div>
       </div>
 
-      <!-- MODULE SCANNER -->
+      <!-- MODULE SCANNER (timonerie-specific) -->
       <div class="nav-module">
         <div class="nav-module-head"><span>Scanner</span><span style="color:var(--data); font-family:var(--mono); font-size:9px;">{{ $scanCount }} obj</span></div>
         <div class="nav-module-body" style="padding: 5px 6px 7px;">
@@ -604,8 +636,8 @@ $shipSceneZ = round(sin($shipAngle) * $shipSceneR, 2);
             @forelse($poisSecteur as $poi)
             @php
               $distUA = $poi->distance;
-              $glyphClass = $poi->type_poi === 'station' ? 'station' : 'planet';
-              $glyphChar = $poi->type_poi === 'station' ? '⊙' : '◇';
+              $glyphClass = $poi->type_poi === 'station' ? 'station' : (($poi->categorie ?? '') === 'lune' ? 'moon' : 'planet');
+              $glyphChar = $poi->type_poi === 'station' ? '⊙' : (($poi->categorie ?? '') === 'lune' ? '○' : '◇');
             @endphp
             <div class="scan-item" onclick="selectScanItem(this, '{{ $poi->type_poi }}', {{ $poi->id }}, '{{ e($poi->nom) }}', {{ $distUA }}, false)">
               <span class="scan-glyph {{ $glyphClass }}">{{ $glyphChar }}</span>
@@ -619,7 +651,7 @@ $shipSceneZ = round(sin($shipAngle) * $shipSceneR, 2);
           <div class="scan-list" id="scan-list-galact" style="display:none;">
             @forelse($sautsDisponibles as $dest)
             <div class="scan-item" onclick="selectScanItem(this, 'star', {{ $dest->id }}, '{{ e($dest->nom) }}', {{ round($dest->distance, 2) }}, true, {{ $dest->accessible ? 'true' : 'false' }}, {{ $dest->energieRequise ?? 0 }}, {{ $dest->paRequis ?? 0 }})">
-              <span class="scan-glyph star">★</span>
+              <span class="scan-glyph {{ $dest->visite ? 'station' : 'star' }}">{{ $dest->visite ? '◈' : '★' }}</span>
               <span class="scan-name">{{ $dest->nom }}</span>
               <span class="scan-dist">{{ number_format($dest->distance, 1) }} AL</span>
             </div>
@@ -631,14 +663,14 @@ $shipSceneZ = round(sin($shipAngle) * $shipSceneR, 2);
       </div>
 
       <div class="nav-section">
-        <div class="nav-section-head">Navigation</div>
-        <a href="{{ route('carte') }}" class="nav-item">Carte galactique <span class="nav-cmd">→</span></a>
-        <a href="{{ route('navire.com') }}" class="nav-item">COM <span class="nav-cmd">→</span></a>
+        <div class="nav-section-head">Personnage</div>
+        <a href="{{ route('personnage.dossier') }}" class="nav-item">Dossier <span class="nav-cmd">→</span></a>
+        <a href="{{ route('personnage.spatiocarte') }}" class="nav-item">Spatiocarte <span class="nav-cmd">→</span></a>
+        <a href="{{ route('personnage.gestion') }}" class="nav-item">Gestion <span class="nav-cmd">→</span></a>
       </div>
 
       <div class="nav-section">
-        <div class="nav-section-head">Personnage</div>
-        <a href="{{ route('personnage.dossier') }}" class="nav-item">Dossier <span class="nav-cmd">→</span></a>
+        <div class="nav-section-head">Jeu</div>
         <a href="{{ route('jeu.profil') }}" class="nav-item">Profil <span class="nav-cmd">→</span></a>
       </div>
 
@@ -746,6 +778,9 @@ $shipSceneZ = round(sin($shipAngle) * $shipSceneR, 2);
     </div>
   </div>
 
+  <!-- RESIZE HANDLE -->
+  <div class="tim-resize-handle" id="tim-resize-handle"></div>
+
   <!-- RIGHT — CONSOLE -->
   <div class="right-col">
     <div class="console">
@@ -768,7 +803,7 @@ $shipSceneZ = round(sin($shipAngle) * $shipSceneR, 2);
         @endif
       </div>
       <div class="console-input">
-        <span class="prompt">{{ $cmdName }}@{{ $shipName }} ▸</span>
+        <div class="console-prompt-label">{{ strtolower($cmdName) }}@{{ strtolower($shipName) }}</div>
         <input type="text" id="cmd-input" placeholder="commande… (help)" autocomplete="off">
       </div>
       <div class="shortcuts">
@@ -920,11 +955,11 @@ function clearGroup(g) {
 
 // Vaisseau (persistant)
 const shipGroup = new THREE.Group();
-const shipMesh = new THREE.Mesh(new THREE.ConeGeometry(0.4,1,4), new THREE.MeshBasicMaterial({ color: 0xff8a3d }));
+const shipMesh = new THREE.Mesh(new THREE.ConeGeometry(0.2,0.6,4), new THREE.MeshBasicMaterial({ color: 0xff8a3d }));
 shipMesh.rotation.x = Math.PI/2; shipMesh.rotation.z = Math.PI/4;
 shipGroup.add(shipMesh);
 const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture('#ff8a3d'), blending: THREE.AdditiveBlending, transparent: true, opacity: 0.9 }));
-halo.scale.set(4,4,1);
+halo.scale.set(2,2,1);
 shipGroup.add(halo);
 scene.add(shipGroup);
 
@@ -1081,24 +1116,67 @@ function buildSystem() {
 }
 
 // ============================================================
-// CAMERA
+// CAMERA (orbital + pan)
 // ============================================================
 let theta = 0, phi = 1, radius = 80;
-function setCameraDefault(r) { theta = 0; phi = 1; radius = r; updateCamera(); }
+const cameraTarget = new THREE.Vector3(0, 0, 0);
+let cameraMoveTarget = null;   // smooth pan destination
+let cameraRadiusTarget = null; // smooth zoom destination
+
+function setCameraDefault(r) {
+  theta = 0; phi = 1; radius = r;
+  cameraTarget.set(0, 0, 0);
+  cameraMoveTarget = null; cameraRadiusTarget = null;
+  updateCamera();
+}
 function updateCamera() {
-  camera.position.x = radius * Math.sin(phi) * Math.sin(theta);
-  camera.position.y = radius * Math.cos(phi);
-  camera.position.z = radius * Math.sin(phi) * Math.cos(theta);
-  camera.lookAt(0,0,0);
+  camera.position.x = cameraTarget.x + radius * Math.sin(phi) * Math.sin(theta);
+  camera.position.y = cameraTarget.y + radius * Math.cos(phi);
+  camera.position.z = cameraTarget.z + radius * Math.sin(phi) * Math.cos(theta);
+  camera.lookAt(cameraTarget);
 }
 
-let isDragging = false, prevMouse = { x:0, y:0 };
-canvas.addEventListener('mousedown', e => { isDragging = true; prevMouse = { x:e.clientX, y:e.clientY }; canvas.style.cursor = 'grabbing'; });
-window.addEventListener('mouseup', () => { isDragging = false; canvas.style.cursor = 'grab'; });
+// Animate camera to a new target position + optional new radius
+function animateCameraTo(pos, newRadius) {
+  cameraMoveTarget = pos.clone();
+  if (newRadius !== null) cameraRadiusTarget = newRadius;
+}
+
+let isDragging = false, isPanning = false, prevMouse = { x:0, y:0 };
+
+// Suppress context menu on right-click
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+canvas.addEventListener('mousedown', e => {
+  isDragging = true;
+  isPanning = (e.button === 2);
+  prevMouse = { x:e.clientX, y:e.clientY };
+  canvas.style.cursor = isPanning ? 'move' : 'grabbing';
+});
+window.addEventListener('mouseup', () => { isDragging = false; isPanning = false; canvas.style.cursor = 'grab'; });
 window.addEventListener('mousemove', e => {
   if (!isDragging) return;
-  theta -= (e.clientX - prevMouse.x) * 0.005;
-  phi = Math.max(0.2, Math.min(Math.PI - 0.2, phi + (e.clientY - prevMouse.y) * 0.005));
+  const dx = e.clientX - prevMouse.x;
+  const dy = e.clientY - prevMouse.y;
+  if (isPanning) {
+    // Right-drag: pan camera target in screen space
+    const panSpeed = radius * 0.002;
+    const rightX = Math.cos(theta);
+    const rightZ = -Math.sin(theta);
+    const upX = -Math.cos(phi) * Math.sin(theta);
+    const upY = Math.sin(phi);
+    const upZ = -Math.cos(phi) * Math.cos(theta);
+    cameraTarget.x -= rightX * dx * panSpeed;
+    cameraTarget.z -= rightZ * dx * panSpeed;
+    cameraTarget.x += upX * dy * panSpeed;
+    cameraTarget.y += upY * dy * panSpeed;
+    cameraTarget.z += upZ * dy * panSpeed;
+    cameraMoveTarget = null; // cancel any pending animation
+  } else {
+    // Left-drag: orbit
+    theta -= dx * 0.005;
+    phi = Math.max(0.2, Math.min(Math.PI - 0.2, phi + dy * 0.005));
+  }
   prevMouse = { x:e.clientX, y:e.clientY };
   updateCamera();
 });
@@ -1106,6 +1184,7 @@ canvas.addEventListener('wheel', e => {
   e.preventDefault();
   const maxR = viewMode==='galactic'?200:120, minR = viewMode==='galactic'?20:8;
   radius = Math.max(minR, Math.min(maxR, radius + e.deltaY * 0.08));
+  cameraRadiusTarget = null; // cancel smooth zoom
   updateCamera();
 }, { passive: false });
 
@@ -1161,24 +1240,57 @@ canvas.addEventListener('mousemove', e => {
   }
 });
 
-canvas.addEventListener('click', e => {
+// Shared raycast helper
+function raycastHit(e) {
   const rect = canvas.getBoundingClientRect();
   mouse.x = ((e.clientX-rect.left)/rect.width)*2-1;
   mouse.y = -((e.clientY-rect.top)/rect.height)*2+1;
   raycaster.setFromCamera(mouse, camera);
   const hits = raycaster.intersectObjects(pickables.map(p => p.core));
-  if (hits.length > 0) {
-    const hit = pickables.find(p => p.core === hits[0].object);
-    if (hit && hit.data.id !== 0) {
-      if (hit.data.isJumpTarget) {
-        window.lockJumpTarget(hit.data);
+  if (!hits.length) return null;
+  return pickables.find(p => p.core === hits[0].object) || null;
+}
+
+function selectPoI(hit) {
+  if (!hit || hit.data.id === 0) return;
+  if (hit.data.isJumpTarget) window.lockJumpTarget(hit.data);
+  else window.lockLocalTarget(hit.data);
+  setDestinationLine(hit.data);
+  consoleLog('> cible ' + hit.data.name, 'cmd');
+  consoleLog('  Cible verrouillée : ' + hit.data.name, 'data');
+}
+
+// Single click — delayed to let dblclick cancel it
+let _clickTimer = null;
+canvas.addEventListener('click', e => {
+  clearTimeout(_clickTimer);
+  if (isPanning) return; // ignore click ending a right-drag
+  _clickTimer = setTimeout(() => { selectPoI(raycastHit(e)); }, 220);
+});
+
+// Double click
+canvas.addEventListener('dblclick', e => {
+  clearTimeout(_clickTimer);
+  const hit = raycastHit(e);
+  if (!hit) return;
+  const data = hit.data;
+  if (data.id === 0) {
+    // Central star / current system
+    if (viewMode === 'galactic') {
+      window.setViewMode('system'); // switch to system view
+    } else {
+      // In system view: re-centre if panned away, else go back to galactic
+      if (cameraTarget.length() > 2.0) {
+        animateCameraTo(new THREE.Vector3(0, 0, 0), null);
       } else {
-        window.lockLocalTarget(hit.data);
+        window.setViewMode('galactic');
       }
-      setDestinationLine(hit.data);
-      consoleLog('> cible ' + hit.data.name, 'cmd');
-      consoleLog('  Cible verrouillée : ' + hit.data.name, 'data');
     }
+  } else {
+    // Regular PoI: select + zoom + centre
+    selectPoI(hit);
+    const zoomTarget = viewMode === 'galactic' ? 14 : 7;
+    animateCameraTo(hit.group.position, Math.min(radius, zoomTarget));
   }
 });
 
@@ -1202,17 +1314,58 @@ new ResizeObserver(onResize).observe(wrap);
 // ============================================================
 let shipMoveTo = null;
 let shipMoveOnDone = null;
+let shipTargetYaw = 0;
 
 function moveShipTo(x, y, z, onDone) {
   shipMoveTo = new THREE.Vector3(x, y, z);
   shipMoveOnDone = onDone || null;
+  // Point ship toward destination immediately
+  const dx = x - shipGroup.position.x;
+  const dz = z - shipGroup.position.z;
+  if (Math.abs(dx) > 0.01 || Math.abs(dz) > 0.01) {
+    shipTargetYaw = Math.atan2(dx, dz);
+  }
 }
 window._moveShipTo  = moveShipTo;
 window._shipGroup   = shipGroup;
+window._setShipFaceTarget = function(tx, tz) {
+  const dx = tx - shipGroup.position.x;
+  const dz = tz - shipGroup.position.z;
+  if (Math.abs(dx) > 0.01 || Math.abs(dz) > 0.01) {
+    shipTargetYaw = Math.atan2(dx, dz);
+  }
+};
 
 function animate(t) {
   requestAnimationFrame(animate);
-  shipGroup.rotation.y = t * 0.0005;
+  let needCameraUpdate = false;
+
+  // Smooth camera target pan (double-click centering)
+  if (cameraMoveTarget) {
+    cameraTarget.lerp(cameraMoveTarget, 0.1);
+    if (cameraTarget.distanceTo(cameraMoveTarget) < 0.05) {
+      cameraTarget.copy(cameraMoveTarget);
+      cameraMoveTarget = null;
+    }
+    needCameraUpdate = true;
+  }
+  // Smooth zoom (double-click zoom-in)
+  if (cameraRadiusTarget !== null) {
+    radius += (cameraRadiusTarget - radius) * 0.1;
+    if (Math.abs(radius - cameraRadiusTarget) < 0.05) {
+      radius = cameraRadiusTarget;
+      cameraRadiusTarget = null;
+    }
+    needCameraUpdate = true;
+  }
+  if (needCameraUpdate) updateCamera();
+
+  // Smooth ship rotation toward target
+  let dyaw = ((shipTargetYaw - shipGroup.rotation.y) % (Math.PI * 2));
+  if (dyaw > Math.PI) dyaw -= Math.PI * 2;
+  if (dyaw < -Math.PI) dyaw += Math.PI * 2;
+  shipGroup.rotation.y += dyaw * 0.06;
+
   if (scanRing) scanRing.rotation.z = t * 0.0002;
   if (shipMoveTo) {
     shipGroup.position.lerp(shipMoveTo, 0.05);
@@ -1229,17 +1382,43 @@ function animate(t) {
 // ============================================================
 // VIEW MODE + AXIS (exposed globally)
 // ============================================================
+// Données PHP pour les instruments dynamiques
+const _instGalPos   = '{{ $objetSpatial->secteur_x }},{{ $objetSpatial->secteur_y }},{{ $objetSpatial->secteur_z }}';
+const _instGalCtxLbl = 'Système';
+const _instGalCtxVal = @json($systemeName);
+const _instSysPos   = '{{ $shipLocalXUA }}, {{ $shipLocalYUA }} UA';
+const _instSysCtxLbl = '∆ étoile';
+const _instSysCtxVal = '{{ $shipLocalDistUA }} UA';
+
+function updateInstruments(mode) {
+  if (mode === 'galactic') {
+    document.getElementById('inst-pos-label').textContent = 'Secteur';
+    document.getElementById('inst-pos-val').textContent   = _instGalPos;
+    document.getElementById('inst-ctx-label').textContent = _instGalCtxLbl;
+    document.getElementById('inst-ctx-val').textContent   = _instGalCtxVal;
+  } else {
+    document.getElementById('inst-pos-label').textContent = 'Pos. locale';
+    document.getElementById('inst-pos-val').textContent   = _instSysPos;
+    document.getElementById('inst-ctx-label').textContent = _instSysCtxLbl;
+    document.getElementById('inst-ctx-val').textContent   = _instSysCtxVal;
+  }
+}
+
 window.setViewMode = function(mode) {
   if (mode === viewMode) return;
   viewMode = mode;
   document.getElementById('view-btn-galactic').classList.toggle('active', mode==='galactic');
   document.getElementById('view-btn-system').classList.toggle('active', mode==='system');
+  updateInstruments(mode);
   // Sync scanner tabs
   if (mode === 'galactic') window.switchScanTab('galact');
   else window.switchScanTab('local');
   buildScene();
   setDestinationLine(null);
 };
+
+// Initialiser les instruments selon le mode URL au chargement
+updateInstruments(viewMode);
 
 window.setVerticalAxis = function(axis) {
   verticalAxis = axis;
@@ -1269,6 +1448,28 @@ function consoleLog(text, type = 'sys') {
   consoleOut.scrollTop = consoleOut.scrollHeight;
 }
 
+// Parsing des marqueurs [W]/[T]/[C]/[E] identiques à console-hud.blade.php
+function consoleLogWithMarkers(text, defaultType = 'sys') {
+  if (!consoleOut) return;
+  const div = document.createElement('div');
+  div.className = 'console-line ' + defaultType;
+  const rx = /\[W\](.*?)\[\/W\]|\[T\](.*?)\[\/T\]|\[C\](.*?)\[\/C\]|\[E\](.*?)\[\/E\]/g;
+  let last = 0, m;
+  while ((m = rx.exec(text)) !== null) {
+    if (m.index > last) div.appendChild(document.createTextNode(text.substring(last, m.index)));
+    const s = document.createElement('span');
+    if      (m[1] !== undefined) { s.style.color = 'var(--text-primary)'; s.style.fontWeight = '700'; s.textContent = m[1]; }
+    else if (m[2] !== undefined) { s.style.color = 'var(--data)';         s.style.fontWeight = '600'; s.textContent = m[2]; }
+    else if (m[3] !== undefined) { s.style.color = 'var(--warning)';                                  s.textContent = m[3]; }
+    else                         { s.style.color = 'var(--danger)';                                   s.textContent = m[4]; }
+    div.appendChild(s);
+    last = rx.lastIndex;
+  }
+  if (last < text.length) div.appendChild(document.createTextNode(text.substring(last)));
+  consoleOut.appendChild(div);
+  consoleOut.scrollTop = consoleOut.scrollHeight;
+}
+
 function appendToConsole(text, cssClass) {
   const map = { 'text-green-400':'ok','text-cyan-400':'data','text-red-400':'err','text-yellow-400':'warn','text-gray-300':'sys','text-gray-500':'dim' };
   consoleLog(text, map[cssClass] || 'sys');
@@ -1289,10 +1490,14 @@ function sendCommand(cmd) {
     headers: { 'Content-Type':'application/json','X-CSRF-TOKEN':csrfToken,'Accept':'application/json' },
     body: JSON.stringify({ command: cmd })
   })
-  .then(r => r.json())
+  .then(r => {
+    if (r.status === 419) { consoleLog('[SESSION EXPIRÉE] Rafraîchissez la page (F5)', 'warn'); return null; }
+    return r.json();
+  })
   .then(data => {
+    if (!data) return;
     if (data.message) {
-      data.message.split('\n').forEach(line => { if (line.trim()) consoleLog(line, data.success ? 'ok' : 'err'); });
+      data.message.split('\n').forEach(line => { if (line.trim()) consoleLogWithMarkers(line, data.success ? '' : 'err'); });
     }
     if (data.energie_actuelle !== undefined) updateGaugeEnergy(data.energie_actuelle);
     if (data.pa_restants !== undefined) updateGaugePA(data.pa_restants);
@@ -1361,8 +1566,11 @@ window.lockLocalTarget = function(sys) {
   const btnAct = document.getElementById('btn-action');
   btnAct.disabled = false;
   btnAct.className = 'btn primary';
-  btnAct.textContent = sys.poiType === 'station' ? 'S\'amarrer' : 'S\'approcher';
-  btnAct.onclick = sys.poiType === 'station' ? () => sAmarrer(sys.id) : () => sApprocher(sys.id, sys.poiType);
+  btnAct.textContent = 'S\'approcher';
+  btnAct.onclick = () => sApprocher(sys.id, sys.poiType);
+
+  // Orient ship toward target
+  if (window._setShipFaceTarget) window._setShipFaceTarget(sys.x || 0, sys.z || 0);
 
   showDestOverlay(true);
 };
@@ -1458,20 +1666,85 @@ async function sApprocher(poiId, poiType) {
       headers: { 'Content-Type':'application/json','X-CSRF-TOKEN':csrfToken },
       body: JSON.stringify({ poi_id: poiId, poi_type: poiType })
     });
+    if (r.status === 419) { consoleLog('[SESSION EXPIRÉE] Rafraîchissez la page (F5)', 'warn'); return; }
     const data = await r.json();
     if (data.error) { consoleLog('[ERREUR] ' + data.error, 'err'); return; }
     consoleLog('  ✓ ' + data.message, 'ok');
     updateGaugeEnergy(data.energieRestante);
     updateGaugePA(data.paRestants);
-    // Animer le vaisseau vers la cible puis recharger
+
+    // Vrai si le vaisseau est maintenant à portée d'action
+    const arrivedNear = data.peutAmarrer === true || (typeof data.distanceRestante === 'number' && data.distanceRestante < 0.01);
+
     const ld = window._localData || [];
     const target = ld.find(p => p.id == poiId);
     const mst = window._moveShipTo;
     if (target && mst) {
-      mst(target.x || 0, 1, target.z || 0, () => setTimeout(reloadWithMode, 400));
+      // Stop near the object, not on top: offset along the outward radial direction
+      const angle = Math.atan2(target.z || 0, target.x || 0);
+      const margin = (target.size || 2) * 0.5 + 1.0;
+      const destX = (target.x || 0) + Math.cos(angle) * margin;
+      const destZ = (target.z || 0) + Math.sin(angle) * margin;
+      const onDone = arrivedNear
+        ? () => {
+            const btnAct = document.getElementById('btn-action');
+            if (poiType === 'station') {
+              btnAct.textContent = 'S\'amarrer';
+              btnAct.onclick = () => sAmarrer(poiId);
+            } else {
+              btnAct.textContent = 'Se satelliser';
+              btnAct.onclick = () => sOrbiter(poiId);
+            }
+          }
+        : () => setTimeout(reloadWithMode, 400);
+      mst(destX, 1, destZ, onDone);
     } else {
       setTimeout(reloadWithMode, 1500);
     }
+  } catch (e) {
+    consoleLog('[ERREUR] ' + e.message, 'err');
+  }
+}
+
+async function sOrbiter(planeteId) {
+  consoleLog('> se-satelliser ' + planeteId, 'cmd');
+  try {
+    const r = await fetch('{{ route("navire.timonerie.s-orbiter") }}', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json','X-CSRF-TOKEN':csrfToken },
+      body: JSON.stringify({ planete_id: planeteId })
+    });
+    if (r.status === 419) { consoleLog('[SESSION EXPIRÉE] Rafraîchissez la page (F5)', 'warn'); return; }
+    const data = await r.json();
+    if (data.error) { consoleLog('[ERREUR] ' + data.error, 'err'); return; }
+    consoleLog('  ✓ ' + data.message, 'ok');
+    updateGaugeEnergy(data.energieRestante);
+    updateGaugePA(data.paRestants);
+    // En orbite : proposer Atterrir ou Quitter orbite
+    const btnAct = document.getElementById('btn-action');
+    btnAct.textContent = 'Atterrir';
+    btnAct.onclick = () => atterrir(planeteId);
+    consoleLog('  ▸ Orbite stable — Atterrir disponible', 'data');
+  } catch (e) {
+    consoleLog('[ERREUR] ' + e.message, 'err');
+  }
+}
+
+async function atterrir(planeteId) {
+  consoleLog('> atterrir ' + planeteId, 'cmd');
+  try {
+    const r = await fetch('{{ route("navire.timonerie.atterrir") }}', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json','X-CSRF-TOKEN':csrfToken },
+      body: JSON.stringify({ planete_id: planeteId })
+    });
+    if (r.status === 419) { consoleLog('[SESSION EXPIRÉE] Rafraîchissez la page (F5)', 'warn'); return; }
+    const data = await r.json();
+    if (data.error) { consoleLog('[ERREUR] ' + data.error, 'err'); return; }
+    consoleLog('  ✓ ' + data.message, 'ok');
+    updateGaugeEnergy(data.energieRestante);
+    updateGaugePA(data.paRestants);
+    setTimeout(reloadWithMode, 2000);
   } catch (e) {
     consoleLog('[ERREUR] ' + e.message, 'err');
   }
@@ -1485,6 +1758,7 @@ async function sAmarrer(stationId) {
       headers: { 'Content-Type':'application/json','X-CSRF-TOKEN':csrfToken },
       body: JSON.stringify({ station_id: stationId })
     });
+    if (r.status === 419) { consoleLog('[SESSION EXPIRÉE] Rafraîchissez la page (F5)', 'warn'); return; }
     const data = await r.json();
     if (data.error) { consoleLog('[ERREUR] ' + data.error, 'err'); return; }
     consoleLog('  ✓ ' + data.message, 'ok');
@@ -1553,6 +1827,42 @@ function handleShortcut(cmd) {
       break;
   }
 }
+
+// ─── CONSOLE RESIZE ──────────────────────────────────────────────────
+(function() {
+  const stage  = document.querySelector('.stage');
+  const handle = document.getElementById('tim-resize-handle');
+  const savedW = parseInt(localStorage.getItem('timConsolW') || '320', 10);
+  if (stage) stage.style.setProperty('--console-w', savedW + 'px');
+
+  let resizing = false, rx0 = 0, rw0 = 0;
+  if (handle && stage) {
+    handle.addEventListener('mousedown', e => {
+      const rc = document.querySelector('.right-col');
+      resizing = true; rx0 = e.clientX; rw0 = rc ? rc.offsetWidth : 320;
+      handle.classList.add('active');
+      e.preventDefault();
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'ew-resize';
+    });
+  }
+  document.addEventListener('mousemove', e => {
+    if (!resizing || !stage) return;
+    const nw = Math.max(220, Math.min(600, rw0 + (rx0 - e.clientX)));
+    stage.style.setProperty('--console-w', nw + 'px');
+  });
+  document.addEventListener('mouseup', () => {
+    if (!resizing) return;
+    resizing = false;
+    if (handle) handle.classList.remove('active');
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
+    if (stage) {
+      const nw = parseInt(stage.style.getPropertyValue('--console-w'), 10);
+      if (!isNaN(nw)) localStorage.setItem('timConsolW', nw);
+    }
+  });
+})();
 </script>
 
 <script src="{{ asset('js/orbital-calculator.js') }}"></script>

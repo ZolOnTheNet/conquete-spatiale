@@ -1,168 +1,62 @@
-@extends('layouts.app')
+@extends('layouts.game-hud')
 
-@section('title', $station->nom . ' - Informations')
+@section('title', $station->nom . ' — Informations')
 
-@section('content')
-<div class="h-screen flex flex-col bg-gray-900">
+@section('hud-content')
+{{-- En-tête station --}}
+<div style="padding:20px 24px;margin-bottom:16px;background:linear-gradient(135deg,rgba(127,212,255,0.08),rgba(167,139,250,0.06));border:1px solid var(--border-subtle);">
+    <div style="font-family:var(--sans);font-size:22px;font-weight:700;color:var(--data);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px;">🏭 {{ $station->nom }}</div>
+    <div style="color:var(--text-secondary);font-size:13px;">{{ $station->description }}</div>
+</div>
 
-    {{-- Header 4 colonnes --}}
-    <x-game-header
-        :personnage="$personnage"
-        :vaisseau="$personnage->vaisseauActif"
-        :systeme="$station->systemeStellaire"
-    />
-
-    {{-- Layout principal : Menu + Contenu --}}
-    <div class="flex-1 flex overflow-hidden">
-
-        {{-- Menu latéral gauche --}}
-        @include('game.partials.menu-lateral', [
-            'personnage' => $personnage,
-            'vaisseau' => $personnage->vaisseauActif,
-            'compte' => auth()->user()
-        ])
-
-        {{-- Zone de contenu principale --}}
-        <main class="flex-1 overflow-auto p-6">
-            <div class="max-w-4xl mx-auto">
-
-                {{-- En-tête station --}}
-                <div class="bg-gradient-to-r from-cyan-900/50 to-purple-900/50 border border-cyan-500/30 rounded-lg p-6 mb-6">
-                    <h2 class="text-3xl font-orbitron text-cyan-400 mb-2">🏭 {{ $station->nom }}</h2>
-                    <p class="text-gray-300">{{ $station->description }}</p>
-                </div>
-
-                {{-- Informations générales --}}
-                <div class="bg-gray-800/50 border border-cyan-500/30 rounded-lg p-6 mb-6">
-                    <h3 class="text-xl text-cyan-300 mb-4 font-orbitron">Informations Générales</h3>
-
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <span class="text-gray-400">Type:</span>
-                            <span class="text-cyan-300 ml-2">{{ ucfirst($station->type) }}</span>
-                        </div>
-                        <div>
-                            <span class="text-gray-400">Capacité d'amarrage:</span>
-                            <span class="text-green-300 ml-2">{{ $station->capacite_amarrage }} vaisseaux</span>
-                        </div>
-
-                        @if($station->planete_id)
-                        <div>
-                            <span class="text-gray-400">En orbite de:</span>
-                            <span class="text-yellow-300 ml-2">{{ $station->planete->nom }}</span>
-                        </div>
-                        <div>
-                            <span class="text-gray-400">Rayon orbital:</span>
-                            <span class="text-cyan-300 ml-2 font-mono">{{ number_format($station->orbite_rayon_ua, 3) }} UA</span>
-                        </div>
-                        @elseif($station->systeme_stellaire_id)
-                        <div>
-                            <span class="text-gray-400">Système:</span>
-                            <span class="text-yellow-300 ml-2">{{ $station->systemeStellaire->nom }}</span>
-                        </div>
-                        @endif
-
-                        @if($station->faction_id)
-                        <div>
-                            <span class="text-gray-400">Faction:</span>
-                            <span class="text-purple-300 ml-2">{{ $station->faction->nom }}</span>
-                        </div>
-                        @if($station->reputation_requise > 0)
-                        <div>
-                            <span class="text-gray-400">Réputation requise:</span>
-                            <span class="text-orange-300 ml-2">{{ $station->reputation_requise }}</span>
-                        </div>
-                        @endif
-                        @endif
-                    </div>
-                </div>
-
-                {{-- Services disponibles --}}
-                <div class="bg-gray-800/50 border border-cyan-500/30 rounded-lg p-6 mb-6">
-                    <h3 class="text-xl text-cyan-300 mb-4 font-orbitron">Services Disponibles</h3>
-
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        @if($station->commerciale)
-                        <div class="flex items-center gap-2 text-green-400">
-                            <span class="text-2xl">🛒</span>
-                            <span>Marché</span>
-                        </div>
-                        @endif
-
-                        @if($station->reparations)
-                        <div class="flex items-center gap-2 text-orange-400">
-                            <span class="text-2xl">🔧</span>
-                            <span>Garage</span>
-                        </div>
-                        @endif
-
-                        @if($station->ravitaillement)
-                        <div class="flex items-center gap-2 text-blue-400">
-                            <span class="text-2xl">⛽</span>
-                            <span>Ravitaillement</span>
-                        </div>
-                        @endif
-
-                        @if($station->medical)
-                        <div class="flex items-center gap-2 text-red-400">
-                            <span class="text-2xl">🏥</span>
-                            <span>Hôpital</span>
-                        </div>
-                        @endif
-
-                        @if($station->industrielle)
-                        <div class="flex items-center gap-2 text-purple-400">
-                            <span class="text-2xl">🏭</span>
-                            <span>Industrie</span>
-                        </div>
-                        @endif
-
-                        @if($station->militaire)
-                        <div class="flex items-center gap-2 text-yellow-400">
-                            <span class="text-2xl">⚔️</span>
-                            <span>Militaire</span>
-                        </div>
-                        @endif
-
-                        <div class="flex items-center gap-2 text-cyan-400">
-                            <span class="text-2xl">📋</span>
-                            <span>Comptoirs</span>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Accessibilité --}}
-                <div class="bg-gray-800/50 border border-{{ $station->accessible ? 'green' : 'red' }}-500/30 rounded-lg p-6">
-                    <h3 class="text-xl text-{{ $station->accessible ? 'green' : 'red' }}-400 mb-4 font-orbitron">
-                        @if($station->accessible)
-                            ✅ Station Accessible
-                        @else
-                            ❌ Station Inaccessible
-                        @endif
-                    </h3>
-
-                    @if(!$station->accessible && $station->raison_inaccessible)
-                    <p class="text-gray-300">{{ $station->raison_inaccessible }}</p>
-                    @elseif($station->accessible)
-                    <p class="text-gray-300">Cette station est ouverte à tous les vaisseaux.</p>
-                    @endif
-                </div>
-
-                {{-- Retour --}}
-                <div class="mt-6">
-                    <a href="{{ route('carte') }}" class="text-cyan-400 hover:text-cyan-300 transition">
-                        ← Retour à la carte
-                    </a>
-                </div>
-
-            </div>
-        </main>
-
-        {{-- Console --}}
-        @include('game.partials.console', [
-            'personnage' => $personnage
-        ])
-
+{{-- Infos générales --}}
+<div class="hud-panel" style="margin-bottom:16px;">
+    <div class="hud-panel-title">Informations Générales</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-family:var(--mono);font-size:11px;">
+        <div><span style="color:var(--text-muted);">Type</span><div style="color:var(--data);">{{ ucfirst($station->type) }}</div></div>
+        <div><span style="color:var(--text-muted);">Amarrage</span><div style="color:var(--success);">{{ $station->capacite_amarrage }} vaisseaux</div></div>
+        @if($station->planete_id)
+        <div><span style="color:var(--text-muted);">Orbite</span><div style="color:var(--warning);">{{ $station->planete->nom }}</div></div>
+        <div><span style="color:var(--text-muted);">Rayon</span><div style="color:var(--text-primary);">{{ number_format($station->orbite_rayon_ua, 3) }} UA</div></div>
+        @elseif($station->systeme_stellaire_id)
+        <div><span style="color:var(--text-muted);">Système</span><div style="color:var(--warning);">{{ $station->systemeStellaire->nom }}</div></div>
+        @endif
+        @if($station->faction_id)
+        <div><span style="color:var(--text-muted);">Faction</span><div style="color:rgba(167,139,250,0.9);">{{ $station->faction->nom }}</div></div>
+        @if($station->reputation_requise > 0)
+        <div><span style="color:var(--text-muted);">Réputation requise</span><div style="color:var(--accent);">{{ $station->reputation_requise }}</div></div>
+        @endif
+        @endif
     </div>
 </div>
+
+{{-- Services --}}
+<div class="hud-panel" style="margin-bottom:16px;">
+    <div class="hud-panel-title">Services Disponibles</div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:12px;">
+        @if($station->commerciale)  <div style="color:var(--success);">🛒 Marché</div> @endif
+        @if($station->reparations)  <div style="color:var(--accent);">🔧 Garage</div> @endif
+        @if($station->ravitaillement)<div style="color:#60a5fa;">⛽ Ravitaillement</div> @endif
+        @if($station->medical)      <div style="color:var(--danger);">🏥 Hôpital</div> @endif
+        @if($station->industrielle) <div style="color:#a78bfa;">🏭 Industrie</div> @endif
+        @if($station->militaire)    <div style="color:var(--warning);">⚔️ Militaire</div> @endif
+        <div style="color:var(--data);">📋 Comptoirs</div>
+    </div>
+</div>
+
+{{-- Accessibilité --}}
+<div class="hud-panel" style="margin-bottom:20px;border-color:{{ $station->accessible ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.3)' }};">
+    <div class="hud-panel-title" style="color:{{ $station->accessible ? 'var(--success)' : 'var(--danger)' }};">
+        {{ $station->accessible ? '✅ Station Accessible' : '❌ Station Inaccessible' }}
+    </div>
+    @if(!$station->accessible && $station->raison_inaccessible)
+    <p style="color:var(--text-secondary);font-size:12px;">{{ $station->raison_inaccessible }}</p>
+    @elseif($station->accessible)
+    <p style="color:var(--text-secondary);font-size:12px;">Cette station est ouverte à tous les vaisseaux.</p>
+    @endif
+</div>
+
+<a href="{{ route('carte') }}" style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;color:var(--data);text-decoration:none;transition:color 0.12s;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--data)'">
+    ← Retour à la carte
+</a>
 @endsection

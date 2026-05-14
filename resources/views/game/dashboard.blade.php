@@ -1,455 +1,63 @@
-@extends('layouts.app')
+@extends('layouts.game-hud')
 
-@section('title', 'Conquete Spatiale - Interface')
+@section('title', 'Tableau de bord')
 
-@push('styles')
-<style>
-    .panel {
-        background: rgba(10, 15, 30, 0.95);
-        border: 1px solid rgba(74, 158, 255, 0.3);
-    }
+@section('hud-content')
+<div class="hud-page-title">Tableau de bord</div>
 
-    .panel-header {
-        background: rgba(20, 30, 50, 0.9);
-        border-bottom: 1px solid rgba(74, 158, 255, 0.3);
-    }
-
-    .menu-item {
-        transition: all 0.2s;
-    }
-
-    .menu-item:hover {
-        background: rgba(74, 158, 255, 0.2);
-    }
-
-    .menu-item.active {
-        background: rgba(74, 158, 255, 0.3);
-        border-left: 3px solid #4a9eff;
-    }
-
-    .console-output {
-        height: calc(100vh - 350px);
-        overflow-y: auto;
-    }
-
-    .console-input {
-        background: rgba(0, 0, 0, 0.5);
-    }
-
-    .shortcut-btn {
-        background: rgba(74, 158, 255, 0.2);
-        border: 1px solid rgba(74, 158, 255, 0.4);
-        transition: all 0.2s;
-    }
-
-    .shortcut-btn:hover {
-        background: rgba(74, 158, 255, 0.4);
-        transform: translateY(-1px);
-    }
-</style>
-@endpush
-
-@section('content')
-<div class="h-screen flex flex-col">
-    <!-- Header 4 Colonnes -->
-    <x-game-header
-        :personnage="$personnage"
-        :vaisseau="$vaisseau"
-        :systeme="$systeme"
-        :secteur="null"
-    />
-
-    <!-- Main 3-Column Layout -->
-    <div class="flex-1 flex overflow-hidden">
-        <!-- Left Panel - Navigation Contextuelle -->
-        <aside class="w-64 panel border-r flex flex-col">
-            <div class="panel-header px-4 py-3">
-                <h2 class="text-sm font-bold text-cyan-400">NAVIGATION</h2>
-            </div>
-
-            <div class="flex-1 overflow-y-auto p-2">
-                {{-- SECTION PERSONNAGE --}}
-                <div class="mb-3">
-                    <h3 class="text-xs text-gray-500 uppercase px-2 mb-1">👤 Personnage</h3>
-                    <a href="{{ route('personnage.dossier') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
-                        Dossier
-                    </a>
-                    <a href="{{ route('personnage.gestion') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
-                        Gestion
-                    </a>
-                </div>
-
-                {{-- SECTION VAISSEAU (contextuel : devient STATION si amarré) --}}
-                <div class="mb-3">
-                    @if($vaisseau && $vaisseau->dans_station_id)
-                        {{-- Amarré dans une station --}}
-                        <h3 class="text-xs text-gray-500 uppercase px-2 mb-1">🏭 Station</h3>
-                        <a href="{{ route('station.hall') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
-                            Hall
-                        </a>
-                        <a href="{{ route('station.hangar') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
-                            Hangar
-                        </a>
-                        <a href="{{ route('station.marche') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
-                            Marché
-                        </a>
-                        <a href="{{ route('station.missions') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
-                            Missions
-                        </a>
-                        <a href="{{ route('station.cantina') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
-                            Cantina
-                        </a>
-                    @else
-                        {{-- Dans le vaisseau --}}
-                        <h3 class="text-xs text-gray-500 uppercase px-2 mb-1">🚀 Vaisseau</h3>
-                        <a href="{{ route('navire.timonerie') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
-                            Timonerie
-                        </a>
-                        <a href="{{ route('navire.equipage') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
-                            Équipage
-                        </a>
-                        <a href="{{ route('navire.soute') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
-                            Soute
-                        </a>
-                        <a href="{{ route('vaisseau.etat') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
-                            Équipement
-                        </a>
-                    @endif
-                </div>
-
-                {{-- SECTION JEU --}}
-                <div class="mb-3">
-                    <h3 class="text-xs text-gray-500 uppercase px-2 mb-1">🎮 Jeu</h3>
-                    <a href="{{ route('personnage.spatiocarte') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
-                        Carte
-                    </a>
-                    <a href="{{ route('jeu.profil') }}" class="menu-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400">
-                        Profil
-                    </a>
-                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400" onclick="alert('Aide - À implémenter')">
-                        Aide
-                    </button>
-                </div>
-
-                {{-- SECTION ADMIN (si admin) --}}
-                @if($compte->is_admin ?? false)
-                <div class="mb-3 border-t border-cyan-500/20 pt-3">
-                    <h3 class="text-xs text-red-400 uppercase px-2 mb-1">⚙️ Administration</h3>
-                    <a href="{{ route('admin.index') }}" class="menu-item block px-3 py-2 rounded text-sm text-red-300 hover:text-red-200">
-                        Univers
-                    </a>
-                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-red-300 hover:text-red-200" onclick="alert('Stats - À implémenter')">
-                        Stats
-                    </button>
-                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-red-300 hover:text-red-200" onclick="alert('Logs - À implémenter')">
-                        Logs
-                    </button>
-                </div>
-                @endif
-
-                {{-- SECTION SYSTÈME (tout en bas) --}}
-                <div class="mb-3 border-t border-cyan-500/20 pt-3">
-                    <h3 class="text-xs text-gray-500 uppercase px-2 mb-1">💻 Système</h3>
-                    <button class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300 hover:text-cyan-400" onclick="toggleConsole()">
-                        Console
-                    </button>
-                    <form method="POST" action="{{ route('logout') }}" class="inline w-full">
-                        @csrf
-                        <button type="submit" class="menu-item w-full text-left px-3 py-2 rounded text-sm text-gray-300 hover:text-red-400">
-                            Quitter
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Info personnage (en bas) -->
-            <div class="border-t border-cyan-500/20 p-4">
-                <div class="text-xs text-gray-500">Niveau {{ $personnage->niveau }}</div>
-                <div class="text-sm text-gray-300">{{ $personnage->prenom ?? '' }} {{ $personnage->nom }}</div>
-                <div class="flex items-center justify-between mt-1">
-                    <a href="{{ route('personnage.selection') }}" class="text-xs text-cyan-500 hover:text-cyan-400 underline" title="Changer de personnage">
-                        👤 Personnages
-                    </a>
-                    <div class="text-xs text-gray-500">XP: {{ $personnage->experience }}</div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Center Panel - Main Display -->
-        <main class="flex-1 panel flex flex-col">
-            <div class="panel-header px-4 py-3 flex items-center justify-between">
-                <h2 class="text-sm font-bold text-cyan-400">AFFICHAGE PRINCIPAL</h2>
-                <span class="text-xs text-gray-500" id="current-view">Vue: Statut</span>
-            </div>
-
-            <div class="flex-1 p-4 overflow-y-auto" id="main-display">
-                <!-- Contenu principal dynamique -->
-                <div class="text-center text-gray-500 py-8">
-                    <p class="mb-4">Bienvenue, {{ $personnage->prenom ?? '' }} {{ $personnage->nom }}</p>
-                    <p class="text-sm">Utilisez les menus ou la console pour naviguer</p>
-                    <p class="text-sm">Tapez <code class="text-cyan-400">help</code> pour voir les commandes</p>
-                </div>
-
-                @if($vaisseau)
-                <div class="mt-6 grid grid-cols-2 gap-4">
-                    <div class="bg-gray-800/50 p-4 rounded">
-                        <h3 class="text-sm text-cyan-400 mb-2">Vaisseau</h3>
-                        <p class="text-white">{{ $vaisseau->nom }}</p>
-                        <p class="text-xs text-gray-400">{{ $vaisseau->modele ?? 'Scout' }}</p>
-                    </div>
-                    <div class="bg-gray-800/50 p-4 rounded">
-                        <h3 class="text-sm text-cyan-400 mb-2">Position</h3>
-                        <p class="text-white">{{ $vaisseau->coord_x }}, {{ $vaisseau->coord_y }}, {{ $vaisseau->coord_z }}</p>
-                        <p class="text-xs text-gray-400">Secteur 0,0,0</p>
-                    </div>
-                </div>
-                @endif
-            </div>
-        </main>
-
-        <!-- Right Panel - Console -->
-        <aside class="w-96 panel border-l flex flex-col">
-            <div class="panel-header px-4 py-3">
-                <h2 class="text-sm font-bold text-cyan-400">CONSOLE</h2>
-            </div>
-
-            <!-- Console Output -->
-            <div class="console-output flex-1 p-4 font-mono text-sm" id="console-output">
-                <div class="text-cyan-400">> Systeme initialise</div>
-                <div class="text-gray-300">> Connexion etablie</div>
-                <div class="text-gray-300">> Tapez 'help' pour l'aide</div>
-                <div class="text-gray-500">---</div>
-            </div>
-
-            <!-- Console Input -->
-            <div class="p-4 border-t border-cyan-500/20">
-                <form id="command-form" class="flex gap-2">
-                    <span class="text-cyan-400">></span>
-                    <input type="text" id="command-input"
-                           class="flex-1 bg-transparent border-none outline-none text-white font-mono"
-                           placeholder="Entrez une commande..."
-                           autocomplete="off">
-                </form>
-            </div>
-
-            <!-- Shortcut Buttons -->
-            <div class="p-4 border-t border-cyan-500/20 grid grid-cols-3 gap-2">
-                <button onclick="sendCommand('scan')" class="shortcut-btn px-2 py-1 rounded text-xs text-cyan-300">
-                    Scan
-                </button>
-                <button onclick="sendCommand('saut')" class="shortcut-btn px-2 py-1 rounded text-xs text-cyan-300">
-                    Saut
-                </button>
-                <button onclick="sendCommand('scanner-ennemis')" class="shortcut-btn px-2 py-1 rounded text-xs text-cyan-300">
-                    Combat
-                </button>
-                <button onclick="sendCommand('marche')" class="shortcut-btn px-2 py-1 rounded text-xs text-cyan-300">
-                    Marche
-                </button>
-                <button onclick="sendCommand('inventaire')" class="shortcut-btn px-2 py-1 rounded text-xs text-cyan-300">
-                    Inv
-                </button>
-                <button onclick="sendCommand('help')" class="shortcut-btn px-2 py-1 rounded text-xs text-cyan-300">
-                    Aide
-                </button>
-            </div>
-        </aside>
+{{-- Message bienvenue --}}
+<div class="hud-panel" style="margin-bottom:16px;text-align:center;padding:28px;">
+    <div style="font-size:14px;color:var(--text-secondary);margin-bottom:8px;">
+        Bienvenue, <span style="color:var(--text-primary);font-weight:700;">{{ $personnage->prenom ?? '' }} {{ $personnage->nom }}</span>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--text-muted);">
+        Utilisez la navigation à gauche ou la console pour piloter votre vaisseau.
+    </div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:6px;">
+        Tapez <span style="color:var(--data);">help</span> pour voir les commandes disponibles.
     </div>
 </div>
 
-@push('scripts')
-<script>
-    const commandInput = document.getElementById('command-input');
-    const commandForm = document.getElementById('command-form');
-    const consoleOutput = document.getElementById('console-output');
-    const mainDisplay = document.getElementById('main-display');
+{{-- Stats rapides --}}
+@if($vaisseau)
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+    <div class="hud-panel">
+        <div class="hud-panel-title">Vaisseau</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text-primary);">{{ $vaisseau->nom }}</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:2px;">{{ $vaisseau->modele ?? 'Scout' }}</div>
+    </div>
+    <div class="hud-panel">
+        <div class="hud-panel-title">Position</div>
+        @if($vaisseau->objetSpatial)
+        <div style="font-family:var(--mono);font-size:11px;color:var(--data);">
+            Secteur ({{ $vaisseau->objetSpatial->secteur_x }}, {{ $vaisseau->objetSpatial->secteur_y }}, {{ $vaisseau->objetSpatial->secteur_z }})
+        </div>
+        @if($systeme ?? null)
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:2px;">{{ $systeme->nom }}</div>
+        @endif
+        @else
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text-muted);">Position inconnue</div>
+        @endif
+    </div>
+</div>
+@endif
 
-    // Historique des commandes
-    let commandHistory = [];
-    let historyIndex = -1;
-
-    // Focus sur l'input au chargement
-    commandInput.focus();
-
-    // Gestion du formulaire
-    commandForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const command = commandInput.value.trim();
-        if (command) {
-            sendCommand(command);
-            commandHistory.unshift(command);
-            historyIndex = -1;
-            commandInput.value = '';
-        }
-    });
-
-    // Navigation dans l'historique
-    commandInput.addEventListener('keydown', function(e) {
-        if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            if (historyIndex < commandHistory.length - 1) {
-                historyIndex++;
-                commandInput.value = commandHistory[historyIndex];
-            }
-        } else if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            if (historyIndex > 0) {
-                historyIndex--;
-                commandInput.value = commandHistory[historyIndex];
-            } else {
-                historyIndex = -1;
-                commandInput.value = '';
-            }
-        }
-    });
-
-    // Envoyer une commande
-    function sendCommand(command) {
-        // Afficher la commande
-        appendToConsole('> ' + command, 'text-cyan-400');
-
-        // Envoyer au serveur
-        fetch('{{ route("command") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({ command: command })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.message) {
-                // Formater et afficher la reponse
-                const lines = data.message.split('\n');
-                lines.forEach(line => {
-                    if (line.trim()) {
-                        const colorClass = data.success ? 'text-gray-300' : 'text-red-400';
-                        appendToConsole(line, colorClass);
-                    }
-                });
-            }
-
-            // Mettre a jour les stats si disponibles
-            updateStats();
-        })
-        .catch(error => {
-            appendToConsole('[ERREUR] ' + error.message, 'text-red-400');
-        });
-    }
-
-    // Ajouter du texte a la console
-    function appendToConsole(text, colorClass = 'text-gray-300') {
-        const div = document.createElement('div');
-        div.className = colorClass;
-        div.textContent = text;
-        consoleOutput.appendChild(div);
-        consoleOutput.scrollTop = consoleOutput.scrollHeight;
-    }
-
-    // Mettre a jour les stats
-    function updateStats() {
-        fetch('{{ route("api.status") }}', {
-            headers: {
-                'Accept': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('pa-display').textContent =
-                    'PA: ' + data.pa.actuel + '/' + data.pa.max;
-            }
-        })
-        .catch(() => {});
-    }
-
-    // Rafraichir les stats periodiquement
-    setInterval(updateStats, 60000);
-
-    // Charger une vue dans le panneau principal
-    function loadView(routeName, viewLabel, queryParams = '') {
-        // Mettre à jour le titre de la vue
-        document.getElementById('current-view').textContent = 'Vue: ' + viewLabel;
-
-        // Générer l'URL de la route
-        const routeMap = {
-            'carte': '{{ route("carte") }}',
-            'vaisseau.position': '{{ route("vaisseau.position") }}',
-            'vaisseau.scanner': '{{ route("vaisseau.scanner") }}',
-            'vaisseau.etat': '{{ route("vaisseau.etat") }}',
-            'vaisseau.reparations': '{{ route("vaisseau.reparations") }}',
-            'inventaire': '{{ route("inventaire") }}',
-            'vaisseau.cargaison': '{{ route("vaisseau.cargaison") }}',
-            'vaisseau.armes': '{{ route("vaisseau.armes") }}',
-            'com.databases': '{{ route("com.databases") }}',
-            'com.prix': '{{ route("com.prix") }}',
-            'com.demandes': '{{ route("com.demandes") }}',
-            'com.messages': '{{ route("com.messages") }}',
-            'marche': '{{ route("dashboard") }}?view=marche',
-            'missions': '{{ route("dashboard") }}?view=missions',
-            'combat.armes': '{{ route("dashboard") }}?view=combat-armes',
-            'combat.equipement': '{{ route("dashboard") }}?view=combat-equipement',
-            'scanner': '{{ route("vaisseau.scanner") }}',
-        };
-
-        let url = routeMap[routeName] || '{{ route("dashboard") }}';
-
-        // Ajouter les paramètres de requête si fournis
-        if (queryParams) {
-            url += queryParams;
-        }
-
-        // Charger la vue via AJAX
-        fetch(url, {
-            headers: {
-                'Accept': 'text/html',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.text())
-        .then(html => {
-            // Pour la carte, on charge tout le contenu
-            if (routeName === 'carte') {
-                mainDisplay.innerHTML = html;
-                // Extraire et exécuter les scripts
-                const temp = document.createElement('div');
-                temp.innerHTML = html;
-                const scripts = temp.querySelectorAll('script');
-                scripts.forEach(script => {
-                    const newScript = document.createElement('script');
-                    newScript.textContent = script.textContent;
-                    document.body.appendChild(newScript);
-                    document.body.removeChild(newScript);
-                });
-            } else {
-                // Pour les autres vues, afficher le contenu
-                mainDisplay.innerHTML = html;
-            }
-        })
-        .catch(error => {
-            mainDisplay.innerHTML = `
-                <div class="text-center text-red-400 py-8">
-                    <p class="mb-4">Erreur de chargement de la vue</p>
-                    <p class="text-sm text-gray-500">${error.message}</p>
-                </div>
-            `;
-        });
-    }
-
-    // Basculer entre console et panneau principal
-    let consoleVisible = false;
-    function toggleConsole() {
-        consoleVisible = !consoleVisible;
-        if (consoleVisible) {
-            mainDisplay.style.display = 'none';
-            mainDisplay.nextElementSibling.style.display = 'block'; // Afficher console
-        } else {
-            mainDisplay.style.display = 'block';
-            mainDisplay.nextElementSibling.style.display = 'none'; // Masquer console
-        }
-    }
-</script>
-@endpush
+{{-- Accès rapides --}}
+<div class="hud-panel">
+    <div class="hud-panel-title">Accès Rapides</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        <a href="{{ route('navire.timonerie') }}" style="display:block;padding:10px;background:rgba(5,7,12,0.4);border:1px solid var(--border-subtle);text-decoration:none;text-align:center;transition:border-color 0.12s;" onmouseover="this.style.borderColor='var(--data)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+            <div style="font-size:18px;margin-bottom:4px;">🚀</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-secondary);">Timonerie</div>
+        </a>
+        <a href="{{ route('carte') }}" style="display:block;padding:10px;background:rgba(5,7,12,0.4);border:1px solid var(--border-subtle);text-decoration:none;text-align:center;transition:border-color 0.12s;" onmouseover="this.style.borderColor='var(--data)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+            <div style="font-size:18px;margin-bottom:4px;">🗺️</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-secondary);">Carte</div>
+        </a>
+        <a href="{{ route('personnage.dossier') }}" style="display:block;padding:10px;background:rgba(5,7,12,0.4);border:1px solid var(--border-subtle);text-decoration:none;text-align:center;transition:border-color 0.12s;" onmouseover="this.style.borderColor='var(--data)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+            <div style="font-size:18px;margin-bottom:4px;">📋</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-secondary);">Dossier</div>
+        </a>
+    </div>
+</div>
 @endsection

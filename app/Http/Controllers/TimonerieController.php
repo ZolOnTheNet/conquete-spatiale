@@ -712,6 +712,77 @@ class TimonerieController extends Controller
     }
 
     /**
+     * Atterrir sur une planète (depuis l'orbite ou depuis une approche directe)
+     *
+     * Prérequis : vaisseau en orbite (orbite_planete_id = planeteId)
+     *            OU distance < 0.1 UA de la planète
+     */
+    public function atterrir(Request $request): JsonResponse
+    {
+        $planeteId = $request->input('planete_id');
+        $personnage = $request->attributes->get('personnage');
+        $vaisseau = $personnage->vaisseauActif;
+
+        if (!$vaisseau) {
+            return response()->json(['error' => 'Aucun vaisseau actif'], 400);
+        }
+
+        $planete = \App\Models\Planete::find($planeteId);
+        if (!$planete || !$planete->systemeStellaire) {
+            return response()->json(['error' => 'Planète introuvable'], 404);
+        }
+
+        $objetSpatial = $vaisseau->objetSpatial;
+        $systeme = $planete->systemeStellaire;
+
+        // Vérifier qu'on est dans le même secteur
+        if ($systeme->secteur_x != $objetSpatial->secteur_x ||
+            $systeme->secteur_y != $objetSpatial->secteur_y ||
+            $systeme->secteur_z != $objetSpatial->secteur_z) {
+            return response()->json(['error' => 'La planète n\'est pas dans ce secteur'], 400);
+        }
+
+        $timestampJours = GameTimeHelper::getTimestampJoursActuel($personnage);
+
+        // Vérifier que la planète est accessible (orbite valide ou distance < 0.1 UA)
+        $enOrbite = $vaisseau->orbite_planete_id == $planete->id;
+        $distance = $planete->getDistanceDepuisVaisseau($vaisseau, $timestampJours);
+
+        if (!$enOrbite && $distance >= 0.1) {
+            return response()->json([
+                'error' => 'Trop éloigné pour atterrir. Mettez-vous en orbite d\'abord.',
+                'distance' => round($distance, 4),
+            ], 400);
+        }
+
+        // Marquer l'atterrissage : sortir d'orbite, poser le vaisseau
+        $vaisseau->orbite_planete_id   = null;
+        $vaisseau->orbite_rayon_ua     = null;
+        $vaisseau->orbite_angle_initial = null;
+        $vaisseau->orbite_debut        = null;
+        $vaisseau->arrime_a_station_id = null;
+        $vaisseau->save();
+
+        // Consommer 1 PA + 5 énergie pour l'atterrissage
+        if ($personnage->points_action > 0) {
+            $personnage->points_action -= 1;
+            $personnage->save();
+        }
+        if ($vaisseau->energie_actuelle > 5) {
+            $vaisseau->energie_actuelle -= 5;
+            $vaisseau->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Atterrissage réussi sur {$planete->nom}\nVaisseau posé sur la surface — systèmes en veille",
+            'planete' => ['id' => $planete->id, 'nom' => $planete->nom, 'type' => $planete->type],
+            'energieRestante' => $vaisseau->energie_actuelle,
+            'paRestants'      => $personnage->points_action,
+        ]);
+    }
+
+    /**
      * Tourner le vaisseau sur lui-même (rotation azimut)
      * Ne déplace pas le vaisseau, donc ne réinitialise pas le scan
      *
@@ -771,8 +842,11 @@ class TimonerieController extends Controller
      */
     protected function getSautsDisponibles($personnage, $vaisseau): array
     {
-        // Récupérer les systèmes découverts
-        $decouvertes = $personnage->decouvertes()->with('systemeStellaire')->get();
+        // Seulement les systèmes dont les coordonnées sont connues (dans l'atlas)
+        $decouvertes = $personnage->decouvertes()
+            ->where('coordonnees_connues', true)
+            ->with('systemeStellaire')
+            ->get();
 
         $objetSpatial = $vaisseau->objetSpatial;
         $sauts = [];
@@ -834,6 +908,7 @@ class TimonerieController extends Controller
             $systeme->energieRequise = $energieRequise;
             $systeme->paRequis = $paRequis;
             $systeme->accessible = $accessible;
+            $systeme->visite = (bool)$decouverte->visite;
 
             $sauts[] = $systeme;
         }
@@ -932,6 +1007,7 @@ class TimonerieController extends Controller
                 'id' => $planete->id,
                 'nom' => $planete->nom,
                 'type' => $planete->type,
+                'categorie' => $planete->categorie ?? 'planete',
                 'icone' => $icone,
                 'couleur' => $couleur,
                 'distance' => $distance,

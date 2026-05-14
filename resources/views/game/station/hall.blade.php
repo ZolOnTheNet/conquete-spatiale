@@ -1,91 +1,59 @@
-@extends('layouts.app')
+@extends('layouts.game-hud')
 
 @section('title', 'Hall Principal')
 
-@section('content')
-<div class="h-screen flex flex-col bg-gray-900">
+@section('hud-content')
+<div class="hud-page-title">Hall Principal</div>
 
-    {{-- Header 4 colonnes --}}
-    <x-game-header
-        :personnage="$personnage"
-        :vaisseau="$personnage->vaisseauActif"
-        :systeme="$systeme ?? null"
-    />
-
-    {{-- Layout principal : Menu + Contenu --}}
-    <div class="flex-1 flex overflow-hidden">
-
-        {{-- Menu latéral gauche --}}
-        @include('game.partials.menu-lateral', [
-            'personnage' => $personnage,
-            'vaisseau' => $personnage->vaisseauActif ?? null,
-            'compte' => auth()->user()
-        ])
-
-        {{-- Zone de contenu principale --}}
-        <main class="flex-1 overflow-auto p-6">
-            <div class="max-w-7xl mx-auto">
-
-                <h2 class="text-3xl font-orbitron text-cyan-400 mb-6">🏛️ HALL PRINCIPAL</h2>
-
-                {{-- Informations station --}}
-                <div class="bg-gray-800/50 border border-cyan-500/30 rounded-lg p-6 mb-6">
-                    <h3 class="text-xl text-cyan-300 mb-4">Informations Station</h3>
-                    @if($station ?? null)
-                        <div class="space-y-2 text-sm">
-                            <div>
-                                <span class="text-gray-400">Station:</span>
-                                <span class="text-white font-bold ml-2">{{ $station->nom }}</span>
-                            </div>
-                            <div>
-                                <span class="text-gray-400">Type:</span>
-                                <span class="text-yellow-400 ml-2">{{ $station->type_etoile ?? 'Station orbitale' }}</span>
-                            </div>
-                        </div>
-                    @else
-                        <p class="text-gray-400 text-sm">Informations indisponibles</p>
-                    @endif
-                </div>
-
-                {{-- Services disponibles --}}
-                <div class="bg-gray-800/50 border border-yellow-500/30 rounded-lg p-6 mb-6">
-                    <h3 class="text-xl text-yellow-300 mb-4">Services Disponibles</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <a href="{{ route('station.hangar') }}" class="bg-gray-900/50 border border-gray-700 hover:border-cyan-500 rounded-lg p-4 transition">
-                            <div class="text-2xl mb-2">🛠️</div>
-                            <h4 class="text-white font-bold">Hangar</h4>
-                            <p class="text-gray-400 text-sm">Réparations & Modules</p>
-                        </a>
-                        <a href="{{ route('station.marche') }}" class="bg-gray-900/50 border border-gray-700 hover:border-cyan-500 rounded-lg p-4 transition">
-                            <div class="text-2xl mb-2">💰</div>
-                            <h4 class="text-white font-bold">Marché</h4>
-                            <p class="text-gray-400 text-sm">Commerce & Négoce</p>
-                        </a>
-                        <a href="{{ route('station.missions') }}" class="bg-gray-900/50 border border-gray-700 hover:border-cyan-500 rounded-lg p-4 transition">
-                            <div class="text-2xl mb-2">📜</div>
-                            <h4 class="text-white font-bold">Bureau des Missions</h4>
-                            <p class="text-gray-400 text-sm">Contrats & Quêtes</p>
-                        </a>
-                        <a href="{{ route('station.cantina') }}" class="bg-gray-900/50 border border-gray-700 hover:border-cyan-500 rounded-lg p-4 transition">
-                            <div class="text-2xl mb-2">🍺</div>
-                            <h4 class="text-white font-bold">Cantina</h4>
-                            <p class="text-gray-400 text-sm">Social & Rumeurs</p>
-                        </a>
-                    </div>
-                </div>
-
-                {{-- Actualités --}}
-                <div class="bg-gray-800/50 border border-purple-500/30 rounded-lg p-6">
-                    <h3 class="text-xl text-purple-300 mb-4">Actualités de la station</h3>
-                    <p class="text-gray-400 text-sm italic">Système d'actualités en développement...</p>
-                </div>
-
-            </div>
-        </main>
-
-        {{-- Console Droite --}}
-        @include('game.partials.console')
+{{-- Informations station --}}
+<div class="hud-panel" style="margin-bottom:16px;">
+    <div class="hud-panel-title">Station</div>
+    @if($station ?? null)
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;">
+        <div>
+            <span style="color:var(--text-muted);">Nom</span>
+            <div style="color:var(--text-primary);font-weight:600;">{{ $station->nom }}</div>
+        </div>
+        <div>
+            <span style="color:var(--text-muted);">Type</span>
+            <div style="color:var(--warning);">{{ $station->type_etoile ?? 'Orbitale' }}</div>
+        </div>
     </div>
+    @else
+    <p style="color:var(--text-muted);font-style:italic;font-size:12px;">Informations indisponibles</p>
+    @endif
+</div>
 
+{{-- Services --}}
+<div class="hud-panel" style="margin-bottom:16px;border-color:rgba(251,191,36,0.3);">
+    <div class="hud-panel-title" style="color:var(--warning);">Services Disponibles</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <a href="{{ route('station.hangar') }}" style="display:block;padding:14px;background:rgba(5,7,12,0.4);border:1px solid var(--border-subtle);text-decoration:none;transition:border-color 0.12s;" onmouseover="this.style.borderColor='var(--data)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+            <div style="font-size:20px;margin-bottom:6px;">🛠️</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-primary);">Hangar</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:2px;">Réparations & Modules</div>
+        </a>
+        <a href="{{ route('station.marche') }}" style="display:block;padding:14px;background:rgba(5,7,12,0.4);border:1px solid var(--border-subtle);text-decoration:none;transition:border-color 0.12s;" onmouseover="this.style.borderColor='var(--data)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+            <div style="font-size:20px;margin-bottom:6px;">💰</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-primary);">Marché</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:2px;">Commerce & Négoce</div>
+        </a>
+        <a href="{{ route('station.missions') }}" style="display:block;padding:14px;background:rgba(5,7,12,0.4);border:1px solid var(--border-subtle);text-decoration:none;transition:border-color 0.12s;" onmouseover="this.style.borderColor='var(--data)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+            <div style="font-size:20px;margin-bottom:6px;">📜</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-primary);">Missions</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:2px;">Contrats & Quêtes</div>
+        </a>
+        <a href="{{ route('station.cantina') }}" style="display:block;padding:14px;background:rgba(5,7,12,0.4);border:1px solid var(--border-subtle);text-decoration:none;transition:border-color 0.12s;" onmouseover="this.style.borderColor='var(--data)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+            <div style="font-size:20px;margin-bottom:6px;">🍺</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-primary);">Cantina</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:2px;">Social & Rumeurs</div>
+        </a>
+    </div>
+</div>
+
+{{-- Actualités --}}
+<div class="hud-panel" style="border-color:rgba(167,139,250,0.3);">
+    <div class="hud-panel-title" style="color:rgba(167,139,250,0.8);">Actualités</div>
+    <p style="color:var(--text-muted);font-style:italic;font-size:12px;">Système d'actualités en développement...</p>
 </div>
 @endsection
