@@ -4,13 +4,13 @@
 
 @push('hud-styles')
 <style>
-.hud-main { padding: 0 !important; overflow: hidden !important; }
+.hud-main { padding: 0 !important; overflow: hidden !important; position: relative; }
 
 .c3d-wrap {
-  width: 100%; height: 100%; position: relative;
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
   background: radial-gradient(ellipse at center, #0a0f1a 0%, #050709 70%);
 }
-#c3d-canvas { width: 100%; height: 100%; display: block; cursor: grab; }
+#c3d-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; cursor: grab; }
 
 /* ── ONGLETS ── */
 .c3d-tabs {
@@ -248,11 +248,15 @@ const currentSysId   = {{ $galacticData[0]['id'] ?? 0 }};
 // ── SCÈNE / RENDERER ─────────────────────────────────────────────────────────
 const canvas   = document.getElementById('c3d-canvas');
 const wrap     = canvas.parentElement;
+
+function wrapW() { return wrap.clientWidth  || (window.innerWidth  - 200); }
+function wrapH() { return wrap.clientHeight || (window.innerHeight - 52);  }
+
 const scene    = new THREE.Scene();
 scene.fog      = new THREE.FogExp2(0x05070c, 0.003);
-const camera   = new THREE.PerspectiveCamera(60, wrap.clientWidth / wrap.clientHeight, 0.1, 2000);
+const camera   = new THREE.PerspectiveCamera(60, wrapW() / wrapH(), 0.1, 2000);
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+renderer.setSize(wrapW(), wrapH());
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 // ── ÉTAT ─────────────────────────────────────────────────────────────────────
@@ -274,11 +278,12 @@ let radiusTarget = null;
 // game data: x=EW*9, y=altitude*1.8, z=NS*9
 // toSceneVec: Three.js Vector3 whose Y = altitude component, chosen by verticalAxis
 function toSceneVec(x, y, z) {
-  // verticalAxis Z: game.y → Three.Y; so Three(x, y, z)
-  // verticalAxis Y: game.z → Three.Y; so Three(x, z, y)
-  // verticalAxis X: game.x → Three.Y; so Three(z, x, y)
-  if (verticalAxis === 'Z') return new THREE.Vector3(x, y, z);
-  if (verticalAxis === 'Y') return new THREE.Vector3(x, z, y);
+  // galacticData: x=EW*9, y=alt*1.8, z=NS*9
+  // verticalAxis Z: game.z (NS) → Three.Y  → Vector3(x, z, y)
+  // verticalAxis Y: game.y (alt) → Three.Y → Vector3(x, y, z)
+  // verticalAxis X: game.x (EW) → Three.Y  → Vector3(z, x, y)
+  if (verticalAxis === 'Z') return new THREE.Vector3(x, z, y);
+  if (verticalAxis === 'Y') return new THREE.Vector3(x, y, z);
   return new THREE.Vector3(z, x, y); // X
 }
 
@@ -734,9 +739,9 @@ let resizeRaf;
 function onResize() {
   cancelAnimationFrame(resizeRaf);
   resizeRaf = requestAnimationFrame(() => {
-    camera.aspect = wrap.clientWidth / wrap.clientHeight;
+    camera.aspect = wrapW() / wrapH();
     camera.updateProjectionMatrix();
-    renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+    renderer.setSize(wrapW(), wrapH());
     updateCamera();
   });
 }
