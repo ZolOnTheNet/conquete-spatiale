@@ -1,25 +1,27 @@
 # GDD — Vaisseaux : Modules, Systèmes & Constructeurs
 ## Conquête Spatiale — Document de référence
 
-> Document vivant. Complémentaire à `GDD_Vaisseaux_Complet.md`.  
+> Document vivant. Complémentaire à `GDD_Vaisseaux_Complet.md`.
 > Dernière mise à jour : 2026-05-15
 
 ---
 
 ## 1. CONSTRUCTEURS & FABRICANTS
 
-Le marché est dominé par quelques grands groupes industriels, chacun spécialisé dans un segment.  
+Le marché est dominé par quelques grands groupes industriels, chacun spécialisé dans un segment.
 À chaque guilde correspond un constructeur principal, mais rien n'empêche d'acheter des composants d'une marque tierce.
 
 ### 1.1 Constructeurs de coques (châssis complets)
 
 | Constructeur | Siège | Série principale | Réputation |
 |---|---|---|---|
-| **Helix Dynamics** | Angeles | A (polyvalent) | Fiable, accessible, le plus vendu |
+| **Lunastar** | Lunastar-station (orbite lunaire) | A (polyvalent) | Fiable, accessible, le plus vendu |
 | **Meridian Cargo Group** *(MCG)* | Espérance | M (marchand) | Solide, lent, très grande capacité |
 | **Aether Exploration Systems** *(AES)* | New-San Francisco | E (explorateur) | Haute technologie, prix élevé |
 | **Vortex Defense Industries** *(VDI)* | Inconnue (militaire) | F (forces) | Militaire, exportation restreinte |
 | **Hullworks Cooperative** | Mobile (flottille) | Occasion / hybride | Remis à neuf, bricolé mais pas cher |
+
+> **Lore — Lunastar :** La société Lunastar est doublement présente dans la vie des nouveaux joueurs : elle exploite la station de départ en orbite lunaire *Lunastar-station*, et elle fabrique les coques de Série A — les vaisseaux polyvalents d'entrée de gamme les plus répandus dans l'espace humain. Ce n'est pas un hasard : Lunastar a bâti son empire en vendant des vaisseaux aux colons qui quittaient la station, puis en rachetant et revendant les mêmes appareils une fois usés.
 
 ### 1.2 Fabricants de moteurs
 
@@ -62,7 +64,7 @@ PA MN = Consommation / Vitesse × Coef_PAMN / 100
 | **MC-100 Standard** | Kronos | 1.0 | 0 | 100 | 500 t | 5 000 cr | A-0, A-1 |
 | **MC-250 Performer** | Kronos | 2.5 | 0 | 100 | 800 t | 12 000 cr | A-1, M-1 |
 | **MC-400 Freighter** | Ashvelt | 3.0 | 0 | 95 | 1 200 t | 22 000 cr | M-1, lourds |
-| **MC-500 Rapide** | Helix | 5.0 | 0 | 90 | 1 200 t | 28 000 cr | A-1+ |
+| **MC-500 Rapide** | Lunastar | 5.0 | 0 | 90 | 1 200 t | 28 000 cr | A-1+ |
 | **MC-700 Pursuit** | VDI | 7.0 | 0 | 80 | 1 500 t | 60 000 cr | F-series |
 | **MC-900 Elite** | VDI | 9.0 | 0 | 75 | 2 000 t | 130 000 cr | F-series, grandes coques |
 | **MC-ECO Frugal** | Graviton | 0.8 | 0 | 130 | 300 t | 3 500 cr | Petits vaisseaux, économique |
@@ -92,7 +94,7 @@ PA HE = 1 + Coef_PAHE × Distance
 | **HE-500 Horizon** | AES | 3.5 | 150 | 40 | 17 | 58 000 cr | E-series haute gamme |
 | **HE-600 Strike** | VDI | 5.0 | 130 | 38 | 15 | 95 000 cr | F-series |
 | **HE-900 Phantom** | VDI | 7.5 | 120 | 32 | 12 | 200 000 cr | F-series militaire, rare |
-| **HE-ECO Basic** | Helix | 0.7 | 220 | 60 | 22 | 6 000 cr | Polyvalent économique |
+| **HE-ECO Basic** | Lunastar | 0.7 | 220 | 60 | 22 | 6 000 cr | Polyvalent économique |
 
 ---
 
@@ -107,7 +109,7 @@ Pour les vaisseaux à extraction énergétique. Le système de rechargement remp
 | **GVT-MP100 Standard** | Graviton | Puissance_étoile × 1.0 | 200 t | 4 000 cr |
 | **GVT-MP200 Amélioré** | Graviton | Puissance_étoile × 1.5 | 300 t | 9 000 cr |
 | **GVT-MP500 Haute Densité** | AES | Puissance_étoile × 2.5 | 450 t | 24 000 cr |
-| **SunLeaf Compact** | Helix | Puissance_étoile × 0.8 | 150 t | 2 500 cr | 
+| **SunLeaf Compact** | Lunastar | Puissance_étoile × 0.8 | 150 t | 2 500 cr |
 
 ### 4.2 Voiles solaires (déplacement possible pendant recharge)
 
@@ -140,7 +142,7 @@ Pour les vaisseaux à extraction énergétique. Le système de rechargement remp
 | **AVP-P600 Plasma+** | Ashvelt | Plasma (H₂) | 600 u | 0.82 | 120 u | 550 t | 18 000 cr |
 | **AVP-T250 Tyberium** | Ashvelt | Tyberium | 250 u | 0.90 | 100 u | 250 t | 15 000 cr |
 | **AVP-T500 Tyberium+** | Ashvelt | Tyberium | 500 u | 0.90 | 100 u | 450 t | 28 000 cr |
-| **RenFuel Flex** | Hullworks | Plasma ou Uranium | 200 u | 0.72 | 130 u | 350 t | 5 000 cr | 
+| **RenFuel Flex** | Hullworks | Plasma ou Uranium | 200 u | 0.72 | 130 u | 350 t | 5 000 cr |
 
 > Le Tyberium est le plus efficace et le moins dangereux mais reste rare — disponible principalement dans les systèmes à anneaux planétaires.
 
@@ -211,8 +213,8 @@ Le système informatique est le cerveau du vaisseau. Il détermine le nombre de 
 | **SI-10 Tactical** | DataCore | 10 | 55 000 cr | Optimisé combat, bonus visée |
 | **SI-8 Deep Space** | AES | 8 | 28 000 cr | Optimisé exploration, bonus atlas |
 
-> Un module informatique détérioré peut perdre des places de service (panne système).  
-> On ne peut pas avoir plus de 10 places de service quelle que soit l'installation.
+> Un module informatique détérioré peut perdre des places de service (panne système).
+> On ne peut pas avoir plus de 10 places de services par module informatique.
 
 ---
 
@@ -232,7 +234,7 @@ Ces trois démons sont fournis avec tout vaisseau neuf ou remis à neuf.
 
 > *"Votre interface entre le vaisseau et l'univers."*
 
-**Marque :** StellarTech / DataCore Systems  
+**Marque :** StellarTech / DataCore Systems
 **Rôle :** Gère l'ensemble des capteurs passifs et actifs du vaisseau.
 
 **Fonctions couvertes :**
@@ -249,7 +251,7 @@ Ces trois démons sont fournis avec tout vaisseau neuf ou remis à neuf.
 
 > *"Le copilote invisible."*
 
-**Marque :** Kronos Engines / Graviton Power Systems  
+**Marque :** Kronos Engines / Graviton Power Systems
 **Rôle :** Interface logicielle entre le pilote et les systèmes de propulsion.
 
 **Fonctions couvertes :**
@@ -266,7 +268,7 @@ Ces trois démons sont fournis avec tout vaisseau neuf ou remis à neuf.
 
 > *"La mémoire collective des étoiles connues."*
 
-**Marque :** DataCore Systems  
+**Marque :** DataCore Systems
 **Rôle :** Gestionnaire de données cartographiques et de connaissances du vaisseau.
 
 **Fonctions couvertes :**
