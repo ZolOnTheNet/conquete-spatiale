@@ -96,9 +96,10 @@ class PersonnageController extends Controller
         $vaisseau     = $personnage->vaisseauActif;
         $objetSpatial = $vaisseau?->objetSpatial;
 
-        $originX = $objetSpatial ? ($objetSpatial->secteur_x + ($objetSpatial->position_x ?? 0)) : 0;
-        $originY = $objetSpatial ? ($objetSpatial->secteur_y + ($objetSpatial->position_y ?? 0)) : 0;
-        $originZ = $objetSpatial ? ($objetSpatial->secteur_z + ($objetSpatial->position_z ?? 0)) : 0;
+        // Position d'origine = secteur uniquement (position_x intra-système peut être en cUA, sans rapport avec l'échelle galactique)
+        $originX = $objetSpatial ? $objetSpatial->secteur_x : 0;
+        $originY = $objetSpatial ? $objetSpatial->secteur_y : 0;
+        $originZ = $objetSpatial ? $objetSpatial->secteur_z : 0;
 
         $systemeActuel = null;
         if ($objetSpatial) {
@@ -165,9 +166,9 @@ class PersonnageController extends Controller
             if (!$sys) continue;
             if ($systemeActuel && $sys->id === $systemeActuel->id) continue;
 
-            $dx   = ($sys->secteur_x + ($sys->position_x ?? 0)) - $originX;
-            $dy   = ($sys->secteur_y + ($sys->position_y ?? 0)) - $originY;
-            $dz   = ($sys->secteur_z + ($sys->position_z ?? 0)) - $originZ;
+            $dx   = $sys->secteur_x - $originX;
+            $dy   = $sys->secteur_y - $originY;
+            $dz   = $sys->secteur_z - $originZ;
             $dist = round(sqrt($dx * $dx + $dy * $dy + $dz * $dz), 2);
 
             $paRequis       = max(1, (int)ceil($dist / 2));

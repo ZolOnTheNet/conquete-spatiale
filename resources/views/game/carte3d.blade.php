@@ -196,7 +196,7 @@
     </div>
     <div class="c3d-panel-actions">
       <button class="c3d-panel-btn primary" id="cp-centrer">Centrer</button>
-      <button class="c3d-panel-btn"         id="cp-zoomer">Zoomer</button>
+      <button class="c3d-panel-btn"         id="cp-zoomer">Voir système</button>
     </div>
   </div>
 
@@ -221,7 +221,7 @@
       Systèmes découverts
     </div>
     <div class="c3d-lgd-row" style="color:var(--text-muted);">
-      Tab : étoile suiv. · Flèches : déplacer · Clic : sélectionner · Dbl-clic : centrer+zoomer
+      Tab : étoile suiv. · Flèches/Clic-droit : déplacer · Clic : sélectionner · Dbl-clic : centrer+zoomer
     </div>
   </div>
 
@@ -260,11 +260,12 @@ renderer.setSize(wrapW(), wrapH());
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 // ── ÉTAT ─────────────────────────────────────────────────────────────────────
-let mode         = 'galactic'; // 'galactic' | 'system'
-let verticalAxis = 'Z';        // 'X' | 'Y' | 'Z'
-let currentGroup = null;       // groupe Three.js sélectionné
-let pickables    = [];         // { core, data, group }
-let navIdx       = -1;         // index Tab navigation
+let mode           = 'galactic'; // 'galactic' | 'system'
+let verticalAxis   = 'Z';        // 'X' | 'Y' | 'Z'
+let currentGroup   = null;       // groupe Three.js sélectionné
+let pickables      = [];         // { core, data, group }
+let navIdx         = -1;         // index Tab navigation
+let lastSystemId   = currentSysId; // dernier système vu en mode système
 
 // Caméra
 let radius       = 80;
@@ -409,8 +410,9 @@ function buildGalactic() {
 
 // ── BUILD SYSTEM ──────────────────────────────────────────────────────────────
 async function buildSystem(sysId) {
+  lastSystemId = sysId;
   clearScene();
-  gridGroup.visible = false;
+  gridGroup.visible = true;
 
   const url = systemeAjaxUrl.replace('__ID__', sysId);
   let data;
@@ -517,19 +519,40 @@ function zoomOn(g)   { targetAnim = g.position.clone(); radiusTarget = mode === 
 
 // ── ORBITE / DRAG ─────────────────────────────────────────────────────────────
 let isDragging = false;
+let isPanning  = false;
 let prevMouse  = { x: 0, y: 0 };
 
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
 canvas.addEventListener('mousedown', e => {
-  isDragging = true; prevMouse = { x: e.clientX, y: e.clientY };
-  canvas.style.cursor = 'grabbing';
+  isDragging = true;
+  isPanning  = (e.button === 2);
+  prevMouse  = { x: e.clientX, y: e.clientY };
+  canvas.style.cursor = isPanning ? 'move' : 'grabbing';
 });
-window.addEventListener('mouseup', () => { isDragging = false; canvas.style.cursor = 'grab'; });
+window.addEventListener('mouseup', () => { isDragging = false; isPanning = false; canvas.style.cursor = 'grab'; });
 window.addEventListener('mousemove', e => {
   if (!isDragging) { doHover(e); return; }
   const dx = e.clientX - prevMouse.x;
   const dy = e.clientY - prevMouse.y;
-  azimuth -= dx * 0.008;
-  polar    = Math.max(0.05, Math.min(Math.PI - 0.05, polar + dy * 0.008));
+  if (isPanning) {
+    // Clic droit : pan en espace écran (vecteurs right/up calculés depuis azimuth/polar)
+    const panSpeed = radius * 0.002;
+    const rightX =  Math.cos(azimuth);
+    const rightZ = -Math.sin(azimuth);
+    const upX = -Math.cos(polar) * Math.sin(azimuth);
+    const upY =  Math.sin(polar);
+    const upZ = -Math.cos(polar) * Math.cos(azimuth);
+    camTarget.x -= rightX * dx * panSpeed;
+    camTarget.z -= rightZ * dx * panSpeed;
+    camTarget.x += upX * dy * panSpeed;
+    camTarget.y += upY * dy * panSpeed;
+    camTarget.z += upZ * dy * panSpeed;
+    targetAnim = null;
+  } else {
+    azimuth -= dx * 0.008;
+    polar    = Math.max(0.05, Math.min(Math.PI - 0.05, polar + dy * 0.008));
+  }
   prevMouse = { x: e.clientX, y: e.clientY };
   updateCamera();
 });
@@ -661,6 +684,8 @@ function selectItem(hit) {
     document.getElementById('cp-saut-box').style.display = 'none';
   }
 
+  document.getElementById('cp-zoomer').textContent = (mode === 'galactic') ? 'Voir système' : 'Zoomer';
+
   panel.classList.add('show');
 }
 
@@ -668,12 +693,35 @@ function clearSelection() { currentGroup = null; panel.classList.remove('show');
 
 document.getElementById('cp-close').addEventListener('click', clearSelection);
 document.getElementById('cp-centrer').addEventListener('click', () => { if (currentGroup) centerOn(currentGroup); });
-document.getElementById('cp-zoomer').addEventListener('click',  () => { if (currentGroup) zoomOn(currentGroup); });
+document.getElementById('cp-zoomer').addEventListener('click', () => {
+  if (!currentGroup) return;
+  if (mode === 'galactic') switchToSystem(currentGroup.userData.id);
+  else                     zoomOn(currentGroup);
+});
+
+// ── HELPERS MODE ─────────────────────────────────────────────────────────────
+function switchToSystem(sysId) {
+  if (!sysId) return;
+  mode = 'system'; updateModeButtons();
+  buildSystem(sysId);
+}
+
+function switchToGalactic() {
+  const prevId = lastSystemId;
+  mode = 'galactic'; updateModeButtons();
+  radius = 80; azimuth = Math.PI/6; polar = Math.PI/4;
+  camTarget.set(0,0,0);
+  buildGalactic();
+  if (prevId) {
+    const found = pickables.find(p => p.data.id === prevId);
+    if (found) { selectItem(found); centerOn(found.group); }
+  }
+}
 
 // ── CLICK / DBL-CLICK ────────────────────────────────────────────────────────
 let _clickTimer = null;
 canvas.addEventListener('click', e => {
-  if (isDragging) return;
+  if (isPanning) return;
   const hit = raycast(e);
   clearTimeout(_clickTimer);
   _clickTimer = setTimeout(() => { _clickTimer = null; if (hit) selectItem(hit); else clearSelection(); }, 220);
@@ -681,22 +729,26 @@ canvas.addEventListener('click', e => {
 canvas.addEventListener('dblclick', e => {
   clearTimeout(_clickTimer); _clickTimer = null;
   const hit = raycast(e);
-  if (hit) { selectItem(hit); zoomOn(hit.group); }
+  if (!hit) return;
+  if (currentGroup === hit.group) {
+    // Déjà centré sur cet objet → basculer de mode
+    if (mode === 'galactic') switchToSystem(hit.data.id);
+    else                      switchToGalactic();
+  } else {
+    // Pas encore centré → centrer + sélectionner
+    selectItem(hit);
+    centerOn(hit.group);
+  }
 });
 
 // ── BOUTONS MODE / AXE ────────────────────────────────────────────────────────
 document.getElementById('btn-galactic').addEventListener('click', () => {
   if (mode === 'galactic') return;
-  mode = 'galactic'; updateModeButtons();
-  radius = 80; azimuth = Math.PI/6; polar = Math.PI/4;
-  camTarget.set(0,0,0);
-  buildGalactic();
+  switchToGalactic();
 });
 document.getElementById('btn-systeme').addEventListener('click', () => {
   if (mode === 'system') return;
-  const targetId = currentGroup?.userData?.id ?? currentSysId;
-  mode = 'system'; updateModeButtons();
-  buildSystem(targetId);
+  switchToSystem(currentGroup?.userData?.id ?? currentSysId);
 });
 
 ['X','Y','Z'].forEach(a => {

@@ -78,13 +78,6 @@
                style="color:var(--warning);text-decoration:none;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--warning)'">Sol</a>
         </div>
 
-        {{-- Sélection du plan --}}
-        <div style="display:flex;align-items:center;gap:6px;margin-left:auto;font-family:var(--mono);font-size:10px;">
-            <span style="color:var(--text-muted);">Plan</span>
-            <button onclick="changePlan('X')" class="{{ $plan === 'X' ? 'plan-btn-active' : 'plan-btn-inactive' }}" style="padding:4px 10px;font-family:var(--mono);font-size:10px;cursor:pointer;transition:all 0.12s;">X</button>
-            <button onclick="changePlan('Y')" class="{{ $plan === 'Y' ? 'plan-btn-active' : 'plan-btn-inactive' }}" style="padding:4px 10px;font-family:var(--mono);font-size:10px;cursor:pointer;transition:all 0.12s;">Y</button>
-            <button onclick="changePlan('Z')" class="{{ $plan === 'Z' ? 'plan-btn-active' : 'plan-btn-inactive' }}" style="padding:4px 10px;font-family:var(--mono);font-size:10px;cursor:pointer;transition:all 0.12s;">Z</button>
-        </div>
     </div>
 
     {{-- Légende --}}
@@ -125,8 +118,14 @@
             elseif ($plan === 'Y') { $hAxisLabel = 'X'; $vAxisLabel = 'Z'; $fixedAxis = 'Y'; $fixedValue = $centerY; }
             else { $hAxisLabel = 'Y'; $vAxisLabel = 'Z'; $fixedAxis = 'X'; $fixedValue = $centerX; }
         @endphp
-        <div style="font-family:var(--mono);font-size:9px;color:var(--text-muted);margin-bottom:6px;">
-            {{ $hAxisLabel }} (→) / {{ $vAxisLabel }} (↑) | {{ $fixedAxis }} = {{ $fixedValue }}
+        <div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:9px;margin-bottom:6px;">
+            <span style="color:var(--text-muted);">{{ $hAxisLabel }} (→) / {{ $vAxisLabel }} (↑) | {{ $fixedAxis }} = {{ $fixedValue }}</span>
+            <div style="display:flex;align-items:center;gap:3px;">
+                <span style="color:var(--text-muted);margin-right:3px;">Plan</span>
+                <button onclick="changePlan('X')" class="{{ $plan === 'X' ? 'plan-btn-active' : 'plan-btn-inactive' }}" style="padding:2px 8px;font-family:var(--mono);font-size:9px;cursor:pointer;transition:all 0.12s;">X</button>
+                <button onclick="changePlan('Y')" class="{{ $plan === 'Y' ? 'plan-btn-active' : 'plan-btn-inactive' }}" style="padding:2px 8px;font-family:var(--mono);font-size:10px;cursor:pointer;transition:all 0.12s;">Y</button>
+                <button onclick="changePlan('Z')" class="{{ $plan === 'Z' ? 'plan-btn-active' : 'plan-btn-inactive' }}" style="padding:2px 8px;font-family:var(--mono);font-size:9px;cursor:pointer;transition:all 0.12s;">Z</button>
+            </div>
         </div>
 
         <canvas id="carte-canvas" width="600" height="600"></canvas>
