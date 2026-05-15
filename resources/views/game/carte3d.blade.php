@@ -266,6 +266,7 @@ let currentGroup   = null;       // groupe Three.js sélectionné
 let pickables      = [];         // { core, data, group }
 let navIdx         = -1;         // index Tab navigation
 let lastSystemId   = currentSysId; // dernier système vu en mode système
+let galacticRadius = 80;           // rayon auto-fit calculé à chaque buildGalactic
 
 // Caméra
 let radius       = 80;
@@ -364,8 +365,12 @@ function buildGalactic() {
   clearScene();
   gridGroup.visible = true;
 
+  let maxExtent = 1;
+
   galacticData.forEach(sys => {
     const pos = toSceneVec(sys.x || 0, sys.y || 0, sys.z || 0);
+    maxExtent = Math.max(maxExtent, pos.length());
+
     const g   = new THREE.Group();
     g.position.copy(pos);
     g.userData = { ...sys, _mode: 'galactic' };
@@ -402,8 +407,14 @@ function buildGalactic() {
     pickables.push({ core, data: g.userData, group: g });
   });
 
-  // Anneau scan (rayon ~50 unités Three.js depuis l'origine)
-  scene.add(makeOrbitRing(50, 0x2d4f6f));
+  // Auto-fit camera : rayon = étendue max / tan(demi-FOV 30°) × marge 1.25
+  // Garantit que toutes les étoiles rentrent dans le frustum depuis l'origine
+  galacticRadius = Math.max(80, maxExtent / Math.tan(Math.PI / 6) * 1.25);
+  radius = galacticRadius;
+  updateCamera();
+
+  // Anneau de référence (rayon = 1 AL en unités Three.js = 9)
+  scene.add(makeOrbitRing(9, 0x2d4f6f));
 
   updateInfo();
 }
@@ -709,9 +720,9 @@ function switchToSystem(sysId) {
 function switchToGalactic() {
   const prevId = lastSystemId;
   mode = 'galactic'; updateModeButtons();
-  radius = 80; azimuth = Math.PI/6; polar = Math.PI/4;
+  azimuth = Math.PI/6; polar = Math.PI/4;
   camTarget.set(0,0,0);
-  buildGalactic();
+  buildGalactic(); // recalcule radius via auto-fit
   if (prevId) {
     const found = pickables.find(p => p.data.id === prevId);
     if (found) { selectItem(found); centerOn(found.group); }
@@ -764,7 +775,8 @@ document.getElementById('ctrl-plus').addEventListener('click',  () => { radiusTa
 document.getElementById('ctrl-minus').addEventListener('click', () => { radiusTarget = Math.min(300, radius * 1.5); });
 document.getElementById('ctrl-home').addEventListener('click',  () => {
   targetAnim   = new THREE.Vector3(0,0,0);
-  radiusTarget = 80; azimuth = Math.PI/6; polar = Math.PI/4;
+  radiusTarget = (mode === 'galactic') ? galacticRadius : 60;
+  azimuth = Math.PI/6; polar = Math.PI/4;
 });
 
 // ── ANIMATION ────────────────────────────────────────────────────────────────
