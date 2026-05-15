@@ -36,6 +36,7 @@ class GarageController extends Controller
         }
 
         $station = Station::find($vaisseau->arrime_a_station_id);
+        $vaisseau->load(['arme1', 'arme2', 'arme3', 'bouclier', 'objetSpatial']);
         $diagnostics = $this->calculerDiagnostics($vaisseau);
 
         return view('game.garage.index', compact('personnage', 'station', 'vaisseau', 'diagnostics'));
