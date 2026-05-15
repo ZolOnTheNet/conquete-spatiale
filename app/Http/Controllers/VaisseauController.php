@@ -78,10 +78,11 @@ class VaisseauController extends Controller
         }
 
         $vaisseau = $personnage->vaisseauActif;
+        $vaisseau->load(['arme1', 'arme2', 'arme3', 'bouclier', 'objetSpatial']);
 
         $data = [
             'personnage' => $personnage,
-            'vaisseau' => $vaisseau,
+            'vaisseau'   => $vaisseau,
         ];
 
         // Si requête AJAX, retourner seulement le contenu
