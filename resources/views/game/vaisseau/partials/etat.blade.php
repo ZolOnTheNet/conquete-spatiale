@@ -13,9 +13,13 @@
     $pctBouclier   = $bouclierMax > 0 ? round(($vaisseau->bouclier_actuel / $bouclierMax) * 100) : 0;
     $pannes        = is_array($vaisseau->pannes_actuelles) ? $vaisseau->pannes_actuelles : [];
     $nbPannes      = count($pannes);
-    $paVal         = $personnage->points_action ?? 0;
-    $paMax         = $personnage->pa_max ?? config('game.pa.max', 36);
-    $paPct         = $paMax > 0 ? round($paVal / $paMax * 100) : 0;
+    $cgMax         = $vaisseau->place_soute ?? 0;
+    $cgVal         = $vaisseau->masse_variable ?? 0;
+    $cgPct         = $cgMax > 0 ? round($cgVal / $cgMax * 100) : 0;
+    $cgColor       = $cgPct < 80 ? 'var(--success)' : ($cgPct < 95 ? 'var(--warning)' : 'var(--danger)');
+    $emplacements  = is_array($vaisseau->emplacements) ? $vaisseau->emplacements : [];
+    $nbModulesCargo = count(array_filter($emplacements, fn($e) => ($e['type'] ?? '') === 'module'));
+    $slotsLibres   = max(0, ($vaisseau->max_soutes ?? 0) - $nbModulesCargo);
     $scanFormula   = $vaisseau->getDiceFormula();
     $scanEnCours   = ($vaisseau->scan_niveau_actuel ?? 0) > 0;
 @endphp
@@ -47,14 +51,14 @@
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
     @php
     $gauges = [
-        ['label' => 'Énergie',  'icon' => '⚡', 'val' => $vaisseau->energie_actuelle ?? 0, 'max' => $vaisseau->reserve ?? 0,    'pct' => $pctEnergie, 'unit' => 'UE'],
-        ['label' => 'Coque',    'icon' => '◈',  'val' => $vaisseau->coque_actuelle ?? 0,   'max' => $vaisseau->coque_max ?? 0,  'pct' => $pctCoque,   'unit' => 'US'],
-        ['label' => 'Bouclier', 'icon' => '◎',  'val' => $vaisseau->bouclier_actuel ?? 0,  'max' => $bouclierMax,               'pct' => $pctBouclier,'unit' => 'pts'],
-        ['label' => 'PA',       'icon' => 'PA', 'val' => $paVal,                            'max' => $paMax,                     'pct' => $paPct,      'unit' => 'PA'],
+        ['label' => 'Énergie',  'icon' => '⚡', 'val' => $vaisseau->energie_actuelle ?? 0, 'max' => $vaisseau->reserve ?? 0,   'pct' => $pctEnergie, 'unit' => 'UE',  'color' => null],
+        ['label' => 'Coque',    'icon' => '◈',  'val' => $vaisseau->coque_actuelle ?? 0,   'max' => $vaisseau->coque_max ?? 0, 'pct' => $pctCoque,   'unit' => 'US',  'color' => null],
+        ['label' => 'Bouclier', 'icon' => '◎',  'val' => $vaisseau->bouclier_actuel ?? 0,  'max' => $bouclierMax,              'pct' => $pctBouclier,'unit' => 'pts', 'color' => null],
+        ['label' => 'Cargo',    'icon' => '▣',  'val' => $cgVal,                           'max' => $cgMax,                    'pct' => $cgPct,      'unit' => 't',   'color' => $cgColor],
     ];
     @endphp
     @foreach($gauges as $g)
-    @php $gColor = $g['pct'] > 60 ? 'var(--success)' : ($g['pct'] > 30 ? 'var(--warning)' : 'var(--danger)'); @endphp
+    @php $gColor = $g['color'] ?? ($g['pct'] > 60 ? 'var(--success)' : ($g['pct'] > 30 ? 'var(--warning)' : 'var(--danger)')); @endphp
     <div style="padding:12px;background:rgba(5,7,12,0.4);border:1px solid var(--border-subtle);">
         <div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:9px;color:var(--text-muted);margin-bottom:6px;">
             <span>{{ $g['icon'] }} {{ $g['label'] }}</span>
@@ -117,7 +121,7 @@
     {{-- Structure & Pannes --}}
     <div class="hud-panel">
         <div class="hud-panel-title" style="{{ $nbPannes > 0 ? 'color:var(--warning);' : '' }}">
-            Structure@if($nbPannes > 0) &nbsp;— {{ $nbPannes }} PANNE(S)@endif
+            Structure{{ $nbPannes > 0 ? ' — '.$nbPannes.' PANNE(S)' : '' }}
         </div>
         <div style="padding:12px;background:rgba(5,7,12,0.4);border:1px solid var(--border-subtle);">
             <div style="margin-bottom:10px;">
@@ -199,4 +203,31 @@
         </div>
     </div>
 
+</div>
+
+{{-- Allocation des soutes --}}
+@php
+    $maxSoutes   = $vaisseau->max_soutes ?? 0;
+    $slotsModules = $nbModulesCargo;
+    $slotsCargo   = $slotsLibres;
+@endphp
+<div style="margin-top:12px;padding:14px 16px;background:rgba(5,7,12,0.4);border:1px solid var(--border-subtle);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span style="font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);">Allocation des soutes — {{ $maxSoutes }} baie(s) au total</span>
+        <span style="font-family:var(--mono);font-size:9px;color:var(--text-muted);">Cargo : {{ $cgVal }} / {{ $cgMax }} t &nbsp;·&nbsp; {{ $cgPct }}%</span>
+    </div>
+    {{-- Barre de slots visuels --}}
+    <div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:8px;">
+        @for($i = 0; $i < $maxSoutes; $i++)
+        @php $isModule = $i < $slotsModules; @endphp
+        <div style="width:28px;height:18px;border:1px solid {{ $isModule ? 'rgba(167,139,250,0.5)' : 'rgba(127,212,255,0.25)' }};background:{{ $isModule ? 'rgba(167,139,250,0.12)' : 'rgba(127,212,255,0.05)' }};display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:7px;color:{{ $isModule ? '#a78bfa' : 'var(--data)' }};" title="{{ $isModule ? 'Module' : 'Cargo' }}">
+            {{ $isModule ? 'MOD' : 'CGO' }}
+        </div>
+        @endfor
+    </div>
+    <div style="display:flex;gap:20px;font-family:var(--mono);font-size:10px;">
+        <span><span style="color:#a78bfa;">■</span> <span style="color:var(--text-muted);">Modules en soute :</span> <span style="color:var(--text-primary);">{{ $slotsModules }}</span></span>
+        <span><span style="color:var(--data);">■</span> <span style="color:var(--text-muted);">Baies cargo libres :</span> <span style="color:var(--text-primary);">{{ $slotsCargo }}</span></span>
+        <span style="color:var(--text-muted);opacity:0.6;font-size:9px;margin-left:auto;">Chaque baie convertie en module réduit la capacité de {{ $maxSoutes > 0 ? round($cgMax / max(1, $maxSoutes)) : '—' }} t</span>
+    </div>
 </div>
