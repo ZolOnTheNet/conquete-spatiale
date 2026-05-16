@@ -17,7 +17,7 @@ return new class extends Migration
             ->orWhereNull('bonus_scan')
             ->orWhereNull('scan_niveau_actuel')
             ->update([
-                'portee_scan' => DB::raw('COALESCE(portee_scan, 5.0)'),
+                'portee_scan' => DB::raw('COALESCE(portee_scan, 10.0)'),
                 'puissance_scan' => DB::raw('COALESCE(puissance_scan, 20)'),
                 'bonus_scan' => DB::raw('COALESCE(bonus_scan, 0)'),
                 'scan_niveau_actuel' => DB::raw('COALESCE(scan_niveau_actuel, 0)'),

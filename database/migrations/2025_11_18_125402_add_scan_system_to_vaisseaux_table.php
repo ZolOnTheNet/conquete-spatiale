@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('vaisseaux', function (Blueprint $table) {
             // === SYSTÈME DE SCAN ===
             // Caractéristiques du scanner (améliorables)
-            $table->decimal('portee_scan', 6, 2)->default(5.0)->after('system_informatique');  // Portée en années-lumière
+            $table->decimal('portee_scan', 6, 2)->default(10.0)->after('system_informatique');  // Portée en années-lumière
             $table->integer('puissance_scan')->default(100)->after('portee_scan');              // Puissance de base (100 = standard)
             $table->integer('bonus_scan')->default(0)->after('puissance_scan');                 // Bonus d'équipements
 
