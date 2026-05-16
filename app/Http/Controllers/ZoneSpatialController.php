@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Log;
  * @see App\Models\ZoneSpatiale
  * @see docs/game-design/GDD_Asteroides.md
  */
-class ZoneSpatiale Controller extends Controller
+class ZoneSpatialController extends Controller
 {
     /**
      * Liste toutes les zones d'un système stellaire
