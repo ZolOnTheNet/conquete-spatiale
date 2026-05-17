@@ -165,6 +165,8 @@
     <button class="c3d-modebtn active" id="btn-axis-Z" title="Axe vertical = Z (altitude)">Axe Z</button>
     <button class="c3d-modebtn"        id="btn-axis-Y" title="Axe vertical = Y">Axe Y</button>
     <button class="c3d-modebtn"        id="btn-axis-X" title="Axe vertical = X">Axe X</button>
+    <div class="c3d-modesep" id="sep-pos-vaisseau" style="display:none"></div>
+    <button class="c3d-modebtn" id="btn-pos-vaisseau" title="Recentrer sur la position du vaisseau" style="display:none">Pos.Vaiss.</button>
   </div>
 
   {{-- Compteur --}}
@@ -407,10 +409,10 @@ function buildGalactic() {
     pickables.push({ core, data: g.userData, group: g });
   });
 
-  // Auto-fit camera : rayon = étendue max / tan(demi-FOV 30°) × marge 1.25
-  // Garantit que toutes les étoiles rentrent dans le frustum depuis l'origine
+  // Auto-fit : calcule galacticRadius mais n'écrase pas radius si on vient de switchToGalactic
+  // (zoomOn() fixe radiusTarget=20 juste après → laisser l'animation gérer la transition)
   galacticRadius = Math.max(80, maxExtent / Math.tan(Math.PI / 6) * 1.25);
-  radius = galacticRadius;
+  if (radiusTarget === null) { radius = galacticRadius; } // ouverture initiale seulement
   updateCamera();
 
   // Anneau de référence (rayon = 1 AL en unités Three.js = 9)
@@ -435,18 +437,24 @@ async function buildSystem(sysId) {
     return;
   }
 
-  // Étoile centrale
+  // Étoile centrale — dans un groupe pickable pour que dblclick revienne en galactique
+  const starGroup = new THREE.Group();
+  starGroup.position.set(0, 0, 0);
+  starGroup.userData = { _mode: 'system', _isStarCenter: true, id: sysId, name: data.systeme.nom };
+
   const starGlow = new THREE.Sprite(new THREE.SpriteMaterial({
     map: makeGlow('#ffcc66'), blending: THREE.AdditiveBlending, transparent: true, opacity: 0.9
   }));
   starGlow.scale.set(8, 8, 1);
-  scene.add(starGlow);
+  starGroup.add(starGlow);
 
   const starCore = new THREE.Mesh(
     new THREE.SphereGeometry(1.5, 24, 24),
     new THREE.MeshBasicMaterial({ color: 0xffcc66 })
   );
-  scene.add(starCore);
+  starGroup.add(starCore);
+  scene.add(starGroup);
+  pickables.push({ core: starCore, data: starGroup.userData, group: starGroup });
 
   // POIs
   data.pois.forEach(poi => {
@@ -508,6 +516,12 @@ function updateInfo(label, count) {
 function updateModeButtons() {
   document.getElementById('btn-galactic').classList.toggle('active', mode === 'galactic');
   document.getElementById('btn-systeme').classList.toggle('active',  mode === 'system');
+}
+
+function updatePosBtn() {
+  const show = mode === 'galactic' && (!currentGroup || currentGroup.userData.id !== currentSysId);
+  document.getElementById('btn-pos-vaisseau').style.display = show ? '' : 'none';
+  document.getElementById('sep-pos-vaisseau').style.display = show ? '' : 'none';
 }
 
 function updateAxisButtons() {
@@ -639,6 +653,8 @@ const panel = document.getElementById('c3d-panel');
 function selectItem(hit) {
   currentGroup = hit.group;
   const d = hit.data;
+  // Étoile centrale en mode système : pas de panneau, juste sélection (dblclick géré séparément)
+  if (d._isStarCenter) { panel.classList.remove('show'); updatePosBtn(); return; }
 
   document.getElementById('cp-name').textContent    = d.name;
   document.getElementById('cp-badge').style.display = (d.isCurrent && mode === 'galactic') ? '' : 'none';
@@ -696,9 +712,10 @@ function selectItem(hit) {
   document.getElementById('cp-zoomer').textContent = (mode === 'galactic') ? 'Voir système' : 'Zoomer';
 
   panel.classList.add('show');
+  updatePosBtn();
 }
 
-function clearSelection() { currentGroup = null; panel.classList.remove('show'); }
+function clearSelection() { currentGroup = null; panel.classList.remove('show'); updatePosBtn(); }
 
 document.getElementById('cp-close').addEventListener('click', clearSelection);
 document.getElementById('cp-centrer').addEventListener('click', () => { if (currentGroup) centerOn(currentGroup); });
@@ -718,13 +735,12 @@ function switchToSystem(sysId) {
 function switchToGalactic() {
   const prevId = lastSystemId;
   mode = 'galactic'; updateModeButtons();
-  azimuth = Math.PI/6; polar = Math.PI/4;
-  camTarget.set(0,0,0);
-  buildGalactic(); // recalcule radius via auto-fit
+  buildGalactic();
   if (prevId) {
     const found = pickables.find(p => p.data.id === prevId);
-    if (found) { selectItem(found); centerOn(found.group); }
+    if (found) { selectItem(found); zoomOn(found.group); }
   }
+  updatePosBtn();
 }
 
 // ── CLICK / DBL-CLICK ────────────────────────────────────────────────────────
@@ -739,6 +755,8 @@ canvas.addEventListener('dblclick', e => {
   clearTimeout(_clickTimer); _clickTimer = null;
   const hit = raycast(e);
   if (!hit) return;
+  // Dblclick sur l'étoile centrale en mode système → retour galactique
+  if (mode === 'system' && hit.data._isStarCenter) { switchToGalactic(); return; }
   if (currentGroup === hit.group) {
     // Déjà centré sur cet objet → basculer de mode
     if (mode === 'galactic') switchToSystem(hit.data.id);
@@ -766,6 +784,16 @@ document.getElementById('btn-systeme').addEventListener('click', () => {
     verticalAxis = a; updateAxisButtons();
     if (mode === 'galactic') buildGalactic();
   });
+});
+
+document.getElementById('btn-pos-vaisseau').addEventListener('click', () => {
+  if (mode === 'system') {
+    mode = 'galactic'; updateModeButtons();
+    buildGalactic();
+  }
+  const found = pickables.find(p => p.data.id === currentSysId);
+  if (found) { selectItem(found); zoomOn(found.group); }
+  updatePosBtn();
 });
 
 // ── BOUTONS ZOOM ─────────────────────────────────────────────────────────────
