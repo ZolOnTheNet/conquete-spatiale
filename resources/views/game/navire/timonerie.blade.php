@@ -816,7 +816,7 @@ $shipLocalDistUA = round($distUA, 1);
         @endif
       </div>
       <div class="console-input">
-        <div class="console-prompt-label">{{ strtolower($cmdName) }}@{{ strtolower($shipName) }}</div>
+        <div class="console-prompt-label">{{ strtolower($cmdName) . '@' . strtolower($shipName) }}</div>
         <input type="text" id="cmd-input" placeholder="commande… (help)" autocomplete="off">
       </div>
       <div class="shortcuts">
