@@ -543,14 +543,15 @@ class TimonerieController extends Controller
             return response()->json(['error' => 'Vaisseau sans objet spatial'], 500);
         }
 
-        // Obtenir la position effective de la station (avec orbital si nécessaire)
+        // Obtenir la position effective de la station
         $stationObjetSpatial = $station->objetSpatial;
-        if (!$stationObjetSpatial) {
-            return response()->json(['error' => 'Station sans objet spatial'], 500);
+        if ($stationObjetSpatial) {
+            $timestampJours = GameTimeHelper::getTimestampJoursActuel($personnage);
+            $stationPos = $stationObjetSpatial->getPositionEffective($timestampJours);
+        } else {
+            // Station legacy (pas d'objet_spatial_id) — fallback sur getPosition()
+            $stationPos = $station->getPosition();
         }
-
-        $timestampJours = GameTimeHelper::getTimestampJoursActuel($personnage);
-        $stationPos = $stationObjetSpatial->getPositionEffective($timestampJours);
 
         // === AMARRAGE ===
         // 1. Marquer l'amarrage dans la table vaisseaux
@@ -566,9 +567,12 @@ class TimonerieController extends Controller
 
         $vaisseau->save();
 
-        // 3. Définir le parent dans objets_spatiaux (HÉRITAGE DE POSITION)
-        $objetSpatial->parent_type = Station::class;
-        $objetSpatial->parent_id = $stationId;
+        // 3. Définir le parent dans objets_spatiaux (héritage de position)
+        //    Seulement si la station possède un ObjetSpatial
+        if ($stationObjetSpatial) {
+            $objetSpatial->parent_type = Station::class;
+            $objetSpatial->parent_id = $stationId;
+        }
 
         // 4. Copier la position de la station (le vaisseau hérite la position de son parent)
         $objetSpatial->secteur_x = $stationPos['secteur_x'];
