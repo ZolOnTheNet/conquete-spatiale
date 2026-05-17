@@ -708,9 +708,16 @@ $shipLocalDistUA = round($distUA, 1);
         <div class="dest-name {{ !$calculSaut ? 'empty' : '' }}" id="dest-name">
           {{ $calculSaut ? $calculSaut['destination_nom'] : 'Aucune cible' }}
         </div>
-        <div class="dest-coords" id="dest-coords" style="font-family:var(--mono);font-size:9px;color:var(--text-muted);margin-bottom:2px;{{ $calculSaut ? '' : 'display:none;' }}">
-          @if($calculSaut){{ $calculSaut['position_cible']['secteur_x'] ?? '?' }}, {{ $calculSaut['position_cible']['secteur_y'] ?? '?' }}, {{ $calculSaut['position_cible']['secteur_z'] ?? '?' }} AL@endif
-        </div>
+        @php
+          $coordsStyle = 'font-family:var(--mono);font-size:9px;color:var(--text-muted);margin-bottom:2px;';
+          $coordsStyle .= $calculSaut ? '' : 'display:none;';
+          $coordsTxt = $calculSaut
+            ? ($calculSaut['position_cible']['secteur_x'] ?? '?')
+              .', '.($calculSaut['position_cible']['secteur_y'] ?? '?')
+              .', '.($calculSaut['position_cible']['secteur_z'] ?? '?').' AL'
+            : '';
+        @endphp
+        <div class="dest-coords" id="dest-coords" style="{{ $coordsStyle }}">{{ $coordsTxt }}</div>
         <div class="dest-meta" id="dest-meta">
           @if($calculSaut)
             {{ number_format($calculSaut['distance'], 2) }} AL · Jet {{ $calculSaut['jet_navigation'] }} · Erreur {{ $calculSaut['score_erreur'] }}
