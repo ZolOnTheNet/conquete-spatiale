@@ -1451,12 +1451,17 @@ let lockedTargetId = null;
 let lockedTargetType = null; // 'jump' | 'local'
 
 // ============ CONSOLE ============
+const CONSOLE_MAX = 50;
+function consoleTrim() {
+  while (consoleOut.children.length > CONSOLE_MAX) consoleOut.removeChild(consoleOut.firstChild);
+}
 function consoleLog(text, type = 'sys') {
   if (!consoleOut) return;
   const div = document.createElement('div');
   div.className = 'console-line ' + type;
   div.textContent = text;
   consoleOut.appendChild(div);
+  consoleTrim();
   consoleOut.scrollTop = consoleOut.scrollHeight;
 }
 
@@ -1479,6 +1484,7 @@ function consoleLogWithMarkers(text, defaultType = 'sys') {
   }
   if (last < text.length) div.appendChild(document.createTextNode(text.substring(last)));
   consoleOut.appendChild(div);
+  consoleTrim();
   consoleOut.scrollTop = consoleOut.scrollHeight;
 }
 
@@ -1487,11 +1493,36 @@ function appendToConsole(text, cssClass) {
   consoleLog(text, map[cssClass] || 'sys');
 }
 
+const CMD_HISTORY_MAX = 20;
+const cmdHistory = [];
+let cmdHistoryPos = -1;
+let cmdHistoryDraft = '';
+
 cmdInput?.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && cmdInput.value.trim()) {
+  if (e.key === 'Enter') {
     const cmd = cmdInput.value.trim();
+    if (!cmd) return;
     cmdInput.value = '';
+    if (cmdHistory[0] !== cmd) {
+      cmdHistory.unshift(cmd);
+      if (cmdHistory.length > CMD_HISTORY_MAX) cmdHistory.pop();
+    }
+    cmdHistoryPos = -1;
+    cmdHistoryDraft = '';
     sendCommand(cmd);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (cmdHistory.length === 0) return;
+    if (cmdHistoryPos === -1) cmdHistoryDraft = cmdInput.value;
+    cmdHistoryPos = Math.min(cmdHistoryPos + 1, cmdHistory.length - 1);
+    cmdInput.value = cmdHistory[cmdHistoryPos];
+    cmdInput.setSelectionRange(cmdInput.value.length, cmdInput.value.length);
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (cmdHistoryPos <= 0) { cmdHistoryPos = -1; cmdInput.value = cmdHistoryDraft; return; }
+    cmdHistoryPos--;
+    cmdInput.value = cmdHistory[cmdHistoryPos];
+    cmdInput.setSelectionRange(cmdInput.value.length, cmdInput.value.length);
   }
 });
 
