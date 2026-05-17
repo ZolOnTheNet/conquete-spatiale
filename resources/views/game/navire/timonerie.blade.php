@@ -1160,18 +1160,16 @@ window.addEventListener('mousemove', e => {
   const dx = e.clientX - prevMouse.x;
   const dy = e.clientY - prevMouse.y;
   if (isPanning) {
-    // Right-drag: pan camera target in screen space
+    // Right-drag: pan horizontal (left/right + forward/backward in XZ plane, Y unchanged)
     const panSpeed = radius * 0.002;
     const rightX = Math.cos(theta);
     const rightZ = -Math.sin(theta);
-    const upX = -Math.cos(phi) * Math.sin(theta);
-    const upY = Math.sin(phi);
-    const upZ = -Math.cos(phi) * Math.cos(theta);
+    const fwdX = -Math.sin(theta);
+    const fwdZ = -Math.cos(theta);
     cameraTarget.x -= rightX * dx * panSpeed;
     cameraTarget.z -= rightZ * dx * panSpeed;
-    cameraTarget.x += upX * dy * panSpeed;
-    cameraTarget.y += upY * dy * panSpeed;
-    cameraTarget.z += upZ * dy * panSpeed;
+    cameraTarget.x += fwdX * dy * panSpeed;
+    cameraTarget.z += fwdZ * dy * panSpeed;
     cameraMoveTarget = null; // cancel any pending animation
   } else {
     // Left-drag: orbit

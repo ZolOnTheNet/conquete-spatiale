@@ -547,18 +547,16 @@ window.addEventListener('mousemove', e => {
   const dx = e.clientX - prevMouse.x;
   const dy = e.clientY - prevMouse.y;
   if (isPanning) {
-    // Clic droit : pan en espace écran (vecteurs right/up calculés depuis azimuth/polar)
+    // Clic droit : pan horizontal (gauche/droite + avant/arrière dans le plan XZ, sans changer Y)
     const panSpeed = radius * 0.002;
     const rightX =  Math.cos(azimuth);
     const rightZ = -Math.sin(azimuth);
-    const upX = -Math.cos(polar) * Math.sin(azimuth);
-    const upY =  Math.sin(polar);
-    const upZ = -Math.cos(polar) * Math.cos(azimuth);
+    const fwdX = -Math.sin(azimuth);
+    const fwdZ = -Math.cos(azimuth);
     camTarget.x -= rightX * dx * panSpeed;
     camTarget.z -= rightZ * dx * panSpeed;
-    camTarget.x += upX * dy * panSpeed;
-    camTarget.y += upY * dy * panSpeed;
-    camTarget.z += upZ * dy * panSpeed;
+    camTarget.x += fwdX * dy * panSpeed;
+    camTarget.z += fwdZ * dy * panSpeed;
     targetAnim = null;
   } else {
     azimuth -= dx * 0.008;

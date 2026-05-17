@@ -63,6 +63,9 @@ class EnsureHasActivePersonnage
         // Stocker le personnage dans la requête pour accès facile
         $request->attributes->set('personnage', $personnage);
 
+        // Récupération automatique des PA (1 PA/heure, lazy — ne sauve que si changement)
+        $personnage->recupererPAAutomatique();
+
         return $next($request);
     }
 }
