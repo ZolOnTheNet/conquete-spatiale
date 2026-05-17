@@ -52,6 +52,15 @@ class StationController extends Controller
      */
     public function hall(Request $request): View
     {
+        $personnage = $request->attributes->get('personnage');
+        $vaisseau   = $personnage?->vaisseauActif;
+
+        // Auto-transborder : vaisseau amarré mais personnage pas encore entré dans la station
+        if ($vaisseau && $vaisseau->arrime_a_station_id && !$personnage->dans_station_id) {
+            $personnage->dans_station_id = $vaisseau->arrime_a_station_id;
+            $personnage->save();
+        }
+
         return view('game.station.hall', $this->getStationData($request));
     }
 

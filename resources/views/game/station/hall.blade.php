@@ -51,6 +51,23 @@
     </div>
 </div>
 
+{{-- Vaisseau amarré --}}
+@php $vaisseauAmarreId = $personnage->vaisseauActif?->arrime_a_station_id ?? null; @endphp
+@if($vaisseauAmarreId)
+<div class="hud-panel" style="border-color:rgba(74,222,128,0.3);">
+    <div class="hud-panel-title" style="color:var(--success);">Vaisseau en soute</div>
+    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;">
+        Votre vaisseau est arrimé à cette station. Vous pouvez le rejoindre à tout moment.
+    </p>
+    <form method="POST" action="{{ route('station.embarquer') }}">
+        @csrf
+        <button type="submit" style="font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;padding:8px 18px;background:transparent;border:1px solid var(--success);color:var(--success);cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(74,222,128,0.1)'" onmouseout="this.style.background='transparent'">
+            ▶ Rejoindre le vaisseau
+        </button>
+    </form>
+</div>
+@endif
+
 {{-- Actualités --}}
 <div class="hud-panel" style="border-color:rgba(167,139,250,0.3);">
     <div class="hud-panel-title" style="color:rgba(167,139,250,0.8);">Actualités</div>
