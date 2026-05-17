@@ -249,11 +249,11 @@ class TimonerieController extends Controller
         return response()->json([
             'success' => true,
             'message' => "Saut effectué vers {$destination->nom}",
-            'poiCible' => $calcul['poiNom'],
+            'poiCible' => $calcul['poi_nom'],
             'arrivee' => $arrivee,
-            'jetNavigation' => $calcul['jetNavigation'],
-            'scoreErreur' => $calcul['scoreErreur'],
-            'precision' => number_format(100 - ($calcul['scoreErreur'] * 0.5), 1),
+            'jetNavigation' => $calcul['jet_navigation'],
+            'scoreErreur' => $calcul['score_erreur'],
+            'precision' => number_format(100 - ($calcul['score_erreur'] * 0.5), 1),
             'energieRestante' => $vaisseau->energie_actuelle,
             'paRestants' => $personnage->points_action,
         ]);
