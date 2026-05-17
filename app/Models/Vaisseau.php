@@ -771,13 +771,17 @@ class Vaisseau extends Model
     /**
      * Regenerer le bouclier
      */
-    public function regenererBouclier(): int
+    public function regenererBouclier(int $ticks = 1): int
     {
-        if (!$this->bouclier) return 0;
+        if (!$this->bouclier || !$this->bouclier_id) return 0;
 
         $ancien = $this->bouclier_actuel;
-        $this->bouclier_actuel = $this->bouclier->regenerer($this->bouclier_actuel);
-        $this->save();
+        for ($i = 0; $i < $ticks; $i++) {
+            $nouveau = $this->bouclier->regenerer($this->bouclier_actuel);
+            if ($nouveau <= $this->bouclier_actuel) break; // déjà au max
+            $this->bouclier_actuel = $nouveau;
+        }
+        if ($this->bouclier_actuel !== $ancien) $this->save();
 
         return $this->bouclier_actuel - $ancien;
     }

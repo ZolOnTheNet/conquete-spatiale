@@ -279,6 +279,12 @@ class Personnage extends Model
 
         $this->save();
 
+        // Régénération passive du bouclier : 1 tick par PA récupéré
+        if ($pa_a_recuperer > 0 && $this->vaisseau_actif_id) {
+            $vaisseau = $this->vaisseauActif;
+            if ($vaisseau) $vaisseau->regenererBouclier($pa_a_recuperer);
+        }
+
         return [
             'pa_recuperes' => $pa_a_recuperer,
             'heures_ecoulees' => round($periodes_ecoulees * $delai_minutes / 60, 1),
