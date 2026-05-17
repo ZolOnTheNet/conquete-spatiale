@@ -249,7 +249,7 @@ class Personnage extends Model
         $delai_minutes = config('game.pa.recuperation_delai', 60);
         $pa_par_periode = config('game.pa.recuperation_montant', 1);
 
-        $minutes_ecoulees = $maintenant->diffInMinutes($derniere_recup);
+        $minutes_ecoulees = $derniere_recup->diffInMinutes($maintenant);
         $periodes_ecoulees = (int)floor($minutes_ecoulees / $delai_minutes);
 
         // Aucune période complète écoulée
