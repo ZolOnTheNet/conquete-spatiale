@@ -99,7 +99,8 @@ class TimonerieController extends Controller
         // Calculer le jet de navigation
         $jetResult = $this->calculerJetNavigation($personnage, $vaisseau);
         $jetNavigation = $jetResult['jet'];
-        $scoreErreur = 50 - $jetNavigation;
+        $seuil = config('game.deplacement.hyperespace.seuil_erreur', 30);
+        $scoreErreur = max(0, $seuil - $jetNavigation);
         $deltaResult = $this->calculerDelta($scoreErreur, $distance);
         $deltaCalcule = $deltaResult['x']; // Utiliser delta X pour la représentation
 
@@ -1267,7 +1268,7 @@ class TimonerieController extends Controller
 
         // Réduire le score d'erreur de 5 à 15 (aléatoire)
         $amelioration = rand(5, 15);
-        $nouveauScore = max(5, $calcul['score_erreur'] - $amelioration);
+        $nouveauScore = max(0, $calcul['score_erreur'] - $amelioration);
 
         // Mettre à jour le calcul
         $calcul['score_erreur'] = $nouveauScore;
