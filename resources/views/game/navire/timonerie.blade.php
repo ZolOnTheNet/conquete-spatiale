@@ -517,16 +517,18 @@ $shipLocalDistUA = round($distUA, 1);
       <div class="gauge-bar"><div class="gauge-fill {{ $coqClass }}" style="width: {{ $coqPct }}%"></div></div>
       <span class="gauge-val">{{ $coqPct }}%</span>
     </div>
-    @if($vaisseau->bouclier_id)
     <div class="gauge" title="Bouclier : {{ $bouVal }}/100">
       <span class="gauge-icon">◎</span>
+      @if($vaisseau->bouclier_id)
       <div class="gauge-bar"><div class="gauge-fill {{ $bouClass }}" style="width: {{ $bouVal }}%"></div></div>
       <span class="gauge-val">{{ $bouVal }}%</span>
+      @else
+      <div class="gauge-bar"><div class="gauge-fill low" style="width:0%"></div></div>
+      <span class="gauge-val" style="color:var(--text-muted)">—</span>
+      @endif
     </div>
-    @endif
     <div class="gauge" title="Cargaison : {{ $cargoVal }}/{{ $cargoMax }}t">
       <span class="gauge-icon">▣</span>
-      <div class="gauge-bar"><div class="gauge-fill {{ $cargoClass }}" style="width: {{ $cargoPct }}%"></div></div>
       <span class="gauge-val">{{ $cargoVal }}/{{ $cargoMax }}t</span>
     </div>
   </div>

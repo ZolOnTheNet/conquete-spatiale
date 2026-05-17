@@ -1166,13 +1166,14 @@ class TimonerieController extends Controller
         $de1 = rand(1, 12);
         $de2 = rand(1, 12);
 
-        $intelligence = $personnage->intelligence ?? 0;
-        $navigation = $personnage->competences()->where('type', 'navigation')->first()->niveau ?? 0;
-        $ordinateur = $vaisseau->ordinateur->bonus_navigation ?? 0;
-        $module = $vaisseau->modules()->where('type', 'navigation')->sum('bonus');
+        $savoir = $personnage->savoir ?? 0;
+        $competences = is_array($personnage->competences) ? $personnage->competences : [];
+        $navigation = $competences['navigation'] ?? 0;
+        $ordinateur = (int)($vaisseau->system_informatique ?? 0);
+        $module = 0; // Bonus modules navigation (non implémenté)
 
         // Calculer le jet de base
-        $jetBase = $de1 + $de2 + $intelligence + $navigation + $ordinateur + $module;
+        $jetBase = $de1 + $de2 + $savoir + $navigation + $ordinateur + $module;
 
         // Vérifier si c'est un critique (dés égaux)
         $estCritique = $de1 === $de2;
