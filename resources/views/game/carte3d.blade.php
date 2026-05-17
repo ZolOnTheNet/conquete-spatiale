@@ -506,13 +506,11 @@ async function buildSystem(sysId) {
 
 // ── MISE À JOUR AFFICHAGE ─────────────────────────────────────────────────────
 function updateInfo(label, count) {
-  const countEl = document.getElementById('c3d-count');
-  const infoEl  = document.getElementById('c3d-info');
+  const infoEl = document.getElementById('c3d-info');
   if (mode === 'system') {
     infoEl.innerHTML = `<span class="sys-count">${label ?? '—'}</span> — ${count ?? 0} POIs`;
   } else {
-    countEl.textContent = galacticData.length;
-    infoEl.innerHTML = `<span class="sys-count">${galacticData.length}</span> systèmes connus`;
+    infoEl.innerHTML = `<span class="sys-count" id="c3d-count">${galacticData.length}</span> systèmes connus`;
   }
 }
 
@@ -731,7 +729,6 @@ document.getElementById('cp-zoomer').addEventListener('click', () => {
 // ── HELPERS MODE ─────────────────────────────────────────────────────────────
 function switchToSystem(sysId) {
   if (!sysId && sysId !== 0) return;
-  // Sauvegarder l'état exact de la caméra galactique
   savedGalactic = { radius, azimuth, polar, camTarget: camTarget.clone() };
   mode = 'system'; updateModeButtons();
   buildSystem(sysId);
@@ -741,7 +738,6 @@ function switchToGalactic() {
   mode = 'galactic'; updateModeButtons();
   buildGalactic();
   if (savedGalactic) {
-    // Restaurer la caméra exactement où elle était
     radius  = savedGalactic.radius;
     azimuth = savedGalactic.azimuth;
     polar   = savedGalactic.polar;
@@ -751,7 +747,6 @@ function switchToGalactic() {
     savedGalactic = null;
     updateCamera();
   } else {
-    // Premier retour sans état sauvegardé : centrer sur le système actuel
     const found = pickables.find(p => p.data.isCurrent) || pickables[0];
     if (found) { selectItem(found); zoomOn(found.group); }
   }

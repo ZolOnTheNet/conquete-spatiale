@@ -236,7 +236,7 @@ class PersonnageController extends Controller
                 'y'                 => 0.0,
                 'z'                 => round(sin($angle) * $r, 2),
                 'planete_parente_id'=> null,
-                'nb_gisements'      => $p->gisements->count(),
+                'nb_gisements'      => $p->gisements?->count() ?? 0,
             ];
         });
 
@@ -261,7 +261,7 @@ class PersonnageController extends Controller
                 'y'                 => 0.0,
                 'z'                 => round($pz + sin($angle) * $r, 2),
                 'planete_parente_id'=> $s->planete_parente_id,
-                'nb_gisements'      => $s->gisements->count(),
+                'nb_gisements'      => $s->gisements?->count() ?? 0,
             ];
         });
 
