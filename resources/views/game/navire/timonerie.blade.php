@@ -949,6 +949,13 @@ let scanRing = null;
 let orbitsVisible = true;
 let viewMode = new URLSearchParams(location.search).get('mode') || 'galactic';
 window.reloadWithMode = function reloadWithMode() {
+  // Persist console lines and command history across page reload
+  const out = document.getElementById('console-out');
+  if (out) {
+    const lines = Array.from(out.children).map(d => ({ t: d.textContent, c: d.className }));
+    sessionStorage.setItem('timConsole', JSON.stringify(lines));
+  }
+  if (window._timCmdHistory) sessionStorage.setItem('timCmdHistory', JSON.stringify(window._timCmdHistory));
   const url = new URL(location.href);
   url.searchParams.set('mode', viewMode);
   location.href = url.toString();
@@ -1148,6 +1155,8 @@ function updateCamera() {
   camera.position.y = cameraTarget.y + radius * Math.cos(phi);
   camera.position.z = cameraTarget.z + radius * Math.sin(phi) * Math.cos(theta);
   camera.lookAt(cameraTarget);
+  // Keep ship at constant screen size regardless of zoom level
+  shipGroup.scale.setScalar(radius * 0.025);
 }
 
 // Animate camera to a new target position + optional new radius
@@ -1494,9 +1503,39 @@ function appendToConsole(text, cssClass) {
 }
 
 const CMD_HISTORY_MAX = 20;
-const cmdHistory = [];
+window._timCmdHistory = [];
+const cmdHistory = window._timCmdHistory;
 let cmdHistoryPos = -1;
 let cmdHistoryDraft = '';
+
+// Restore console history and command history after a page reload (e.g. after jump)
+(function() {
+  const saved = sessionStorage.getItem('timConsole');
+  if (saved && consoleOut) {
+    try {
+      const lines = JSON.parse(saved);
+      const frag = document.createDocumentFragment();
+      lines.forEach(({ t, c }) => {
+        const d = document.createElement('div');
+        d.className = c; d.textContent = t;
+        frag.appendChild(d);
+      });
+      consoleOut.insertBefore(frag, consoleOut.firstChild);
+      while (consoleOut.children.length > CONSOLE_MAX) consoleOut.removeChild(consoleOut.firstChild);
+      consoleOut.scrollTop = consoleOut.scrollHeight;
+    } catch(e) {}
+    sessionStorage.removeItem('timConsole');
+  }
+  const savedH = sessionStorage.getItem('timCmdHistory');
+  if (savedH) {
+    try {
+      const h = JSON.parse(savedH);
+      h.forEach(c => cmdHistory.push(c));
+      if (cmdHistory.length > CMD_HISTORY_MAX) cmdHistory.splice(CMD_HISTORY_MAX);
+    } catch(e) {}
+    sessionStorage.removeItem('timCmdHistory');
+  }
+})();
 
 cmdInput?.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
