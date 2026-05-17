@@ -993,8 +993,15 @@ function setDestinationLine(pos) {
   const sx = shipGroup.position.x;
   const sy = shipGroup.position.y;
   const sz = shipGroup.position.z;
-  const stp = toSceneVec(pos.x || 0, pos.y || 0, pos.z || 0);
-  const tx = stp.x, ty = stp.y, tz = stp.z;
+  // Jump targets: galactic coords need coordinate swap via toSceneVec
+  // Local targets (planets/stations): x/z are already scene coords, y is always 0
+  let tx, ty, tz;
+  if (pos.isJumpTarget) {
+    const stp = toSceneVec(pos.x || 0, pos.y || 0, pos.z || 0);
+    tx = stp.x; ty = stp.y; tz = stp.z;
+  } else {
+    tx = pos.x || 0; ty = 0; tz = pos.z || 0;
+  }
   const midY = Math.max(sy, ty) + Math.max(2, Math.sqrt((tx-sx)**2+(tz-sz)**2)*0.15);
   const curve = new THREE.CatmullRomCurve3([
     new THREE.Vector3(sx, sy, sz),
@@ -1130,7 +1137,7 @@ function buildSystem() {
     pickables.push({ core: sCore, data: sat, group: sGroup });
   });
 
-  shipGroup.position.set(shipInitX || 3, 1, shipInitZ || 2);
+  shipGroup.position.set(shipInitX || 3, 0, shipInitZ || 2);
   orbitsGroup.visible = orbitsVisible;
   setCameraDefault(40);
   document.getElementById('view-label').textContent = 'Vue système — {{ $systemeActuel->nom ?? "Local" }} · {{ count($poisSecteur) }} corps';
@@ -1787,7 +1794,7 @@ async function sApprocher(poiId, poiType) {
             }
           }
         : () => setTimeout(reloadWithMode, 400);
-      mst(destX, 1, destZ, onDone);
+      mst(destX, 0, destZ, onDone);
     } else {
       setTimeout(reloadWithMode, 1500);
     }
