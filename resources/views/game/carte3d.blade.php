@@ -270,6 +270,9 @@ let navIdx         = -1;         // index Tab navigation
 let lastSystemId   = currentSysId; // dernier système vu en mode système
 let galacticRadius = 80;           // rayon auto-fit calculé à chaque buildGalactic
 
+// État caméra galactique sauvegardé au moment d'entrer en mode système
+let savedGalactic = null; // { radius, azimuth, polar, camTarget }
+
 // Caméra
 let radius       = 80;
 let azimuth      = Math.PI / 6;
@@ -727,17 +730,29 @@ document.getElementById('cp-zoomer').addEventListener('click', () => {
 
 // ── HELPERS MODE ─────────────────────────────────────────────────────────────
 function switchToSystem(sysId) {
-  if (!sysId) return;
+  if (!sysId && sysId !== 0) return;
+  // Sauvegarder l'état exact de la caméra galactique
+  savedGalactic = { radius, azimuth, polar, camTarget: camTarget.clone() };
   mode = 'system'; updateModeButtons();
   buildSystem(sysId);
 }
 
 function switchToGalactic() {
-  const prevId = lastSystemId;
   mode = 'galactic'; updateModeButtons();
   buildGalactic();
-  if (prevId) {
-    const found = pickables.find(p => p.data.id === prevId);
+  if (savedGalactic) {
+    // Restaurer la caméra exactement où elle était
+    radius  = savedGalactic.radius;
+    azimuth = savedGalactic.azimuth;
+    polar   = savedGalactic.polar;
+    camTarget.copy(savedGalactic.camTarget);
+    targetAnim   = null;
+    radiusTarget = null;
+    savedGalactic = null;
+    updateCamera();
+  } else {
+    // Premier retour sans état sauvegardé : centrer sur le système actuel
+    const found = pickables.find(p => p.data.isCurrent) || pickables[0];
     if (found) { selectItem(found); zoomOn(found.group); }
   }
   updatePosBtn();
