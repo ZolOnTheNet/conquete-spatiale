@@ -712,9 +712,9 @@ $shipLocalDistUA = round($distUA, 1);
           $coordsStyle = 'font-family:var(--mono);font-size:9px;color:var(--text-muted);margin-bottom:2px;';
           $coordsStyle .= $calculSaut ? '' : 'display:none;';
           $coordsTxt = $calculSaut
-            ? ($calculSaut['position_cible']['secteur_x'] ?? '?')
-              .', '.($calculSaut['position_cible']['secteur_y'] ?? '?')
-              .', '.($calculSaut['position_cible']['secteur_z'] ?? '?').' AL'
+            ? 'x: '.($calculSaut['position_cible']['secteur_x'] ?? '?')
+              .', y: '.($calculSaut['position_cible']['secteur_y'] ?? '?')
+              .', z: '.($calculSaut['position_cible']['secteur_z'] ?? '?').' AL'
             : '';
         @endphp
         <div class="dest-coords" id="dest-coords" style="{{ $coordsStyle }}">{{ $coordsTxt }}</div>
@@ -948,7 +948,7 @@ let pickables = [];
 let scanRing = null;
 let orbitsVisible = true;
 let viewMode = new URLSearchParams(location.search).get('mode') || 'galactic';
-function reloadWithMode() {
+window.reloadWithMode = function reloadWithMode() {
   const url = new URL(location.href);
   url.searchParams.set('mode', viewMode);
   location.href = url.toString();
@@ -1547,7 +1547,7 @@ window.lockJumpTarget = function(sys) {
   document.getElementById('dest-name').className = 'dest-name';
   const coordsEl = document.getElementById('dest-coords');
   if (sys.sx !== undefined) {
-    coordsEl.textContent = sys.sx + ', ' + sys.sy + ', ' + sys.sz + ' AL';
+    coordsEl.textContent = 'x: ' + sys.sx + ', y: ' + sys.sy + ', z: ' + sys.sz + ' AL';
     coordsEl.style.display = '';
   } else {
     coordsEl.style.display = 'none';

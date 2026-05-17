@@ -181,11 +181,11 @@ class TimonerieController extends Controller
         }
 
         // Vérifier les ressources (déjà vérifié dans calculerSaut, mais on reverifie)
-        if ($vaisseau->energie_actuelle < $calcul['energieRequise']) {
+        if ($vaisseau->energie_actuelle < $calcul['energie_requise']) {
             return response()->json(['error' => 'Énergie insuffisante'], 400);
         }
 
-        if ($personnage->points_action < $calcul['paRequis']) {
+        if ($personnage->points_action < $calcul['pa_requis']) {
             return response()->json(['error' => 'Points d\'action insuffisants'], 400);
         }
 
@@ -237,10 +237,10 @@ class TimonerieController extends Controller
         $vaisseau->reinitialiserScan();
 
         // Consommer les ressources
-        $vaisseau->energie_actuelle -= $calcul['energieRequise'];
+        $vaisseau->energie_actuelle -= $calcul['energie_requise'];
         $vaisseau->save();
 
-        $personnage->points_action -= $calcul['paRequis'];
+        $personnage->points_action -= $calcul['pa_requis'];
         $personnage->save();
 
         // Invalider le calcul après utilisation
