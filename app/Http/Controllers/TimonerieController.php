@@ -1212,7 +1212,7 @@ class TimonerieController extends Controller
             'hopeGain' => $hopeGain,
             'fearGain' => $fearGain,
             'details' => [
-                'intelligence' => $intelligence,
+                'savoir' => $savoir,
                 'navigation' => $navigation,
                 'ordinateur' => $ordinateur,
                 'module' => $module,

@@ -309,6 +309,7 @@ foreach ($sautsDisponibles as $dest) {
     $galacticData[] = [
         'name' => $dest->nom,
         'x' => round($x3, 2), 'y' => round($y3, 2), 'z' => round($z3, 2),
+        'sx' => $dest->secteur_x, 'sy' => $dest->secteur_y, 'sz' => $dest->secteur_z,
         'type' => 'star',
         'colorHex' => $colorHex,
         'size' => $visite ? 1.4 : 1.1,
@@ -706,6 +707,9 @@ $shipLocalDistUA = round($distUA, 1);
         <div class="dest-overlay-head" id="dest-head">{{ $calculSaut ? 'Destination verrouillée' : 'Destination' }}</div>
         <div class="dest-name {{ !$calculSaut ? 'empty' : '' }}" id="dest-name">
           {{ $calculSaut ? $calculSaut['destination_nom'] : 'Aucune cible' }}
+        </div>
+        <div class="dest-coords" id="dest-coords" style="font-family:var(--mono);font-size:9px;color:var(--text-muted);margin-bottom:2px;{{ $calculSaut ? '' : 'display:none;' }}">
+          @if($calculSaut){{ $calculSaut['position_cible']['secteur_x'] ?? '?' }}, {{ $calculSaut['position_cible']['secteur_y'] ?? '?' }}, {{ $calculSaut['position_cible']['secteur_z'] ?? '?' }} AL@endif
         </div>
         <div class="dest-meta" id="dest-meta">
           @if($calculSaut)
@@ -1534,6 +1538,13 @@ window.lockJumpTarget = function(sys) {
   document.getElementById('dest-head').textContent = 'Destination verrouillée';
   document.getElementById('dest-name').textContent = sys.name;
   document.getElementById('dest-name').className = 'dest-name';
+  const coordsEl = document.getElementById('dest-coords');
+  if (sys.sx !== undefined) {
+    coordsEl.textContent = sys.sx + ', ' + sys.sy + ', ' + sys.sz + ' AL';
+    coordsEl.style.display = '';
+  } else {
+    coordsEl.style.display = 'none';
+  }
   document.getElementById('dest-meta').textContent = (sys.dist||0).toFixed(2) + ' AL · ' + (sys.energieRequise||'?') + ' E · ' + (sys.paRequis||'?') + ' PA';
   document.getElementById('dest-cost-row').style.display = 'flex';
   document.getElementById('dest-cost').textContent = (sys.energieRequise||'?') + ' E · ' + (sys.paRequis||'?') + ' PA';
@@ -1581,6 +1592,7 @@ function clearTarget() {
   document.getElementById('dest-head').textContent = 'Destination';
   document.getElementById('dest-name').textContent = 'Aucune cible';
   document.getElementById('dest-name').className = 'dest-name empty';
+  document.getElementById('dest-coords').style.display = 'none';
   document.getElementById('dest-meta').textContent = 'Cliquez sur la carte ou le scanner';
   document.getElementById('dest-cost-row').style.display = 'none';
   document.getElementById('btn-annuler').disabled = true;
