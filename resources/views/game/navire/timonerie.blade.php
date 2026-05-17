@@ -390,9 +390,16 @@ foreach ($poisSecteur as $poi) {
 }
 
 // --- Étape 1 : positionner les corps autour de l'étoile ---
+// Utiliser le vrai angle orbital (cohérent avec sApprocher et la position du vaisseau)
 $nPlanets = count($localPlanets);
+$tsScene = \App\Helpers\GameTimeHelper::getTimestampJoursActuel($personnage);
 foreach ($localPlanets as $i => &$planet) {
-    $angle = $i * (M_PI * 2 / max($nPlanets, 1));
+    $m = $planeteModels->get($planet['id']);
+    if ($m && $m->angle_orbital_initial !== null && $m->vitesse_angulaire !== null) {
+        $angle = (float)$m->angle_orbital_initial + (float)$m->vitesse_angulaire * $tsScene;
+    } else {
+        $angle = $i * (M_PI * 2 / max($nPlanets, 1));
+    }
     $planet['x'] = round(cos($angle) * $planet['orbitRadius'], 2);
     $planet['z'] = round(sin($angle) * $planet['orbitRadius'], 2);
     $planet['y'] = 0.0;
@@ -411,13 +418,18 @@ $pass2 = array_filter($localSatellites, fn($s) => !isset($bodiesById[$s['planete
 
 $satAngleOffset = []; // angle courant par parent_id pour éviter superpositions
 
-function positionSatellite(array &$sat, array $bodiesById, array &$satAngleOffset, \Illuminate\Support\Collection $planeteModels): void {
+function positionSatellite(array &$sat, array $bodiesById, array &$satAngleOffset, \Illuminate\Support\Collection $planeteModels, float $tsScene = 0): void {
     $parentId = $sat['planete_parente_id'];
     $parent   = $bodiesById[$parentId] ?? null;
 
-    // Angle décalé par parent pour espacer les satellites du même corps
-    $satAngleOffset[$parentId] = ($satAngleOffset[$parentId] ?? 0.5) + 1.1;
-    $angle = $satAngleOffset[$parentId];
+    // Utiliser le vrai angle orbital si disponible, sinon distribuer arbitrairement
+    $mModel = $planeteModels->get($sat['id']);
+    if ($mModel && $mModel->angle_orbital_initial !== null && $mModel->vitesse_angulaire !== null) {
+        $angle = (float)$mModel->angle_orbital_initial + (float)$mModel->vitesse_angulaire * $tsScene;
+    } else {
+        $satAngleOffset[$parentId] = ($satAngleOffset[$parentId] ?? 0.5) + 1.1;
+        $angle = $satAngleOffset[$parentId];
+    }
 
     // Rayon orbital affiché
     if ($sat['categorie'] === 'lune') {
@@ -447,13 +459,13 @@ function positionSatellite(array &$sat, array $bodiesById, array &$satAngleOffse
 
 $orderedSatellites = [];
 foreach ($pass1 as &$sat) {
-    positionSatellite($sat, $bodiesById, $satAngleOffset, $planeteModels);
+    positionSatellite($sat, $bodiesById, $satAngleOffset, $planeteModels, $tsScene);
     $bodiesById[$sat['id']] = $sat; // rend la lune disponible pour passe2
     $orderedSatellites[] = $sat;
 }
 unset($sat);
 foreach ($pass2 as &$sat) {
-    positionSatellite($sat, $bodiesById, $satAngleOffset, $planeteModels);
+    positionSatellite($sat, $bodiesById, $satAngleOffset, $planeteModels, $tsScene);
     $orderedSatellites[] = $sat;
 }
 unset($sat);
