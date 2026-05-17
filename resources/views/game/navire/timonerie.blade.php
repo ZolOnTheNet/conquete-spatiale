@@ -477,6 +477,12 @@ $shipSceneR = $distUA < 0.1
 $shipSceneX = round(cos($shipAngle) * $shipSceneR, 2);
 $shipSceneZ = round(sin($shipAngle) * $shipSceneR, 2);
 
+// Hauteur scène : offset galactique Z entre vaisseau et étoile (erreurs de saut)
+// 1 AL d'écart en Z = 5 unités scène au-dessus/dessous du plan orbital
+$starSecteurZ = $systemeActuel ? (int)($systemeActuel->secteur_z ?? 0) : (int)($objetSpatial->secteur_z ?? 0);
+$dzAL         = (int)($objetSpatial->secteur_z ?? 0) - $starSecteurZ;
+$shipSceneY   = round($dzAL * 5.0, 2);
+
 // Coordonnées locales pour mode système (UA depuis l'étoile)
 $shipLocalXUA = round($dxCua / 100, 1);
 $shipLocalYUA = round($dyCua / 100, 1);
@@ -850,6 +856,7 @@ import * as THREE from 'three';
 const galacticData  = @json($galacticData);
 const localData     = @json($localPOIs);
 const shipInitX     = {{ $shipSceneX }};
+const shipInitY     = {{ $shipSceneY }};
 const shipInitZ     = {{ $shipSceneZ }};
 // Exposer pour les scripts non-module
 window._localData   = localData;
@@ -1137,7 +1144,7 @@ function buildSystem() {
     pickables.push({ core: sCore, data: sat, group: sGroup });
   });
 
-  shipGroup.position.set(shipInitX || 3, 0, shipInitZ || 2);
+  shipGroup.position.set(shipInitX || 3, shipInitY || 0, shipInitZ || 2);
   orbitsGroup.visible = orbitsVisible;
   setCameraDefault(40);
   document.getElementById('view-label').textContent = 'Vue système — {{ $systemeActuel->nom ?? "Local" }} · {{ count($poisSecteur) }} corps';
@@ -1395,6 +1402,10 @@ function animate(t) {
   shipGroup.rotation.y += dyaw * 0.06;
 
   if (scanRing) scanRing.rotation.z = t * 0.0002;
+  // In system mode, ship Y drifts back toward the orbital plane (Y=0)
+  if (viewMode === 'system' && Math.abs(shipGroup.position.y) > 0.01) {
+    shipGroup.position.y *= 0.97;
+  }
   if (shipMoveTo) {
     shipGroup.position.lerp(shipMoveTo, 0.05);
     if (shipGroup.position.distanceTo(shipMoveTo) < 0.12) {
