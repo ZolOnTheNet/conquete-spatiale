@@ -240,7 +240,7 @@ class TimonerieController extends Controller
         $vaisseau->energie_actuelle -= $calcul['energie_requise'];
         $vaisseau->save();
 
-        $personnage->points_action -= $calcul['pa_requis'];
+        $personnage->consommerPA($calcul['pa_requis']);
         $personnage->save();
 
         // Invalider le calcul après utilisation
@@ -471,7 +471,7 @@ class TimonerieController extends Controller
         $vaisseau->energie_actuelle -= $energieConsommee;
         $vaisseau->save();
 
-        $personnage->points_action -= $paConsommes;
+        $personnage->consommerPA($paConsommes);
         $personnage->save();
 
         // Calculer la distance restante (proportionnelle au trajet non effectué)
@@ -584,7 +584,7 @@ class TimonerieController extends Controller
 
         // Consommer un minimum de ressources pour l'amarrage (1 PA, 10 énergie)
         if ($personnage->points_action > 0) {
-            $personnage->points_action -= 1;
+            $personnage->consommerPA(1);
             $personnage->save();
         }
 
@@ -683,7 +683,7 @@ class TimonerieController extends Controller
 
         // Consommer un minimum de ressources pour la mise en orbite (1 PA, 5 énergie)
         if ($personnage->points_action > 0) {
-            $personnage->points_action -= 1;
+            $personnage->consommerPA(1);
             $personnage->save();
         }
 
@@ -765,7 +765,7 @@ class TimonerieController extends Controller
 
         // Consommer 1 PA + 5 énergie pour l'atterrissage
         if ($personnage->points_action > 0) {
-            $personnage->points_action -= 1;
+            $personnage->consommerPA(1);
             $personnage->save();
         }
         if ($vaisseau->energie_actuelle > 5) {
@@ -1275,7 +1275,7 @@ class TimonerieController extends Controller
         $request->session()->put('dernier_calcul_saut', $calcul);
 
         // Consommer 1 PA
-        $personnage->points_action -= 1;
+        $personnage->consommerPA(1);
         $personnage->save();
 
         return response()->json([

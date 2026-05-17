@@ -156,6 +156,14 @@ class Personnage extends Model
             // Faire avancer le temps du jeu : 1 PA = 0.5 jour in-game
             $this->avancerTempsJeu($pa);
 
+            // Régénération passive du bouclier : 1 tick par PA dépensé
+            if ($this->vaisseau_actif_id) {
+                $vaisseau = $this->relationLoaded('vaisseauActif')
+                    ? $this->vaisseauActif
+                    : $this->vaisseauActif()->first();
+                if ($vaisseau) $vaisseau->regenererBouclier($pa);
+            }
+
             return true;
         }
         return false;
@@ -278,12 +286,6 @@ class Personnage extends Model
         }
 
         $this->save();
-
-        // Régénération passive du bouclier : 1 tick par PA récupéré
-        if ($pa_a_recuperer > 0 && $this->vaisseau_actif_id) {
-            $vaisseau = $this->vaisseauActif;
-            if ($vaisseau) $vaisseau->regenererBouclier($pa_a_recuperer);
-        }
 
         return [
             'pa_recuperes' => $pa_a_recuperer,
