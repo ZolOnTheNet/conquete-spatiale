@@ -3687,8 +3687,11 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
             ];
         }
 
-        // Parser le nombre de PA (défaut: 1)
-        $nb_pa = isset($parts[1]) ? (int)$parts[1] : 1;
+        // Parser le nombre de PA (défaut: 1) — 'full'/'max'/'tout' = tous les PA disponibles
+        $arg = $parts[1] ?? '1';
+        $nb_pa = in_array(strtolower($arg), ['full', 'max', 'tout'])
+            ? $personnage->points_action
+            : (int)$arg;
 
         if ($nb_pa < 1) {
             return [
@@ -3725,8 +3728,11 @@ Arrivée: Secteur ({$secteur_x}, {$secteur_y}, {$secteur_z})
      */
     private function adminRecharger(Personnage $personnage, array $parts): array
     {
-        // Parser le nombre de PA (défaut: 1)
-        $nb_pa = isset($parts[1]) ? (int)$parts[1] : 1;
+        // Parser le nombre de PA (défaut: 1) — 'full'/'max'/'tout' = tous les PA disponibles
+        $arg = $parts[1] ?? '1';
+        $nb_pa = in_array(strtolower($arg), ['full', 'max', 'tout'])
+            ? $personnage->points_action
+            : (int)$arg;
 
         if ($nb_pa < 1) {
             return [
