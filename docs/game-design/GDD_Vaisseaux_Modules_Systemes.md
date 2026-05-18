@@ -512,10 +512,13 @@ Trois emplacements d'arme maximum par vaisseau (slots `arme_1_id`, `arme_2_id`, 
 *Référence civile pour les armes laser et les lanceurs de missiles.*
 
 | Produit             | Code DB       | Type    | Dégâts | Portée | Précision | Énergie/tir | Prix     |
-| ------------------- | ------------- | ------- | ------ | ------ | --------- | ----------- | -------- |
+| ---------------------| ---------------| ---------| --------| --------| -----------| -------------| ----------|
 | **NX-Laser Mk I**   | `LASER_MK1`   | laser   | 5–10   | 150    | 85%       | 3 UE        | 500 cr   |
 | **NX-Laser Mk II**  | `LASER_MK2`   | laser   | 8–15   | 180    | 80%       | 5 UE        | 1 200 cr |
 | **NX-Missile Mk I** | `MISSILE_MK1` | missile | 30–50  | 250    | 60%       | 15 UE       | 5 000 cr |
+| **NX-Mines Mk I**   | `MINES_MK1`   | Mines   | 30–50  | 250    | 50%       | 05 UE       | 5 000 cr |
+
+Les Mines sont des mines anti-poursuite, elles permettent de créer un nuage de protection (rédution des tirs, diff 15 pour passer, améliorable en fonction du Mk)
 
 ---
 
@@ -524,7 +527,7 @@ Trois emplacements d'arme maximum par vaisseau (slots `arme_1_id`, `arme_2_id`, 
 *Canons cinétiques, torpilles, EMP tactique. Export réglementé.*
 
 | Produit                 | Code DB         | Type    | Dégâts | Portée | Précision | Énergie/tir | Prix      |
-| ----------------------- | --------------- | ------- | ------ | ------ | --------- | ----------- | --------- |
+| -------------------------| -----------------| ---------| --------| --------| -----------| -------------| -----------|
 | **VDI-Canon Mk I**      | `CANON_MK1`     | canon   | 15–25  | 120    | 70%       | 8 UE        | 1 500 cr  |
 | **VDI-Canon Mk II**     | `CANON_MK2`     | canon   | 25–40  | 140    | 65%       | 12 UE       | 4 000 cr  |
 | **VDI-Canon Siège**     | `CANON_SIEGE`   | canon   | 50–80  | 100    | 55%       | 25 UE       | 12 000 cr |
@@ -538,7 +541,7 @@ Trois emplacements d'arme maximum par vaisseau (slots `arme_1_id`, `arme_2_id`, 
 *Projecteur plasma haute densité, développé pour neutraliser les systèmes hostiles en zone d'exploration.*
 
 | Produit             | Code DB      | Type   | Dégâts | Portée | Précision | Énergie/tir | Prix     |
-| ------------------- | ------------ | ------ | ------ | ------ | --------- | ----------- | -------- |
+| ---------------------| --------------| --------| --------| --------| -----------| -------------| ----------|
 | **AES-Plasma Mk I** | `PLASMA_MK1` | plasma | 10–20  | 80     | 75%       | 10 UE       | 4 500 cr |
 
 ---
@@ -595,7 +598,7 @@ Un vaisseau peut sacrifier des baies de cargaison pour installer des modules. Ch
 ### 8.4 Logistique & Maintenance
 
 | Module                        | Soutes | Effet                                          | Prix                   |
-| ----------------------------- | ------ | ---------------------------------------------- | ---------------------- |
+| -------------------------------| --------| ------------------------------------------------| ------------------------|
 | **Atelier de Bord**           | 1      | +score entretien en vol, répare pannes faibles | 14 000 cr              |
 | **Module Médical**            | 1      | Soins équipage, +récup PA personnage (+1 PA/h) | 10 000 cr              |
 | **Mini-Forge**                | 1      | Transformation matières 1er niveau en vol      | 30 000 cr              |

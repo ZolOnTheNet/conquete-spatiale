@@ -67,9 +67,10 @@ class NavigationService
     public function calculerArrivee(Vaisseau $vaisseau, SystemeStellaire $destination, int $jetNavigation): array
     {
         // Précision basée sur le jet (plus le jet est bon, plus c'est précis)
-        $ecartPourcentage = (50 - $jetNavigation) / 100;
+        $seuil = config('game.deplacement.hyperespace.seuil_erreur', 50);
+        $ecartPourcentage = ($seuil - $jetNavigation) / 100;
         if ($ecartPourcentage < 0) {
-            $ecartPourcentage = 0; // Jet supérieur à 50 = arrivée parfaite
+            $ecartPourcentage = 0; // Jet supérieur au seuil = arrivée parfaite
         }
 
         // Taille du système cible (en UA)

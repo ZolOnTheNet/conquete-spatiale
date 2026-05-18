@@ -544,12 +544,25 @@ class TimonerieController extends Controller
         }
 
         // Obtenir la position effective de la station
+        $timestampJours = GameTimeHelper::getTimestampJoursActuel($personnage);
         $stationObjetSpatial = $station->objetSpatial;
         if ($stationObjetSpatial) {
-            $timestampJours = GameTimeHelper::getTimestampJoursActuel($personnage);
             $stationPos = $stationObjetSpatial->getPositionEffective($timestampJours);
+        } elseif ($station->planete_id && $station->planete) {
+            // Station legacy orbitant une planète : utiliser la position de la planète
+            $planete = $station->planete;
+            $systeme = $planete->systemeStellaire;
+            $planeteAbsPos = $planete->getPositionAbsolue($timestampJours);
+            $stationPos = [
+                'secteur_x' => $systeme->secteur_x,
+                'secteur_y' => $systeme->secteur_y,
+                'secteur_z' => $systeme->secteur_z,
+                'position_x' => (int)($planeteAbsPos['x'] - CoordinatesHelper::alToCua($systeme->secteur_x)),
+                'position_y' => (int)($planeteAbsPos['y'] - CoordinatesHelper::alToCua($systeme->secteur_y)),
+                'position_z' => (int)($planeteAbsPos['z'] - CoordinatesHelper::alToCua($systeme->secteur_z)),
+            ];
         } else {
-            // Station legacy (pas d'objet_spatial_id) — fallback sur getPosition()
+            // Dernier recours legacy
             $stationPos = $station->getPosition();
         }
 

@@ -246,6 +246,7 @@ import * as THREE from 'three';
 const galacticData  = @json($galacticData);
 const systemeAjaxUrl = '{{ route("api.carte.3d.systeme", ["id" => "__ID__"]) }}';
 const currentSysId   = {{ $galacticData[0]['id'] ?? 0 }};
+const jumpRangeCarte = {{ ($vaisseau?->vitesse_saut ?? 10) * 9 }}; // 1 AL = 9 scene units
 
 // ── SCÈNE / RENDERER ─────────────────────────────────────────────────────────
 const canvas   = document.getElementById('c3d-canvas');
@@ -268,13 +269,13 @@ let currentGroup   = null;       // groupe Three.js sélectionné
 let pickables      = [];         // { core, data, group }
 let navIdx         = -1;         // index Tab navigation
 let lastSystemId   = currentSysId; // dernier système vu en mode système
-let galacticRadius = 80;           // rayon auto-fit calculé à chaque buildGalactic
+let galacticRadius = 40;           // rayon auto-fit calculé à chaque buildGalactic
 
 // État caméra galactique sauvegardé au moment d'entrer en mode système
 let savedGalactic = null; // { radius, azimuth, polar, camTarget }
 
 // Caméra
-let radius       = 80;
+let radius       = 40;
 let azimuth      = Math.PI / 6;
 let polar        = Math.PI / 4;
 const camTarget  = new THREE.Vector3();
@@ -342,7 +343,7 @@ function makeGlow(hex) {
   return new THREE.CanvasTexture(c);
 }
 
-function makeOrbitRing(radius, color) {
+function makeOrbitRing(radius, color, opacity = 0.25) {
   const pts = [];
   for (let i = 0; i <= 64; i++) {
     const a = (i / 64) * Math.PI * 2;
@@ -350,7 +351,7 @@ function makeOrbitRing(radius, color) {
   }
   return new THREE.Line(
     new THREE.BufferGeometry().setFromPoints(pts),
-    new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.25 })
+    new THREE.LineBasicMaterial({ color, transparent: true, opacity })
   );
 }
 
@@ -414,12 +415,14 @@ function buildGalactic() {
 
   // Auto-fit : calcule galacticRadius mais n'écrase pas radius si on vient de switchToGalactic
   // (zoomOn() fixe radiusTarget=20 juste après → laisser l'animation gérer la transition)
-  galacticRadius = Math.max(80, maxExtent / Math.tan(Math.PI / 6) * 1.25);
+  galacticRadius = Math.max(40, maxExtent / Math.tan(Math.PI / 6) * 0.625);
   if (radiusTarget === null) { radius = galacticRadius; } // ouverture initiale seulement
   updateCamera();
 
-  // Anneau de référence (rayon = 1 AL en unités Three.js = 9)
-  scene.add(makeOrbitRing(9, 0x2d4f6f));
+  // Cercles de portée : 50% / 100% / 150% du saut max
+  scene.add(makeOrbitRing(jumpRangeCarte * 0.5, 0x4a8fa8, 0.18));
+  scene.add(makeOrbitRing(jumpRangeCarte,       0x7fd4ff, 0.40));
+  scene.add(makeOrbitRing(jumpRangeCarte * 1.5, 0xff8a3d, 0.14));
 
   updateInfo();
 }
@@ -498,7 +501,7 @@ async function buildSystem(sysId) {
   });
 
   // Zoom adapté au système
-  radiusTarget = 60;
+  radiusTarget = 30;
   targetAnim   = new THREE.Vector3(0, 0, 0);
 
   updateInfo(data.systeme.nom, data.pois.length);
@@ -541,7 +544,7 @@ function updateCamera() {
 updateCamera();
 
 function centerOn(g) { targetAnim = g.position.clone(); }
-function zoomOn(g)   { targetAnim = g.position.clone(); radiusTarget = mode === 'system' ? 10 : 20; }
+function zoomOn(g)   { targetAnim = g.position.clone(); radiusTarget = mode === 'system' ? 5 : 10; }
 
 // ── ORBITE / DRAG ─────────────────────────────────────────────────────────────
 let isDragging = false;

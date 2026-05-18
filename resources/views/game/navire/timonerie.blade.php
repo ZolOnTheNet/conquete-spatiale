@@ -154,7 +154,7 @@ body {
 
 /* Destination overlay sur la carte */
 .dest-overlay {
-  position: absolute; top: 12px; right: 12px; z-index: 10;
+  position: absolute; top: 30px; right: 12px; z-index: 10;
   background: rgba(5,7,12,0.88); border: 1px solid var(--data);
   padding: 10px 14px; min-width: 210px; backdrop-filter: blur(4px);
   box-shadow: 0 0 12px rgba(127,212,255,0.15);
@@ -166,14 +166,41 @@ body {
 .dest-meta { font-family: var(--mono); font-size: 10px; color: var(--text-secondary); margin-bottom: 8px; }
 .dest-cost-row { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; margin-bottom: 8px; padding: 4px 8px; background: rgba(127,212,255,0.04); border-left: 2px solid var(--warning); }
 .dest-cost-row .val { color: var(--warning); }
-.dest-overlay-actions { display: flex; gap: 5px; }
-.dest-overlay-actions .btn { flex: 1; font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding: 6px 8px; cursor: pointer; background: transparent; color: var(--text-secondary); border: 1px solid var(--border-subtle); transition: all 0.15s; }
+.dest-overlay-actions { display: flex; gap: 4px; }
+.dest-overlay-actions .btn { flex: 1; font-family: var(--mono); font-size: 9px; letter-spacing: 0.07em; text-transform: uppercase; padding: 3px 6px; cursor: pointer; background: transparent; color: var(--text-secondary); border: 1px solid var(--border-subtle); transition: all 0.15s; }
 .dest-overlay-actions .btn:hover:not(:disabled) { color: var(--text-primary); border-color: var(--border-strong); }
 .dest-overlay-actions .btn:disabled { opacity: 0.35; cursor: default; }
 .dest-overlay-actions .btn.primary { color: var(--accent); border-color: var(--accent); }
 .dest-overlay-actions .btn.primary:hover:not(:disabled) { background: rgba(255,138,61,0.1); box-shadow: 0 0 10px rgba(255,138,61,0.2); }
 .dest-overlay-actions .btn.danger { color: var(--danger); border-color: var(--danger); }
 .dest-overlay-actions .btn.danger:hover { background: rgba(239,68,68,0.1); }
+.dest-overlay-actions .btn.warn { color: var(--warning); border-color: var(--warning); }
+.dest-overlay-actions .btn.warn:hover:not(:disabled) { background: rgba(251,191,36,0.1); }
+
+/* RECHARGE PANEL */
+.recharge-panel {
+  position: fixed; z-index: 200; width: 240px;
+  background: rgba(13,17,23,0.97); border: 1px solid rgba(74,222,128,0.4);
+  padding: 10px 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+  font-family: var(--mono); font-size: 10px; flex-direction: column; gap: 8px;
+  display: none;
+}
+.rp-head { display:flex; justify-content:space-between; align-items:center; color:var(--success); font-weight:700; letter-spacing:0.12em; }
+.rp-close { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:13px; line-height:1; padding:0; }
+.rp-close:hover { color:var(--danger); }
+.rp-energy-row { display:flex; align-items:center; gap:6px; color:var(--text-muted); }
+.rp-energy-track { flex:1; height:3px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden; }
+.rp-energy-fill { height:100%; background:var(--success); border-radius:2px; transition:width 0.3s; }
+.rp-slider-row { display:flex; align-items:center; gap:6px; }
+.rp-slider-row span { color:var(--text-muted); white-space:nowrap; }
+.rp-slider-row input[type=range] { flex:1; accent-color:var(--success); }
+.rp-pa-val { min-width:28px; text-align:right; color:var(--data); }
+.rp-full-btn { font-family:var(--mono); font-size:9px; letter-spacing:0.08em; padding:2px 6px; background:transparent; border:1px solid var(--border-subtle); color:var(--text-muted); cursor:pointer; text-transform:uppercase; transition:all 0.15s; }
+.rp-full-btn:hover { color:var(--success); border-color:var(--success); }
+.rp-actions { display:flex; gap:5px; margin-top:2px; }
+.rp-actions .calc-btn { flex:1; }
+.rp-actions .charge { color:var(--success); border-color:var(--success); }
+.rp-actions .charge:hover { background:rgba(74,222,128,0.1); }
 
 /* Tooltip */
 .sys-tooltip { position: absolute; pointer-events: none; z-index: 20; background: rgba(5,7,12,0.92); backdrop-filter: blur(4px); border: 1px solid var(--data); padding: 8px 12px; font-family: var(--mono); font-size: 10px; color: var(--text-primary); box-shadow: 0 0 12px rgba(127,212,255,0.3); opacity: 0; transition: opacity 0.15s; min-width: 170px; }
@@ -266,6 +293,12 @@ $enMax = $vaisseau->reserve ?? 100;
 $enPct = $enMax > 0 ? round($enVal / $enMax * 100) : 0;
 $enClass = $enPct > 60 ? 'ok' : ($enPct > 30 ? 'mid' : 'low');
 
+// Portée de saut max du vaisseau (vitesse_saut en AL, 1 AL = 9 scene units galactique)
+$vitesseSaut = $vaisseau->vitesse_saut ?? config('game.vaisseau.a1.vitesse_saut', 10);
+$jumpRangeScene = (int)round($vitesseSaut * 9);
+// Énergie minimale pour 1 AL (formule : 100 + 1*50 = 150)
+$energieMinSaut = 150;
+
 $coqVal = $vaisseau->coque_actuelle ?? 100;
 $coqMax = $vaisseau->coque_max ?? 100;
 $coqPct = $coqMax > 0 ? round($coqVal / $coqMax * 100) : 100;
@@ -301,11 +334,14 @@ foreach ($sautsDisponibles as $dest) {
     $x3 = ($dx == 0 && $dy == 0) ? ($dest->position_x ?? 1) * 2 : $dx * 9;
     $z3 = ($dx == 0 && $dy == 0) ? ($dest->position_y ?? 1) * 2 : $dy * 9;
     $y3 = $dz * 1.8;
-    // Couleur : accessible=jaune, visité=cyan, cartographié=gris-bleu, inaccessible=gris
+    // Couleur : accessible=jaune, partiel=orange, visité=cyan, inaccessible=gris
     $visite = $dest->visite ?? false;
+    $partialAccessible = !$dest->accessible && $enVal >= $energieMinSaut;
     $colorHex = $dest->accessible
         ? ($visite ? '#7fd4ff' : '#ffe680')
-        : ($visite ? '#4a8fa8' : '#8b96a8');
+        : ($partialAccessible
+            ? ($visite ? '#c87820' : '#ffa040')
+            : ($visite ? '#4a8fa8' : '#8b96a8'));
     $galacticData[] = [
         'name' => $dest->nom,
         'x' => round($x3, 2), 'y' => round($y3, 2), 'z' => round($z3, 2),
@@ -316,6 +352,7 @@ foreach ($sautsDisponibles as $dest) {
         'dist' => round($dest->distance, 2),
         'id' => $dest->id,
         'accessible' => (bool)$dest->accessible,
+        'partialAccessible' => (bool)$partialAccessible,
         'visite' => (bool)$visite,
         'energieRequise' => $dest->energieRequise,
         'paRequis' => $dest->paRequis,
@@ -526,9 +563,9 @@ $shipLocalDistUA = round($distUA, 1);
       <div class="gauge-bar"><div class="gauge-fill {{ $paClass }}" style="width: {{ $paPct }}%"></div></div>
       <span class="gauge-val" id="hud-pa">{{ $paVal }}/{{ $paMax }}</span>
     </div>
-    <div class="gauge" title="Énergie : {{ $enVal }}/{{ $enMax }}">
+    <div class="gauge" id="gauge-energie" title="Énergie : {{ $enVal }}/{{ $enMax }} — Cliquer pour recharger" onclick="openRechargePanel()" style="cursor:pointer">
       <span class="gauge-icon">⚡</span>
-      <div class="gauge-bar"><div class="gauge-fill {{ $enClass }}" style="width: {{ $enPct }}%"></div></div>
+      <div class="gauge-bar"><div class="gauge-fill {{ $enClass }}" id="gauge-energie-fill" style="width: {{ $enPct }}%"></div></div>
       <span class="gauge-val" id="hud-en">{{ $enPct }}%</span>
     </div>
     <div class="gauge" title="Coque : {{ $coqVal }}/{{ $coqMax }}">
@@ -573,8 +610,22 @@ $shipLocalDistUA = round($distUA, 1);
   <span class="calc-meta">
     {{ number_format($calculSaut['distance'], 1) }} AL ·
     {{ $calculSaut['energie_requise'] }} E ·
-    {{ $calculSaut['pa_requis'] }} PA ·
-    Jet {{ $calculSaut['jet_navigation'] }} · Erreur {{ $calculSaut['score_erreur'] }}
+    {{ $calculSaut['pa_requis'] }} PA
+    @php
+      $serreur = $calculSaut['score_erreur'];
+      $narratifBanner = match(true) {
+          $serreur <= 5  => 'Trajectoire optimale',
+          $serreur <= 15 => 'Calcul solide',
+          $serreur <= 25 => 'Correct, perfectible',
+          $serreur <= 35 => 'Intuition en alerte',
+          default        => 'Trajectoire risquée',
+      };
+      $colorBanner = $serreur <= 15 ? 'var(--success)' : ($serreur <= 30 ? 'var(--warning)' : 'var(--danger)');
+    @endphp
+    @if(auth()->user()->is_admin ?? false)
+      · Jet {{ $calculSaut['jet_navigation'] }} · Erreur {{ $calculSaut['score_erreur'] }}
+    @endif
+    · <span style="color:{{ $colorBanner }}">{{ $narratifBanner }}</span>
     @if($calculSaut['est_critique']) · <span style="color:var(--warning)">★ CRITIQUE</span> @endif
   </span>
   <div class="calc-actions">
@@ -738,7 +789,11 @@ $shipLocalDistUA = round($distUA, 1);
         <div class="dest-coords" id="dest-coords" style="{{ $coordsStyle }}">{{ $coordsTxt }}</div>
         <div class="dest-meta" id="dest-meta">
           @if($calculSaut)
-            {{ number_format($calculSaut['distance'], 2) }} AL · Jet {{ $calculSaut['jet_navigation'] }} · Erreur {{ $calculSaut['score_erreur'] }}
+            @if(auth()->user()->is_admin ?? false)
+              {{ number_format($calculSaut['distance'], 2) }} AL · Jet {{ $calculSaut['jet_navigation'] }} · Erreur {{ $calculSaut['score_erreur'] }}
+            @else
+              {{ number_format($calculSaut['distance'], 2) }} AL
+            @endif
           @else
             Cliquez sur la carte ou le scanner
           @endif
@@ -749,15 +804,20 @@ $shipLocalDistUA = round($distUA, 1);
         </div>
         <div class="dest-overlay-actions">
           <button class="btn danger" id="btn-annuler" onclick="{{ $calculSaut ? 'annulerCalculSaut()' : 'clearTarget()' }}" {{ !$calculSaut ? 'disabled' : '' }}>Annuler</button>
+          <button class="btn" id="btn-calcul"
+            @if($calculSaut)
+              onclick="calculerSaut({{ $calculSaut['destination_id'] }})"
+            @else
+              disabled style="display:none"
+            @endif
+          >{{ $calculSaut ? 'Recalcul' : 'Calcul' }}</button>
           <button class="btn primary" id="btn-action"
             @if($calculSaut)
               onclick="effectuerSaut({{ $calculSaut['destination_id'] }})"
             @else
               disabled
             @endif
-          >
-            {{ $calculSaut ? '▶ Initier saut' : 'Sélectionner cible' }}
-          </button>
+          >{{ $calculSaut ? '▶ Saut' : 'Sélectionner cible' }}</button>
         </div>
     </div>
 
@@ -830,7 +890,21 @@ $shipLocalDistUA = round($distUA, 1);
         <div class="console-line sys">────────────────────────────</div>
         @if($calculSaut)
         <div class="console-line data">> Calcul de saut en cours → {{ $calculSaut['destination_nom'] }}</div>
+        @php
+        $serrN = $calculSaut['score_erreur'];
+        $narratifConsole = match(true) {
+            $serrN <= 5  => 'Vos calculs semblent optimaux. Vous vous sentez confiant.',
+            $serrN <= 15 => 'Calcul solide — confiance élevée dans la trajectoire.',
+            $serrN <= 25 => 'Votre calcul vous semble correct, mais perfectible.',
+            $serrN <= 35 => 'Votre intuition vous met en garde. Le calcul est difficile à stabiliser.',
+            default      => 'Les équations divergent sensiblement. Ce saut vous semble risqué.',
+        };
+        $clsConsole = $serrN <= 15 ? 'ok' : ($serrN <= 30 ? 'warn' : 'err');
+        @endphp
+        @if(auth()->user()->is_admin ?? false)
         <div class="console-line warn">>  Jet {{ $calculSaut['jet_navigation'] }} · Erreur {{ $calculSaut['score_erreur'] }} · Précision {{ number_format(100 - $calculSaut['score_erreur'] * 0.5, 1) }}%</div>
+        @endif
+        <div class="console-line {{ $clsConsole }}">>  {{ $narratifConsole }}</div>
         @endif
       </div>
       <div class="console-input">
@@ -848,6 +922,28 @@ $shipLocalDistUA = round($distUA, 1);
     </div>
   </div>
 
+</div>
+
+<!-- RECHARGE PANEL -->
+<div id="recharge-panel" class="recharge-panel">
+  <div class="rp-head">
+    <span>⚡ RECHARGE</span>
+    <button class="rp-close" onclick="closeRechargePanel()">✕</button>
+  </div>
+  <div class="rp-energy-row">
+    <span id="rp-energy-label">{{ $enVal }}/{{ $enMax }} UE</span>
+    <div class="rp-energy-track"><div class="rp-energy-fill" id="rp-energy-fill" style="width:{{ $enPct }}%"></div></div>
+  </div>
+  <div class="rp-slider-row">
+    <span>PA</span>
+    <input type="range" id="rp-slider" min="1" max="{{ $paMax }}" value="1" oninput="updateRpDisplay()">
+    <span class="rp-pa-val" id="rp-pa-display">1</span>
+    <button class="rp-full-btn" onclick="rpSetFull()">Full</button>
+  </div>
+  <div class="rp-actions">
+    <button class="calc-btn cancel" onclick="closeRechargePanel()">✕ Annuler</button>
+    <button class="calc-btn charge" onclick="lancerRecharge()">⚡ Charger</button>
+  </div>
 </div>
 
 <!-- Three.js importmap -->
@@ -1050,8 +1146,14 @@ function buildScene() {
 }
 
 function buildGalactic() {
-  const ring = new THREE.Mesh(new THREE.RingGeometry(14.9,15,128), new THREE.MeshBasicMaterial({ color: 0x7fd4ff, transparent: true, opacity: 0.35, side: THREE.DoubleSide }));
-  ring.rotation.x = -Math.PI/2;
+  // Anneau principal = portée max (100%), ±50%, ±150%
+  function makeGalRing(r, color, opacity) {
+    const m = new THREE.Mesh(new THREE.RingGeometry(r - 0.3, r + 0.3, 128), new THREE.MeshBasicMaterial({ color, transparent: true, opacity, side: THREE.DoubleSide }));
+    m.rotation.x = -Math.PI/2; return m;
+  }
+  scene.add(makeGalRing(jumpRangeScene * 0.5, 0x4a8fa8, 0.18)); // 50%
+  const ring = makeGalRing(jumpRangeScene,       0x7fd4ff, 0.40); // 100%
+  scene.add(makeGalRing(jumpRangeScene * 1.5, 0xff8a3d, 0.14)); // 150%
   scanRing = ring;
   scene.add(scanRing);
 
@@ -1081,8 +1183,8 @@ function buildGalactic() {
   });
 
   shipGroup.position.set(0,0.5,0);
-  setCameraDefault(80);
-  document.getElementById('view-label').textContent = 'Vue galactique — {{ count($sautsDisponibles) }} systèmes';
+  setCameraDefault(jumpRangeScene * 1.1);
+  document.getElementById('view-label').textContent = 'Vue galactique — {{ count($sautsDisponibles) }} systèmes · portée {{ $vitesseSaut }} AL';
 }
 
 function buildSystem() {
@@ -1158,7 +1260,7 @@ function buildSystem() {
 
   shipGroup.position.set(shipInitX || 3, shipInitY || 0, shipInitZ || 2);
   orbitsGroup.visible = orbitsVisible;
-  setCameraDefault(40);
+  setCameraDefault(20);
   document.getElementById('view-label').textContent = 'Vue système — {{ $systemeActuel->nom ?? "Local" }} · {{ count($poisSecteur) }} corps';
 }
 
@@ -1484,8 +1586,19 @@ animate(0);
 
 <script>
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+const isAdmin = {{ auth()->user()->is_admin ? 'true' : 'false' }};
+const jumpRangeScene = {{ $jumpRangeScene }};
+let energieActuelle = {{ $enVal }};
 const consoleOut = document.getElementById('console-out');
 const cmdInput = document.getElementById('cmd-input');
+
+function narratifErreur(score) {
+    if (score <= 5)  return { msg: 'Vos calculs semblent optimaux. Vous vous sentez confiant.', cls: 'ok' };
+    if (score <= 15) return { msg: 'Calcul solide — confiance élevée dans la trajectoire.', cls: 'ok' };
+    if (score <= 25) return { msg: 'Votre calcul vous semble correct, mais perfectible.', cls: 'warn' };
+    if (score <= 35) return { msg: "Votre intuition vous met en garde. Le calcul est difficile à stabiliser.", cls: 'warn' };
+    return { msg: 'Les équations divergent sensiblement. Ce saut vous semble risqué.', cls: 'err' };
+}
 let lockedTargetId = null;
 let lockedTargetType = null; // 'jump' | 'local'
 
@@ -1567,6 +1680,15 @@ let cmdHistoryDraft = '';
   }
 })();
 
+document.addEventListener('click', e => {
+  const panel = document.getElementById('recharge-panel');
+  if (panel && panel.style.display !== 'none') {
+    if (!panel.contains(e.target) && !document.getElementById('gauge-energie').contains(e.target)) {
+      closeRechargePanel();
+    }
+  }
+});
+
 cmdInput?.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
     const cmd = cmdInput.value.trim();
@@ -1618,7 +1740,55 @@ function sendCommand(cmd) {
 }
 
 function updateGaugeEnergy(val) {
-  document.getElementById('inst-energie').textContent = val + '/{{ $enMax }}';
+  energieActuelle = val;
+  const enMax = {{ $enMax }};
+  document.getElementById('inst-energie').textContent = val + '/' + enMax;
+  const pct = enMax > 0 ? Math.round(val / enMax * 100) : 0;
+  const hudEn = document.getElementById('hud-en');
+  if (hudEn) hudEn.textContent = pct + '%';
+  const hudFill = document.getElementById('gauge-energie-fill');
+  if (hudFill) hudFill.style.width = pct + '%';
+  // Sync recharge panel if open
+  const rpFill = document.getElementById('rp-energy-fill');
+  if (rpFill) rpFill.style.width = pct + '%';
+  const rpLabel = document.getElementById('rp-energy-label');
+  if (rpLabel) rpLabel.textContent = val + '/' + enMax + ' UE';
+}
+
+function openRechargePanel() {
+  const gauge = document.getElementById('gauge-energie');
+  const rect = gauge.getBoundingClientRect();
+  const panel = document.getElementById('recharge-panel');
+  // Positionner sous la jauge, recadré pour rester dans l'écran
+  const left = Math.min(rect.left, window.innerWidth - 248);
+  panel.style.left = Math.max(0, left) + 'px';
+  panel.style.top = rect.bottom + 4 + 'px';
+  panel.style.display = 'flex';
+  // Ajuster le slider au PA disponible
+  const paEl = document.getElementById('hud-pa');
+  const paAvail = paEl ? parseInt(paEl.textContent.split('/')[0]) : {{ $paMax }};
+  const slider = document.getElementById('rp-slider');
+  slider.max = paAvail > 0 ? paAvail : 1;
+  slider.value = 1;
+  updateRpDisplay();
+}
+function closeRechargePanel() {
+  document.getElementById('recharge-panel').style.display = 'none';
+}
+function updateRpDisplay() {
+  document.getElementById('rp-pa-display').textContent = document.getElementById('rp-slider').value;
+}
+function rpSetFull() {
+  const paEl = document.getElementById('hud-pa');
+  const paAvail = paEl ? parseInt(paEl.textContent.split('/')[0]) : 1;
+  const slider = document.getElementById('rp-slider');
+  slider.value = paAvail;
+  updateRpDisplay();
+}
+function lancerRecharge() {
+  const pa = document.getElementById('rp-slider').value;
+  closeRechargePanel();
+  sendCommand('recharger ' + pa);
 }
 function updateGaugePA(val) {
   document.getElementById('inst-pa').textContent = val + '/{{ $paMax }}';
@@ -1657,14 +1827,32 @@ window.lockJumpTarget = function(sys) {
   document.getElementById('dest-cost').textContent = (sys.energieRequise||'?') + ' E · ' + (sys.paRequis||'?') + ' PA';
 
   const btnA = document.getElementById('btn-annuler');
-  btnA.disabled = false; btnA.className = 'btn'; btnA.textContent = 'Annuler';
+  btnA.disabled = false; btnA.className = 'btn danger'; btnA.textContent = 'Annuler';
   btnA.onclick = clearTarget;
 
+  const canPartial = energieActuelle >= 150; // énergie pour au moins 1 AL
+  const btnCalc = document.getElementById('btn-calcul');
+  btnCalc.style.display = '';
+  btnCalc.disabled = !canPartial;
+  btnCalc.className = 'btn';
+  btnCalc.textContent = 'Calcul';
+  btnCalc.onclick = () => calculerSaut(sys.id);
+
   const btnAct = document.getElementById('btn-action');
-  btnAct.disabled = !sys.accessible;
-  btnAct.className = 'btn primary';
-  btnAct.textContent = 'Calculer saut';
-  btnAct.onclick = () => calculerSaut(sys.id);
+  if (sys.accessible) {
+    btnAct.disabled = false;
+    btnAct.className = 'btn primary';
+    btnAct.textContent = 'Saut';
+  } else if (sys.partialAccessible || canPartial) {
+    btnAct.disabled = false;
+    btnAct.className = 'btn warn';
+    btnAct.textContent = 'Saut partiel';
+  } else {
+    btnAct.disabled = true;
+    btnAct.className = 'btn danger';
+    btnAct.textContent = 'Énergie insuffisante';
+  }
+  btnAct.onclick = canPartial ? () => sautDirect(sys.id) : null;
 
   showDestOverlay(true);
 };
@@ -1679,8 +1867,10 @@ window.lockLocalTarget = function(sys) {
   document.getElementById('dest-cost-row').style.display = 'none';
 
   const btnA = document.getElementById('btn-annuler');
-  btnA.disabled = false; btnA.className = 'btn'; btnA.textContent = 'Annuler';
+  btnA.disabled = false; btnA.className = 'btn danger'; btnA.textContent = 'Annuler';
   btnA.onclick = clearTarget;
+
+  document.getElementById('btn-calcul').style.display = 'none';
 
   const btnAct = document.getElementById('btn-action');
   btnAct.disabled = false;
@@ -1703,6 +1893,8 @@ function clearTarget() {
   document.getElementById('dest-meta').textContent = 'Cliquez sur la carte ou le scanner';
   document.getElementById('dest-cost-row').style.display = 'none';
   document.getElementById('btn-annuler').disabled = true;
+  const bc = document.getElementById('btn-calcul');
+  bc.style.display = 'none'; bc.disabled = true;
   document.getElementById('btn-action').disabled = true;
   document.getElementById('btn-action').textContent = 'Sélectionner cible';
   document.querySelectorAll('.scan-item.active').forEach(i => i.classList.remove('active'));
@@ -1738,14 +1930,45 @@ async function calculerSaut(destinationId, poiId = 'systeme') {
     if (!data.accessible) {
       consoleLog('  ⚠ Ressources insuffisantes', 'warn');
     } else {
-      consoleLog('  ✓ Saut calculé — prêt à initier', 'ok');
+      if (isAdmin) {
+        consoleLog('  ✓ Saut calculé — Score d\'erreur : ' + data.scoreErreur + ' · Précision : ' + data.precision + '%', 'ok');
+      }
+      const n = narratifErreur(data.scoreErreur);
+      consoleLog('  ' + n.msg, n.cls);
+      if (data.scoreErreur > 15) {
+        consoleLog('  Vous pouvez affiner le calcul (↑ Améliorer).', 'sys');
+      }
+      const btnCalc = document.getElementById('btn-calcul');
+      btnCalc.textContent = 'Recalcul';
+      btnCalc.onclick = () => calculerSaut(destinationId, poiId);
       const btnAct = document.getElementById('btn-action');
-      btnAct.textContent = '▶ Initier saut';
+      btnAct.textContent = '▶ Saut';
       btnAct.onclick = () => effectuerSaut(destinationId, poiId);
       btnAct.disabled = false;
     }
     reloadWithMode();
   } catch (e) {
+    consoleLog('[ERREUR] ' + e.message, 'err');
+  }
+}
+
+async function sautDirect(destinationId, poiId = 'systeme') {
+  consoleLog('> saut-direct ' + destinationId, 'cmd');
+  try {
+    const r = await fetch('{{ route("navire.timonerie.calculer-saut") }}', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json','X-CSRF-TOKEN':csrfToken },
+      body: JSON.stringify({ destination_id: destinationId, poi_id: poiId })
+    });
+    if (r.status === 419) { consoleLog('[SESSION EXPIRÉE] Rafraîchissez la page (F5)', 'warn'); return; }
+    const d = await r.json();
+    if (d.error) { consoleLog('[ERREUR] ' + d.error, 'err'); return; }
+    if (!d.accessible) { consoleLog('  ⚠ Ressources insuffisantes', 'warn'); return; }
+    const n = narratifErreur(d.scoreErreur);
+    consoleLog('  ' + n.msg, n.cls);
+    if (isAdmin) consoleLog('  Score d\'erreur : ' + d.scoreErreur + ' · Précision : ' + d.precision + '%', 'sys');
+    await effectuerSaut(destinationId, poiId);
+  } catch(e) {
     consoleLog('[ERREUR] ' + e.message, 'err');
   }
 }
@@ -1800,9 +2023,9 @@ async function sApprocher(poiId, poiType) {
     const target = ld.find(p => p.id == poiId);
     const mst = window._moveShipTo;
     if (target && mst) {
-      // Stop near the object, not on top: offset along the outward radial direction
+      // Stop very close to the object (within station-to-planet orbit = 0.5 scene units)
       const angle = Math.atan2(target.z || 0, target.x || 0);
-      const margin = (target.size || 2) * 0.5 + 1.0;
+      const margin = Math.max(0.15, (target.size || 0.3) * 0.5);
       const destX = (target.x || 0) + Math.cos(angle) * margin;
       const destZ = (target.z || 0) + Math.sin(angle) * margin;
       const onDone = arrivedNear
@@ -1864,7 +2087,11 @@ async function atterrir(planeteId) {
     consoleLog('  ✓ ' + data.message, 'ok');
     updateGaugeEnergy(data.energieRestante);
     updateGaugePA(data.paRestants);
-    setTimeout(reloadWithMode, 2000);
+    const btnAct = document.getElementById('btn-action');
+    btnAct.textContent = 'Décoller';
+    btnAct.onclick = () => sOrbiter(planeteId);
+    btnAct.disabled = false;
+    consoleLog('  ▸ Posé — Décoller pour reprendre l\'orbite.', 'sys');
   } catch (e) {
     consoleLog('[ERREUR] ' + e.message, 'err');
   }
@@ -1904,14 +2131,17 @@ async function annulerCalculSaut() {
 }
 
 async function ameliorerCalculSaut() {
-  if (!confirm('Améliorer ce calcul coûte 1 PA. Continuer ?')) return;
   const r = await fetch('{{ route("navire.timonerie.ameliorer-calcul") }}', {
     method: 'POST',
     headers: { 'Content-Type':'application/json','X-CSRF-TOKEN':csrfToken }
   });
   const data = await r.json();
   if (data.error) { consoleLog('[ERREUR] ' + data.error, 'err'); return; }
-  consoleLog('  ✓ Calcul amélioré · Score : ' + data.nouveau_score + ' · Précision : ' + data.precision + '%', 'ok');
+  if (isAdmin) {
+    consoleLog('  ✓ Calcul amélioré · Score : ' + data.nouveau_score + ' · Précision : ' + data.precision + '%', 'ok');
+  }
+  const n = narratifErreur(data.nouveau_score);
+  consoleLog('  ✓ Calcul révisé — ' + n.msg, n.cls);
   reloadWithMode();
 }
 

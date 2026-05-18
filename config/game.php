@@ -43,7 +43,7 @@ return [
             'coef' => 0.5,                  // Coefficient multiplicateur (Coef_HE / 100)
             'coef_pa' => 0.2,               // Coefficient PA (Coef_PAHE / 100)
             'pa_base' => 1,                 // PA de base pour un saut HE
-            'seuil_erreur' => env('GAME_NAV_SEUIL_ERREUR', 30), // Score d'Erreur = seuil - jet (min 0)
+            'seuil_erreur' => env('GAME_NAV_SEUIL_ERREUR', 50), // Score d'Erreur = seuil - jet (min 0)
         ],
     ],
 
